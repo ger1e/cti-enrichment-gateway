@@ -10,6 +10,7 @@ Private, read-only CTI enrichment gateway for Vercel.
 - VirusTotal
 - Hybrid Analysis
 - urlscan.io (historical search/result retrieval only; no scan submission)
+- Webamon Pro (search/retrieval only; no scans or takedowns)
 - Sentry (monitoring only)
 
 ## Vercel environment variables
@@ -20,6 +21,7 @@ Private, read-only CTI enrichment gateway for Vercel.
 - `VIRUSTOTAL_API_KEY`
 - `HYBRID_ANALYSIS_API_KEY`
 - `URLSCAN_API_KEY`
+- `WEBAMON_API_KEY`
 - `SENTRY_AUTH_TOKEN`
 
 Never commit API keys or other secrets to this repository.
