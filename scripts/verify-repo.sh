@@ -36,6 +36,8 @@ actions_pinned_ok() {
 
 vercel_bootstrap_ok() {
   local script=scripts/bootstrap-vercel.ps1
+  # Literal PowerShell variable names are intentional in these regexes.
+  # shellcheck disable=SC2016
   grep -Eq '\$RequiredNodeMajor[[:space:]]*=[[:space:]]*24' "${script}" &&
     grep -Eq "\$PinnedVercelCliVersion[[:space:]]*=[[:space:]]*'58\.4\.4'" "${script}" &&
     ! grep -Eq 'vercel@latest' "${script}"
