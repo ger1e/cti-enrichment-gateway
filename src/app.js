@@ -22,8 +22,7 @@ function headerValue(headers, name) {
 
 function isJsonMediaType(value) {
   const mediaType = String(value).split(';', 1)[0].trim().toLowerCase();
-  if (mediaType === 'application/json') return true;
-  return mediaType.startsWith('application/') && mediaType.endsWith('+json');
+  return /^application\/(?:json|[!#$&^_.a-z0-9-]+\+json)$/.test(mediaType);
 }
 
 function parseBody(request) {
