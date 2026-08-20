@@ -5,7 +5,6 @@ import { dshieldProvider } from './dshield.js';
 import { spamhausDropProvider } from './spamhaus-drop.js';
 import { torExitProvider } from './tor-exit.js';
 import { feodoTrackerProvider } from './feodo-tracker.js';
-import { sslblC2Provider } from './sslbl-c2.js';
 import { threatminerProvider } from './threatminer.js';
 import { greynoiseProvider } from './greynoise.js';
 import { abuseipdbProvider } from './abuseipdb.js';
@@ -32,7 +31,7 @@ import { osvProvider } from './osv.js';
 
 export {
   ipinfoProvider, rdapProvider, ripestatProvider, dshieldProvider, spamhausDropProvider, torExitProvider,
-  feodoTrackerProvider, sslblC2Provider, threatminerProvider, greynoiseProvider, abuseipdbProvider,
+  feodoTrackerProvider, threatminerProvider, greynoiseProvider, abuseipdbProvider,
   shodanProvider, censysProvider, cloudflareRadarProvider, virustotalProvider, otxProvider,
   threatfoxProvider, urlscanProvider, webamonProvider, pulsediveProvider, openphishProvider,
   urlhausProvider, circlHashlookupProvider, malwarebazaarProvider, malpediaProvider,
@@ -41,7 +40,7 @@ export {
 
 export const ALL_PROVIDERS = Object.freeze([
   ipinfoProvider, rdapProvider, ripestatProvider, dshieldProvider, spamhausDropProvider, torExitProvider,
-  feodoTrackerProvider, sslblC2Provider, threatminerProvider, greynoiseProvider, abuseipdbProvider,
+  feodoTrackerProvider, threatminerProvider, greynoiseProvider, abuseipdbProvider,
   shodanProvider, censysProvider, cloudflareRadarProvider, virustotalProvider, otxProvider,
   threatfoxProvider, urlscanProvider, webamonProvider, pulsediveProvider, openphishProvider,
   urlhausProvider, circlHashlookupProvider, malwarebazaarProvider, malpediaProvider,
