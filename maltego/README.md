@@ -43,8 +43,9 @@ Import `cti-enrichment-gateway-local.mtz` into Maltego Graph Desktop.
 - CTI Enrich URL -> `maltego.URL`
 - CTI Enrich Hash -> `maltego.Hash`
 - CTI Enrich CVE -> `maltego.Phrase` (use a value such as `CVE-2026-1234`)
+- CTI Enrich MITRE ATT&CK -> `maltego.Phrase` (use a value such as `T1059.001`, `G0007` or `DS0029`)
 
-Transforms return normalized graph entities from gateway relationships, malware-family/actor context and graphable provider attributes. When provider evidence has no graphable relationship, a compact evidence Phrase is returned rather than silently returning nothing.
+Transforms return normalized graph entities from gateway relationships, malware-family/actor context and graphable provider attributes. ATT&CK TAXII results are knowledge/mapping context, not IOC reputation or a maliciousness vote. When provider evidence has no graphable relationship, a compact evidence Phrase is returned rather than silently returning nothing.
 
 ## Configuration
 
