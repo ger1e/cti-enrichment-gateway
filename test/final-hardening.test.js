@@ -57,6 +57,15 @@ test('Vercel bootstrap DPAPI cleanup cannot mask a protection failure under Stri
   }
 });
 
+test('Vercel bootstrap deploys the exact clean origin/main source instead of redeploying a stale artifact', () => {
+  const script = readFileSync(new URL('../scripts/bootstrap-vercel.ps1', import.meta.url), 'utf8');
+  assert.match(script, /fetch --depth 1 origin main/);
+  assert.match(script, /rev-parse FETCH_HEAD/);
+  assert.match(script, /status --porcelain/);
+  assert.match(script, /deploy --prod --yes --scope \$TeamSlug/);
+  assert.doesNotMatch(script, /\bredeploy\b/);
+});
+
 test('Maltego installer reuses the bootstrap DPAPI token before prompting for another bearer', () => {
   const script = readFileSync(new URL('../maltego/install.ps1', import.meta.url), 'utf8');
   assert.match(script, /credential_store\.py'\) check/);
