@@ -55,6 +55,21 @@ vercel_bootstrap_ok() {
     ! grep -Fq 'vercel@latest' "${script}"
 }
 
+finalizer_ok() {
+  local script=scripts/finalize.ps1
+  local workflow=.github/workflows/tooling-smoke.yml
+  [[ -s "${script}" ]] &&
+    grep -Fq 'branches/main/protection' "${script}" &&
+    grep -Fq 'Tooling smoke' "${script}" &&
+    grep -Fq 'required_pull_request_reviews' "${script}" &&
+    grep -Fq 'required_status_checks' "${script}" &&
+    grep -Fq 'enforce_admins' "${script}" &&
+    grep -Fq 'allow_force_pushes' "${script}" &&
+    grep -Fq 'allow_deletions' "${script}" &&
+    grep -Fq 'bootstrap-vercel.ps1' "${script}" &&
+    grep -Fq "'scripts/finalize.ps1'" "${workflow}"
+}
+
 canonical_env_ok() {
   local expected actual
   expected="$(cat <<'EOF'
@@ -134,6 +149,7 @@ check "npm strict/deterministic policy" npm_policy_ok
 check "GitHub Actions SHA-pinned" actions_pinned_ok
 check "Maltego CI gates present" maltego_ci_ok
 check "Vercel bootstrap pinned" vercel_bootstrap_ok
+check "GitHub/Vercel finalizer" finalizer_ok
 check "canonical environment template" canonical_env_ok
 check "bootstrap secret set canonical" bootstrap_secrets_ok
 check "README runtime parity" docs_runtime_ok

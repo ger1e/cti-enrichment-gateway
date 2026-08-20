@@ -93,6 +93,7 @@ jobs:
         run: |
           $files = @(
             'scripts/bootstrap-vercel.ps1',
+            'scripts/finalize.ps1',
             'maltego/install.ps1'
           )
           foreach ($file in $files) {
