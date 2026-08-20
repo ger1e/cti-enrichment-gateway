@@ -3,6 +3,7 @@ import { loadTextFeed } from './public-feed.js';
 function canonicalUrl(value) {
   try {
     const url = new URL(value);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
     url.hash = '';
     return url.href;
   } catch {
@@ -12,24 +13,23 @@ function canonicalUrl(value) {
 
 function parseFeed(text) {
   const entries = [];
+  let dataRows = 0;
   for (const line of String(text).split(/\r?\n/)) {
     const value = line.trim();
     if (!value || value.startsWith('#')) continue;
+    dataRows += 1;
     const canonical = canonicalUrl(value);
-    if (!canonical) continue;
-    try {
-      entries.push({ url: canonical, host: new URL(canonical).hostname.toLowerCase() });
-    } catch {
-      // Ignore malformed feed rows.
-    }
+    if (!canonical) throw new Error('invalid OpenPhish feed');
+    entries.push({ url: canonical, host: new URL(canonical).hostname.toLowerCase() });
   }
+  if (dataRows === 0 || entries.length === 0) throw new Error('invalid OpenPhish feed');
   return entries;
 }
 
 export const openphishProvider = Object.freeze({
   name: 'openphish', types: ['domain', 'url'], cacheTtlMs: 12 * 60 * 60 * 1000, negativeCacheTtlMs: 12 * 60 * 60 * 1000, costClass: 'free', timeoutMs: 5000, parserVersion: '2026-08-20',
   async run(input, context = {}) {
-    const url = 'https://openphish.com/feed.txt';
+    const url = 'https://raw.githubusercontent.com/openphish/public_feed/refs/heads/main/feed.txt';
     const text = await loadTextFeed(url, context, { ttlMs: 12 * 60 * 60 * 1000, maxBytes: 4_000_000 });
     const entries = parseFeed(text);
     let matches;
