@@ -15,8 +15,9 @@ function productionHealthFunction(source) {
 test('production health uses authenticated vercel curl so Deployment Protection cannot intercept verification', () => {
   const source = productionHealthFunction(bootstrap);
 
+  assert.match(source, /\$deploymentUrl\s*=\s*["']https:\/\/\$ProductionAlias["']/i);
   assert.match(source, /\$Vercel\s+curl\s+['"]?\/api\/health['"]?/i);
-  assert.match(source, /--deployment\s+[^\r\n]*\$ProductionAlias/i);
+  assert.match(source, /--deployment\s+\$deploymentUrl/i);
   assert.match(source, /--scope\s+\$TeamSlug/i);
   assert.doesNotMatch(source, /Invoke-RestMethod/i);
   assert.match(source, /ConvertFrom-Json/i);
