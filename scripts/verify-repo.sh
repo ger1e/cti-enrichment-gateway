@@ -6,7 +6,7 @@ fail=0
 check() {
   local label="$1"
   shift
-  printf "%-30s " "${label}"
+  printf "%-34s " "${label}"
   if "$@"; then
     echo "OK"
   else
@@ -27,11 +27,25 @@ devcontainer_node_ok() {
   [[ "$(jq -r '.features["ghcr.io/devcontainers/features/node:1"].version // empty' .devcontainer/devcontainer.json)" == "24" ]]
 }
 
+npm_policy_ok() {
+  grep -Fxq 'engine-strict=true' .npmrc &&
+    grep -Fxq 'audit=true' .npmrc &&
+    grep -Fxq 'fund=false' .npmrc &&
+    grep -Fxq 'save-exact=true' .npmrc
+}
+
 actions_pinned_ok() {
   local workflow=.github/workflows/tooling-smoke.yml
   grep -Eq 'actions/checkout@[0-9a-f]{40}' "${workflow}" &&
     grep -Eq 'actions/setup-node@[0-9a-f]{40}' "${workflow}" &&
-    ! grep -Eq 'uses:[[:space:]]+actions/(checkout|setup-node)@v[0-9]+' "${workflow}"
+    ! grep -Eq 'uses:[[:space:]]+[^[:space:]]+@v[0-9]+' "${workflow}"
+}
+
+maltego_ci_ok() {
+  local workflow=.github/workflows/tooling-smoke.yml
+  grep -Fq 'python3 -m unittest discover -s tests -v' "${workflow}" &&
+    grep -Fq 'python3 -m compileall -q maltego' "${workflow}" &&
+    grep -Fq "'maltego/install.ps1'" "${workflow}"
 }
 
 vercel_bootstrap_ok() {
@@ -41,9 +55,55 @@ vercel_bootstrap_ok() {
     ! grep -Fq 'vercel@latest' "${script}"
 }
 
+canonical_env_ok() {
+  local expected actual
+  expected="$(cat <<'EOF'
+CTI_GATEWAY_TOKEN=
+ABUSECH_API_KEY=
+ABUSEIPDB_API_KEY=
+GREYNOISE_API_KEY=
+VIRUSTOTAL_API_KEY=
+HYBRID_ANALYSIS_API_KEY=
+URLSCAN_API_KEY=
+WEBAMON_API_KEY=
+SENTRY_AUTH_TOKEN=
+OTX_API_KEY=
+SHODAN_API_KEY=
+CENSYS_PAT=
+PULSEDIVE_API_KEY=
+IPINFO_TOKEN=
+MALPEDIA_API_TOKEN=
+NVD_API_KEY=
+CLOUDFLARE_RADAR_TOKEN=
+EOF
+)"
+  actual="$(grep -E '^[A-Z0-9_]+=$' .env.example)"
+  [[ "${actual}" == "${expected}" ]]
+}
+
+bootstrap_secrets_ok() {
+  local script=scripts/bootstrap-vercel.ps1
+  local name
+  for name in \
+    CTI_GATEWAY_TOKEN ABUSECH_API_KEY ABUSEIPDB_API_KEY GREYNOISE_API_KEY VIRUSTOTAL_API_KEY \
+    HYBRID_ANALYSIS_API_KEY URLSCAN_API_KEY WEBAMON_API_KEY SENTRY_AUTH_TOKEN OTX_API_KEY \
+    SHODAN_API_KEY CENSYS_PAT PULSEDIVE_API_KEY IPINFO_TOKEN MALPEDIA_API_TOKEN NVD_API_KEY \
+    CLOUDFLARE_RADAR_TOKEN; do
+    grep -Fq "'${name}'" "${script}" || return 1
+  done
+  ! grep -Fq 'SECURITYTRAILS_API_KEY' "${script}"
+}
+
 docs_runtime_ok() {
   grep -Eq 'Node\.js 24\.x' README.md &&
     ! grep -Eq 'Node(\.js)?[[:space:]]+22' README.md
+}
+
+security_policy_ok() {
+  [[ -s SECURITY.md ]] &&
+    grep -Fq 'GitHub Actions must remain pinned to immutable commit SHAs.' SECURITY.md &&
+    grep -Fq 'Runtime parity is Node.js 24.x' SECURITY.md &&
+    grep -Fq 'read-only' SECURITY.md
 }
 
 sensitive_files_untracked() {
@@ -58,18 +118,29 @@ ignore_rules_ok() {
     grep -Eq '^\.env\.\*$' .gitignore &&
     grep -Eq '^\*\.pem$' .gitignore &&
     grep -Eq '^samples/$' .gitignore &&
-    grep -Eq '^captures/$' .gitignore
+    grep -Eq '^captures/$' .gitignore &&
+    grep -Fxq 'maltego/*.mtz' .gitignore
+}
+
+no_stale_securitytrails_ok() {
+  ! grep -Fq 'SECURITYTRAILS_API_KEY' .env.example scripts/bootstrap-vercel.ps1 README.md
 }
 
 echo "== Repository invariants =="
 check "package.json Node 24.x" node_engine_ok
 check ".nvmrc Node 24" nvmrc_ok
 check "devcontainer Node 24" devcontainer_node_ok
+check "npm strict/deterministic policy" npm_policy_ok
 check "GitHub Actions SHA-pinned" actions_pinned_ok
+check "Maltego CI gates present" maltego_ci_ok
 check "Vercel bootstrap pinned" vercel_bootstrap_ok
+check "canonical environment template" canonical_env_ok
+check "bootstrap secret set canonical" bootstrap_secrets_ok
 check "README runtime parity" docs_runtime_ok
+check "security policy present" security_policy_ok
 check "sensitive artifacts untracked" sensitive_files_untracked
 check "secret/artifact ignore rules" ignore_rules_ok
+check "SecurityTrails stale config absent" no_stale_securitytrails_ok
 
 if [[ -f package-lock.json ]]; then
   echo
