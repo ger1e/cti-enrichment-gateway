@@ -43,6 +43,20 @@ test('Vercel bootstrap keeps generated gateway bearer out of terminal and stores
   assert.match(script, /git connect --yes --scope \$TeamSlug/);
 });
 
+test('Vercel bootstrap DPAPI cleanup cannot mask a protection failure under StrictMode', () => {
+  const script = readFileSync(new URL('../scripts/bootstrap-vercel.ps1', import.meta.url), 'utf8');
+  const start = script.indexOf('function Save-GatewayToken');
+  const end = script.indexOf('function Get-StoredGatewayToken');
+  assert.ok(start >= 0 && end > start, 'Save-GatewayToken function not found');
+  const saveFunction = script.slice(start, end);
+  const tryIndex = saveFunction.indexOf('try {');
+  assert.ok(tryIndex > 0, 'Save-GatewayToken try block not found');
+  for (const variable of ['$protectedBytes = $null', '$encoded = $null']) {
+    const initialization = saveFunction.indexOf(variable);
+    assert.ok(initialization >= 0 && initialization < tryIndex, `${variable} must be initialized before try`);
+  }
+});
+
 test('Maltego installer reuses the bootstrap DPAPI token before prompting for another bearer', () => {
   const script = readFileSync(new URL('../maltego/install.ps1', import.meta.url), 'utf8');
   assert.match(script, /credential_store\.py'\) check/);
