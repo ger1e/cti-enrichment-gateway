@@ -1,0 +1,68 @@
+name: Bug report
+description: Report a reproducible defect in the gateway, provider adapters, tooling, or Maltego client.
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include API keys, tokens, private URLs, malware samples, packet captures, client/internal data, or other sensitive material.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Minimal steps using non-sensitive test data.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Gateway API
+        - Provider adapter
+        - Validation / normalization
+        - Cache / provider health
+        - Maltego client
+        - Bootstrap / deployment
+        - GitHub Actions / tooling
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Logs, stack traces, request IDs, or screenshots with secrets and sensitive data removed.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed secrets, credentials, private data, malware samples, and packet captures from this report.
+          required: true
