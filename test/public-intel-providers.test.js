@@ -22,7 +22,7 @@ function feedContext(fetchImpl, feedCache = new Map()) {
 }
 
 test('all approved public intelligence providers are registered without credentials', () => {
-  for (const name of ['threatminer', 'dshield', 'circl-vulnerability', 'spamhaus-drop', 'tor-exit', 'openphish', 'feodo-tracker', 'sslbl-c2']) {
+  for (const name of ['threatminer', 'dshield', 'circl-vulnerability', 'spamhaus-drop', 'tor-exit', 'openphish', 'feodo-tracker']) {
     const p = provider(name);
     assert.equal(p.requiredEnv, undefined, `${name} must not require a secret`);
     assert.equal(p.optionalEnv, undefined, `${name} must not require an optional secret`);
@@ -46,6 +46,18 @@ test('ThreatMiner performs one fixed read-only pivot and preserves passive-DNS s
   assert.equal(data.observationType, 'passive_dns');
   assert.equal(data.verdict, 'unknown');
   assert.ok(data.relationships.some(r => r.targetType === 'domain' && r.target === 'dns.google'));
+  assert.equal(data.relationships.some(r => r.targetType === 'ip' && r.target === '8.8.8.8'), false);
+});
+
+test('ThreatMiner URL pivots use the host endpoint when the URL hostname is an IP', async () => {
+  const p = provider('threatminer');
+  await p.run({ value: 'https://192.0.2.44/a', type: 'url' }, {
+    fetchImpl: async (url) => {
+      assert.equal(String(url), 'https://api.threatminer.org/v2/host.php?q=192.0.2.44&rt=2');
+      return json({ status_code: '404', results: [] });
+    },
+    signal: new AbortController().signal,
+  });
 });
 
 test('DShield IP lookup is context, not an automatic malicious verdict', async () => {
@@ -80,6 +92,7 @@ test('Spamhaus DROP performs IPv4 CIDR membership and reuses a source-level feed
   assert.equal(listed.observationType, 'drop_netblock');
   assert.equal(listed.verdict, 'listed');
   assert.equal(listed.attributes.cidr, '192.0.2.0/24');
+  assert.equal(listed.attributes.feedTimestamp, 1787248000);
   assert.equal(notListed.verdict, 'not_listed');
 });
 
@@ -95,31 +108,29 @@ test('Tor exit membership remains contextual and never becomes a malware verdict
   assert.equal(data.attributes.isTorExit, true);
 });
 
-test('Feodo Tracker and SSLBL C2 feeds are exact IP matches with botnet-C2 semantics', async () => {
-  const feodo = provider('feodo-tracker');
-  const sslbl = provider('sslbl-c2');
-  const f = await feodo.run({ value: '192.0.2.44', type: 'ip' }, feedContext(async (url) => {
+test('Feodo Tracker is an exact IP match with botnet-C2 semantics', async () => {
+  const p = provider('feodo-tracker');
+  const data = await p.run({ value: '192.0.2.44', type: 'ip' }, feedContext(async (url) => {
     assert.equal(String(url), 'https://feodotracker.abuse.ch/downloads/ipblocklist.txt');
-    return text('# Feodo Tracker\n192.0.2.44\n');
+    return text('# abuse.ch Feodo Tracker Botnet C2 IP Blocklist (IPs only)\n# Last updated: 2026-08-20 00:00:00 UTC\n192.0.2.44\n# END 1 entries\n');
   }));
-  const s = await sslbl.run({ value: '192.0.2.44', type: 'ip' }, feedContext(async (url) => {
-    assert.equal(String(url), 'https://sslbl.abuse.ch/blacklist/sslipblacklist_aggressive.csv');
-    return text('# first_seen,ipaddress,port\n2026-08-20 00:00:00,192.0.2.44,443\n');
-  }));
-  assert.equal(f.observationType, 'botnet_c2');
-  assert.equal(f.verdict, 'listed');
-  assert.equal(s.observationType, 'botnet_c2');
-  assert.equal(s.verdict, 'listed');
-  assert.equal(s.attributes.port, 443);
+  assert.equal(data.observationType, 'botnet_c2');
+  assert.equal(data.verdict, 'listed');
+  assert.equal(data.attributes.feedUpdatedAt, '2026-08-20 00:00:00 UTC');
 });
 
-test('OpenPhish supports exact URL and domain-host matches and caches its community feed', async () => {
+test('deprecated SSLBL IP/C2 feeds are intentionally excluded from the active gateway', () => {
+  assert.equal(ALL_PROVIDERS.some(p => p.name === 'sslbl-c2'), false);
+  assert.equal(Object.values(WORKFLOWS).flat().includes('sslbl-c2'), false);
+});
+
+test('OpenPhish pins the official raw community feed and caches it', async () => {
   const p = provider('openphish');
   const feedCache = new Map();
   let calls = 0;
   const fetchImpl = async (url) => {
     calls += 1;
-    assert.equal(String(url), 'https://openphish.com/feed.txt');
+    assert.equal(String(url), 'https://raw.githubusercontent.com/openphish/public_feed/refs/heads/main/feed.txt');
     return text('https://login.example.test/verify\nhttps://other.test/a\n');
   };
   const u = await p.run({ value: 'https://login.example.test/verify', type: 'url' }, feedContext(fetchImpl, feedCache));
@@ -159,8 +170,20 @@ test('public feed response limits fail closed before parsing oversized content',
   );
 });
 
+test('malformed public feeds fail as provider errors instead of false-negative not-listed verdicts', async () => {
+  const cases = [
+    ['spamhaus-drop', { value: '192.0.2.44', type: 'ip' }],
+    ['tor-exit', { value: '192.0.2.44', type: 'ip' }],
+    ['feodo-tracker', { value: '192.0.2.44', type: 'ip' }],
+    ['openphish', { value: 'https://example.test/', type: 'url' }],
+  ];
+  for (const [name, input] of cases) {
+    await assert.rejects(() => provider(name).run(input, feedContext(async () => text('<html>upstream error</html>'))));
+  }
+});
+
 test('MAX workflows place public sources by semantics before scarce enrichment', () => {
-  assert.deepEqual(WORKFLOWS.ip, ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'sslbl-c2', 'threatminer', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.ip, ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.domain, ['rdap', 'threatminer', 'openphish', 'urlscan', 'webamon', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.url, ['openphish', 'threatminer', 'urlscan', 'webamon', 'urlhaus', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.hash, ['circl-hashlookup', 'threatminer', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox', 'pulsedive']);
