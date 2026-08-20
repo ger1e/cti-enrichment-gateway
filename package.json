@@ -6,6 +6,8 @@
   "scripts": {
     "bootstrap": "bash scripts/bootstrap-linux.sh",
     "verify:tooling": "bash scripts/verify-tooling.sh",
+    "lint:shell": "shellcheck scripts/*.sh",
+    "check": "bash -n scripts/*.sh && npm run lint:shell && npm test",
     "test": "node --test"
   },
   "engines": {
