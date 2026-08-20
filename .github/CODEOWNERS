@@ -1,0 +1,11 @@
+# Default ownership
+* @ger1e
+
+# Security-sensitive surfaces
+/.github/ @ger1e
+/api/ @ger1e
+/lib/ @ger1e
+/scripts/ @ger1e
+/maltego/ @ger1e
+/SECURITY.md @ger1e
+/.env.example @ger1e
