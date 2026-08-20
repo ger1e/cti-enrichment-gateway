@@ -34,17 +34,20 @@ async function fetchText(url, {
 export async function loadTextFeed(url, context = {}, {
   ttlMs = 60 * 60 * 1000,
   maxBytes = 2_000_000,
+  cache = true,
 } = {}) {
-  const cache = context.feedCache ?? DEFAULT_FEED_CACHE;
+  const store = context.feedCache ?? DEFAULT_FEED_CACHE;
   const now = typeof context.nowMs === 'function' ? context.nowMs() : Date.now();
-  const cached = cache.get(url);
-  if (cached && cached.expiresAt > now) return cached.value;
+  if (cache) {
+    const cached = store.get(url);
+    if (cached && cached.expiresAt > now) return cached.value;
+  }
 
   const value = await fetchText(url, {
     fetchImpl: context.fetchImpl,
     signal: context.signal,
     maxBytes,
   });
-  cache.set(url, { value, expiresAt: now + Math.max(1, ttlMs) });
+  if (cache) store.set(url, { value, expiresAt: now + Math.max(1, ttlMs) });
   return value;
 }
