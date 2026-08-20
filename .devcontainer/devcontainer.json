@@ -7,5 +7,9 @@
     },
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "postCreateCommand": "bash scripts/bootstrap-linux.sh && bash scripts/verify-tooling.sh"
+  "remoteEnv": {
+    "PATH": "${containerEnv:HOME}/.local/bin:${containerEnv:PATH}"
+  },
+  "postCreateCommand": "bash scripts/bootstrap-linux.sh",
+  "postStartCommand": "bash scripts/verify-tooling.sh"
 }
