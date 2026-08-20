@@ -5,11 +5,13 @@ param()
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$ProjectName = 'cti-enrichment-gateway'
-$ProjectId   = 'prj_ojUpOTw8x8KOj9CrTs8jih1mrPjo'
-$TeamSlug    = 'geri6'
-$OrgId       = 'team_hXokufMlDFuhPPT5r8jPf4aH'
-$RepoUrl     = 'https://github.com/ger1e/cti-enrichment-gateway.git'
+$ProjectName             = 'cti-enrichment-gateway'
+$ProjectId               = 'prj_ojUpOTw8x8KOj9CrTs8jih1mrPjo'
+$TeamSlug                = 'geri6'
+$OrgId                   = 'team_hXokufMlDFuhPPT5r8jPf4aH'
+$RepoUrl                 = 'https://github.com/ger1e/cti-enrichment-gateway.git'
+$RequiredNodeMajor       = 24
+$PinnedVercelCliVersion = '58.4.4'
 
 $SecretNames = @(
     'ABUSECH_API_KEY',
@@ -50,7 +52,7 @@ function Invoke-NativeChecked {
 
 function Ensure-Winget {
     if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
-        throw 'winget is required to install missing Git/Node.js automatically. Install Microsoft App Installer, then rerun this script.'
+        throw 'winget is required to install or align Git/Node.js automatically. Install Microsoft App Installer, then rerun this script.'
     }
 }
 
@@ -67,30 +69,85 @@ function Ensure-Git {
     }
 }
 
+function Get-NodeMajor {
+    $node = Get-Command node.exe -ErrorAction SilentlyContinue
+    if (-not $node) { return $null }
+
+    try {
+        $raw = (& $node.Source --version).Trim().TrimStart('v')
+        return ([Version]$raw).Major
+    } catch {
+        return $null
+    }
+}
+
 function Ensure-Node {
-    if ((Get-Command node.exe -ErrorAction SilentlyContinue) -and (Get-Command npm.cmd -ErrorAction SilentlyContinue)) { return }
+    $node = Get-Command node.exe -ErrorAction SilentlyContinue
+    $npm = Get-Command npm.cmd -ErrorAction SilentlyContinue
+    $major = Get-NodeMajor
+
+    if ($node -and $npm -and $major -eq $RequiredNodeMajor) {
+        return
+    }
 
     Ensure-Winget
-    Write-Host 'Installing Node.js LTS...'
-    Invoke-NativeChecked winget.exe install --id OpenJS.NodeJS.LTS -e --source winget --accept-package-agreements --accept-source-agreements --silent
+
+    if ($node -and $npm) {
+        Write-Host "Aligning Node.js to required major $RequiredNodeMajor..."
+        & winget.exe upgrade --id OpenJS.NodeJS.LTS -e --source winget --accept-package-agreements --accept-source-agreements --silent
+        if ($LASTEXITCODE -ne 0) {
+            Invoke-NativeChecked winget.exe install --id OpenJS.NodeJS.LTS -e --source winget --accept-package-agreements --accept-source-agreements --silent --force
+        }
+    } else {
+        Write-Host "Installing Node.js $RequiredNodeMajor LTS..."
+        Invoke-NativeChecked winget.exe install --id OpenJS.NodeJS.LTS -e --source winget --accept-package-agreements --accept-source-agreements --silent
+    }
+
     Refresh-ProcessPath
 
     if (-not (Get-Command node.exe -ErrorAction SilentlyContinue) -or -not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) {
         throw 'Node.js installation completed but node/npm are not visible in PATH. Reopen PowerShell and rerun the script.'
     }
+
+    $major = Get-NodeMajor
+    if ($major -ne $RequiredNodeMajor) {
+        throw "Node.js $RequiredNodeMajor.x is required for runtime parity; found $(& node.exe --version)."
+    }
+}
+
+function Get-VercelCliVersion {
+    param([Parameter(Mandatory = $true)][string]$Vercel)
+
+    try {
+        $raw = (& $Vercel --version 2>$null | Out-String).Trim()
+        if ($raw -match '(\d+\.\d+\.\d+)') {
+            return $Matches[1]
+        }
+    } catch {
+        return $null
+    }
+
+    return $null
 }
 
 function Ensure-VercelCli {
     $vercel = Get-Command vercel.cmd -ErrorAction SilentlyContinue
-    if (-not $vercel) {
-        Write-Host 'Installing latest Vercel CLI...'
-        Invoke-NativeChecked npm.cmd install -g vercel@latest
+    $currentVersion = if ($vercel) { Get-VercelCliVersion -Vercel $vercel.Source } else { $null }
+
+    if (-not $vercel -or $currentVersion -ne $PinnedVercelCliVersion) {
+        Write-Host "Installing pinned Vercel CLI $PinnedVercelCliVersion..."
+        Invoke-NativeChecked npm.cmd install -g "vercel@$PinnedVercelCliVersion"
         Refresh-ProcessPath
         $vercel = Get-Command vercel.cmd -ErrorAction SilentlyContinue
     }
 
     if (-not $vercel) {
         throw 'Vercel CLI installation completed but vercel.cmd is not visible in PATH. Reopen PowerShell and rerun the script.'
+    }
+
+    $currentVersion = Get-VercelCliVersion -Vercel $vercel.Source
+    if ($currentVersion -ne $PinnedVercelCliVersion) {
+        throw "Vercel CLI $PinnedVercelCliVersion is required by this bootstrap; found '$currentVersion'."
     }
 
     return $vercel.Source
@@ -168,6 +225,7 @@ Ensure-Git
 Ensure-Node
 $Vercel = Ensure-VercelCli
 
+Write-Host "Node.js: $(& node.exe --version)"
 Write-Host "Vercel CLI: $(& $Vercel --version)"
 Ensure-VercelLogin -Vercel $Vercel
 $workspace = Prepare-LinkedWorkspace -Vercel $Vercel
