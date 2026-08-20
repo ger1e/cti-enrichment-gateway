@@ -58,7 +58,7 @@ jobs:
         continue-on-error: true
         # Upstream post-v7 security fix for GHSA-3jxr-9vmj-r5cp; use the next
         # immutable release once it contains the patched dist bundle.
-        uses: actions/setup-node@e51e5fe84fc33b4c73ebe40526b2694712b5b858
+        uses: actions/setup-node@ae0d4ed08881f17d1511386f5be3e62356acd4a6
         with:
           node-version-file: '.nvmrc'
           package-manager-cache: false
