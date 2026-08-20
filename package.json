@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "bootstrap": "bash scripts/bootstrap-linux.sh",
+    "verify:tooling": "bash scripts/verify-tooling.sh",
     "test": "node --test"
   },
   "engines": {
