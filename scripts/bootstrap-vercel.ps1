@@ -322,9 +322,21 @@ function Set-SensitiveVercelEnv {
 }
 
 function Verify-ProductionHealth {
-    $healthUrl = "https://$ProductionAlias/api/health"
-    Write-Host "Verifying production health at $healthUrl ..."
-    $health = Invoke-RestMethod -Method Get -Uri $healthUrl -TimeoutSec 30
+    param([Parameter(Mandatory = $true)][string]$Vercel)
+
+    $deploymentUrl = "https://$ProductionAlias"
+    Write-Host "Verifying protected production health at $deploymentUrl/api/health ..."
+
+    $raw = (& $Vercel curl '/api/health' --deployment $deploymentUrl --scope $TeamSlug | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) {
+        throw "Authenticated Vercel production health request failed with exit code $LASTEXITCODE."
+    }
+
+    try {
+        $health = $raw | ConvertFrom-Json
+    } catch {
+        throw 'Production health check failed: authenticated Vercel request did not return valid JSON.'
+    }
 
     if ($health.status -ne 'ok') {
         throw "Production health check failed: status '$($health.status)'."
@@ -333,7 +345,7 @@ function Verify-ProductionHealth {
         throw 'Production health check failed: CTI_GATEWAY_TOKEN is not configured.'
     }
 
-    Write-Host 'Production health verified: gateway authentication is configured.'
+    Write-Host 'Production health verified through authenticated Vercel CLI: gateway authentication is configured.'
 }
 
 Write-Host '=== CTI Enrichment Gateway / Vercel bootstrap ==='
@@ -395,7 +407,7 @@ try {
     $verifiedCommit = Assert-ExactOriginMain
     Write-Host "Deploying exact verified origin/main source $verifiedCommit to production..."
     Invoke-NativeChecked $Vercel deploy --prod --yes --scope $TeamSlug
-    Verify-ProductionHealth
+    Verify-ProductionHealth -Vercel $Vercel
 } finally {
     if ((Get-Location).Path -eq $workspace) {
         Pop-Location
