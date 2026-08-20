@@ -20,6 +20,12 @@ function headerValue(headers, name) {
   return headers[name] ?? headers[name.toLowerCase()] ?? headers[name.toUpperCase()];
 }
 
+function isJsonMediaType(value) {
+  const mediaType = String(value).split(';', 1)[0].trim().toLowerCase();
+  if (mediaType === 'application/json') return true;
+  return mediaType.startsWith('application/') && mediaType.endsWith('+json');
+}
+
 function parseBody(request) {
   const contentLength = Number(headerValue(request.headers, 'content-length'));
   if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
@@ -106,7 +112,7 @@ export function createApp({
       }
 
       const contentType = headerValue(request.headers, 'content-type');
-      if (contentType && !String(contentType).toLowerCase().includes('application/json')) {
+      if (contentType && !isJsonMediaType(contentType)) {
         return response(415, { error: 'unsupported_media_type' });
       }
 
