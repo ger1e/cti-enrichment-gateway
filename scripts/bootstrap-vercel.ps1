@@ -12,6 +12,7 @@ $OrgId       = 'team_hXokufMlDFuhPPT5r8jPf4aH'
 $RepoUrl     = 'https://github.com/ger1e/cti-enrichment-gateway.git'
 
 $SecretNames = @(
+    'CTI_GATEWAY_TOKEN',
     'ABUSECH_API_KEY',
     'ABUSEIPDB_API_KEY',
     'GREYNOISE_API_KEY',
@@ -24,8 +25,8 @@ $SecretNames = @(
     'SHODAN_API_KEY',
     'CENSYS_PAT',
     'PULSEDIVE_API_KEY',
-    'SECURITYTRAILS_API_KEY',
     'IPINFO_TOKEN',
+    'MALPEDIA_API_TOKEN',
     'NVD_API_KEY',
     'CLOUDFLARE_RADAR_TOKEN'
 )
