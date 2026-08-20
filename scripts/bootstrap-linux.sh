@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# Baseline Linux tooling for local development / GitHub Codespaces.
-# Safe to re-run. Tested assumptions: Debian/Ubuntu-family environment with apt.
+# MAXX Linux/Codespaces bootstrap for cti-enrichment-gateway.
+# Debian/Ubuntu-family only. Safe to re-run.
+# Installs a broad but bounded CTI/dev/forensics baseline while avoiding
+# distro-sized offensive toolsets and packages that are unavailable on the host.
 
 if ! command -v apt-get >/dev/null 2>&1; then
   echo "Unsupported platform: apt-get not found (Debian/Ubuntu required)." >&2
@@ -19,57 +21,121 @@ else
 fi
 
 export DEBIAN_FRONTEND=noninteractive
+export PIP_DISABLE_PIP_VERSION_CHECK=1
 
-BASE_PACKAGES=(
-  ca-certificates curl wget git jq
-  zip unzip p7zip-full tar gzip bzip2 xz-utils
+CORE_PACKAGES=(
+  ca-certificates curl wget git git-lfs jq
+  zip unzip p7zip-full tar gzip bzip2 xz-utils zstd lz4
   gnupg lsb-release software-properties-common
-  build-essential make gcc g++ pkg-config
-  python3 python3-pip python3-venv pipx python3-dev
+  build-essential make gcc g++ pkg-config cmake ninja-build clang llvm
+  python3 python3-pip python3-venv pipx python3-dev python3-setuptools python3-wheel
   openssh-client rsync
   ripgrep fd-find fzf tree less nano vim
-  tmux htop procps lsof
-  net-tools iproute2 iputils-ping dnsutils traceroute whois
-  netcat-openbsd socat nmap tcpdump
-  openssl sqlite3 file binutils uuid-runtime cron shellcheck
+  tmux htop procps lsof strace ltrace gdb
+  parallel moreutils pv entr time dos2unix
+  diffutils patch shellcheck
+  uuid-runtime cron
 )
 
-CTI_PACKAGES=(
-  yara tshark dnsrecon
-  libimage-exiftool-perl
-  libssl-dev libffi-dev libxml2-dev libxslt1-dev zlib1g-dev
+NETWORK_PACKAGES=(
+  net-tools iproute2 iputils-ping dnsutils traceroute mtr-tiny whois
+  netcat-openbsd socat nmap tcpdump tshark iperf3
+  aria2 httpie
+  openssl gnutls-bin
 )
+
+CTI_FORENSICS_PACKAGES=(
+  yara dnsrecon
+  libimage-exiftool-perl
+  file binutils patchelf elfutils
+  xxd bsdextrautils
+  sqlite3 xmlstarlet libxml2-utils
+  cabextract
+  rhash ssdeep hashdeep
+)
+
+DEV_LIB_PACKAGES=(
+  libssl-dev libffi-dev libxml2-dev libxslt1-dev zlib1g-dev
+  libsqlite3-dev liblzma-dev libbz2-dev
+)
+
+OPTIONAL_PACKAGES=(
+  shfmt
+  binwalk
+  sleuthkit
+  testdisk
+  foremost
+  unar
+  age
+)
+
+install_available() {
+  local label="$1"
+  shift
+  local requested=("$@")
+  local available=()
+  local skipped=()
+  local pkg
+
+  for pkg in "${requested[@]}"; do
+    if apt-cache show "${pkg}" >/dev/null 2>&1; then
+      available+=("${pkg}")
+    else
+      skipped+=("${pkg}")
+    fi
+  done
+
+  if ((${#available[@]})); then
+    echo "[+] Installing ${label} (${#available[@]} packages)..."
+    ${SUDO} apt-get install -y --no-install-recommends "${available[@]}"
+  fi
+
+  if ((${#skipped[@]})); then
+    echo "[i] Skipped unavailable ${label}: ${skipped[*]}"
+  fi
+}
 
 echo "[+] Updating apt metadata..."
 ${SUDO} apt-get update
 
-echo "[+] Installing baseline packages..."
-${SUDO} apt-get install -y --no-install-recommends "${BASE_PACKAGES[@]}" "${CTI_PACKAGES[@]}"
+install_available "core tooling" "${CORE_PACKAGES[@]}"
+install_available "network/TLS tooling" "${NETWORK_PACKAGES[@]}"
+install_available "CTI/forensics tooling" "${CTI_FORENSICS_PACKAGES[@]}"
+install_available "development libraries" "${DEV_LIB_PACKAGES[@]}"
+install_available "optional tooling" "${OPTIONAL_PACKAGES[@]}"
 
-echo "[+] Cleaning apt cache..."
-${SUDO} apt-get autoremove -y
-${SUDO} apt-get clean
+if command -v git-lfs >/dev/null 2>&1; then
+  git lfs install --skip-repo >/dev/null 2>&1 || true
+fi
 
 if command -v pipx >/dev/null 2>&1; then
   pipx ensurepath >/dev/null 2>&1 || true
 fi
 
-echo "[+] Verifying core tooling..."
-TOOLS=(curl wget git jq python3 pipx nmap openssl yara tshark rg fzf exiftool)
-missing=0
-for tool in "${TOOLS[@]}"; do
-  printf "%-12s " "${tool}"
-  if command -v "${tool}" >/dev/null 2>&1; then
-    echo "OK"
-  else
-    echo "MISSING"
-    missing=1
-  fi
-done
-
-if [[ "${missing}" -ne 0 ]]; then
-  echo "[!] Bootstrap completed, but one or more verification tools are missing." >&2
-  exit 2
+# Debian/Ubuntu names fd as fdfind. Provide a user-local fd shim when needed.
+if ! command -v fd >/dev/null 2>&1 && command -v fdfind >/dev/null 2>&1; then
+  mkdir -p "${HOME}/.local/bin"
+  ln -sf "$(command -v fdfind)" "${HOME}/.local/bin/fd"
 fi
 
-echo "[+] Linux bootstrap complete."
+${SUDO} apt-get clean
+
+echo "[+] Running tooling verification..."
+if [[ -x "scripts/verify-tooling.sh" ]]; then
+  bash scripts/verify-tooling.sh
+else
+  required=(curl wget git jq python3 pipx nmap openssl yara tshark rg fzf exiftool)
+  missing=0
+  for tool in "${required[@]}"; do
+    printf "%-16s " "${tool}"
+    if command -v "${tool}" >/dev/null 2>&1; then
+      echo "OK"
+    else
+      echo "MISSING"
+      missing=1
+    fi
+  done
+  ((missing == 0)) || exit 2
+fi
+
+echo "[+] MAXX Linux bootstrap complete."
