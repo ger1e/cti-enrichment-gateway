@@ -81,6 +81,8 @@ function Save-GatewayToken {
     param([Parameter(Mandatory = $true)][string]$Token)
 
     $tokenBytes = [Text.Encoding]::UTF8.GetBytes($Token)
+    $protectedBytes = $null
+    $encoded = $null
     try {
         $protectedBytes = [Security.Cryptography.ProtectedData]::Protect(
             $tokenBytes,
