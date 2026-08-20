@@ -5,7 +5,6 @@ import { arr, uniq } from './helpers.js';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_EVENT_FETCHES = 5;
 const HASH_CACHE_TTL_MS = 60 * 60 * 1000;
-const EVENT_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 function md5(value) {
   return createHash('md5').update(value, 'utf8').digest('hex');
@@ -95,7 +94,7 @@ function tagNames(items) {
 
 async function loadEvent(baseUrl, uuid, context) {
   const url = `${baseUrl}${uuid}.json`;
-  const text = await loadTextFeed(url, context, { ttlMs: EVENT_CACHE_TTL_MS, maxBytes: 2_000_000 });
+  const text = await loadTextFeed(url, context, { maxBytes: 2_000_000, cache: false });
   let raw;
   try {
     raw = JSON.parse(text);
