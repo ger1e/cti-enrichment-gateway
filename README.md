@@ -23,6 +23,7 @@ Vercel CTI Enrichment Gateway
         +-- constant-time bearer authentication
         +-- bounded request/response handling
         +-- TTL/negative cache
+        +-- fixed-source public-feed cache
         +-- provider registry + credential-aware activation
         +-- provider timeouts + structured 429 handling
         +-- normalized evidence + provenance + relationships
@@ -98,30 +99,39 @@ Provider failures do not erase successful evidence from other providers. If no p
 
 ## Active workflows
 
+Public/no-key sources are placed before scarcer credentialed enrichment where their semantics justify it. Provider observations remain independent; workflow order is not a voting or risk-scoring order.
+
 ### IP
 
-`IPinfo -> RDAP -> RIPEstat -> GreyNoise -> AbuseIPDB -> Shodan -> Censys -> Cloudflare Radar -> VirusTotal -> OTX -> ThreatFox -> urlscan -> Webamon -> Pulsedive`
+`IPinfo -> RDAP -> RIPEstat -> DShield -> Spamhaus DROP -> Tor Exit -> Feodo Tracker -> ThreatMiner -> GreyNoise -> AbuseIPDB -> Shodan -> Censys -> Cloudflare Radar -> VirusTotal -> OTX -> ThreatFox -> urlscan -> Webamon -> Pulsedive`
 
 ### Domain
 
-`RDAP -> urlscan -> Webamon -> VirusTotal -> OTX -> ThreatFox -> Pulsedive`
+`RDAP -> ThreatMiner -> OpenPhish -> urlscan -> Webamon -> VirusTotal -> OTX -> ThreatFox -> Pulsedive`
 
 ### URL
 
-`urlscan -> Webamon -> URLhaus -> VirusTotal -> OTX -> ThreatFox -> Pulsedive`
+`OpenPhish -> ThreatMiner -> urlscan -> Webamon -> URLhaus -> VirusTotal -> OTX -> ThreatFox -> Pulsedive`
 
 ### Hash
 
-`CIRCL Hashlookup -> MalwareBazaar -> Malpedia -> VirusTotal -> Hybrid Analysis -> OTX -> ThreatFox -> Pulsedive`
+`CIRCL Hashlookup -> ThreatMiner -> MalwareBazaar -> Malpedia -> VirusTotal -> Hybrid Analysis -> OTX -> ThreatFox -> Pulsedive`
 
 ### CVE
 
-`CISA KEV -> FIRST EPSS -> NVD -> OSV -> OTX`
+`CISA KEV -> FIRST EPSS -> CIRCL Vulnerability-Lookup -> NVD -> OSV -> OTX`
 
 Credentialed adapters are skipped when their required environment variable is absent. NVD remains usable without `NVD_API_KEY` at the public rate.
 
 ## Provider boundaries
 
+- ThreatMiner: fixed read-only passive-DNS/sample relationship pivots only; results are context, not automatic malicious verdicts.
+- DShield/SANS ISC: IP activity/reputation context only; observed scanner/report activity is not automatically malware attribution.
+- Spamhaus DROP: fixed DROP IPv4/IPv6 netblock membership only; source shape is validated before a negative result is accepted.
+- Tor Project: bulk exit-node membership only; Tor exit status is contextual and never treated as a malware verdict.
+- Feodo Tracker: current botnet-C2 IP blocklist membership only; source shape is validated before a negative result is accepted.
+- OpenPhish Community: official public phishing-feed exact URL/domain-host matching only; the gateway pins the official raw community feed and performs no submission.
+- CIRCL Vulnerability-Lookup: public CVE lookup only; vulnerability metadata, EPSS metadata and KEV metadata remain separate fields.
 - abuse.ch: ThreatFox search, URLhaus URL lookup and MalwareBazaar `get_info` metadata only.
 - GreyNoise: Community IP context only.
 - AbuseIPDB: IP check only.
@@ -139,11 +149,13 @@ Credentialed adapters are skipped when their required environment variable is ab
 - CISA KEV, FIRST EPSS, NVD and OSV: vulnerability enrichment only.
 - Sentry: observability only; never an IOC verdict, attribution or risk source.
 
+The legacy SSLBL IP/C2 CSV feeds are intentionally not active. They were deprecated upstream, so treating their empty output as `not_listed` would create false-negative confidence. SSLBL certificate/JA3 data can be reconsidered only if matching indicator types are added with current supported sources.
+
 MITRE ATT&CK remains a knowledge/mapping layer rather than an IOC-reputation provider and is not treated as a vote in enrichment.
 
 ## Evidence semantics
 
-Providers are not votes. Scanner/noise classification, abuse reports, exposed services, malware associations, sandbox behavior, known-exploited membership, exploit probability and vulnerability metadata remain distinct observation types.
+Providers are not votes. Scanner/noise classification, abuse reports, exposed services, phishing-feed membership, Tor-exit membership, DROP netblock membership, passive DNS, botnet-C2 feed membership, malware associations, sandbox behavior, known-exploited membership, exploit probability and vulnerability metadata remain distinct observation types.
 
 The gateway does not calculate a simple `N of M vendors say malicious` score.
 
@@ -171,6 +183,8 @@ Infrastructure proximity, certificate reuse, ASN ownership, hosting overlap and 
 - Input size and indicator syntax are validated before provider calls.
 - Provider hosts are fixed by adapters; caller input cannot select an arbitrary outbound host.
 - Provider response bodies are bounded.
+- Bulk public feeds are fetched only from fixed adapter URLs, cached by source TTL, and reject redirects.
+- Public-feed parsers validate expected source structure and fail as provider errors rather than manufacturing false-negative `not_listed` results from malformed upstream content.
 - Provider calls use explicit timeouts and structured rate-limit handling.
 - Provider exception text is not reflected to callers.
 - Authenticated responses use `Cache-Control: no-store` plus defensive response headers.
@@ -211,7 +225,7 @@ Provider credentials:
 - `NVD_API_KEY` — optional
 - `CLOUDFLARE_RADAR_TOKEN`
 
-No-key sources include RDAP, RIPEstat, CIRCL Hashlookup, CISA KEV, FIRST EPSS and OSV. NVD also supports no-key access at its public rate.
+No-key sources include RDAP, RIPEstat, ThreatMiner, DShield/SANS ISC, Spamhaus DROP, Tor Project exit list, Feodo Tracker, OpenPhish Community, CIRCL Hashlookup, CIRCL Vulnerability-Lookup, CISA KEV, FIRST EPSS and OSV. NVD also supports no-key access at its public rate.
 
 ## Vercel bootstrap
 
@@ -305,7 +319,7 @@ GitHub Actions performs the Node/repository checks, Maltego standard-library tes
 
 ## Persistence
 
-The shipping cache is a bounded in-memory TTL/negative cache. It improves warm-instance behavior but is not durable across Vercel cold starts or instances.
+The shipping caches are in-memory TTL/negative caches. The core enrichment cache is bounded by entry count; fixed-URL public-feed caches are bounded by the finite adapter source set. They improve warm-instance behavior but are not durable across Vercel cold starts or instances.
 
 Durable cache, quota state, temporal graph relationships, IOC lifecycle state and investigation snapshots belong behind a separate storage interface. No paid/durable resource is auto-provisioned by this repository.
 
