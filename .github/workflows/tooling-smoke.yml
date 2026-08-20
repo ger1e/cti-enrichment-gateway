@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
   schedule:
-    - cron: '17 */6 * * *'
+    - cron: '17 4 * * *'
 
 permissions:
   contents: read
@@ -17,6 +17,10 @@ permissions:
 concurrency:
   group: tooling-smoke-${{ github.ref }}
   cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   validate:
@@ -55,6 +59,21 @@ jobs:
 
       - name: Validate MAXX invariants
         run: npm run check
+
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'scripts/bootstrap-vercel.ps1'),
+            [ref]$tokens,
+            [ref]$parseErrors
+          ) | Out-Null
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | ForEach-Object { Write-Host $_.Message }
+            exit 1
+          }
 
       - name: Publish final status
         if: ${{ always() }}
