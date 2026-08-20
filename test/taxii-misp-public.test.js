@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { ALL_PROVIDERS } from '../src/providers/index.js';
 import { WORKFLOWS } from '../src/workflows.js';
 import { classifyIndicator } from '../src/core/validate.js';
@@ -139,4 +140,12 @@ test('MISP OSINT is placed in IOC workflows as context before scarce credentiale
   assert.ok(WORKFLOWS.domain.indexOf('misp-botvrij-osint') < WORKFLOWS.domain.indexOf('urlscan'));
   assert.ok(WORKFLOWS.hash.indexOf('misp-botvrij-osint') < WORKFLOWS.hash.indexOf('malwarebazaar'));
   assert.ok(WORKFLOWS.cve.indexOf('misp-botvrij-osint') < WORKFLOWS.cve.indexOf('nvd'));
+});
+
+test('Maltego exposes ATT&CK Phrase enrichment through the same bounded gateway client', () => {
+  const transform = readFileSync(new URL('../maltego/transforms/EnrichATTACK.py', import.meta.url), 'utf8');
+  const transformInit = readFileSync(new URL('../maltego/transforms/__init__.py', import.meta.url), 'utf8');
+  assert.match(transform, /input_entity=['"]maltego\.Phrase['"]/);
+  assert.match(transform, /execute_gateway_transform\(request, response, ['"]attack['"]\)/);
+  assert.match(transformInit, /from \.EnrichATTACK import EnrichATTACK/);
 });
