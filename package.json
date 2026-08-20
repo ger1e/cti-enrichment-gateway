@@ -6,11 +6,12 @@
   "scripts": {
     "bootstrap": "bash scripts/bootstrap-linux.sh",
     "verify:tooling": "bash scripts/verify-tooling.sh",
+    "verify:repo": "bash scripts/verify-repo.sh",
     "lint:shell": "shellcheck scripts/*.sh",
-    "check": "bash -n scripts/*.sh && npm run lint:shell && npm test",
+    "check": "bash -n scripts/*.sh && npm run lint:shell && npm run verify:repo && npm test",
     "test": "node --test"
   },
   "engines": {
-    "node": ">=20"
+    "node": "24.x"
   }
 }
