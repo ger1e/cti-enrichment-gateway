@@ -1,0 +1,1 @@
+Local verification before branch push: npm test -> 23 tests passed, 0 failed on Node v22.16.0. Production target is Vercel Node 24.x; deployment verification remains required.
