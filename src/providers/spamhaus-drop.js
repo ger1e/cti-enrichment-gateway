@@ -1,19 +1,32 @@
 import { BlockList, isIP } from 'node:net';
 import { loadTextFeed } from './public-feed.js';
 
-function parseEntries(text) {
+function parseFeed(text) {
   const entries = [];
+  let metadata = null;
+  let parsedObjects = 0;
+
   for (const line of String(text).split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed) continue;
+    let item;
     try {
-      const item = JSON.parse(trimmed);
-      if (typeof item?.cidr === 'string' && item.cidr.includes('/')) entries.push(item);
+      item = JSON.parse(trimmed);
     } catch {
-      // Ignore malformed/non-data lines; feed membership fails closed to not-listed.
+      throw new Error('invalid Spamhaus DROP feed');
     }
+    if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error('invalid Spamhaus DROP feed');
+    parsedObjects += 1;
+    if (item.type === 'metadata') {
+      metadata = item;
+      continue;
+    }
+    if (typeof item.cidr !== 'string' || !item.cidr.includes('/')) throw new Error('invalid Spamhaus DROP feed');
+    entries.push(item);
   }
-  return entries;
+
+  if (parsedObjects === 0 || !metadata) throw new Error('invalid Spamhaus DROP feed');
+  return { entries, metadata };
 }
 
 function familyFor(ip) {
@@ -42,7 +55,7 @@ export const spamhausDropProvider = Object.freeze({
     const suffix = family === 'ipv6' ? 'v6' : 'v4';
     const url = `https://www.spamhaus.org/drop/drop_${suffix}.json`;
     const text = await loadTextFeed(url, context, { ttlMs: 12 * 60 * 60 * 1000, maxBytes: 2_000_000 });
-    const entries = parseEntries(text);
+    const { entries, metadata } = parseFeed(text);
     const match = entries.find(item => contains(item.cidr, input.value, family)) ?? null;
     return {
       observationType: 'drop_netblock',
@@ -51,6 +64,8 @@ export const spamhausDropProvider = Object.freeze({
         listed: Boolean(match),
         cidr: match?.cidr ?? null,
         sblId: match?.sblid ?? null,
+        feedTimestamp: Number.isFinite(Number(metadata.timestamp)) ? Number(metadata.timestamp) : null,
+        copyright: metadata.copyright ?? null,
       },
       relationships: [],
       references: [url],
