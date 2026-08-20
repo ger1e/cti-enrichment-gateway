@@ -15,6 +15,7 @@ $RequiredNodeMajor       = 24
 $PinnedVercelCliVersion  = '58.4.4'
 $GatewayTokenDir         = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'CTIEnrichmentGateway'
 $GatewayTokenFile        = Join-Path $GatewayTokenDir 'gateway-token.dpapi'
+$RepoRoot                = Split-Path -Parent $PSScriptRoot
 
 $SecretNames = @(
     'CTI_GATEWAY_TOKEN',
@@ -52,6 +53,19 @@ function Invoke-NativeChecked {
     if ($LASTEXITCODE -ne 0) {
         throw "$FilePath failed with exit code $LASTEXITCODE"
     }
+}
+
+function Invoke-NativeCapture {
+    param(
+        [Parameter(Mandatory = $true)][string]$FilePath,
+        [Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments
+    )
+
+    $output = (& $FilePath @Arguments 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) {
+        throw "$FilePath failed with exit code $LASTEXITCODE"
+    }
+    return $output
 }
 
 function New-GatewayToken {
@@ -240,35 +254,52 @@ function Ensure-VercelLogin {
     Invoke-NativeChecked $Vercel login
 }
 
-function Prepare-LinkedWorkspace {
+function Assert-ExactOriginMain {
+    $dirty = Invoke-NativeCapture git.exe status --porcelain
+    if (-not [string]::IsNullOrWhiteSpace($dirty)) {
+        throw 'Repository has modified or untracked files. Commit/stash/remove them before provisioning so production cannot include unreviewed source.'
+    }
+
+    Invoke-NativeChecked git.exe fetch --depth 1 origin main
+    $fetchedHead = Invoke-NativeCapture git.exe rev-parse FETCH_HEAD
+    $currentHead = Invoke-NativeCapture git.exe rev-parse HEAD
+    if ($currentHead -ne $fetchedHead) {
+        throw "Local checkout is not the current origin/main ($fetchedHead). Update main to that commit and rerun the bootstrap."
+    }
+
+    return $fetchedHead
+}
+
+function Prepare-VerifiedWorkspace {
     param([Parameter(Mandatory = $true)][string]$Vercel)
 
-    $workDir = Join-Path ([IO.Path]::GetTempPath()) 'cti-enrichment-gateway-bootstrap'
-    New-Item -ItemType Directory -Path $workDir -Force | Out-Null
-    Push-Location $workDir
+    if (-not (Test-Path (Join-Path $RepoRoot '.git'))) {
+        throw 'Run this bootstrap from a Git clone of ger1e/cti-enrichment-gateway; a verified repository checkout is required for production deployment.'
+    }
 
+    Push-Location $RepoRoot
     try {
-        if (-not (Test-Path '.git')) {
-            Invoke-NativeChecked git.exe init
+        $originUrl = Invoke-NativeCapture git.exe remote get-url origin
+        $allowedOrigins = @(
+            $RepoUrl,
+            'https://github.com/ger1e/cti-enrichment-gateway',
+            'git@github.com:ger1e/cti-enrichment-gateway.git'
+        )
+        if ($originUrl -notin $allowedOrigins) {
+            throw "Unexpected origin remote '$originUrl'. Refusing to deploy source from an unapproved repository."
         }
 
-        & git.exe remote get-url origin *> $null
-        if ($LASTEXITCODE -eq 0) {
-            Invoke-NativeChecked git.exe remote set-url origin $RepoUrl
-        } else {
-            Invoke-NativeChecked git.exe remote add origin $RepoUrl
-        }
-
+        $verifiedCommit = Assert-ExactOriginMain
         New-Item -ItemType Directory -Path '.vercel' -Force | Out-Null
         $projectJson = @{ orgId = $OrgId; projectId = $ProjectId } | ConvertTo-Json -Compress
-        [IO.File]::WriteAllText((Join-Path $workDir '.vercel\project.json'), $projectJson, (New-Object Text.UTF8Encoding($false)))
+        [IO.File]::WriteAllText((Join-Path $RepoRoot '.vercel\project.json'), $projectJson, (New-Object Text.UTF8Encoding($false)))
 
-        Write-Host "Linked local bootstrap workspace to $TeamSlug/$ProjectName."
+        Write-Host "Verified clean origin/main source at $verifiedCommit and linked it to $TeamSlug/$ProjectName."
         Write-Host 'Connecting GitHub repository to the Vercel project...'
         Invoke-NativeChecked $Vercel git connect --yes --scope $TeamSlug
         Write-Host 'GitHub repository connection verified.'
 
-        return $workDir
+        return $RepoRoot
     } catch {
         Pop-Location
         throw
@@ -308,6 +339,7 @@ function Verify-ProductionHealth {
 Write-Host '=== CTI Enrichment Gateway / Vercel bootstrap ==='
 Write-Host 'Secrets are entered locally with masked input and are never written to GitHub.'
 Write-Host 'The gateway bearer is stored locally with current-user Windows DPAPI and reused by Maltego.'
+Write-Host 'Production deployment is allowed only from a clean checkout exactly matching origin/main.'
 Write-Host 'For provider secrets, Enter skips that provider.'
 Write-Host ''
 
@@ -318,7 +350,7 @@ $Vercel = Ensure-VercelCli
 Write-Host "Node.js: $(& node.exe --version)"
 Write-Host "Vercel CLI: $(& $Vercel --version)"
 Ensure-VercelLogin -Vercel $Vercel
-$workspace = Prepare-LinkedWorkspace -Vercel $Vercel
+$workspace = Prepare-VerifiedWorkspace -Vercel $Vercel
 
 try {
     $gatewayToken = Get-StoredGatewayToken
@@ -360,8 +392,9 @@ try {
     Invoke-NativeChecked $Vercel env ls --scope $TeamSlug
 
     Write-Host ''
-    Write-Host 'Redeploying the current production deployment so updated environment variables take effect...'
-    Invoke-NativeChecked $Vercel redeploy "https://$ProductionAlias" --scope $TeamSlug
+    $verifiedCommit = Assert-ExactOriginMain
+    Write-Host "Deploying exact verified origin/main source $verifiedCommit to production..."
+    Invoke-NativeChecked $Vercel deploy --prod --yes --scope $TeamSlug
     Verify-ProductionHealth
 } finally {
     if ((Get-Location).Path -eq $workspace) {
@@ -372,4 +405,4 @@ try {
 Write-Host ''
 Write-Host 'Bootstrap complete.'
 Write-Host 'No secret values were written to the repository or printed to the terminal.'
-Write-Host 'GitHub is connected to Vercel, Production + Preview secrets were applied, production was redeployed, and /api/health passed.'
+Write-Host 'GitHub is connected to Vercel, Production + Preview secrets were applied, exact origin/main was deployed, and /api/health passed.'
