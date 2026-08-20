@@ -27,6 +27,13 @@ devcontainer_node_ok() {
   [[ "$(jq -r '.features["ghcr.io/devcontainers/features/node:1"].version // empty' .devcontainer/devcontainer.json)" == "24" ]]
 }
 
+npm_policy_ok() {
+  grep -Fxq 'engine-strict=true' .npmrc &&
+    grep -Fxq 'audit=true' .npmrc &&
+    grep -Fxq 'fund=false' .npmrc &&
+    grep -Fxq 'save-exact=true' .npmrc
+}
+
 actions_pinned_ok() {
   local workflow=.github/workflows/tooling-smoke.yml
   grep -Eq 'actions/checkout@[0-9a-f]{40}' "${workflow}" &&
@@ -44,6 +51,12 @@ vercel_bootstrap_ok() {
 docs_runtime_ok() {
   grep -Eq 'Node\.js 24\.x' README.md &&
     ! grep -Eq 'Node(\.js)?[[:space:]]+22' README.md
+}
+
+security_policy_ok() {
+  [[ -s SECURITY.md ]] &&
+    grep -Fq 'GitHub Actions must remain pinned to immutable commit SHAs.' SECURITY.md &&
+    grep -Fq 'Runtime parity is Node.js 24.x' SECURITY.md
 }
 
 sensitive_files_untracked() {
@@ -65,9 +78,11 @@ echo "== Repository invariants =="
 check "package.json Node 24.x" node_engine_ok
 check ".nvmrc Node 24" nvmrc_ok
 check "devcontainer Node 24" devcontainer_node_ok
+check "npm strict/deterministic policy" npm_policy_ok
 check "GitHub Actions SHA-pinned" actions_pinned_ok
 check "Vercel bootstrap pinned" vercel_bootstrap_ok
 check "README runtime parity" docs_runtime_ok
+check "security policy present" security_policy_ok
 check "sensitive artifacts untracked" sensitive_files_untracked
 check "secret/artifact ignore rules" ignore_rules_ok
 
