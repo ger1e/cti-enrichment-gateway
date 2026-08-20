@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { rdapProvider } from '../src/providers/rdap.js';
 import { epssProvider } from '../src/providers/epss.js';
 import { cisaKevProvider } from '../src/providers/cisa-kev.js';
+import { ALL_PROVIDERS } from '../src/providers/index.js';
 import { WORKFLOWS, WORKFLOW_BLUEPRINTS } from '../src/workflows.js';
 
 function jsonFetch(expectedUrl, payload) {
@@ -13,8 +14,8 @@ function jsonFetch(expectedUrl, payload) {
   };
 }
 
-test('RDAP adapter uses a fixed bootstrap host and normalizes registration fields', async () => {
-  assert.deepEqual(rdapProvider.types, ['ip']);
+test('RDAP adapter uses fixed bootstrap host for IP registration', async () => {
+  assert.deepEqual(rdapProvider.types, ['ip', 'domain']);
   const data = await rdapProvider.run({ value: '8.8.8.8', type: 'ip' }, {
     fetchImpl: jsonFetch('https://rdap.org/ip/8.8.8.8', { handle: 'NET-8-8-8-0-2', name: 'GOGL', country: 'US', startAddress: '8.8.8.0', endAddress: '8.8.8.255' }),
     signal: new AbortController().signal,
@@ -34,7 +35,7 @@ test('EPSS adapter queries FIRST by CVE and preserves probability separately', a
   assert.equal(data.attributes.percentile, 0.91);
 });
 
-test('CISA KEV adapter uses the fixed official feed and identifies catalog membership', async () => {
+test('CISA KEV adapter identifies catalog membership', async () => {
   const url = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json';
   const data = await cisaKevProvider.run({ value: 'CVE-2026-12345', type: 'cve' }, {
     fetchImpl: jsonFetch(url, { vulnerabilities: [{ cveID: 'CVE-2026-12345', vendorProject: 'Vendor', product: 'Thing', vulnerabilityName: 'Thing RCE', dateAdded: '2026-08-20', dueDate: '2026-09-10', knownRansomwareCampaignUse: 'Known', requiredAction: 'Patch', notes: '', cwes: ['CWE-78'] }] }),
@@ -45,9 +46,19 @@ test('CISA KEV adapter uses the fixed official feed and identifies catalog membe
   assert.equal(data.attributes.product, 'Thing');
 });
 
-test('active workflows only contain implemented providers and blueprints preserve MAX order', () => {
-  assert.deepEqual(WORKFLOWS.ip, ['rdap']);
-  assert.deepEqual(WORKFLOWS.cve, ['cisa-kev', 'epss']);
-  assert.deepEqual(WORKFLOW_BLUEPRINTS.ip, ['ipinfo', 'rdap', 'ripestat', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'otx', 'threatfox', 'urlscan']);
-  assert.deepEqual(WORKFLOW_BLUEPRINTS.cve, ['cisa-kev', 'epss', 'nvd', 'osv']);
+test('every active workflow provider has an implemented adapter', () => {
+  const names = new Set(ALL_PROVIDERS.map(p => p.name));
+  for (const [type, providers] of Object.entries(WORKFLOWS)) {
+    assert.ok(providers.length > 0, `${type} workflow must not be empty`);
+    for (const name of providers) assert.equal(names.has(name), true, `${name} missing adapter`);
+  }
+});
+
+test('active workflows preserve MAX routing order', () => {
+  assert.deepEqual(WORKFLOWS.ip, ['ipinfo', 'rdap', 'ripestat', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.domain, ['rdap', 'urlscan', 'webamon', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.url, ['urlscan', 'webamon', 'urlhaus', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.hash, ['circl-hashlookup', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.cve, ['cisa-kev', 'epss', 'nvd', 'osv', 'otx']);
+  assert.equal(WORKFLOW_BLUEPRINTS, WORKFLOWS);
 });
