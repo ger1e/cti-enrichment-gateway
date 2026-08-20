@@ -25,7 +25,7 @@ defaults:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Publish pending status
         continue-on-error: true
@@ -57,22 +57,38 @@ jobs:
       - name: Install validation tools
         run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends shellcheck jq
 
-      - name: Validate MAXX invariants
+      - name: Validate MAXX invariants and Node tests
         run: npm run check
+
+      - name: Validate Maltego client and mapper
+        run: |
+          python3 --version
+          cd maltego
+          python3 -m unittest discover -s tests -v
+
+      - name: Compile Maltego Python
+        run: python3 -m compileall -q maltego
 
       - name: Validate PowerShell syntax
         shell: pwsh
         run: |
-          $tokens = $null
-          $parseErrors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile(
-            (Resolve-Path 'scripts/bootstrap-vercel.ps1'),
-            [ref]$tokens,
-            [ref]$parseErrors
-          ) | Out-Null
-          if ($parseErrors.Count -gt 0) {
-            $parseErrors | ForEach-Object { Write-Host $_.Message }
-            exit 1
+          $files = @(
+            'scripts/bootstrap-vercel.ps1',
+            'maltego/install.ps1'
+          )
+          foreach ($file in $files) {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $file),
+              [ref]$tokens,
+              [ref]$parseErrors
+            ) | Out-Null
+            if ($parseErrors.Count -gt 0) {
+              Write-Host "PowerShell syntax errors in $file"
+              $parseErrors | ForEach-Object { Write-Host $_.Message }
+              exit 1
+            }
           }
 
       - name: Publish final status
