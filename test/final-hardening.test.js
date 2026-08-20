@@ -26,8 +26,11 @@ test('JSON media type validation accepts JSON and structured +json but rejects l
   const app = fixtureApp();
   assert.equal((await app.handleEnrich(request('application/json; charset=utf-8'))).status, 200);
   assert.equal((await app.handleEnrich(request('application/vnd.api+json'))).status, 200);
+  assert.equal((await app.handleEnrich(request('application/problem+json; charset=UTF-8'))).status, 200);
   assert.equal((await app.handleEnrich(request('application/jsonp'))).status, 415);
   assert.equal((await app.handleEnrich(request('text/json'))).status, 415);
+  assert.equal((await app.handleEnrich(request('application/+json'))).status, 415);
+  assert.equal((await app.handleEnrich(request('application/foo/bar+json'))).status, 415);
 });
 
 test('Vercel bootstrap keeps generated gateway bearer out of terminal and stores it with current-user DPAPI', () => {
