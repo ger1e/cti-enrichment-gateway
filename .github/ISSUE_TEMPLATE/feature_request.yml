@@ -1,0 +1,66 @@
+name: Feature request
+description: Propose a bounded capability, provider integration, or workflow improvement.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep proposals inside the repository's personal-research, retrieval/enrichment-only boundary. Do not paste provider credentials, client/internal data, samples, captures, or other sensitive material.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: What analytical gap does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the smallest bounded implementation that solves the problem.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - IP workflow
+        - Domain workflow
+        - URL workflow
+        - Hash workflow
+        - CVE workflow
+        - Provider adapter
+        - Maltego
+        - CI / tooling
+        - Deployment / bootstrap
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source / provider documentation
+      description: Link primary documentation or specifications where applicable.
+  - type: textarea
+    id: semantics
+    attributes:
+      label: Evidence semantics
+      description: What does the source actually prove, and what must it not be interpreted as proving?
+  - type: textarea
+    id: security
+    attributes:
+      label: Security, privacy, and licensing impact
+      description: Cover credentials, outbound behavior, data handling, provider terms, persistence, and logging as relevant.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Boundary check
+      options:
+        - label: This proposal does not require arbitrary proxying, secret retrieval, shell execution, malware/sample download, submission, detonation, or other write-capable provider behavior.
+          required: true

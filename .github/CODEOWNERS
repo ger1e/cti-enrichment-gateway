@@ -1,0 +1,14 @@
+# Default ownership
+* @ger1e
+
+# Security-sensitive and release-critical surfaces
+/.github/ @ger1e
+/api/ @ger1e
+/src/ @ger1e
+/test/ @ger1e
+/scripts/ @ger1e
+/maltego/ @ger1e
+/SECURITY.md @ger1e
+/.env.example @ger1e
+/package.json @ger1e
+/vercel.json @ger1e
