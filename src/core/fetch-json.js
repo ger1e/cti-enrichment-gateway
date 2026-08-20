@@ -5,17 +5,28 @@ function httpError(response) {
   return error;
 }
 
-export async function fetchJson(url, { fetchImpl = fetch, signal, maxBytes = 2_000_000 } = {}) {
+export async function fetchJson(url, {
+  fetchImpl = fetch,
+  signal,
+  maxBytes = 2_000_000,
+  method = 'GET',
+  headers = {},
+  body,
+  redirect = 'error',
+} = {}) {
+  const requestHeaders = { accept: 'application/json', ...headers };
   const response = await fetchImpl(url, {
-    method: 'GET',
+    method,
     signal,
-    headers: { accept: 'application/json' },
-    redirect: 'follow',
+    headers: requestHeaders,
+    body,
+    redirect,
   });
   if (!response.ok) throw httpError(response);
   const declared = Number(response.headers.get('content-length'));
   if (Number.isFinite(declared) && declared > maxBytes) throw Object.assign(new Error('provider response too large'), { status: 502 });
   const text = await response.text();
   if (Buffer.byteLength(text, 'utf8') > maxBytes) throw Object.assign(new Error('provider response too large'), { status: 502 });
+  if (!text) return null;
   return JSON.parse(text);
 }
