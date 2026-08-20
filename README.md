@@ -167,7 +167,7 @@ Infrastructure proximity, certificate reuse, ASN ownership, hosting overlap and 
 
 - `POST /api/enrich` requires one gateway bearer token.
 - Gateway bearer comparison is constant-time.
-- Explicit non-JSON content types are rejected.
+- Explicit request media types must be `application/json` or a valid `application/*+json` structured JSON type.
 - Input size and indicator syntax are validated before provider calls.
 - Provider hosts are fixed by adapters; caller input cannot select an arbitrary outbound host.
 - Provider response bodies are bounded.
@@ -175,6 +175,8 @@ Infrastructure proximity, certificate reuse, ASN ownership, hosting overlap and 
 - Provider exception text is not reflected to callers.
 - Authenticated responses use `Cache-Control: no-store` plus defensive response headers.
 - Missing credentials cause provider omission/partial coverage, not hidden fallback.
+- The Windows bootstrap keeps the gateway bearer in a current-user DPAPI-protected local store and never prints it.
+- Maltego reuses that same DPAPI-protected gateway bearer when available; vendor credentials never enter Maltego.
 - Generated Maltego MTZ files, local samples, captures, keys and environment files are ignored by Git.
 - GitHub Actions are pinned to immutable commit SHAs.
 - Vercel CLI is pinned in the Windows bootstrap rather than installed from `latest`.
@@ -224,11 +226,17 @@ The bootstrap:
 - enforces Node.js 24.x runtime parity
 - installs/uses the pinned Vercel CLI version
 - links the existing Vercel project/team identifiers
-- attempts GitHub-to-Vercel project connection
-- prompts for each secret using masked input
-- writes secrets to Preview and Production Vercel environments as sensitive values
-- permits Enter to skip credentials not yet available
+- verifies the GitHub-to-Vercel project connection non-interactively
+- reuses an existing current-user DPAPI-protected `CTI_GATEWAY_TOKEN`, or accepts one through masked input, or generates a strong 48-byte bearer when Enter is pressed
+- never prints the gateway bearer and stores only its DPAPI-protected local copy
+- writes the gateway bearer to Preview and Production Vercel environments as a sensitive value
+- prompts for each provider secret using masked input; Enter skips providers not yet configured
+- writes configured provider secrets to Preview and Production as sensitive values
+- lists configured environment-variable names, not values
+- redeploys production after environment changes and requires `/api/health` to confirm gateway authentication is configured
 - never writes secret values to GitHub
+
+The bootstrap is the authoritative local provisioning path because this repository intentionally does not contain provider credentials.
 
 ## Maltego Graph Desktop
 
@@ -256,7 +264,7 @@ local gateway client
 /api/enrich
 ```
 
-Vendor API credentials never enter Maltego. On Windows, the local gateway bearer is protected using current-user DPAPI. Remote redirects are refused, remote gateway URLs require HTTPS, response size is capped, and graph expansion is bounded/deduplicated.
+Vendor API credentials never enter Maltego. On Windows, the local gateway bearer is protected using current-user DPAPI. The installer first reuses the bootstrap-created DPAPI token; it prompts only if no usable stored bearer exists. Remote redirects are refused, remote gateway URLs require HTTPS, response size is capped, and graph expansion is bounded/deduplicated.
 
 Install from `maltego/`:
 
@@ -289,7 +297,7 @@ cd ..
 python3 -m compileall -q maltego
 ```
 
-GitHub Actions performs the Node/repository checks, Maltego standard-library tests, Python compilation and PowerShell syntax validation. The workflow uses least-privilege repository permissions and disables checkout credential persistence.
+GitHub Actions performs the Node/repository checks, Maltego standard-library tests, Python compilation and PowerShell syntax validation. The workflow uses least-privilege repository permissions and disables checkout credential persistence. Draft PRs do not run the full validation job; moving a PR to Ready for review triggers the full gate, preventing noisy cancelled draft runs while preserving merge-time validation.
 
 ## Persistence
 
@@ -303,6 +311,6 @@ Durable cache, quota state, temporal graph relationships, IOC lifecycle state an
 - Captures, samples, analysis artifacts, private keys/certificates, Vercel state, generated MTZ files, dependencies and common caches are ignored.
 - `scripts/verify-repo.sh` enforces runtime parity, deterministic npm policy, pinned CI actions, canonical secret names, Maltego CI gates, security-policy presence and artifact/secret ignore rules.
 - Dependabot checks GitHub Actions and npm dependencies weekly.
-- The scheduled `Tooling smoke` workflow provides daily fallback validation in addition to push, pull-request and manual-dispatch triggers.
+- The scheduled `Tooling smoke` workflow provides daily fallback validation in addition to push, ready-for-review pull-request and manual-dispatch triggers.
 
-Never commit API keys, gateway tokens, malware samples, packet captures, private keys, certificates, or client-sensitive analysis material to this repository.
+Never commit API keys, gateway tokens, malware samples, packet captures, private keys, certificates, or sensitive analysis material to this repository.
