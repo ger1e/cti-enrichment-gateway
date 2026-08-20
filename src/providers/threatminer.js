@@ -7,23 +7,36 @@ function endpoint(input) {
   if (input.type === 'domain') return { url: `https://api.threatminer.org/v2/domain.php?q=${encodeURIComponent(input.value)}&rt=2`, kind: 'passive_dns', pivot: input.value };
   if (input.type === 'url') {
     const host = new URL(input.value).hostname.toLowerCase();
-    return { url: `https://api.threatminer.org/v2/domain.php?q=${encodeURIComponent(host)}&rt=2`, kind: 'passive_dns', pivot: host };
+    const endpointName = isIP(host) ? 'host' : 'domain';
+    return { url: `https://api.threatminer.org/v2/${endpointName}.php?q=${encodeURIComponent(host)}&rt=2`, kind: 'passive_dns', pivot: host };
   }
   return { url: `https://api.threatminer.org/v2/sample.php?q=${encodeURIComponent(input.value)}&rt=3`, kind: 'sample_hosts', pivot: input.value };
 }
 
+function sameIndicator(type, value, input) {
+  if (type !== input.type) return false;
+  if (type === 'domain') return String(value).toLowerCase() === String(input.value).toLowerCase();
+  return String(value) === String(input.value);
+}
+
 function relationshipsFor(results, input) {
   const out = [];
+  const kind = input.type === 'hash' ? 'sample_contact' : 'passive_dns';
+  const push = (type, value, relationKind = kind) => {
+    if (!value || sameIndicator(type, value, input)) return;
+    out.push(relation(type, value, relationKind));
+  };
+
   for (const item of Array.isArray(results) ? results : []) {
     if (typeof item === 'string') {
       const type = isIP(item) ? 'ip' : 'domain';
-      out.push(relation(type, item, input.type === 'hash' ? 'sample_contact' : 'passive_dns'));
+      push(type, type === 'domain' ? item.toLowerCase() : item);
       continue;
     }
     if (!item || typeof item !== 'object') continue;
-    if (item.domain) out.push(relation('domain', String(item.domain).toLowerCase(), input.type === 'hash' ? 'sample_contact' : 'passive_dns'));
-    if (item.ip) out.push(relation('ip', item.ip, input.type === 'hash' ? 'sample_contact' : 'passive_dns'));
-    if (item.uri) out.push(relation('url', item.uri, 'related'));
+    if (item.domain) push('domain', String(item.domain).toLowerCase());
+    if (item.ip) push('ip', item.ip);
+    if (item.uri) push('url', item.uri, 'related');
   }
   return compact(out);
 }
