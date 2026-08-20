@@ -24,6 +24,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Publish pending status
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -37,36 +38,27 @@ jobs:
             -d "{\"state\":\"pending\",\"context\":\"Tooling smoke\",\"description\":\"Tooling smoke started\",\"target_url\":\"${target_url}\"}"
 
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        # Upstream post-v7 security fix for GHSA-3jxr-9vmj-r5cp; use the next
+        # immutable release once it contains the patched dist bundle.
+        uses: actions/setup-node@e51e5fe84fc33b4c73ebe40526b2694712b5b858
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           package-manager-cache: false
 
       - name: Install validation tools
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends shellcheck jq
+        run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends shellcheck jq
 
-      - name: Validate shell syntax
-        run: bash -n scripts/*.sh
-
-      - name: ShellCheck
-        run: shellcheck scripts/*.sh
-
-      - name: Validate JSON
-        run: |
-          jq -e . package.json >/dev/null
-          jq -e . .devcontainer/devcontainer.json >/dev/null
-
-      - name: Verify Node floor
-        run: node -e "if (+process.versions.node.split('.')[0] < 20) process.exit(1)"
-
-      - name: Test
-        run: npm test
+      - name: Validate MAXX invariants
+        run: npm run check
 
       - name: Publish final status
         if: ${{ always() }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_STATUS: ${{ job.status }}
