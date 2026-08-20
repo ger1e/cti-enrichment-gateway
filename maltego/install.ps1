@@ -50,16 +50,25 @@ try {
     & $Python -m unittest discover -s tests -v
     if ($LASTEXITCODE -ne 0) { throw 'Maltego integration tests failed.' }
 
-    $secure = Read-Host 'CTI_GATEWAY_TOKEN (stored with Windows DPAPI for this user)' -AsSecureString
-    $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-    try {
-        $plain = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
-        if ([string]::IsNullOrWhiteSpace($plain)) { throw 'Gateway token cannot be empty.' }
-        $plain | & $Python (Join-Path $Root 'credential_store.py') save
-        if ($LASTEXITCODE -ne 0) { throw 'Failed to store the gateway token with Windows DPAPI.' }
-    } finally {
-        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
-        $plain = $null
+    $storedTokenConfigured = $false
+    & $Python (Join-Path $Root 'credential_store.py') check *> $null
+    if ($LASTEXITCODE -eq 0) {
+        $storedTokenConfigured = $true
+        Write-Host 'Reusing stored gateway token protected with current-user Windows DPAPI.'
+    }
+
+    if (-not $storedTokenConfigured) {
+        $secure = Read-Host 'CTI_GATEWAY_TOKEN (stored with Windows DPAPI for this user)' -AsSecureString
+        $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+        try {
+            $plain = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+            if ([string]::IsNullOrWhiteSpace($plain)) { throw 'Gateway token cannot be empty.' }
+            $plain | & $Python (Join-Path $Root 'credential_store.py') save
+            if ($LASTEXITCODE -ne 0) { throw 'Failed to store the gateway token with Windows DPAPI.' }
+        } finally {
+            [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+            $plain = $null
+        }
     }
 
     [Environment]::SetEnvironmentVariable('CTI_GATEWAY_URL', $GatewayUrl, 'User')
