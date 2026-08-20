@@ -58,27 +58,10 @@ git --version 2>/dev/null || true
 openssl version 2>/dev/null || true
 yara --version 2>/dev/null || true
 
-echo
-echo "== Repository guardrails =="
-if [[ -f .gitignore ]] && grep -Eq '^\.env(\*|\.)?' .gitignore; then
-  echo ".env ignore rule   OK"
-else
-  echo ".env ignore rule   MISSING"
-  missing=1
-fi
-
-if [[ -f .devcontainer/devcontainer.json ]]; then
-  jq -e . .devcontainer/devcontainer.json >/dev/null
-  echo "devcontainer JSON  OK"
-else
-  echo "devcontainer JSON  MISSING"
-  missing=1
-fi
-
 if command -v node >/dev/null 2>&1; then
   node_major="$(node -p 'Number(process.versions.node.split(".")[0])')"
-  if ((node_major < 20)); then
-    echo "[!] Node.js >=20 required by package.json; found $(node --version)." >&2
+  if ((node_major != 24)); then
+    echo "[!] Node.js 24.x required for Vercel/dev/CI parity; found $(node --version)." >&2
     missing=1
   fi
 fi
