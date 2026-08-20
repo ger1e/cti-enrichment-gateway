@@ -1,0 +1,57 @@
+import { isIP } from 'node:net';
+import { fetchJson } from '../core/fetch-json.js';
+import { compact, relation } from './helpers.js';
+
+function endpoint(input) {
+  if (input.type === 'ip') return { url: `https://api.threatminer.org/v2/host.php?q=${encodeURIComponent(input.value)}&rt=2`, kind: 'passive_dns', pivot: input.value };
+  if (input.type === 'domain') return { url: `https://api.threatminer.org/v2/domain.php?q=${encodeURIComponent(input.value)}&rt=2`, kind: 'passive_dns', pivot: input.value };
+  if (input.type === 'url') {
+    const host = new URL(input.value).hostname.toLowerCase();
+    return { url: `https://api.threatminer.org/v2/domain.php?q=${encodeURIComponent(host)}&rt=2`, kind: 'passive_dns', pivot: host };
+  }
+  return { url: `https://api.threatminer.org/v2/sample.php?q=${encodeURIComponent(input.value)}&rt=3`, kind: 'sample_hosts', pivot: input.value };
+}
+
+function relationshipsFor(results, input) {
+  const out = [];
+  for (const item of Array.isArray(results) ? results : []) {
+    if (typeof item === 'string') {
+      const type = isIP(item) ? 'ip' : 'domain';
+      out.push(relation(type, item, input.type === 'hash' ? 'sample_contact' : 'passive_dns'));
+      continue;
+    }
+    if (!item || typeof item !== 'object') continue;
+    if (item.domain) out.push(relation('domain', String(item.domain).toLowerCase(), input.type === 'hash' ? 'sample_contact' : 'passive_dns'));
+    if (item.ip) out.push(relation('ip', item.ip, input.type === 'hash' ? 'sample_contact' : 'passive_dns'));
+    if (item.uri) out.push(relation('url', item.uri, 'related'));
+  }
+  return compact(out);
+}
+
+function seen(results, field) {
+  const values = (Array.isArray(results) ? results : []).map(x => x && typeof x === 'object' ? x[field] : null).filter(Boolean).sort();
+  return field === 'first_seen' ? values[0] ?? null : values.at(-1) ?? null;
+}
+
+export const threatminerProvider = Object.freeze({
+  name: 'threatminer', types: ['ip', 'domain', 'url', 'hash'], cacheTtlMs: 6 * 60 * 60 * 1000, negativeCacheTtlMs: 60 * 60 * 1000, costClass: 'free', timeoutMs: 5000, parserVersion: '2026-08-20',
+  async run(input, context = {}) {
+    const { url, kind, pivot } = endpoint(input);
+    const raw = await fetchJson(url, { ...context, maxBytes: 2_000_000 });
+    const results = Array.isArray(raw?.results) ? raw.results : [];
+    return {
+      observationType: kind,
+      verdict: 'unknown',
+      firstSeen: seen(results, 'first_seen'),
+      lastSeen: seen(results, 'last_seen'),
+      attributes: {
+        pivot,
+        resultCount: results.length,
+        statusCode: raw?.status_code ?? null,
+        statusMessage: raw?.status_message ?? null,
+      },
+      relationships: relationshipsFor(results, input),
+      references: [url],
+    };
+  },
+});
