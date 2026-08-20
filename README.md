@@ -177,6 +177,7 @@ Infrastructure proximity, certificate reuse, ASN ownership, hosting overlap and 
 - Missing credentials cause provider omission/partial coverage, not hidden fallback.
 - The Windows bootstrap keeps the gateway bearer in a current-user DPAPI-protected local store and never prints it.
 - Maltego reuses that same DPAPI-protected gateway bearer when available; vendor credentials never enter Maltego.
+- Production deployment is refused unless the local repository is clean and `HEAD` exactly matches freshly fetched `origin/main`.
 - Generated Maltego MTZ files, local samples, captures, keys and environment files are ignored by Git.
 - GitHub Actions are pinned to immutable commit SHAs.
 - Vercel CLI is pinned in the Windows bootstrap rather than installed from `latest`.
@@ -214,7 +215,7 @@ No-key sources include RDAP, RIPEstat, CIRCL Hashlookup, CISA KEV, FIRST EPSS an
 
 ## Vercel bootstrap
 
-On Windows PowerShell:
+On Windows PowerShell, from a clean local clone of `main`:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass -Force
@@ -225,6 +226,8 @@ The bootstrap:
 
 - enforces Node.js 24.x runtime parity
 - installs/uses the pinned Vercel CLI version
+- verifies the repository origin is the approved GitHub repository
+- fetches `origin/main`, requires a clean working tree, and requires local `HEAD` to exactly equal the fetched commit before provisioning
 - links the existing Vercel project/team identifiers
 - verifies the GitHub-to-Vercel project connection non-interactively
 - reuses an existing current-user DPAPI-protected `CTI_GATEWAY_TOKEN`, or accepts one through masked input, or generates a strong 48-byte bearer when Enter is pressed
@@ -233,10 +236,11 @@ The bootstrap:
 - prompts for each provider secret using masked input; Enter skips providers not yet configured
 - writes configured provider secrets to Preview and Production as sensitive values
 - lists configured environment-variable names, not values
-- redeploys production after environment changes and requires `/api/health` to confirm gateway authentication is configured
+- rechecks that the clean checkout still exactly matches freshly fetched `origin/main` immediately before deployment
+- deploys that exact verified source tree with `vercel deploy --prod` and requires `/api/health` to confirm gateway authentication is configured
 - never writes secret values to GitHub
 
-The bootstrap is the authoritative local provisioning path because this repository intentionally does not contain provider credentials.
+The bootstrap is the authoritative local provisioning and production-deployment path because this repository intentionally does not contain provider credentials.
 
 ## Maltego Graph Desktop
 
@@ -297,7 +301,7 @@ cd ..
 python3 -m compileall -q maltego
 ```
 
-GitHub Actions performs the Node/repository checks, Maltego standard-library tests, Python compilation and PowerShell syntax validation. The workflow uses least-privilege repository permissions and disables checkout credential persistence. Draft PRs do not run the full validation job; moving a PR to Ready for review triggers the full gate, preventing noisy cancelled draft runs while preserving merge-time validation.
+GitHub Actions performs the Node/repository checks, Maltego standard-library tests, Python compilation and PowerShell syntax validation. The workflow uses least-privilege repository permissions and disables checkout credential persistence. Draft PRs do not run the full validation job; every ready PR runs the complete gate on each relevant update, and commit-message conventions never bypass validation.
 
 ## Persistence
 
