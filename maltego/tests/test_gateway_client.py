@@ -1,0 +1,47 @@
+import json
+import os
+import unittest
+from unittest.mock import patch
+
+from gateway_client import GatewayClient, GatewayConfigurationError, _validate_base_url
+from credential_store import load_token
+
+class FakeResponse:
+    def __init__(self, payload, status=200):
+        self.payload = payload
+        self.status = status
+    def __enter__(self): return self
+    def __exit__(self, *args): return False
+    def getcode(self): return self.status
+    def read(self, _limit): return self.payload
+
+class GatewayClientTests(unittest.TestCase):
+    def test_rejects_non_https_remote_gateway(self):
+        with self.assertRaises(GatewayConfigurationError):
+            _validate_base_url('http://example.com')
+
+    def test_allows_local_http_for_development(self):
+        self.assertEqual(_validate_base_url('http://127.0.0.1:3000/'), 'http://127.0.0.1:3000')
+
+    def test_sends_only_gateway_bearer_token_and_expected_payload(self):
+        seen = {}
+        def opener(request, timeout):
+            seen['url'] = request.full_url
+            seen['auth'] = request.get_header('Authorization')
+            seen['body'] = json.loads(request.data)
+            seen['timeout'] = timeout
+            return FakeResponse(b'{"status":"ok","evidence":[]}')
+        client = GatewayClient('https://gateway.example', 'secret-token', opener=opener)
+        result = client.enrich('8.8.8.8', 'ip')
+        self.assertEqual(result['status'], 'ok')
+        self.assertEqual(seen['url'], 'https://gateway.example/api/enrich')
+        self.assertEqual(seen['auth'], 'Bearer secret-token')
+        self.assertEqual(seen['body'], {'indicator': '8.8.8.8', 'type': 'ip'})
+        self.assertEqual(seen['timeout'], 15.0)
+
+    def test_environment_token_takes_precedence_without_touching_dpapi(self):
+        with patch.dict(os.environ, {'CTI_GATEWAY_TOKEN': 'env-secret'}, clear=False):
+            self.assertEqual(load_token(), 'env-secret')
+
+if __name__ == '__main__':
+    unittest.main()
