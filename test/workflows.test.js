@@ -55,7 +55,7 @@ test('every active workflow provider has an implemented adapter', () => {
 });
 
 test('active workflows preserve MAX routing order', () => {
-  assert.deepEqual(WORKFLOWS.ip, ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'sslbl-c2', 'threatminer', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.ip, ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.domain, ['rdap', 'threatminer', 'openphish', 'urlscan', 'webamon', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.url, ['openphish', 'threatminer', 'urlscan', 'webamon', 'urlhaus', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.hash, ['circl-hashlookup', 'threatminer', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox', 'pulsedive']);
