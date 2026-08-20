@@ -33,9 +33,9 @@ Never commit API keys, tokens, certificates, packet captures, malware samples, o
 
 ## FINAL MAXX development environment
 
-Runtime parity is intentional: Vercel, `package.json`, `.nvmrc`, Codespaces, and CI all target Node.js 24.x. The Codespaces/devcontainer baseline also provisions GitHub CLI and a bounded CTI/development/forensics toolkit.
+Runtime parity is intentional: Vercel, `package.json`, `.nvmrc`, Codespaces, CI, and the Windows bootstrap all target Node.js 24.x. The Codespaces/devcontainer baseline also provisions GitHub CLI and a bounded CTI/development/forensics toolkit.
 
-The Linux bootstrap is Debian/Ubuntu-family only, idempotent, retries transient apt failures, skips distro-unavailable optional packages, and verifies the required toolchain after installation.
+The Linux bootstrap is Debian/Ubuntu-family only, idempotent, retries transient apt failures, skips distro-unavailable optional packages, and verifies the required toolchain after installation. The Windows/Vercel bootstrap refuses runtime drift and aligns Node.js to major 24 before touching project configuration.
 
 Commands:
 
@@ -60,8 +60,9 @@ The bootstrap is intended for CTI enrichment development and artifact inspection
 
 - `.env` and derivative local environment files are ignored; `.env.example` is the only committed template.
 - Local captures, samples, analysis artifacts, private keys, certificates, Vercel state, dependency directories, and common tooling caches are ignored.
-- `verify-repo.sh` enforces Node 24 parity, SHA-pinned GitHub Actions, ignore rules, and the absence of tracked sensitive artifact classes.
-- GitHub Actions uses least-privilege repository permissions, disables checkout credential persistence, validates the MAXX invariants, and publishes an explicit `Tooling smoke` commit status.
+- `verify-repo.sh` enforces Node 24 parity, SHA-pinned GitHub Actions, the pinned Vercel CLI bootstrap, ignore rules, and the absence of tracked sensitive artifact classes.
+- GitHub Actions uses least-privilege repository permissions, disables checkout credential persistence, validates Bash and PowerShell syntax, validates the MAXX invariants, and publishes an explicit `Tooling smoke` commit status.
 - External CI actions are pinned to immutable commit SHAs. `actions/setup-node` is temporarily pinned to the upstream commit containing the post-v7 fix for GHSA-3jxr-9vmj-r5cp until that fix is included in an immutable release.
+- The Windows bootstrap pins Vercel CLI `58.4.4` instead of installing `vercel@latest`. This is intentional while newer Vercel npm publishes have an unresolved provenance-attestation discrepancy; upgrade the pin only after provenance is re-established and verified.
 - Dependabot checks GitHub Actions and npm dependencies weekly.
-- The scheduled smoke workflow provides a fallback validation path in addition to push, pull-request, and manual dispatch triggers.
+- The scheduled smoke workflow runs once daily as a fallback validation path in addition to push, pull-request, and manual dispatch triggers.
