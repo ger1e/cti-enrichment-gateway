@@ -13,6 +13,8 @@ $RepoUrl                 = 'https://github.com/ger1e/cti-enrichment-gateway.git'
 $ProductionAlias         = 'cti-enrichment-gateway-geri6.vercel.app'
 $RequiredNodeMajor       = 24
 $PinnedVercelCliVersion  = '58.4.4'
+$GatewayTokenDir         = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'CTIEnrichmentGateway'
+$GatewayTokenFile        = Join-Path $GatewayTokenDir 'gateway-token.dpapi'
 
 $SecretNames = @(
     'CTI_GATEWAY_TOKEN',
@@ -72,6 +74,54 @@ function Convert-SecureStringToPlainText {
         return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
     } finally {
         [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+    }
+}
+
+function Save-GatewayToken {
+    param([Parameter(Mandatory = $true)][string]$Token)
+
+    $tokenBytes = [Text.Encoding]::UTF8.GetBytes($Token)
+    try {
+        $protectedBytes = [Security.Cryptography.ProtectedData]::Protect(
+            $tokenBytes,
+            $null,
+            [Security.Cryptography.DataProtectionScope]::CurrentUser
+        )
+        New-Item -ItemType Directory -Path $GatewayTokenDir -Force | Out-Null
+        $encoded = [Convert]::ToBase64String($protectedBytes)
+        [IO.File]::WriteAllText($GatewayTokenFile, $encoded, (New-Object Text.UTF8Encoding($false)))
+    } finally {
+        if ($tokenBytes) { [Array]::Clear($tokenBytes, 0, $tokenBytes.Length) }
+        if ($protectedBytes) { [Array]::Clear($protectedBytes, 0, $protectedBytes.Length) }
+        $encoded = $null
+    }
+}
+
+function Get-StoredGatewayToken {
+    if (-not (Test-Path $GatewayTokenFile)) { return $null }
+
+    try {
+        $encoded = [IO.File]::ReadAllText($GatewayTokenFile).Trim()
+        $protectedBytes = [Convert]::FromBase64String($encoded)
+        try {
+            $tokenBytes = [Security.Cryptography.ProtectedData]::Unprotect(
+                $protectedBytes,
+                $null,
+                [Security.Cryptography.DataProtectionScope]::CurrentUser
+            )
+            try {
+                $token = [Text.Encoding]::UTF8.GetString($tokenBytes).Trim()
+                if ([string]::IsNullOrWhiteSpace($token)) { return $null }
+                return $token
+            } finally {
+                if ($tokenBytes) { [Array]::Clear($tokenBytes, 0, $tokenBytes.Length) }
+            }
+        } finally {
+            if ($protectedBytes) { [Array]::Clear($protectedBytes, 0, $protectedBytes.Length) }
+        }
+    } catch {
+        Write-Warning 'Stored gateway token could not be read with current-user DPAPI; a replacement will be created.'
+        return $null
     }
 }
 
@@ -213,7 +263,7 @@ function Prepare-LinkedWorkspace {
 
         Write-Host "Linked local bootstrap workspace to $TeamSlug/$ProjectName."
         Write-Host 'Connecting GitHub repository to the Vercel project...'
-        Invoke-NativeChecked $Vercel git connect --scope $TeamSlug
+        Invoke-NativeChecked $Vercel git connect --yes --scope $TeamSlug
         Write-Host 'GitHub repository connection verified.'
 
         return $workDir
@@ -255,7 +305,7 @@ function Verify-ProductionHealth {
 
 Write-Host '=== CTI Enrichment Gateway / Vercel bootstrap ==='
 Write-Host 'Secrets are entered locally with masked input and are never written to GitHub.'
-Write-Host 'For CTI_GATEWAY_TOKEN, Enter generates a strong 48-byte bearer locally.'
+Write-Host 'The gateway bearer is stored locally with current-user Windows DPAPI and reused by Maltego.'
 Write-Host 'For provider secrets, Enter skips that provider.'
 Write-Host ''
 
@@ -269,28 +319,32 @@ Ensure-VercelLogin -Vercel $Vercel
 $workspace = Prepare-LinkedWorkspace -Vercel $Vercel
 
 try {
-    foreach ($name in $SecretNames) {
-        $prompt = if ($name -eq 'CTI_GATEWAY_TOKEN') {
-            "$name (Enter = generate securely)"
-        } else {
-            "$name (Enter = skip)"
+    $gatewayToken = Get-StoredGatewayToken
+    if ($gatewayToken) {
+        Write-Host 'Reusing stored gateway token protected with current-user Windows DPAPI.'
+    } else {
+        $secure = Read-Host 'CTI_GATEWAY_TOKEN (Enter = generate securely)' -AsSecureString
+        $gatewayToken = Convert-SecureStringToPlainText -Secure $secure
+        if ([string]::IsNullOrWhiteSpace($gatewayToken)) {
+            $gatewayToken = New-GatewayToken
+            Write-Host 'Generated a new gateway token and protected it with current-user Windows DPAPI.'
         }
+        Save-GatewayToken -Token $gatewayToken
+    }
 
-        $secure = Read-Host $prompt -AsSecureString
+    Set-SensitiveVercelEnv -Vercel $Vercel -Name 'CTI_GATEWAY_TOKEN' -Value $gatewayToken
+    Write-Host 'Added/updated CTI_GATEWAY_TOKEN for Production + Preview and retained only the DPAPI-protected local copy.'
+    $gatewayToken = $null
+    [GC]::Collect()
+
+    foreach ($name in $SecretNames | Where-Object { $_ -ne 'CTI_GATEWAY_TOKEN' }) {
+        $secure = Read-Host "$name (Enter = skip)" -AsSecureString
         $plain = Convert-SecureStringToPlainText -Secure $secure
 
         if ([string]::IsNullOrWhiteSpace($plain)) {
-            if ($name -eq 'CTI_GATEWAY_TOKEN') {
-                $plain = New-GatewayToken
-                Write-Host ''
-                Write-Host 'Generated CTI_GATEWAY_TOKEN. Store this value locally; it is shown only in this terminal session:'
-                Write-Host $plain
-                Write-Host ''
-            } else {
-                Write-Host "Skipped $name"
-                $plain = $null
-                continue
-            }
+            Write-Host "Skipped $name"
+            $plain = $null
+            continue
         }
 
         Set-SensitiveVercelEnv -Vercel $Vercel -Name $name -Value $plain
@@ -315,5 +369,5 @@ try {
 
 Write-Host ''
 Write-Host 'Bootstrap complete.'
-Write-Host 'No secret values were written to the repository.'
+Write-Host 'No secret values were written to the repository or printed to the terminal.'
 Write-Host 'GitHub is connected to Vercel, Production + Preview secrets were applied, production was redeployed, and /api/health passed.'
