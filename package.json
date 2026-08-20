@@ -8,7 +8,8 @@
     "verify:tooling": "bash scripts/verify-tooling.sh",
     "verify:repo": "bash scripts/verify-repo.sh",
     "lint:shell": "shellcheck scripts/*.sh",
-    "check": "bash -n scripts/*.sh && npm run lint:shell && npm run verify:repo && npm test",
+    "audit:public": "node scripts/audit-public-release.mjs",
+    "check": "bash -n scripts/*.sh && npm run lint:shell && npm run verify:repo && npm run audit:public && npm test",
     "test": "node --test"
   },
   "engines": {
