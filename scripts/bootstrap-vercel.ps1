@@ -10,10 +10,12 @@ $ProjectId               = 'prj_ojUpOTw8x8KOj9CrTs8jih1mrPjo'
 $TeamSlug                = 'geri6'
 $OrgId                   = 'team_hXokufMlDFuhPPT5r8jPf4aH'
 $RepoUrl                 = 'https://github.com/ger1e/cti-enrichment-gateway.git'
+$ProductionAlias         = 'cti-enrichment-gateway-geri6.vercel.app'
 $RequiredNodeMajor       = 24
-$PinnedVercelCliVersion = '58.4.4'
+$PinnedVercelCliVersion  = '58.4.4'
 
 $SecretNames = @(
+    'CTI_GATEWAY_TOKEN',
     'ABUSECH_API_KEY',
     'ABUSEIPDB_API_KEY',
     'GREYNOISE_API_KEY',
@@ -26,8 +28,8 @@ $SecretNames = @(
     'SHODAN_API_KEY',
     'CENSYS_PAT',
     'PULSEDIVE_API_KEY',
-    'SECURITYTRAILS_API_KEY',
     'IPINFO_TOKEN',
+    'MALPEDIA_API_TOKEN',
     'NVD_API_KEY',
     'CLOUDFLARE_RADAR_TOKEN'
 )
@@ -47,6 +49,29 @@ function Invoke-NativeChecked {
     & $FilePath @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "$FilePath failed with exit code $LASTEXITCODE"
+    }
+}
+
+function New-GatewayToken {
+    $bytes = New-Object byte[] 48
+    $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $rng.GetBytes($bytes)
+    } finally {
+        $rng.Dispose()
+    }
+
+    return [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+}
+
+function Convert-SecureStringToPlainText {
+    param([Parameter(Mandatory = $true)][Security.SecureString]$Secure)
+
+    $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($Secure)
+    try {
+        return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+    } finally {
+        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
     }
 }
 
@@ -187,12 +212,9 @@ function Prepare-LinkedWorkspace {
         [IO.File]::WriteAllText((Join-Path $workDir '.vercel\project.json'), $projectJson, (New-Object Text.UTF8Encoding($false)))
 
         Write-Host "Linked local bootstrap workspace to $TeamSlug/$ProjectName."
-
         Write-Host 'Connecting GitHub repository to the Vercel project...'
-        & $Vercel git connect --scope $TeamSlug
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning 'Git connection was not completed. Environment-variable setup will continue; you can rerun `vercel git connect --scope geri6` later.'
-        }
+        Invoke-NativeChecked $Vercel git connect --scope $TeamSlug
+        Write-Host 'GitHub repository connection verified.'
 
         return $workDir
     } catch {
@@ -216,9 +238,25 @@ function Set-SensitiveVercelEnv {
     }
 }
 
+function Verify-ProductionHealth {
+    $healthUrl = "https://$ProductionAlias/api/health"
+    Write-Host "Verifying production health at $healthUrl ..."
+    $health = Invoke-RestMethod -Method Get -Uri $healthUrl -TimeoutSec 30
+
+    if ($health.status -ne 'ok') {
+        throw "Production health check failed: status '$($health.status)'."
+    }
+    if (-not $health.gatewayAuthConfigured) {
+        throw 'Production health check failed: CTI_GATEWAY_TOKEN is not configured.'
+    }
+
+    Write-Host 'Production health verified: gateway authentication is configured.'
+}
+
 Write-Host '=== CTI Enrichment Gateway / Vercel bootstrap ==='
 Write-Host 'Secrets are entered locally with masked input and are never written to GitHub.'
-Write-Host 'Press Enter on any secret you do not have yet; it will be skipped.'
+Write-Host 'For CTI_GATEWAY_TOKEN, Enter generates a strong 48-byte bearer locally.'
+Write-Host 'For provider secrets, Enter skips that provider.'
 Write-Host ''
 
 Ensure-Git
@@ -232,18 +270,27 @@ $workspace = Prepare-LinkedWorkspace -Vercel $Vercel
 
 try {
     foreach ($name in $SecretNames) {
-        $secure = Read-Host "$name (Enter = skip)" -AsSecureString
-        $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-        try {
-            $plain = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
-        } finally {
-            [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+        $prompt = if ($name -eq 'CTI_GATEWAY_TOKEN') {
+            "$name (Enter = generate securely)"
+        } else {
+            "$name (Enter = skip)"
         }
 
+        $secure = Read-Host $prompt -AsSecureString
+        $plain = Convert-SecureStringToPlainText -Secure $secure
+
         if ([string]::IsNullOrWhiteSpace($plain)) {
-            Write-Host "Skipped $name"
-            $plain = $null
-            continue
+            if ($name -eq 'CTI_GATEWAY_TOKEN') {
+                $plain = New-GatewayToken
+                Write-Host ''
+                Write-Host 'Generated CTI_GATEWAY_TOKEN. Store this value locally; it is shown only in this terminal session:'
+                Write-Host $plain
+                Write-Host ''
+            } else {
+                Write-Host "Skipped $name"
+                $plain = $null
+                continue
+            }
         }
 
         Set-SensitiveVercelEnv -Vercel $Vercel -Name $name -Value $plain
@@ -254,10 +301,12 @@ try {
 
     Write-Host ''
     Write-Host 'Configured Vercel environment variables:'
-    & $Vercel env ls --scope $TeamSlug
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning 'Could not list environment-variable names, but completed writes above were individually checked.'
-    }
+    Invoke-NativeChecked $Vercel env ls --scope $TeamSlug
+
+    Write-Host ''
+    Write-Host 'Redeploying the current production deployment so updated environment variables take effect...'
+    Invoke-NativeChecked $Vercel redeploy "https://$ProductionAlias" --scope $TeamSlug
+    Verify-ProductionHealth
 } finally {
     if ((Get-Location).Path -eq $workspace) {
         Pop-Location
@@ -267,4 +316,4 @@ try {
 Write-Host ''
 Write-Host 'Bootstrap complete.'
 Write-Host 'No secret values were written to the repository.'
-Write-Host 'Git auto-deploy will work once `vercel git connect` has completed successfully.'
+Write-Host 'GitHub is connected to Vercel, Production + Preview secrets were applied, production was redeployed, and /api/health passed.'

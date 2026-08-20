@@ -31,6 +31,9 @@ __pycache__/
 .venv/
 venv/
 
+# Generated Maltego artifacts
+maltego/*.mtz
+
 # Editors / OS
 .vscode/
 .idea/
