@@ -41,8 +41,13 @@ class TransformParityTests(unittest.TestCase):
 
     def test_gateway_token_remains_the_only_transform_credential_boundary(self):
         client = (ROOT / 'gateway_client.py').read_text(encoding='utf-8')
-        self.assertIn('CTI_GATEWAY_TOKEN', client)
-        self.assertIn('DPAPI', client.upper())
+        store = (ROOT / 'credential_store.py').read_text(encoding='utf-8')
+        combined = f'{client}\n{store}'
+        self.assertIn('CTI_GATEWAY_TOKEN', combined)
+        self.assertIn('DPAPI', combined.upper())
+        self.assertIn('SUPPORTED_INDICATOR_TYPES', client)
+        for indicator_type in ['ip', 'domain', 'url', 'hash', 'cve', 'attack', 'asn', 'cidr']:
+            self.assertIn(repr(indicator_type), client)
 
 if __name__ == '__main__':
     unittest.main()
