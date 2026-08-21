@@ -99,3 +99,20 @@ test('Modat domain lookup uses fixed passive-DNS zone endpoint and treats presen
   assert.ok(data.relationships.some(item => item.targetType === 'domain' && item.target === 'alias.example.test'));
   assert.equal(JSON.stringify(data).includes(SECRET), false);
 });
+
+test('Modat malformed successful bodies fail closed instead of manufacturing observed evidence', async () => {
+  const adapter = provider();
+  const context = {
+    fetchImpl: async () => json({}),
+    env: { MODAT_API_KEY: SECRET },
+    signal: new AbortController().signal,
+  };
+  await assert.rejects(
+    adapter.run({ value: '203.0.113.10', type: 'ip' }, context),
+    error => error?.status === 502,
+  );
+  await assert.rejects(
+    adapter.run({ value: 'example.test', type: 'domain' }, context),
+    error => error?.status === 502,
+  );
+});
