@@ -7,4 +7,13 @@ export const WORKFLOWS = Object.freeze({
   attack: Object.freeze(['attack-taxii']),
 });
 
+export const WORKFLOW_CALL_LIMITS = Object.freeze({
+  ip: 25,
+  domain: 15,
+  url: 15,
+  hash: 15,
+  cve: 12,
+  attack: 2,
+});
+
 export const WORKFLOW_BLUEPRINTS = WORKFLOWS;
