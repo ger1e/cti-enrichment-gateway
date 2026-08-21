@@ -61,16 +61,6 @@ function candidateValues(input) {
   return [value];
 }
 
-function supportedAttributeType(inputType, attributeType) {
-  const type = String(attributeType ?? '').toLowerCase();
-  if (inputType === 'ip') return type === 'ip-src' || type === 'ip-dst';
-  if (inputType === 'domain') return type === 'domain' || type === 'hostname';
-  if (inputType === 'url') return type === 'url';
-  if (inputType === 'hash') return ['md5', 'sha1', 'sha256'].includes(type);
-  if (inputType === 'cve') return type === 'vulnerability';
-  return false;
-}
-
 function sameValue(input, value) {
   const candidate = String(value ?? '').trim();
   if (!candidate) return false;
@@ -79,6 +69,41 @@ function sameValue(input, value) {
     return candidate.toLowerCase() === String(input.value).toLowerCase();
   }
   return candidate === String(input.value);
+}
+
+function componentFor(inputType, attributeType, value) {
+  const type = String(attributeType ?? '').toLowerCase();
+  const raw = String(value ?? '');
+
+  if (inputType === 'ip') {
+    if (type === 'ip-src' || type === 'ip-dst') return raw;
+    if (type === 'domain|ip') return raw.split('|', 2)[1] ?? null;
+    if (type === 'ip-src|port' || type === 'ip-dst|port') return raw.split('|', 2)[0] ?? null;
+    return null;
+  }
+
+  if (inputType === 'domain') {
+    if (type === 'domain' || type === 'hostname') return raw;
+    if (type === 'domain|ip' || type === 'hostname|port') return raw.split('|', 2)[0] ?? null;
+    return null;
+  }
+
+  if (inputType === 'url') return type === 'url' ? raw : null;
+
+  if (inputType === 'hash') {
+    if (['md5', 'sha1', 'sha256'].includes(type)) return raw;
+    if (['filename|md5', 'filename|sha1', 'filename|sha256'].includes(type)) return raw.split('|', 2)[1] ?? null;
+    return null;
+  }
+
+  if (inputType === 'cve') return type === 'vulnerability' ? raw : null;
+  return null;
+}
+
+function matchesAttribute(input, attribute) {
+  if (!attribute || attribute.deleted === true || attribute.deleted === 1 || attribute.deleted === '1') return false;
+  const component = componentFor(input.type, attribute.type, attribute.value);
+  return component != null && sameValue(input, component);
 }
 
 function eventAttributes(event) {
@@ -90,6 +115,10 @@ function eventAttributes(event) {
 
 function tagNames(items) {
   return arr(items).map(tag => tag?.name).filter(Boolean);
+}
+
+function asBoolean(value) {
+  return value === true || value === 1 || value === '1';
 }
 
 async function loadEvent(baseUrl, uuid, context) {
@@ -116,7 +145,7 @@ function createMispFeedProvider({ name, baseUrl, feedLabel }) {
     negativeCacheTtlMs: HASH_CACHE_TTL_MS,
     costClass: 'free',
     timeoutMs: 8000,
-    parserVersion: '2026-08-21',
+    parserVersion: '2026-08-21.2',
     async run(input, context = {}) {
       const hashUrl = `${baseUrl}hashes.csv`;
       const cacheText = await loadTextFeed(hashUrl, context, { ttlMs: HASH_CACHE_TTL_MS, maxBytes: 32_000_000 });
@@ -141,20 +170,22 @@ function createMispFeedProvider({ name, baseUrl, feedLabel }) {
 
       for (const uuid of eventUuids.slice(0, MAX_EVENT_FETCHES)) {
         const { event, url } = await loadEvent(baseUrl, uuid, context);
-        const matches = eventAttributes(event).filter(attribute =>
-          supportedAttributeType(input.type, attribute?.type) && sameValue(input, attribute?.value));
+        const matches = eventAttributes(event).filter(attribute => matchesAttribute(input, attribute));
         if (matches.length === 0) throw new Error('MISP feed hash cache/event mismatch');
 
         matchedAttributeCount += matches.length;
-        toIds ||= matches.some(attribute => attribute?.to_ids === true || attribute?.to_ids === 1 || attribute?.to_ids === '1');
-        tags.push(...tagNames(event.Tag));
-        for (const match of matches) tags.push(...tagNames(match?.Tag));
+        toIds ||= matches.some(attribute => asBoolean(attribute?.to_ids));
+        const eventTags = tagNames(event.Tag);
+        const attributeTags = matches.flatMap(match => tagNames(match?.Tag));
+        tags.push(...eventTags, ...attributeTags);
         references.push(url);
         verified.push({
           uuid: event.uuid,
           info: event.info ?? null,
           date: event.date ?? null,
+          published: asBoolean(event.published),
           threatLevelId: event.threat_level_id ?? null,
+          tags: uniq([...eventTags, ...attributeTags]),
           matchedAttributeTypes: uniq(matches.map(attribute => attribute.type)),
         });
       }
