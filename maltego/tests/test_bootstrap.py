@@ -82,7 +82,7 @@ class BootstrapTests(unittest.TestCase):
                 bootstrap._safe_remove_tree(Path(other_tmp), root=Path(root_tmp))
 
     @unittest.skipIf(os.name == 'nt', 'symlink semantics differ on Windows CI')
-    def test_safe_remove_unlinks_symlink_without_following_target(self):
+    def test_safe_remove_refuses_symlink_escape_and_preserves_target(self):
         with TemporaryDirectory() as tmp, TemporaryDirectory() as outside:
             root = Path(tmp)
             target = Path(outside) / 'keep'
@@ -91,8 +91,9 @@ class BootstrapTests(unittest.TestCase):
             marker.write_text('keep', encoding='utf-8')
             link = root / '.venv'
             link.symlink_to(target, target_is_directory=True)
-            bootstrap._safe_remove_tree(link, root=root)
-            self.assertFalse(link.exists())
+            with self.assertRaisesRegex(BootstrapError, 'outside Maltego root'):
+                bootstrap._safe_remove_tree(link, root=root)
+            self.assertTrue(link.is_symlink())
             self.assertTrue(marker.exists())
 
     def test_noninteractive_missing_credential_fails_without_prompt(self):
