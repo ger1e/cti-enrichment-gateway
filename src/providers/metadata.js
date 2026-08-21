@@ -1,4 +1,5 @@
 const MIB = 1024 * 1024;
+const MAX_BULK_FEED_BYTES = 32_000_000;
 
 export const PROVIDER_METADATA = Object.freeze({
   ipinfo: { observationTypes: ['network_identity'], tier: 3, costClass: 'quota', maxResponseBytes: 2 * MIB, fixedHosts: ['api.ipinfo.io'], sourceUrl: 'https://ipinfo.io/developers' },
@@ -9,8 +10,8 @@ export const PROVIDER_METADATA = Object.freeze({
   'tor-exit': { observationTypes: ['tor_exit'], tier: 2, costClass: 'free', maxResponseBytes: 1 * MIB, fixedHosts: ['check.torproject.org'], sourceUrl: 'https://check.torproject.org/torbulkexitlist' },
   'feodo-tracker': { observationTypes: ['botnet_c2'], tier: 2, costClass: 'free', maxResponseBytes: 4 * MIB, fixedHosts: ['feodotracker.abuse.ch'], sourceUrl: 'https://feodotracker.abuse.ch/blocklist/' },
   threatminer: { observationTypes: ['passive_dns', 'malware_association', 'threat_context'], tier: 2, costClass: 'free', maxResponseBytes: 2 * MIB, fixedHosts: ['api.threatminer.org'], sourceUrl: 'https://www.threatminer.org/api.php' },
-  'misp-circl-osint': { observationTypes: ['misp_feed_hit'], tier: 2, costClass: 'free', maxResponseBytes: 32 * MIB, fixedHosts: ['www.circl.lu'], sourceUrl: 'https://www.circl.lu/doc/misp/feed-osint/' },
-  'misp-botvrij-osint': { observationTypes: ['misp_feed_hit'], tier: 2, costClass: 'free', maxResponseBytes: 32 * MIB, fixedHosts: ['www.botvrij.eu'], sourceUrl: 'https://www.botvrij.eu/data/feed-osint/' },
+  'misp-circl-osint': { observationTypes: ['misp_feed_hit'], tier: 2, costClass: 'free', maxResponseBytes: MAX_BULK_FEED_BYTES, fixedHosts: ['www.circl.lu'], sourceUrl: 'https://www.circl.lu/doc/misp/feed-osint/' },
+  'misp-botvrij-osint': { observationTypes: ['misp_feed_hit'], tier: 2, costClass: 'free', maxResponseBytes: MAX_BULK_FEED_BYTES, fixedHosts: ['www.botvrij.eu'], sourceUrl: 'https://www.botvrij.eu/data/feed-osint/' },
   greynoise: { observationTypes: ['internet_noise'], tier: 3, costClass: 'quota', maxResponseBytes: 2 * MIB, fixedHosts: ['api.greynoise.io'], sourceUrl: 'https://docs.greynoise.io/' },
   abuseipdb: { observationTypes: ['abuse_reports'], tier: 3, costClass: 'quota', maxResponseBytes: 2 * MIB, fixedHosts: ['api.abuseipdb.com'], sourceUrl: 'https://docs.abuseipdb.com/' },
   shodan: { observationTypes: ['internet_exposure'], tier: 3, costClass: 'quota', maxResponseBytes: 4 * MIB, fixedHosts: ['api.shodan.io'], sourceUrl: 'https://developer.shodan.io/api' },
