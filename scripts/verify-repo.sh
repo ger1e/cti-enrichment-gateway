@@ -15,23 +15,12 @@ check() {
   fi
 }
 
-node_engine_ok() {
-  [[ "$(jq -r '.engines.node // empty' package.json)" == "24.x" ]]
-}
-
-nvmrc_ok() {
-  [[ "$(tr -d '[:space:]' < .nvmrc)" == "24" ]]
-}
-
-devcontainer_node_ok() {
-  [[ "$(jq -r '.features["ghcr.io/devcontainers/features/node:1"].version // empty' .devcontainer/devcontainer.json)" == "24" ]]
-}
+node_engine_ok() { [[ "$(jq -r '.engines.node // empty' package.json)" == "24.x" ]]; }
+nvmrc_ok() { [[ "$(tr -d '[:space:]' < .nvmrc)" == "24" ]]; }
+devcontainer_node_ok() { [[ "$(jq -r '.features["ghcr.io/devcontainers/features/node:1"].version // empty' .devcontainer/devcontainer.json)" == "24" ]]; }
 
 npm_policy_ok() {
-  grep -Fxq 'engine-strict=true' .npmrc &&
-    grep -Fxq 'audit=true' .npmrc &&
-    grep -Fxq 'fund=false' .npmrc &&
-    grep -Fxq 'save-exact=true' .npmrc
+  grep -Fxq 'engine-strict=true' .npmrc && grep -Fxq 'audit=true' .npmrc && grep -Fxq 'fund=false' .npmrc && grep -Fxq 'save-exact=true' .npmrc
 }
 
 actions_pinned_ok() {
@@ -59,14 +48,10 @@ finalizer_ok() {
   local script=scripts/finalize.ps1
   local workflow=.github/workflows/tooling-smoke.yml
   [[ -s "${script}" ]] &&
-    grep -Fq 'branches/main/protection' "${script}" &&
-    grep -Fq 'Tooling smoke' "${script}" &&
-    grep -Fq 'required_pull_request_reviews' "${script}" &&
-    grep -Fq 'required_status_checks' "${script}" &&
-    grep -Fq 'enforce_admins' "${script}" &&
-    grep -Fq 'allow_force_pushes' "${script}" &&
-    grep -Fq 'allow_deletions' "${script}" &&
-    grep -Fq 'bootstrap-vercel.ps1' "${script}" &&
+    grep -Fq 'branches/main/protection' "${script}" && grep -Fq 'Tooling smoke' "${script}" &&
+    grep -Fq 'required_pull_request_reviews' "${script}" && grep -Fq 'required_status_checks' "${script}" &&
+    grep -Fq 'enforce_admins' "${script}" && grep -Fq 'allow_force_pushes' "${script}" &&
+    grep -Fq 'allow_deletions' "${script}" && grep -Fq 'bootstrap-vercel.ps1' "${script}" &&
     grep -Fq "'scripts/finalize.ps1'" "${workflow}"
 }
 
@@ -99,26 +84,16 @@ EOF
 bootstrap_secrets_ok() {
   local script=scripts/bootstrap-vercel.ps1
   local name
-  for name in \
-    CTI_GATEWAY_TOKEN ABUSECH_API_KEY ABUSEIPDB_API_KEY GREYNOISE_API_KEY VIRUSTOTAL_API_KEY \
-    HYBRID_ANALYSIS_API_KEY URLSCAN_API_KEY WEBAMON_API_KEY SENTRY_AUTH_TOKEN OTX_API_KEY \
-    SHODAN_API_KEY CENSYS_PAT PULSEDIVE_API_KEY IPINFO_TOKEN MALPEDIA_API_TOKEN NVD_API_KEY \
-    CLOUDFLARE_RADAR_TOKEN; do
+  for name in CTI_GATEWAY_TOKEN ABUSECH_API_KEY ABUSEIPDB_API_KEY GREYNOISE_API_KEY VIRUSTOTAL_API_KEY HYBRID_ANALYSIS_API_KEY URLSCAN_API_KEY WEBAMON_API_KEY SENTRY_AUTH_TOKEN OTX_API_KEY SHODAN_API_KEY CENSYS_PAT PULSEDIVE_API_KEY IPINFO_TOKEN MALPEDIA_API_TOKEN NVD_API_KEY CLOUDFLARE_RADAR_TOKEN; do
     grep -Fq "'${name}'" "${script}" || return 1
   done
   ! grep -Fq 'SECURITYTRAILS_API_KEY' "${script}"
 }
 
-docs_runtime_ok() {
-  grep -Eq 'Node\.js 24\.x' README.md &&
-    ! grep -Eq 'Node(\.js)?[[:space:]]+22' README.md
-}
+docs_runtime_ok() { grep -Eq 'Node\.js 24\.x' README.md && ! grep -Eq 'Node(\.js)?[[:space:]]+22' README.md; }
 
 security_policy_ok() {
-  [[ -s SECURITY.md ]] &&
-    grep -Fq 'GitHub Actions must remain pinned to immutable commit SHAs.' SECURITY.md &&
-    grep -Fq 'Runtime parity is Node.js 24.x' SECURITY.md &&
-    grep -Fq 'read-only' SECURITY.md
+  [[ -s SECURITY.md ]] && grep -Fq 'GitHub Actions must remain pinned to immutable commit SHAs.' SECURITY.md && grep -Fq 'Runtime parity is Node.js 24.x' SECURITY.md && grep -Fq 'read-only' SECURITY.md
 }
 
 sensitive_files_untracked() {
@@ -129,16 +104,26 @@ sensitive_files_untracked() {
 }
 
 ignore_rules_ok() {
-  grep -Eq '^\.env$' .gitignore &&
-    grep -Eq '^\.env\.\*$' .gitignore &&
-    grep -Eq '^\*\.pem$' .gitignore &&
-    grep -Eq '^samples/$' .gitignore &&
-    grep -Eq '^captures/$' .gitignore &&
-    grep -Fxq 'maltego/*.mtz' .gitignore
+  grep -Eq '^\.env$' .gitignore && grep -Eq '^\.env\.\*$' .gitignore && grep -Eq '^\*\.pem$' .gitignore && grep -Eq '^samples/$' .gitignore && grep -Eq '^captures/$' .gitignore && grep -Fxq 'maltego/*.mtz' .gitignore
 }
 
-no_stale_securitytrails_ok() {
-  ! grep -Fq 'SECURITYTRAILS_API_KEY' .env.example scripts/bootstrap-vercel.ps1 README.md
+no_stale_securitytrails_ok() { ! grep -Fq 'SECURITYTRAILS_API_KEY' .env.example scripts/bootstrap-vercel.ps1 README.md; }
+
+qa_suite_ok() {
+  [[ -s test/fuzz-deterministic.test.js ]] && [[ -s test/chaos-provider.test.js ]] && [[ -s test/manifest-invariants.test.js ]] &&
+    grep -Fq "1000 deterministic arbitrary strings" test/fuzz-deterministic.test.js &&
+    grep -Fq 'transient provider failures are never negative-cached' test/chaos-provider.test.js &&
+    grep -Fq 'every active workflow adapter is registered' test/manifest-invariants.test.js
+}
+
+vnext_api_surface_ok() {
+  local path
+  for path in api/enrich.js api/batch.js api/stix.js api/meta.js api/status.js api/health.js; do [[ -s "${path}" ]] || return 1; done
+}
+
+egress_boundary_ok() {
+  grep -Fq 'safeFetch' src/core/provider-runner.js &&
+    ! grep -R -E '[^[:alnum:]_]fetch[[:space:]]*\(' src/providers --include='*.js'
 }
 
 echo "== Repository invariants =="
@@ -157,6 +142,9 @@ check "security policy present" security_policy_ok
 check "sensitive artifacts untracked" sensitive_files_untracked
 check "secret/artifact ignore rules" ignore_rules_ok
 check "SecurityTrails stale config absent" no_stale_securitytrails_ok
+check "vNext adversarial QA suite" qa_suite_ok
+check "vNext API surface present" vnext_api_surface_ok
+check "central egress boundary" egress_boundary_ok
 
 if [[ -f package-lock.json ]]; then
   echo
