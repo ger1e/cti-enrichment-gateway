@@ -45,6 +45,7 @@ export async function runScheduledProviders({
   execute,
   concurrency = 4,
   deadlineMs = 20_000,
+  callLimit = Math.max(1, providers.length * 2),
   nowMs = () => Date.now(),
   circuitBreaker = null,
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
@@ -53,6 +54,7 @@ export async function runScheduledProviders({
   if (typeof execute !== 'function') throw new TypeError('execute must be a function');
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 4) throw new TypeError('concurrency must be between 1 and 4');
   if (!Number.isFinite(deadlineMs) || deadlineMs <= 0) throw new TypeError('deadlineMs must be positive');
+  if (!Number.isInteger(callLimit) || callLimit < 1) throw new TypeError('callLimit must be a positive integer');
 
   const startedAt = nowMs();
   const deadlineAt = startedAt + deadlineMs;
@@ -61,6 +63,7 @@ export async function runScheduledProviders({
 
   const runOne = async adapter => {
     if (nowMs() >= deadlineAt) return { provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts: 0 };
+    if (calls >= callLimit) return { provider: adapter.name, skipped: true, reason: 'provider_call_budget_exhausted', attempts: 0 };
     const circuit = circuitBreaker?.canRun?.(adapter.name);
     if (circuit && !circuit.allowed) return { provider: adapter.name, skipped: true, reason: 'circuit_open', attempts: 0, retryAfterMs: circuit.retryAfterMs };
 
@@ -69,7 +72,12 @@ export async function runScheduledProviders({
     while (attempts < 2) {
       const remainingMs = deadlineAt - nowMs();
       if (remainingMs <= 0) {
-        return { provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts };
+        if (attempts === 0) return { provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts: 0 };
+        break;
+      }
+      if (calls >= callLimit) {
+        if (attempts === 0) return { provider: adapter.name, skipped: true, reason: 'provider_call_budget_exhausted', attempts: 0 };
+        break;
       }
       attempts += 1;
       calls += 1;
@@ -89,7 +97,7 @@ export async function runScheduledProviders({
         retryable,
         retryAfter: result?.failure?.retryAfter ?? null,
       });
-      if (!retryable || attempts >= 2) break;
+      if (!retryable || attempts >= 2 || calls >= callLimit) break;
 
       const delay = retryDelayMs(result);
       const remainingAfter = deadlineAt - nowMs();
@@ -104,14 +112,20 @@ export async function runScheduledProviders({
       all.push(...group.providers.map(adapter => ({ provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts: 0 })));
       continue;
     }
+    if (calls >= callLimit) {
+      all.push(...group.providers.map(adapter => ({ provider: adapter.name, skipped: true, reason: 'provider_call_budget_exhausted', attempts: 0 })));
+      continue;
+    }
     all.push(...await runPool(group.providers, concurrency, runOne));
   }
 
   return Object.freeze({
     results: all,
     calls,
+    callLimit,
     durationMs: Math.max(0, nowMs() - startedAt),
     deadlineMs,
     deadlineExhausted: all.some(item => item.reason === 'request_deadline_exhausted'),
+    callBudgetExhausted: all.some(item => item.reason === 'provider_call_budget_exhausted'),
   });
 }
