@@ -5,6 +5,7 @@ import { classifyIndicator } from './core/validate.js';
 import { TtlCache } from './core/cache.js';
 import { createProviderRegistry } from './core/provider-registry.js';
 import { enrich } from './core/orchestrator.js';
+import { GATEWAY_VERSION } from './core/version.js';
 import { ALL_PROVIDERS } from './providers/index.js';
 import { WORKFLOWS } from './workflows.js';
 
@@ -68,8 +69,9 @@ export function createApp({
   env = process.env,
   fetchImpl = fetch,
   now = () => new Date().toISOString(),
+  nowMs = () => Date.now(),
   cache = new TtlCache(),
-  gatewayVersion = env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || '1.0.0',
+  gatewayVersion = GATEWAY_VERSION,
   adapters = ALL_PROVIDERS,
 } = {}) {
   const registry = createProviderRegistry(adapters);
@@ -143,7 +145,9 @@ export function createApp({
         cache,
         requestId: randomUUID(),
         now,
+        nowMs,
         gatewayVersion,
+        profile: 'standard',
         context: { fetchImpl, env },
       });
       return response(200, result);
