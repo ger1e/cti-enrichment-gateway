@@ -33,7 +33,7 @@ class BootstrapTests(unittest.TestCase):
     def test_venv_action_rebuilds_python_39_and_corrupt_environments(self):
         with TemporaryDirectory() as tmp:
             venv = Path(tmp) / '.venv'
-            python = venv / 'bin' / 'python'
+            python = bootstrap.venv_python(venv)
             python.parent.mkdir(parents=True)
             python.write_text('', encoding='utf-8')
             with patch.object(bootstrap, 'probe_python', return_value=(3, 9, 19)):
