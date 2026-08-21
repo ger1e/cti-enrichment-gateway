@@ -11,8 +11,14 @@ function normalizeFailure(error, timedOut) {
   return { reason: 'provider_error' };
 }
 
-export async function runProvider(adapter, input, { timeoutMs = 5000, now = () => new Date().toISOString(), context = {} } = {}) {
+export async function runProvider(adapter, input, {
+  timeoutMs = 5000,
+  now = () => new Date().toISOString(),
+  nowMs = () => Date.now(),
+  context = {},
+} = {}) {
   const controller = new AbortController();
+  const started = nowMs();
   let timedOut = false;
   const timer = setTimeout(() => {
     timedOut = true;
@@ -22,9 +28,22 @@ export async function runProvider(adapter, input, { timeoutMs = 5000, now = () =
   try {
     const data = await adapter.run(input, { ...context, signal: controller.signal });
     const retrievedAt = now();
-    return { ok: true, provider: adapter.name, data, retrievedAt, rawHash: hashRaw(data) };
+    return {
+      ok: true,
+      provider: adapter.name,
+      data,
+      retrievedAt,
+      rawHash: hashRaw(data),
+      durationMs: Math.max(0, nowMs() - started),
+    };
   } catch (error) {
-    return { ok: false, provider: adapter.name, failure: normalizeFailure(error, timedOut), retrievedAt: now() };
+    return {
+      ok: false,
+      provider: adapter.name,
+      failure: normalizeFailure(error, timedOut),
+      retrievedAt: now(),
+      durationMs: Math.max(0, nowMs() - started),
+    };
   } finally {
     clearTimeout(timer);
   }
