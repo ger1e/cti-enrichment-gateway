@@ -1,6 +1,6 @@
 export const WORKFLOWS = Object.freeze({
-  ip: Object.freeze(['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']),
-  domain: Object.freeze(['rdap', 'threatminer', 'openphish', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'urlscan', 'webamon', 'ransomware-live', 'virustotal', 'otx', 'threatfox', 'pulsedive']),
+  ip: Object.freeze(['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'modat', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']),
+  domain: Object.freeze(['rdap', 'threatminer', 'openphish', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'urlscan', 'webamon', 'modat', 'ransomware-live', 'virustotal', 'otx', 'threatfox', 'pulsedive']),
   url: Object.freeze(['openphish', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'urlscan', 'webamon', 'urlhaus', 'ransomware-live', 'virustotal', 'otx', 'threatfox', 'pulsedive']),
   hash: Object.freeze(['circl-hashlookup', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox', 'pulsedive']),
   cve: Object.freeze(['cisa-kev', 'epss', 'circl-vulnerability', 'misp-circl-osint', 'misp-botvrij-osint', 'nvd', 'osv', 'otx']),

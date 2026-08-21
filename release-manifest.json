@@ -20,6 +20,7 @@
     { "name": "malwarebazaar", "parserVersion": "2026-08-20", "active": true },
     { "name": "misp-botvrij-osint", "parserVersion": "2026-08-21.2", "active": true },
     { "name": "misp-circl-osint", "parserVersion": "2026-08-21.2", "active": true },
+    { "name": "modat", "parserVersion": "2026-08-21.1", "active": true },
     { "name": "nvd", "parserVersion": "2.0-2026-08-20", "active": true },
     { "name": "openphish", "parserVersion": "2026-08-20", "active": true },
     { "name": "osv", "parserVersion": "2026-08-20", "active": true },

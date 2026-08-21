@@ -11,6 +11,7 @@ import { greynoiseProvider as rawGreynoiseProvider } from './greynoise.js';
 import { abuseipdbProvider as rawAbuseipdbProvider } from './abuseipdb.js';
 import { shodanProvider as rawShodanProvider } from './shodan.js';
 import { censysProvider as rawCensysProvider } from './censys.js';
+import { modatProvider as rawModatProvider } from './modat.js';
 import { cloudflareRadarProvider as rawCloudflareRadarProvider } from './cloudflare-radar.js';
 import { virustotalProvider as rawVirustotalProvider } from './virustotal.js';
 import { otxProvider as rawOtxProvider } from './otx.js';
@@ -49,6 +50,7 @@ export const greynoiseProvider = withProviderMetadata(rawGreynoiseProvider);
 export const abuseipdbProvider = withProviderMetadata(rawAbuseipdbProvider);
 export const shodanProvider = withProviderMetadata(rawShodanProvider);
 export const censysProvider = withProviderMetadata(rawCensysProvider);
+export const modatProvider = withProviderMetadata(rawModatProvider);
 export const cloudflareRadarProvider = withProviderMetadata(rawCloudflareRadarProvider);
 export const virustotalProvider = withProviderMetadata(rawVirustotalProvider);
 export const otxProvider = withProviderMetadata(rawOtxProvider);
@@ -75,7 +77,7 @@ export const ransomwareLiveProvider = withProviderMetadata(rawRansomwareLiveProv
 export const ALL_PROVIDERS = Object.freeze([
   ipinfoProvider, rdapProvider, ripestatProvider, dshieldProvider, spamhausDropProvider, torExitProvider,
   feodoTrackerProvider, threatminerProvider, mispCirclOsintProvider, mispBotvrijOsintProvider,
-  greynoiseProvider, abuseipdbProvider, shodanProvider, censysProvider, cloudflareRadarProvider,
+  greynoiseProvider, abuseipdbProvider, shodanProvider, censysProvider, modatProvider, cloudflareRadarProvider,
   virustotalProvider, otxProvider, threatfoxProvider, urlscanProvider, webamonProvider,
   pulsediveProvider, openphishProvider, urlhausProvider, circlHashlookupProvider,
   malwarebazaarProvider, malpediaProvider, hybridAnalysisProvider, cisaKevProvider, epssProvider,

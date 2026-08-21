@@ -35,7 +35,8 @@ $SecretNames = @(
     'MALPEDIA_API_TOKEN',
     'NVD_API_KEY',
     'CLOUDFLARE_RADAR_TOKEN',
-    'RANSOMWARE_LIVE_API_KEY'
+    'RANSOMWARE_LIVE_API_KEY',
+    'MODAT_API_KEY'
 )
 
 function Refresh-ProcessPath {
