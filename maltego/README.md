@@ -1,6 +1,59 @@
 # Maltego local transforms for CTI Enrichment Gateway
 
-This directory connects Maltego Graph Desktop to the private CTI enrichment gateway without exposing vendor API credentials to Maltego.
+Maltego Graph Desktop talks only to the private CTI enrichment gateway. Vendor API credentials stay server-side; the workstation stores only `CTI_GATEWAY_TOKEN`.
+
+## Install
+
+From this directory:
+
+### macOS / Linux — zsh or bash
+
+```sh
+./install.sh
+```
+
+### Windows — PowerShell 5.1+
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+.\install.ps1
+```
+
+The installer selects or installs a compatible Python (hard floor 3.10; preferred/tested 3.12), creates or repairs `.venv`, installs the pinned `maltego-trx==1.7.0` dependency, runs the integration/regression suite, stores the gateway bearer in the native user credential store, generates the MTZ, verifies its structure/security/inventory, and prints its SHA-256 and import path.
+
+Credential backends:
+
+- Windows: current-user DPAPI.
+- macOS: login Keychain through `/usr/bin/security`.
+- Linux: Secret Service/libsecret through `secret-tool` when available. There is no plaintext credential-file fallback; otherwise use an explicit process-local `CTI_GATEWAY_TOKEN`.
+
+Import the resulting `cti-enrichment-gateway-local.mtz` into Maltego Graph Desktop.
+
+## Lifecycle
+
+macOS/Linux:
+
+```sh
+./install.sh --check
+./install.sh --repair
+./install.sh --update
+./install.sh --uninstall
+./install.sh --uninstall --delete-credential
+```
+
+Windows equivalents:
+
+```powershell
+.\install.ps1 -Check
+.\install.ps1 -Repair
+.\install.ps1 -Update
+.\install.ps1 -Uninstall
+.\install.ps1 -Uninstall -DeleteCredential
+```
+
+`--check` / `-Check` is read-only. Uninstall preserves the native credential unless deletion is explicitly requested. Re-running the normal installer is idempotent: a healthy venv is reused; stale, corrupt, or Python-3.9 venvs are rebuilt automatically.
+
+For unattended execution, pre-supply `CTI_GATEWAY_TOKEN` to the process and use `--non-interactive` / `-NonInteractive`. Do not put the token in a repository file or shell profile.
 
 ## Architecture
 
@@ -19,22 +72,11 @@ https://cti-enrichment-gateway.vercel.app/api/enrich
 Gateway provider router / normalized evidence v2
 ```
 
-The transform layer never receives provider secrets. It knows only the gateway URL and the gateway bearer token.
-
-## Install on Windows
-
-From PowerShell in this directory:
-
-```powershell
-Set-ExecutionPolicy -Scope Process Bypass -Force
-.\install.ps1
-```
-
-The installer ensures Python is available, creates `.venv`, installs `maltego-trx==1.7.0`, runs integration tests, prompts once for `CTI_GATEWAY_TOKEN`, protects that token with Windows DPAPI for the current Windows user, generates `cti-enrichment-gateway-local.mtz`, and lists discovered transforms.
-
-Import `cti-enrichment-gateway-local.mtz` into Maltego Graph Desktop.
+The transform layer never receives provider secrets.
 
 ## Transforms
+
+The versioned `transform-manifest.json` is the package inventory and is verified during MTZ generation.
 
 - CTI Enrich IPv4 -> `maltego.IPv4Address`
 - CTI Enrich IPv6 -> `maltego.IPv6Address`
@@ -51,9 +93,7 @@ Transforms map normalized relationships, malware-family/actor context and grapha
 
 ATT&CK TAXII results are knowledge/mapping context, not IOC reputation or a maliciousness vote. CIDR remains a Phrase because no stable built-in network-prefix entity is assumed. ASN uses the stable AS entity when the mapper can do so without changing the input contract.
 
-## Configuration
-
-Non-secret values:
+## Non-secret configuration
 
 ```text
 CTI_GATEWAY_URL=https://cti-enrichment-gateway.vercel.app
@@ -65,8 +105,8 @@ MALTEGO_INCLUDE_PROVIDER_NODES=false
 
 Secret resolution order:
 
-1. `CTI_GATEWAY_TOKEN` environment variable, if explicitly set.
-2. Windows DPAPI-protected token saved by `install.ps1` under the current user's local application-data directory.
+1. Explicit process-local `CTI_GATEWAY_TOKEN` environment variable.
+2. Native OS credential backend configured by the installer.
 
 No provider API secret is stored in this directory or in the generated MTZ.
 
@@ -75,15 +115,32 @@ No provider API secret is stored in this directory or in the generated MTZ.
 - Remote gateway URLs must use HTTPS; HTTP is accepted only for localhost development.
 - Redirects are refused so the bearer token cannot be forwarded to another host.
 - Response bodies are capped at 2 MB.
-- Gateway errors never include the bearer token.
+- Gateway errors do not include bearer-token values.
 - Local graph expansion is capped at 250 and deduplicated.
 - Provider failures are surfaced as partial-result messages rather than terminating successful enrichment from other providers.
-- Vendor credential names/values are excluded from transform/project output.
+- MTZ validation rejects path traversal, symlinks, duplicate entries, excessive archive sizes, loopback/dev gateway references, missing transform inventory and credential identifiers.
+- Vendor API credentials never cross the gateway boundary.
 
-## Manual commands
+## Cross-platform CI
+
+`Tooling smoke` runs the Maltego suite on Ubuntu, macOS and Windows. It also validates bash, zsh, ShellCheck and PowerShell syntax and aggregates those platform results into the authoritative `Tooling smoke` commit status.
+
+## Developer commands
+
+Normal users should use the installer. For development/debugging only:
+
+macOS/Linux:
+
+```sh
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python project.py mtz
+.venv/bin/python bootstrap.py --check
+```
+
+Windows:
 
 ```powershell
-.\.venv\Scripts\python.exe project.py list
-.\.venv\Scripts\python.exe project.py mtz
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe project.py mtz
+.\.venv\Scripts\python.exe bootstrap.py --check
 ```
