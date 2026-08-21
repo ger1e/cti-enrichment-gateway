@@ -1,97 +1,80 @@
-# Architecture and trust boundaries
+# CTI Enrichment Gateway Architecture
 
 ## Purpose
 
-The gateway is a read-only CTI enrichment layer. It accepts one validated indicator, invokes bounded provider-specific retrieval adapters, and returns normalized evidence, relationships, provenance, failures and provider-health state.
+The gateway is a private, read-only CTI enrichment service. It accepts one bounded indicator or a bounded batch, selects a fixed workflow, queries only predeclared provider destinations, normalizes evidence, correlates compatible observations, and returns provenance-preserving JSON or STIX 2.1.
 
-It is intentionally not a generic proxy, scanning platform, malware detonation service, sample repository, takedown system or secret broker.
+It is not a scanner, detonation service, arbitrary HTTP proxy, submission service, takedown system, secret broker or autonomous remediation system.
+
+## Request path
+
+```text
+Client / Maltego
+  -> API auth and request limits (except public /api/meta)
+  -> strict canonical indicator classifier
+  -> fixed workflow + fast|standard|full profile
+  -> configured-provider filter
+  -> tiered scheduler (max 4 providers concurrently)
+  -> central safeFetch fixed-egress boundary
+  -> provider parser
+  -> bounded cache
+  -> evidence-v2 normalization + integrity fingerprint
+  -> typed correlation / freshness / huntability
+  -> JSON, bounded batch result, or STIX 2.1 bundle
+```
+
+Batch enrichment reuses the same classifier, profile selector and single-indicator orchestrator. It adds canonical de-duplication, max-three indicator concurrency, one shared deadline and a global provider-call reservation. There is no second provider-routing implementation.
 
 ## Trust boundaries
 
-```text
-Untrusted indicator input
-        |
-        v
-+---------------------------+
-| API boundary              |
-| auth + size/type checks   |
-+---------------------------+
-        |
-        v
-+---------------------------+
-| Canonical classification  |
-| deterministic type rules  |
-+---------------------------+
-        |
-        v
-+---------------------------+
-| Workflow/orchestration    |
-| bounded provider registry |
-+---------------------------+
-        |
-        +----------+----------+----------+
-        |          |          |          |
-        v          v          v          v
-   Provider A  Provider B  Provider C  Public source
-        |          |          |          |
-        +----------+----------+----------+
-                   |
-                   v
-+----------------------------------------+
-| Normalization / provenance / failures  |
-+----------------------------------------+
-                   |
-                   v
-        Authenticated API response
-```
+### Caller -> gateway
 
-### Caller boundary
+Bearer authentication protects enrichment, batch, STIX, status and health/operations surfaces as documented by the API contract. Request size, media type and indicator type are bounded before provider execution. Caller input never chooses arbitrary provider hosts, methods, credentials or provider names.
 
-Caller-controlled data is limited to the request envelope and indicator. The caller cannot select arbitrary outbound hosts, arbitrary headers, shell commands, files to read, secrets to return, or active scan/detonation behavior.
+### Gateway -> provider
 
-### Provider boundary
+`safeFetch` enforces exact fixed hosts, declared HTTPS methods/protocols, redirect refusal and request/response byte ceilings. Provider credentials are read server-side only. A caller cannot turn the gateway into an open proxy.
 
-Each adapter owns its fixed upstream endpoint, authentication method, request construction, timeout, response-size bound, rate-limit interpretation and parser. Provider data is treated as untrusted external input and normalized before it reaches the response model.
+### Provider data -> evidence
 
-### Secret boundary
+Every upstream response is untrusted. Parsers fail closed on malformed structures. MISP correlations require exact, non-deleted attribute semantics. Provider failures remain failures and are never transformed into clean/not-listed evidence.
 
-Provider credentials exist only in the server/runtime environment. Clients receive normalized evidence and provider state, never provider credentials. The Maltego client receives only the gateway bearer and protects its local copy using current-user DPAPI on Windows.
+### Evidence -> analyst/export
 
-### Evidence boundary
+Normalization preserves provider, parser version, retrieval time, cache state, duration and a canonical integrity fingerprint. Correlation is typed: scanner activity, Tor-exit status, registration/routing context and ATT&CK knowledge cannot become malware-reputation votes.
 
-The gateway preserves observation type and provider-native semantics. Abuse reports, exposed services, sandbox behavior, malware associations, scanner/noise classification, exploit probability and known-exploited status are not collapsed into a single malicious-vendor vote.
+### Gateway -> telemetry/status
 
-Relationships such as shared ASN, hosting, certificate reuse or infrastructure proximity are pivots for investigation. They are not attribution.
+Operational telemetry is allowlisted and excludes raw indicators by default. Authenticated status is count-only and `Cache-Control: no-store`; it exposes configuration booleans rather than credential values.
 
-## Failure model
+## Scheduling and resilience
 
-The system prefers explicit partial results over silent omission:
+- Provider concurrency: maximum 4.
+- Single-request deadline: 20 seconds.
+- Static per-workflow provider-call ceilings.
+- Retry: at most one retry, only for timeout/transport/429/5xx conditions and only inside the remaining request budget.
+- Circuit breaker: instance-local and bounded; default opens after three consecutive retryable failures for 60 seconds.
+- Cache: bounded LRU/TTL, namespaces and in-flight de-duplication. Only successful observations are cached. Successful semantic negatives use the shorter negative TTL; transport/provider failures are never cached.
+- Batch: max 20 inputs, max 3 active indicators and max 200 provider calls globally.
+- STIX: max 100 generated objects.
 
-- one provider failure does not discard successful evidence from others
-- missing credentials produce skipped/partial coverage
-- structured gateway failures represent unsupported/unavailable workflow coverage
-- rate limits are represented explicitly
-- arbitrary provider exception text is not reflected to callers
+## Analytical model
 
-## Persistence model
+There is deliberately no universal maliciousness score. Evidence stays in semantic classes. Corroboration requires compatible independent observations; contradictions stay explicit.
 
-The shipping cache is bounded in-memory TTL/negative caching. It improves warm-instance behavior but is not durable across cold starts or instances.
+For CVEs, KEV, EPSS and CVSS remain separate axes. Huntability is an operational mapping, not a threat-confidence or attribution score. Actor attribution is emitted only from explicit supporting evidence/relationships.
 
-Durable quota state, IOC lifecycle, temporal graph relationships, investigation snapshots and long-lived caches belong behind a separate storage interface and are not auto-provisioned by this repository.
+## Indicator types
 
-## Deployment integrity
+Implemented: `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`.
 
-Production deployment is intentionally coupled to source integrity:
+ASN/CIDR support is limited to defensible fixed lookups. No TLS/JA3 indicator class is implemented because no current fixed, bounded source satisfied the source gate when v2 was built. ATT&CK relationship expansion is intentionally omitted where it would require an unbounded collection-wide fetch.
 
-1. fetch `origin/main`
-2. require a clean local working tree
-3. require local `HEAD` to equal the freshly fetched source
-4. provision only required environment variables
-5. deploy the verified source tree
-6. confirm the safe health endpoint reports authentication configured
+## State labels
 
-This reduces accidental deployment of uncommitted or stale local state. It does not replace repository/account security, dependency review or CI integrity.
+- **Implemented:** present in source and covered by repository verification.
+- **Configured:** required runtime secret/environment configuration is present. Source code alone cannot establish this.
+- **Production-verified:** an exact deployed source SHA has passed authenticated production smoke tests.
+- **Gap/omitted:** capability intentionally absent because its source, semantics or boundedness did not meet the design gate.
 
-## Public-release boundary
-
-This private repository should not be made public merely to create a portfolio artifact. Prefer a reviewed, sanitized extraction into a new public repository. See `PUBLIC-RELEASE-CHECKLIST.md` and run `npm run audit:public` before any such extraction.
+Repository verification is not production acceptance. See `OPERATIONS.md`.
