@@ -1,10 +1,11 @@
 import { fetchJson } from '../core/fetch-json.js';
+import { BoundedCache } from '../core/cache.js';
 import { arr, uniq } from './helpers.js';
 
 const TAXII_ROOT = 'https://attack-taxii.mitre.org/api/v21/collections/';
 const TAXII_ACCEPT = 'application/taxii+json;version=2.1';
 const TAXII_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
-const DEFAULT_TAXII_CACHE = new Map();
+const DEFAULT_TAXII_CACHE = new BoundedCache({ maxEntries: 16 });
 
 const COLLECTIONS = Object.freeze([
   ['enterprise-attack', 'x-mitre-collection--1f5f1533-f617-4ca8-9ab4-6a02367fa019'],
@@ -30,13 +31,7 @@ function endpoint(collectionId, types) {
   return `${TAXII_ROOT}${collectionId}/objects/?${params.toString()}`;
 }
 
-async function loadTaxii(url, context) {
-  const cache = context.feedCache ?? DEFAULT_TAXII_CACHE;
-  const key = `attack-taxii:${url}`;
-  const now = typeof context.nowMs === 'function' ? context.nowMs() : Date.now();
-  const cached = cache.get(key);
-  if (cached && cached.expiresAt > now) return cached.value;
-
+async function fetchTaxii(url, context) {
   const raw = await fetchJson(url, {
     fetchImpl: context.fetchImpl,
     signal: context.signal,
@@ -45,6 +40,24 @@ async function loadTaxii(url, context) {
     redirect: 'error',
   });
   if (!raw || !Array.isArray(raw.objects)) throw new Error('invalid ATT&CK TAXII response');
+  return raw;
+}
+
+async function loadTaxii(url, context) {
+  const cache = context.feedCache ?? DEFAULT_TAXII_CACHE;
+  const key = `attack-taxii:${url}`;
+  if (cache && typeof cache.getOrLoad === 'function') {
+    return cache.getOrLoad(key, () => fetchTaxii(url, context), {
+      namespace: 'attack-taxii',
+      ttlMs: TAXII_CACHE_TTL_MS,
+      cache: true,
+    });
+  }
+
+  const now = typeof context.nowMs === 'function' ? context.nowMs() : Date.now();
+  const cached = cache.get(key);
+  if (cached && cached.expiresAt > now) return cached.value;
+  const raw = await fetchTaxii(url, context);
   cache.set(key, { value: raw, expiresAt: now + TAXII_CACHE_TTL_MS });
   return raw;
 }
@@ -76,7 +89,7 @@ export const attackTaxiiProvider = Object.freeze({
   negativeCacheTtlMs: TAXII_CACHE_TTL_MS,
   costClass: 'free',
   timeoutMs: 8000,
-  parserVersion: '2026-08-21',
+  parserVersion: '2026-08-21.2',
   async run(input, context = {}) {
     const attackId = String(input.value).toUpperCase();
     const types = stixTypes(attackId);
@@ -109,6 +122,7 @@ export const attackTaxiiProvider = Object.freeze({
           tactics: tactics(object),
           revoked: object.revoked === true,
           deprecated: object.x_mitre_deprecated === true,
+          relationshipExpansion: 'omitted_boundedness',
         },
         relationships: [],
         references: uniq([primaryReference?.url, ...references(object)].filter(Boolean)),
@@ -118,7 +132,12 @@ export const attackTaxiiProvider = Object.freeze({
     return {
       observationType: 'attack_knowledge',
       verdict: 'not_found',
-      attributes: { attackId, stixTypes: types, collectionsChecked: COLLECTIONS.map(([domain]) => domain) },
+      attributes: {
+        attackId,
+        stixTypes: types,
+        collectionsChecked: COLLECTIONS.map(([domain]) => domain),
+        relationshipExpansion: 'omitted_boundedness',
+      },
       relationships: [],
       references: queried,
     };
