@@ -15,7 +15,8 @@ function productionHealthFunction(source) {
 test('production health supplies the DPAPI-backed gateway bearer through native curl flags', () => {
   const source = productionHealthFunction(bootstrap);
 
-  assert.match(source, /param\([^)]*\$Vercel[^)]*\$GatewayToken/is);
+  assert.match(source, /\[string\]\$Vercel\b/i);
+  assert.match(source, /\[string\]\$GatewayToken\b/i);
   assert.match(source, /\$deploymentUrl\s*=\s*["']https:\/\/\$ProductionAlias["']/i);
   assert.match(source, /\$Vercel\s+curl\s+['"]?\/api\/health['"]?/i);
   assert.match(source, /--deployment\s+\$deploymentUrl/i);
