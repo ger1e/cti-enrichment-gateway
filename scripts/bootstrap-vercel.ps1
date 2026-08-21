@@ -34,7 +34,8 @@ $SecretNames = @(
     'IPINFO_TOKEN',
     'MALPEDIA_API_TOKEN',
     'NVD_API_KEY',
-    'CLOUDFLARE_RADAR_TOKEN'
+    'CLOUDFLARE_RADAR_TOKEN',
+    'RANSOMWARE_LIVE_API_KEY'
 )
 
 function Refresh-ProcessPath {
@@ -156,7 +157,7 @@ function Ensure-Git {
     Refresh-ProcessPath
 
     if (-not (Get-Command git.exe -ErrorAction SilentlyContinue)) {
-        throw 'Git installation completed but git.exe is not visible in PATH. Reopen PowerShell and rerun the script.'
+        throw 'Git installation completed but git.exe is not visible in PATH. Reopen PowerShell and rerun this script.'
     }
 }
 
@@ -233,7 +234,7 @@ function Ensure-VercelCli {
     }
 
     if (-not $vercel) {
-        throw 'Vercel CLI installation completed but vercel.cmd is not visible in PATH. Reopen PowerShell and rerun the script.'
+        throw 'Vercel CLI installation completed but vercel.cmd is not visible in PATH. Reopen PowerShell and rerun this script.'
     }
 
     $currentVersion = Get-VercelCliVersion -Vercel $vercel.Source
