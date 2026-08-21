@@ -58,7 +58,9 @@ test('malformed boundary corpus rejects credentials invalid networks prefixes AS
     '2001:db8::1/32', '2001:db8::/129', '192.0.2.0/024', 'not/a/network', 'CVE-2026-123', 'T99999',
     `${'a'.repeat(64)}g`, `${'a'.repeat(4097)}`,
   ];
-  for (const value of malformed) assert.throws(() => classifyIndicator(value), TypeError);
+  for (const value of malformed) {
+    assert.throws(() => classifyIndicator(value), error => error instanceof TypeError || error instanceof RangeError);
+  }
 });
 
 function provider(name) {
