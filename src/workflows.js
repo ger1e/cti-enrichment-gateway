@@ -5,6 +5,8 @@ export const WORKFLOWS = Object.freeze({
   hash: Object.freeze(['circl-hashlookup', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox', 'pulsedive']),
   cve: Object.freeze(['cisa-kev', 'epss', 'circl-vulnerability', 'misp-circl-osint', 'misp-botvrij-osint', 'nvd', 'osv', 'otx']),
   attack: Object.freeze(['attack-taxii']),
+  asn: Object.freeze(['rdap', 'ripestat', 'spamhaus-drop']),
+  cidr: Object.freeze(['rdap', 'ripestat', 'spamhaus-drop']),
 });
 
 export const WORKFLOW_CALL_LIMITS = Object.freeze({
@@ -14,6 +16,8 @@ export const WORKFLOW_CALL_LIMITS = Object.freeze({
   hash: 15,
   cve: 12,
   attack: 2,
+  asn: 4,
+  cidr: 4,
 });
 
 export const WORKFLOW_BLUEPRINTS = WORKFLOWS;
