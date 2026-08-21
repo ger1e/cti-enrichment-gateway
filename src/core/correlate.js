@@ -1,10 +1,15 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_RELATIONSHIPS = 100;
+const MAX_CORROBORATED_FACTS = 50;
 
 const REPUTATION_KINDS = new Set([
   'reputation', 'ioc_reputation', 'threat_intelligence', 'malicious_url',
   'malware_distribution', 'phishing_feed', 'phishing_feed_match', 'botnet_c2',
 ]);
+const NETWORK_CONTEXT_KINDS = new Set([
+  'network_identity', 'routing', 'registration', 'internet_exposure', 'passive_dns',
+]);
+const NETWORK_TYPES = new Set(['ip', 'domain', 'url', 'asn', 'cidr']);
 
 const POSITIVE = new Set(['malicious', 'suspicious', 'phishing', 'associated', 'listed', 'malware_sample', 'known_exploited']);
 const NEGATIVE = new Set(['benign', 'clean', 'no_association', 'not_listed']);
@@ -17,7 +22,7 @@ function semanticClass(kind) {
   if (kind === 'attack_knowledge') return 'attack_knowledge';
   if (kind === 'scanner_activity') return 'scanner_activity';
   if (kind === 'tor_exit') return 'tor_exit';
-  if (kind === 'network_identity' || kind === 'routing' || kind === 'registration' || kind === 'internet_exposure') return 'network_context';
+  if (NETWORK_CONTEXT_KINDS.has(kind)) return 'network_context';
   return kind || 'unknown';
 }
 
@@ -103,6 +108,52 @@ function contradictions(evidence) {
   return output;
 }
 
+function evidenceQuality(evidence, freshness, contradictionItems) {
+  const providerCount = new Set(evidence.map(item => item?.provider).filter(Boolean)).size;
+  const counts = { current: 0, aging: 0, stale: 0, unknown: 0 };
+  for (const item of freshness.items) counts[item.class] = (counts[item.class] ?? 0) + 1;
+  const contradictionCount = contradictionItems.length;
+  let level = 'none';
+  if (evidence.length > 0) {
+    if (providerCount >= 3 && counts.current + counts.aging >= Math.ceil(evidence.length / 2) && contradictionCount === 0) level = 'high';
+    else if (providerCount >= 2 && contradictionCount <= 1) level = 'medium';
+    else level = 'low';
+  }
+  return {
+    level,
+    evidenceCount: evidence.length,
+    providerCount,
+    currentCount: counts.current,
+    agingCount: counts.aging,
+    staleCount: counts.stale,
+    unknownFreshnessCount: counts.unknown,
+    contradictionCount,
+  };
+}
+
+function infrastructureContext(type, evidence, relationships) {
+  if (!NETWORK_TYPES.has(type)) return undefined;
+  const providers = [...new Set(evidence
+    .filter(item => semanticClass(item?.observation?.kind) === 'network_context')
+    .map(item => item.provider)
+    .filter(Boolean))].sort();
+
+  const facts = new Map();
+  for (const rel of relationships) {
+    if (!rel?.provider || !rel?.type || rel?.target == null || rel.target === '') continue;
+    const key = `${rel.type}\u0000${String(rel.target)}`;
+    if (!facts.has(key)) facts.set(key, { type: rel.type, target: rel.target, providers: new Set() });
+    facts.get(key).providers.add(rel.provider);
+  }
+  const corroboratedFacts = [...facts.values()]
+    .filter(item => item.providers.size >= 2)
+    .map(item => ({ type: item.type, target: item.target, providers: [...item.providers].sort() }))
+    .sort((a, b) => String(a.type).localeCompare(String(b.type)) || String(a.target).localeCompare(String(b.target)))
+    .slice(0, MAX_CORROBORATED_FACTS);
+
+  return { providers, corroboratedFacts };
+}
+
 function huntability(type, evidence) {
   if (type === 'attack') return { level: 'medium', reason: 'behavior_or_technique_mapping' };
   if (type === 'cve') return { level: 'medium', reason: 'requires_exposure_or_behavior_telemetry' };
@@ -158,15 +209,20 @@ function attributionFromRelationships(relationships) {
 
 export function correlateEvidence({ indicator, type, evidence = [], relationships = [], now = new Date().toISOString() } = {}) {
   const deduped = dedupeRelationships(relationships);
+  const contradictionItems = contradictions(evidence);
+  const freshness = buildFreshness(evidence, now);
   const output = {
     indicator,
     type,
     corroboration: corroboration(evidence),
-    contradictions: contradictions(evidence),
-    freshness: buildFreshness(evidence, now),
+    contradictions: contradictionItems,
+    freshness,
+    evidenceQuality: evidenceQuality(evidence, freshness, contradictionItems),
     huntability: huntability(type, evidence),
     relationships: deduped,
   };
+  const infra = infrastructureContext(type, evidence, deduped);
+  if (infra) output.infrastructureContext = infra;
   if (type === 'cve') output.riskAxes = riskAxes(evidence);
   const attributionConfidence = attributionFromRelationships(deduped);
   if (attributionConfidence) output.attributionConfidence = attributionConfidence;
