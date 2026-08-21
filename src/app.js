@@ -3,11 +3,13 @@ import { requireGatewayAuth } from './core/auth.js';
 import { securityHeaders } from './core/http.js';
 import { classifyIndicator } from './core/validate.js';
 import { TtlCache } from './core/cache.js';
+import { CircuitBreaker } from './core/circuit-breaker.js';
 import { createProviderRegistry } from './core/provider-registry.js';
 import { enrich } from './core/orchestrator.js';
 import { GATEWAY_VERSION } from './core/version.js';
 import { ALL_PROVIDERS } from './providers/index.js';
-import { WORKFLOWS } from './workflows.js';
+import { selectProviders } from './profiles.js';
+import { WORKFLOWS, WORKFLOW_CALL_LIMITS } from './workflows.js';
 
 const MAX_BODY_BYTES = 16 * 1024;
 
@@ -73,8 +75,10 @@ export function createApp({
   cache = new TtlCache(),
   gatewayVersion = GATEWAY_VERSION,
   adapters = ALL_PROVIDERS,
+  circuitBreaker = null,
 } = {}) {
   const registry = createProviderRegistry(adapters);
+  const breaker = circuitBreaker ?? new CircuitBreaker({ maxProviders: Math.max(1, registry.names().length), now: nowMs });
   const configured = name => {
     const adapter = registry.get(name);
     return Boolean(adapter) && (!adapter.requiredEnv || Boolean(env[adapter.requiredEnv]));
@@ -136,7 +140,15 @@ export function createApp({
 
       const workflow = WORKFLOWS[classified.type];
       if (!workflow) return response(400, { error: 'unsupported_indicator_type' });
-      const providerNames = workflow.filter(configured);
+      const profile = body.profile ?? 'standard';
+      let selected;
+      try {
+        selected = selectProviders({ type: classified.type, profile, workflow, registry });
+      } catch (error) {
+        if (error?.message === 'invalid_profile') return response(400, { error: 'invalid_profile' });
+        throw error;
+      }
+      const providerNames = selected.filter(configured);
       const result = await enrich({
         indicator: classified.value,
         type: classified.type,
@@ -147,7 +159,10 @@ export function createApp({
         now,
         nowMs,
         gatewayVersion,
-        profile: 'standard',
+        profile,
+        deadlineMs: 20_000,
+        callLimit: WORKFLOW_CALL_LIMITS[classified.type] ?? Math.max(1, providerNames.length * 2),
+        circuitBreaker: breaker,
         context: { fetchImpl, env },
       });
       return response(200, result);
