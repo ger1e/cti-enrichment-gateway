@@ -22,7 +22,7 @@ Supported indicator classes:
 API surfaces:
 
 - `GET /api/meta` — public static capabilities and hard limits
-- `GET /api/health` — operational health; production release hardening requires bearer protection
+- `GET /api/health` — authenticated, `no-store` operational readiness/configuration state
 - `GET /api/status` — authenticated, `no-store`, count-only runtime state
 - `POST /api/enrich` — authenticated single-indicator enrichment
 - `POST /api/batch` — authenticated 1..20 indicator batch with canonical dedupe, max-three indicator concurrency and global call budget
