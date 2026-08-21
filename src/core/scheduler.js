@@ -1,0 +1,117 @@
+function retryableFailure(result) {
+  if (!result || result.ok || !result.failure) return false;
+  const reason = result.failure.reason;
+  if (reason === 'timeout' || reason === 'provider_error' || reason === 'rate_limited') return true;
+  return reason === 'http_error' && Number(result.failure.status) >= 500;
+}
+
+function retryDelayMs(result) {
+  const value = Number(result?.failure?.retryAfter);
+  return Number.isFinite(value) && value > 0 ? Math.floor(value * 1000) : 0;
+}
+
+function groupByTier(providers) {
+  const ranked = providers.map((provider, index) => ({ provider, index, tier: Number.isInteger(provider.tier) ? provider.tier : 5 }));
+  ranked.sort((a, b) => a.tier - b.tier || a.index - b.index);
+  const groups = [];
+  for (const item of ranked) {
+    let group = groups.at(-1);
+    if (!group || group.tier !== item.tier) {
+      group = { tier: item.tier, providers: [] };
+      groups.push(group);
+    }
+    group.providers.push(item.provider);
+  }
+  return groups;
+}
+
+async function runPool(items, concurrency, worker) {
+  const results = new Array(items.length);
+  let next = 0;
+  const count = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: count }, async () => {
+    while (true) {
+      const index = next;
+      next += 1;
+      if (index >= items.length) return;
+      results[index] = await worker(items[index]);
+    }
+  }));
+  return results;
+}
+
+export async function runScheduledProviders({
+  providers = [],
+  execute,
+  concurrency = 4,
+  deadlineMs = 20_000,
+  nowMs = () => Date.now(),
+  circuitBreaker = null,
+  sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
+} = {}) {
+  if (!Array.isArray(providers)) throw new TypeError('providers must be an array');
+  if (typeof execute !== 'function') throw new TypeError('execute must be a function');
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 4) throw new TypeError('concurrency must be between 1 and 4');
+  if (!Number.isFinite(deadlineMs) || deadlineMs <= 0) throw new TypeError('deadlineMs must be positive');
+
+  const startedAt = nowMs();
+  const deadlineAt = startedAt + deadlineMs;
+  let calls = 0;
+  const all = [];
+
+  const runOne = async adapter => {
+    if (nowMs() >= deadlineAt) return { provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts: 0 };
+    const circuit = circuitBreaker?.canRun?.(adapter.name);
+    if (circuit && !circuit.allowed) return { provider: adapter.name, skipped: true, reason: 'circuit_open', attempts: 0, retryAfterMs: circuit.retryAfterMs };
+
+    let attempts = 0;
+    let result;
+    while (attempts < 2) {
+      const remainingMs = deadlineAt - nowMs();
+      if (remainingMs <= 0) {
+        return { provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts };
+      }
+      attempts += 1;
+      calls += 1;
+      result = await execute(adapter, {
+        attempt: attempts,
+        remainingMs,
+        timeoutMs: Math.max(1, Math.min(adapter.timeoutMs ?? remainingMs, remainingMs)),
+      });
+
+      if (result?.ok) {
+        circuitBreaker?.recordSuccess?.(adapter.name);
+        break;
+      }
+
+      const retryable = retryableFailure(result);
+      circuitBreaker?.recordFailure?.(adapter.name, {
+        retryable,
+        retryAfter: result?.failure?.retryAfter ?? null,
+      });
+      if (!retryable || attempts >= 2) break;
+
+      const delay = retryDelayMs(result);
+      const remainingAfter = deadlineAt - nowMs();
+      if (delay >= remainingAfter) break;
+      if (delay > 0) await sleep(delay);
+    }
+    return { provider: adapter.name, skipped: false, attempts, result };
+  };
+
+  for (const group of groupByTier(providers)) {
+    if (nowMs() >= deadlineAt) {
+      all.push(...group.providers.map(adapter => ({ provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts: 0 })));
+      continue;
+    }
+    all.push(...await runPool(group.providers, concurrency, runOne));
+  }
+
+  return Object.freeze({
+    results: all,
+    calls,
+    durationMs: Math.max(0, nowMs() - startedAt),
+    deadlineMs,
+    deadlineExhausted: all.some(item => item.reason === 'request_deadline_exhausted'),
+  });
+}
