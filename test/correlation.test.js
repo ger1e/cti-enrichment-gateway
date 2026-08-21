@@ -84,3 +84,43 @@ test('relationships are deduplicated and actor attribution is emitted only from 
   assert.equal(out.attributionConfidence.basis, 'explicit_relationship');
   assert.deepEqual(out.attributionConfidence.actors, ['actor:z']);
 });
+
+test('evidence quality measures support without implying maliciousness', () => {
+  const out = correlateEvidence({
+    indicator: '198.51.100.10', type: 'ip', now: '2026-08-21T01:00:00Z',
+    evidence: [
+      e('modat', 'internet_exposure', 'observed'),
+      e('shodan', 'internet_exposure', 'observed'),
+      e('rdap', 'registration', 'observed'),
+    ],
+    relationships: [],
+  });
+  assert.equal(out.corroboration.length, 0);
+  assert.deepEqual(out.evidenceQuality, {
+    level: 'high', evidenceCount: 3, providerCount: 3, currentCount: 3,
+    agingCount: 0, staleCount: 0, unknownFreshnessCount: 0, contradictionCount: 0,
+  });
+  assert.equal('verdict' in out.evidenceQuality, false);
+  assert.equal('malicious' in JSON.stringify(out.evidenceQuality).toLowerCase(), false);
+});
+
+test('infrastructure context corroborates shared facts without creating reputation votes', () => {
+  const relationships = [
+    { type: 'asn', source: '198.51.100.10', target: 'AS64500', provider: 'modat' },
+    { type: 'asn', source: '198.51.100.10', target: 'AS64500', provider: 'shodan' },
+    { type: 'hostname', source: '198.51.100.10', target: 'edge.example', provider: 'modat' },
+    { type: 'hostname', source: '198.51.100.10', target: 'edge.example', provider: 'censys' },
+    { type: 'registration', source: '198.51.100.10', target: 'Example Networks', provider: 'rdap' },
+  ];
+  const out = correlateEvidence({
+    indicator: '198.51.100.10', type: 'ip', now: '2026-08-21T01:00:00Z',
+    evidence: [e('modat', 'internet_exposure', 'observed'), e('shodan', 'internet_exposure', 'observed'), e('censys', 'internet_exposure', 'observed'), e('rdap', 'registration', 'observed')],
+    relationships,
+  });
+  assert.deepEqual(out.infrastructureContext.providers, ['censys', 'modat', 'rdap', 'shodan']);
+  assert.deepEqual(out.infrastructureContext.corroboratedFacts, [
+    { type: 'asn', target: 'AS64500', providers: ['modat', 'shodan'] },
+    { type: 'hostname', target: 'edge.example', providers: ['censys', 'modat'] },
+  ]);
+  assert.equal(out.corroboration.some(x => x.semanticClass === 'reputation'), false);
+});

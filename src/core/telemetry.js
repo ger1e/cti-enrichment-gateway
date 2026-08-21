@@ -34,11 +34,17 @@ function sanitize(input, includeIndicator) {
   return Object.freeze(output);
 }
 
+function sortedCounts(map) {
+  return Object.freeze(Object.fromEntries([...map.entries()].sort(([a], [b]) => a.localeCompare(b))));
+}
+
 export function createTelemetry({ sink = null, includeIndicator = false } = {}) {
   if (sink != null && typeof sink !== 'function') throw new TypeError('telemetry sink must be a function');
   let events = 0;
   let sinkErrors = 0;
   const byEvent = new Map();
+  const byProvider = new Map();
+  const byStatus = new Map();
 
   return Object.freeze({
     emit(input) {
@@ -46,13 +52,21 @@ export function createTelemetry({ sink = null, includeIndicator = false } = {}) 
       if (!event) return false;
       events += 1;
       byEvent.set(event.event, (byEvent.get(event.event) ?? 0) + 1);
+      if (event.provider) byProvider.set(event.provider, (byProvider.get(event.provider) ?? 0) + 1);
+      if (event.status) byStatus.set(event.status, (byStatus.get(event.status) ?? 0) + 1);
       if (sink) {
         try { sink(event); } catch { sinkErrors += 1; }
       }
       return true;
     },
     stats() {
-      return Object.freeze({ events, sinkErrors, byEvent: Object.freeze(Object.fromEntries([...byEvent.entries()].sort(([a], [b]) => a.localeCompare(b)))) });
+      return Object.freeze({
+        events,
+        sinkErrors,
+        byEvent: sortedCounts(byEvent),
+        byProvider: sortedCounts(byProvider),
+        byStatus: sortedCounts(byStatus),
+      });
     },
   });
 }
