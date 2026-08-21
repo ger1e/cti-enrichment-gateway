@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 
-function adapter(name = 'fixture', { delay = null } = {}) {
+function adapter(name = 'rdap', { delay = null } = {}) {
   return Object.freeze({
     name,
     types: ['ip', 'domain', 'hash', 'cve', 'attack', 'asn', 'cidr', 'url'],
@@ -22,7 +22,7 @@ function request(body, { token = 'secret', method = 'POST', contentType = 'appli
 }
 
 function app(options = {}) {
-  return createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [adapter('fixture', options)], fetchImpl: async () => { throw new Error('network not expected'); } });
+  return createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [adapter('rdap', options)], fetchImpl: async () => { throw new Error('network not expected'); } });
 }
 
 test('batch requires POST bearer auth and JSON media type', async () => {
@@ -34,14 +34,14 @@ test('batch requires POST bearer auth and JSON media type', async () => {
 test('batch accepts 1..20 strings and rejects 21 or provider overrides', async () => {
   assert.equal((await app().handleBatch(request({ indicators: [] }))).status, 400);
   assert.equal((await app().handleBatch(request({ indicators: Array.from({ length: 21 }, (_, i) => `192.0.2.${i + 1}`) }))).status, 400);
-  const override = await app().handleBatch(request({ indicators: ['192.0.2.1'], providers: ['fixture'] }));
+  const override = await app().handleBatch(request({ indicators: ['192.0.2.1'], providers: ['rdap'] }));
   assert.equal(override.status, 400);
   assert.equal(override.body.error, 'unsupported_request_field');
 });
 
 test('canonical duplicates perform provider work once and re-associate to input order', async () => {
   let calls = 0;
-  const a = adapter('fixture');
+  const a = adapter('rdap');
   const counted = Object.freeze({ ...a, async run(input) { calls += 1; return a.run(input); } });
   const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [counted] });
   const result = await target.handleBatch(request({ indicators: ['AS3333', 'as3333', 'EXAMPLE.com', 'example.com'], profile: 'full' }));
@@ -84,7 +84,8 @@ test('batch never runs more than three indicator enrichments concurrently', asyn
 });
 
 test('batch reports global call-budget exhaustion explicitly', async () => {
-  const adapters = Array.from({ length: 11 }, (_, i) => adapter(`p${i}`));
+  const names = ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'greynoise'];
+  const adapters = names.map(name => adapter(name));
   const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters, batchProviderCallLimit: 2 });
   const result = await target.handleBatch(request({ indicators: ['192.0.2.1', '192.0.2.2', '192.0.2.3'] }));
   assert.equal(result.status, 200);
@@ -94,11 +95,11 @@ test('batch reports global call-budget exhaustion explicitly', async () => {
 });
 
 test('batch deadline exhaustion is explicit', async () => {
-  let now = 0;
-  const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [adapter()], nowMs: () => now, batchDeadlineMs: 5 });
-  const original = target.enrichClassifiedForTest;
-  assert.equal(original, undefined);
+  let clock = 0;
+  const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [adapter()], nowMs: () => { clock += 10; return clock; }, batchDeadlineMs: 5 });
   const result = await target.handleBatch(request({ indicators: ['192.0.2.1', '192.0.2.2'] }));
   assert.equal(result.status, 200);
   assert.equal(result.body.budget.deadlineMs, 5);
+  assert.equal(result.body.budget.deadlineExhausted, true);
+  assert.equal(result.body.results.every(item => item.status === 'skipped' && item.reason === 'batch_deadline_exhausted'), true);
 });
