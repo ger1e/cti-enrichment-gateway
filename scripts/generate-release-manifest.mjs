@@ -20,7 +20,6 @@ export function buildReleaseManifest({ sourceCommit = null } = {}) {
       active: provider.active !== false,
     }))
     .sort(byName);
-
   return Object.freeze({
     gatewayVersion: GATEWAY_VERSION,
     schemaVersion: EVIDENCE_SCHEMA_VERSION,
@@ -33,13 +32,18 @@ export function serializeReleaseManifest(options = {}) {
   return `${JSON.stringify(buildReleaseManifest(options), null, 2)}\n`;
 }
 
+function canonicalJson(value) {
+  return JSON.stringify(value);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const check = args.includes('--check');
   const stdout = args.includes('--stdout');
   const sourceIndex = args.indexOf('--source-commit');
   const sourceCommit = sourceIndex >= 0 ? args[sourceIndex + 1] : process.env.SOURCE_COMMIT ?? process.env.VERCEL_GIT_COMMIT_SHA ?? null;
-  const expected = serializeReleaseManifest({ sourceCommit });
+  const manifest = buildReleaseManifest({ sourceCommit });
+  const expected = `${JSON.stringify(manifest, null, 2)}\n`;
   const path = fileURLToPath(new URL('../release-manifest.json', import.meta.url));
 
   if (stdout) {
@@ -47,8 +51,10 @@ async function main() {
     return;
   }
   if (check) {
-    const current = await readFile(path, 'utf8');
-    if (current !== expected) {
+    let current;
+    try { current = JSON.parse(await readFile(path, 'utf8')); }
+    catch { current = null; }
+    if (canonicalJson(current) !== canonicalJson(manifest)) {
       process.stderr.write('release-manifest.json is stale; run node scripts/generate-release-manifest.mjs\n');
       process.exitCode = 2;
     }
