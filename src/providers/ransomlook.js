@@ -1,5 +1,5 @@
 import { fetchJson } from '../core/fetch-json.js';
-import { arr, compact, relation, uniq } from './helpers.js';
+import { compact, relation, uniq } from './helpers.js';
 
 const MAX_POSTS = 30;
 
@@ -31,12 +31,15 @@ export const ransomlookProvider = Object.freeze({
   negativeCacheTtlMs: 30 * 60 * 1000,
   costClass: 'free',
   timeoutMs: 5000,
-  parserVersion: '2026-08-21',
+  parserVersion: '2026-08-21.2',
   async run(input, context = {}) {
     const query = pivot(input);
-    const url = `https://www.ransomlook.io/api/search?q=${encodeURIComponent(query)}`;
+    const url = `https://www.ransomlook.io/api/search?query=${encodeURIComponent(query)}`;
     const raw = await fetchJson(url, { ...context, maxBytes: 4_000_000 });
-    const posts = arr(raw?.posts).slice(0, MAX_POSTS);
+    if (!Array.isArray(raw)) {
+      throw Object.assign(new Error('ransomlook_invalid_response'), { status: 502 });
+    }
+    const posts = raw.slice(0, MAX_POSTS);
     const groups = uniq(posts.map(post => post?.group_name).filter(Boolean)).slice(0, 30);
 
     return {

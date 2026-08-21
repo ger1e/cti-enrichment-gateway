@@ -44,7 +44,7 @@ RansomLook and ransomware.live intentionally use different observation kinds. Tw
 
 TweetFeed.live uses the public no-auth exact IOC endpoint for IP, domain, URL, MD5 and SHA-256. SHA-1 is explicitly returned as unsupported/no-result rather than manufactured into a negative lookup. The adapter does not use TweetFeed blocklists for automatic prevention.
 
-RansomLook uses the public no-auth `/api/search?q=` surface only. Bulk export, authenticated administrative paths and unbounded crawling are outside the adapter.
+RansomLook uses the public no-auth `/api/search?query=` surface and requires the documented direct-array response shape. Malformed response shapes fail closed instead of becoming false `not_listed` evidence. Bulk export, authenticated administrative paths and unbounded crawling are outside the adapter.
 
 ransomware.live uses API-PRO at `api-pro.ransomware.live` with `RANSOMWARE_LIVE_API_KEY` sent only in the `X-API-KEY` header. The adapter uses bounded `/victims/search?q=` retrieval for domain/URL context and does not enumerate all groups or IOC collections.
 
