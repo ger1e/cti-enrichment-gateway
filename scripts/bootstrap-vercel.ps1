@@ -156,7 +156,7 @@ function Ensure-Git {
     Refresh-ProcessPath
 
     if (-not (Get-Command git.exe -ErrorAction SilentlyContinue)) {
-        throw 'Git installation completed but git.exe is not visible in PATH. Reopen PowerShell and rerun this script.'
+        throw 'Git installation completed but git.exe is not visible in PATH. Reopen PowerShell and rerun the script.'
     }
 }
 
@@ -197,7 +197,7 @@ function Ensure-Node {
     Refresh-ProcessPath
 
     if (-not (Get-Command node.exe -ErrorAction SilentlyContinue) -or -not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) {
-        throw 'Node.js installation completed but node/npm are not visible in PATH. Reopen PowerShell and rerun this script.'
+        throw 'Node.js installation completed but node/npm are not visible in PATH. Reopen PowerShell and rerun the script.'
     }
 
     $major = Get-NodeMajor
@@ -233,7 +233,7 @@ function Ensure-VercelCli {
     }
 
     if (-not $vercel) {
-        throw 'Vercel CLI installation completed but vercel.cmd is not visible in PATH. Reopen PowerShell and rerun this script.'
+        throw 'Vercel CLI installation completed but vercel.cmd is not visible in PATH. Reopen PowerShell and rerun the script.'
     }
 
     $currentVersion = Get-VercelCliVersion -Vercel $vercel.Source
@@ -332,7 +332,7 @@ function Verify-ProductionHealth {
 
     $authorization = "Authorization: Bearer $GatewayToken"
     try {
-        $raw = (& $Vercel curl '/api/health' --deployment $deploymentUrl --scope $TeamSlug -- --header $authorization 2>&1 | Out-String).Trim()
+        $raw = (& $Vercel curl '/api/health' --deployment $deploymentUrl --scope $TeamSlug -- --header $authorization | Out-String).Trim()
     } finally {
         $authorization = $null
     }
@@ -371,6 +371,8 @@ Write-Host "Node.js: $(& node.exe --version)"
 Write-Host "Vercel CLI: $(& $Vercel --version)"
 Ensure-VercelLogin -Vercel $Vercel
 $workspace = Prepare-VerifiedWorkspace -Vercel $Vercel
+$gatewayToken = $null
+$healthToken = $null
 
 try {
     $gatewayToken = Get-StoredGatewayToken
@@ -388,6 +390,8 @@ try {
 
     Set-SensitiveVercelEnv -Vercel $Vercel -Name 'CTI_GATEWAY_TOKEN' -Value $gatewayToken
     Write-Host 'Added/updated CTI_GATEWAY_TOKEN for Production + Preview and retained only the DPAPI-protected local copy.'
+    $gatewayToken = $null
+    [GC]::Collect()
 
     foreach ($name in $SecretNames | Where-Object { $_ -ne 'CTI_GATEWAY_TOKEN' }) {
         $secure = Read-Host "$name (Enter = skip)" -AsSecureString
@@ -413,13 +417,21 @@ try {
     $verifiedCommit = Assert-ExactOriginMain
     Write-Host "Deploying exact verified origin/main source $verifiedCommit to production..."
     Invoke-NativeChecked $Vercel deploy --prod --yes --scope $TeamSlug
+
+    $healthToken = Get-StoredGatewayToken
+    if ([string]::IsNullOrWhiteSpace($healthToken)) {
+        throw 'Production health check failed: stored gateway bearer is unavailable.'
+    }
     try {
-        Verify-ProductionHealth -Vercel $Vercel -GatewayToken $gatewayToken
+        Verify-ProductionHealth -Vercel $Vercel -GatewayToken $healthToken
     } finally {
-        $gatewayToken = $null
+        $healthToken = $null
         [GC]::Collect()
     }
 } finally {
+    $gatewayToken = $null
+    $healthToken = $null
+    [GC]::Collect()
     if ((Get-Location).Path -eq $workspace) {
         Pop-Location
     }
