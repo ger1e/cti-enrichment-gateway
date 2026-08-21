@@ -2,7 +2,7 @@
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
-BOOTSTRAP="$ROOT/bootstrap.py"
+BOOTSTRAP="$ROOT/bootstrap_entry.py"
 
 version_ok() {
     "$1" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' >/dev/null 2>&1
