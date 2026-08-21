@@ -4,6 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = (ROOT / 'install.sh').read_text(encoding='utf-8')
+ENTRY = (ROOT / 'bootstrap_entry.py').read_text(encoding='utf-8')
 
 
 class InstallShellTests(unittest.TestCase):
@@ -15,8 +16,15 @@ class InstallShellTests(unittest.TestCase):
     def test_shell_installer_checks_python_before_delegating(self):
         self.assertIn("sys.version_info >= (3, 10)", SCRIPT)
         self.assertIn('python3.12', SCRIPT)
-        self.assertIn('bootstrap.py', SCRIPT)
+        self.assertIn('bootstrap_entry.py', SCRIPT)
         self.assertIn('exec "$PYTHON" "$BOOTSTRAP" "$@"', SCRIPT)
+
+    def test_secure_entry_delegates_to_shared_bootstrap(self):
+        self.assertIn('import bootstrap', ENTRY)
+        self.assertIn('configure_token_interactively', ENTRY)
+        self.assertIn("sys.platform != 'darwin'", ENTRY)
+        self.assertIn("os.environ.get('CTI_GATEWAY_TOKEN'", ENTRY)
+        self.assertIn('return bootstrap.main(args)', ENTRY)
 
     def test_shell_installer_considers_standard_homebrew_locations(self):
         self.assertIn('/opt/homebrew/bin/brew', SCRIPT)
