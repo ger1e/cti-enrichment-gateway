@@ -17,6 +17,8 @@ export async function runProvider(adapter, input, {
   timeoutMs = 5000,
   now = () => new Date().toISOString(),
   nowMs = () => Date.now(),
+  requestId = null,
+  telemetry = null,
   context = {},
 } = {}) {
   const controller = new AbortController();
@@ -34,22 +36,14 @@ export async function runProvider(adapter, input, {
   try {
     const data = await adapter.run(input, { ...context, signal: controller.signal, fetchImpl: guardedFetch });
     const retrievedAt = now();
-    return {
-      ok: true,
-      provider: adapter.name,
-      data,
-      retrievedAt,
-      rawHash: hashRaw(data),
-      durationMs: Math.max(0, nowMs() - started),
-    };
+    const durationMs = Math.max(0, nowMs() - started);
+    telemetry?.emit?.({ event: 'provider_complete', requestId, type: input.type, provider: adapter.name, status: 'ok', durationMs });
+    return { ok: true, provider: adapter.name, data, retrievedAt, rawHash: hashRaw(data), durationMs };
   } catch (error) {
-    return {
-      ok: false,
-      provider: adapter.name,
-      failure: normalizeFailure(error, timedOut),
-      retrievedAt: now(),
-      durationMs: Math.max(0, nowMs() - started),
-    };
+    const failure = normalizeFailure(error, timedOut);
+    const durationMs = Math.max(0, nowMs() - started);
+    telemetry?.emit?.({ event: 'provider_complete', requestId, type: input.type, provider: adapter.name, status: 'failed', reason: failure.reason, durationMs });
+    return { ok: false, provider: adapter.name, failure, retrievedAt: now(), durationMs };
   } finally {
     clearTimeout(timer);
   }

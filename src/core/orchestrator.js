@@ -9,15 +9,7 @@ function cacheKey(provider, type, indicator) {
 }
 
 function emptyHuntContext(indicator, type) {
-  return {
-    indicator,
-    type,
-    firstSeen: null,
-    lastSeen: null,
-    families: [],
-    actors: [],
-    sourceReferences: [],
-  };
+  return { indicator, type, firstSeen: null, lastSeen: null, families: [], actors: [], sourceReferences: [] };
 }
 
 function providerSummary() {
@@ -25,18 +17,7 @@ function providerSummary() {
 }
 
 function baseEnvelope({ requestId, indicator, type, queriedAt, gatewayVersion, profile, durationMs, budget, summary }) {
-  return {
-    schemaVersion: EVIDENCE_SCHEMA_VERSION,
-    gatewayVersion,
-    requestId,
-    indicator,
-    type,
-    queriedAt,
-    profile,
-    durationMs,
-    budget,
-    providerSummary: summary,
-  };
+  return { schemaVersion: EVIDENCE_SCHEMA_VERSION, gatewayVersion, requestId, indicator, type, queriedAt, profile, durationMs, budget, providerSummary: summary };
 }
 
 export async function enrich({
@@ -53,28 +34,22 @@ export async function enrich({
   deadlineMs = 20_000,
   callLimit = Array.isArray(providerNames) ? Math.max(1, providerNames.length * 2) : 1,
   circuitBreaker = null,
+  telemetry = null,
   context = {},
 }) {
   const started = nowMs();
-  const budget = {
-    providerCallLimit: callLimit,
-    providerCalls: 0,
-    deadlineMs,
-    deadlineExhausted: false,
-    callBudgetExhausted: false,
-  };
+  telemetry?.emit?.({ event: 'request_start', requestId, type, profile, status: 'start', indicator });
+  const budget = { providerCallLimit: callLimit, providerCalls: 0, deadlineMs, deadlineExhausted: false, callBudgetExhausted: false };
   const summary = providerSummary();
 
   if (!Array.isArray(providerNames) || providerNames.length === 0) {
     const queriedAt = now();
+    const durationMs = Math.max(0, nowMs() - started);
+    telemetry?.emit?.({ event: 'budget', requestId, type, status: 'error', providerCalls: 0, providerCallLimit: callLimit, deadlineMs });
+    telemetry?.emit?.({ event: 'request_complete', requestId, type, profile, status: 'error', durationMs, indicator });
     return {
-      ...baseEnvelope({
-        requestId, indicator, type, queriedAt, gatewayVersion, profile,
-        durationMs: Math.max(0, nowMs() - started), budget, summary,
-      }),
-      status: 'error',
-      evidence: [],
-      relationships: [],
+      ...baseEnvelope({ requestId, indicator, type, queriedAt, gatewayVersion, profile, durationMs, budget, summary }),
+      status: 'error', evidence: [], relationships: [],
       correlation: correlateEvidence({ indicator, type, evidence: [], relationships: [], now: queriedAt }),
       failures: [{ provider: 'gateway', reason: 'no_configured_providers' }],
       huntContext: emptyHuntContext(indicator, type),
@@ -96,13 +71,14 @@ export async function enrich({
       records.set(name, { skipped: true, reason: 'unsupported_provider' });
       continue;
     }
-
     const key = cacheKey(name, type, indicator);
     const cached = cache?.get(key);
     if (cached !== undefined) {
       records.set(name, { result: cached, cacheState: 'hit', attempts: 0 });
+      telemetry?.emit?.({ event: 'cache', requestId, type, provider: name, status: 'hit', cacheState: 'hit' });
     } else {
       pending.push(adapter);
+      telemetry?.emit?.({ event: 'cache', requestId, type, provider: name, status: 'miss', cacheState: 'miss' });
     }
   }
 
@@ -112,20 +88,17 @@ export async function enrich({
     callLimit,
     nowMs,
     circuitBreaker,
-    execute: async (adapter, { timeoutMs }) => runProvider(adapter, { value: indicator, type }, {
-      timeoutMs,
-      now,
-      nowMs,
-      context,
-    }),
+    execute: async (adapter, { timeoutMs }) => runProvider(adapter, { value: indicator, type }, { timeoutMs, now, nowMs, requestId, telemetry, context }),
   });
   budget.providerCalls = scheduled.calls;
   budget.deadlineExhausted = scheduled.deadlineExhausted;
   budget.callBudgetExhausted = scheduled.callBudgetExhausted;
+  telemetry?.emit?.({ event: 'budget', requestId, type, status: scheduled.deadlineExhausted || scheduled.callBudgetExhausted ? 'exhausted' : 'within_limit', providerCalls: scheduled.calls, providerCallLimit: callLimit, deadlineMs, deadlineExhausted: scheduled.deadlineExhausted, callBudgetExhausted: scheduled.callBudgetExhausted });
 
   for (const item of scheduled.results) {
     if (item.skipped) {
       records.set(item.provider, { skipped: true, reason: item.reason, retryAfterMs: item.retryAfterMs ?? null, attempts: item.attempts });
+      if (item.reason === 'circuit_open') telemetry?.emit?.({ event: 'circuit', requestId, type, provider: item.provider, status: 'open', reason: 'circuit_open', retryAfterMs: item.retryAfterMs ?? 0 });
       continue;
     }
     const adapter = registry.get(item.provider);
@@ -152,16 +125,12 @@ export async function enrich({
     const result = record.result;
     cacheMeta[name] = record.cacheState;
     if (record.cacheState === 'hit') summary.cached += 1;
-
     if (result?.ok) {
       summary.ok += 1;
       providerHealth[name] = 'ok';
       const item = normalizeEvidence(name, indicator, type, result.data, {
-        retrievedAt: result.retrievedAt,
-        rawHash: result.rawHash,
-        parserVersion: adapter?.parserVersion ?? '1',
-        cacheState: record.cacheState,
-        durationMs: record.cacheState === 'hit' ? 0 : result.durationMs,
+        retrievedAt: result.retrievedAt, rawHash: result.rawHash, parserVersion: adapter?.parserVersion ?? '1',
+        cacheState: record.cacheState, durationMs: record.cacheState === 'hit' ? 0 : result.durationMs,
       });
       evidence.push(item);
       relationships.push(...item.relationships.map(rel => ({ ...rel, provider: rel.provider ?? name })));
@@ -177,30 +146,20 @@ export async function enrich({
   const references = [...new Set(evidence.flatMap(item => item.references))];
   const queriedAt = now();
   const correlation = correlateEvidence({ indicator, type, evidence, relationships, now: queriedAt });
+  const durationMs = Math.max(0, nowMs() - started);
+  telemetry?.emit?.({ event: 'request_complete', requestId, type, profile, status, durationMs, indicator });
 
   return {
-    ...baseEnvelope({
-      requestId, indicator, type, queriedAt, gatewayVersion, profile,
-      durationMs: Math.max(0, nowMs() - started), budget, summary,
-    }),
-    status,
-    evidence,
-    relationships: correlation.relationships,
-    correlation,
-    failures,
+    ...baseEnvelope({ requestId, indicator, type, queriedAt, gatewayVersion, profile, durationMs, budget, summary }),
+    status, evidence, relationships: correlation.relationships, correlation, failures,
     huntContext: {
-      indicator,
-      type,
+      indicator, type,
       firstSeen: evidence.map(x => x.observation.firstSeen).filter(Boolean).sort()[0] ?? null,
       lastSeen: evidence.map(x => x.observation.lastSeen).filter(Boolean).sort().at(-1) ?? null,
       families: [...new Set(evidence.map(x => x.observation.malwareFamily).filter(Boolean))],
       actors: [...new Set(evidence.map(x => x.observation.actor).filter(Boolean))],
       sourceReferences: references,
     },
-    meta: {
-      gatewayVersion,
-      cache: cacheMeta,
-      providerHealth,
-    },
+    meta: { gatewayVersion, cache: cacheMeta, providerHealth },
   };
 }
