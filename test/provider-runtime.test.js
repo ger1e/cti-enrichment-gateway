@@ -4,6 +4,24 @@ import { TtlCache } from '../src/core/cache.js';
 import { createProviderRegistry } from '../src/core/provider-registry.js';
 import { runProvider } from '../src/core/provider-runner.js';
 
+function registeredAdapter(name) {
+  return {
+    name,
+    types: ['ip'],
+    observationTypes: ['fixture_context'],
+    cacheTtlMs: 1000,
+    negativeCacheTtlMs: 100,
+    costClass: 'free',
+    tier: 1,
+    timeoutMs: 100,
+    maxResponseBytes: 2048,
+    fixedHosts: ['example.test'],
+    parserVersion: '1',
+    sourceUrl: 'https://example.test/docs',
+    run: async () => ({ ok: true }),
+  };
+}
+
 test('TTL cache expires values and bounds entry count', () => {
   let now = 1000;
   const cache = new TtlCache({ maxEntries: 2, now: () => now });
@@ -19,7 +37,7 @@ test('TTL cache expires values and bounds entry count', () => {
 });
 
 test('provider registry rejects duplicate names and exposes metadata', () => {
-  const a = { name: 'a', types: ['ip'], cacheTtlMs: 1000, negativeCacheTtlMs: 100, costClass: 'free', run: async () => ({ ok: true }) };
+  const a = registeredAdapter('a');
   const registry = createProviderRegistry([a]);
   assert.equal(registry.get('a').costClass, 'free');
   assert.deepEqual(registry.forType('ip').map(p => p.name), ['a']);
