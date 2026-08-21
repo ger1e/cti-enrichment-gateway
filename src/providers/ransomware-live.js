@@ -1,5 +1,5 @@
 import { fetchJson } from '../core/fetch-json.js';
-import { arr, compact, relation, requireEnv, uniq } from './helpers.js';
+import { compact, relation, requireEnv, uniq } from './helpers.js';
 
 const MAX_VICTIMS = 30;
 
@@ -45,7 +45,7 @@ function victimRows(raw) {
   for (const key of ['victims', 'results', 'data']) {
     if (Array.isArray(raw?.[key])) return raw[key];
   }
-  return [];
+  throw Object.assign(new Error('ransomware_live_invalid_response'), { status: 502 });
 }
 
 export const ransomwareLiveProvider = Object.freeze({
@@ -56,7 +56,7 @@ export const ransomwareLiveProvider = Object.freeze({
   negativeCacheTtlMs: 30 * 60 * 1000,
   costClass: 'quota',
   timeoutMs: 5000,
-  parserVersion: '2026-08-21',
+  parserVersion: '2026-08-21.2',
   async run(input, context = {}) {
     const key = requireEnv(context, 'RANSOMWARE_LIVE_API_KEY');
     const host = queryHost(input);
