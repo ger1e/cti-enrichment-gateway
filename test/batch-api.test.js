@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
+import { runBatch } from '../src/core/batch.js';
 
 function adapter(name = 'rdap', { delay = null } = {}) {
   return Object.freeze({
@@ -92,6 +93,30 @@ test('batch reports global call-budget exhaustion explicitly', async () => {
   assert.equal(result.body.budget.providerCallLimit, 2);
   assert.equal(result.body.budget.providerCalls <= 2, true);
   assert.equal(result.body.results.some(item => item.status === 'skipped' && item.reason === 'batch_provider_call_budget_exhausted'), true);
+});
+
+test('batch charges the full reservation when enrichment throws and consumption is unknowable', async () => {
+  const started = [];
+  const result = await runBatch({
+    indicators: ['192.0.2.1', '192.0.2.2'],
+    classify: value => ({ type: 'ip', value }),
+    callLimitFor: () => 2,
+    providerCallLimit: 2,
+    indicatorConcurrency: 1,
+    enrichOne: async classified => {
+      started.push(classified.value);
+      if (classified.value === '192.0.2.1') throw new Error('unknown consumption');
+      return { status: 'ok', budget: { providerCalls: 1 } };
+    },
+  });
+
+  assert.deepEqual(started, ['192.0.2.1']);
+  assert.equal(result.budget.providerCalls, 2);
+  assert.equal(result.budget.providerCalls <= result.budget.providerCallLimit, true);
+  assert.equal(result.results[0].status, 'error');
+  assert.equal(result.results[0].reason, 'batch_enrichment_error');
+  assert.equal(result.results[1].status, 'skipped');
+  assert.equal(result.results[1].reason, 'batch_provider_call_budget_exhausted');
 });
 
 test('batch deadline exhaustion is explicit', async () => {
