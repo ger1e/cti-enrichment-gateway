@@ -66,9 +66,16 @@ test('Vercel bootstrap deploys the exact clean origin/main source instead of red
   assert.doesNotMatch(script, /\bredeploy\b/);
 });
 
-test('Maltego installer reuses the bootstrap DPAPI token before prompting for another bearer', () => {
-  const script = readFileSync(new URL('../maltego/install.ps1', import.meta.url), 'utf8');
-  assert.match(script, /credential_store\.py'\) check/);
-  assert.match(script, /stored gateway token/i);
-  assert.match(script, /if \(-not \$storedTokenConfigured\)/);
+test('Maltego bootstrap reuses native stored credentials and keeps Windows DPAPI as the local trust boundary', () => {
+  const installer = readFileSync(new URL('../maltego/install.ps1', import.meta.url), 'utf8');
+  const entry = readFileSync(new URL('../maltego/bootstrap_entry.py', import.meta.url), 'utf8');
+  const store = readFileSync(new URL('../maltego/credential_store.py', import.meta.url), 'utf8');
+
+  assert.match(installer, /bootstrap_entry\.py/);
+  assert.match(entry, /load_token\(\)/);
+  assert.match(entry, /configure_token_interactively\(\)/);
+  assert.match(entry, /CTI_GATEWAY_TOKEN/);
+  assert.match(store, /CryptProtectData/);
+  assert.match(store, /CryptUnprotectData/);
+  assert.match(store, /gateway-token\.dpapi/);
 });
