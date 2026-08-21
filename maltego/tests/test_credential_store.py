@@ -30,15 +30,28 @@ class CredentialStoreTests(unittest.TestCase):
                 credential_store.delete_token(path)
                 self.assertFalse(path.exists())
 
-    def test_macos_keychain_save_keeps_secret_out_of_argv(self):
-        completed = subprocess.CompletedProcess([], 0, '', '')
+    def test_macos_keychain_configuration_uses_native_terminal_prompt_only(self):
         with patch.object(credential_store, '_native_backend_name', return_value='macos-keychain'):
-            with patch.object(credential_store, '_run_native', return_value=completed) as run:
-                credential_store.save_token('mac-secret')
-        args, kwargs = run.call_args
-        self.assertEqual(args[0][-1], '-w')
-        self.assertNotIn('mac-secret', args[0])
-        self.assertEqual(kwargs['input_text'], 'mac-secret\n')
+            with patch.object(credential_store, '_run_interactive_native') as interactive:
+                with patch.object(credential_store, '_load_macos', return_value='mac-secret') as load:
+                    credential_store.configure_token_interactively()
+        args = interactive.call_args.args[0]
+        self.assertEqual(args[-1], '-w')
+        self.assertEqual(args[0], '/usr/bin/security')
+        self.assertIn('add-generic-password', args)
+        self.assertNotIn('mac-secret', args)
+        load.assert_called_once()
+
+    def test_macos_programmatic_save_is_rejected_instead_of_putting_secret_in_argv(self):
+        with patch.object(credential_store, '_native_backend_name', return_value='macos-keychain'):
+            with self.assertRaisesRegex(CredentialStoreError, 'interactive platform installer'):
+                credential_store.save_token('must-not-enter-argv')
+
+    def test_interactive_native_command_inherits_terminal_and_captures_nothing(self):
+        completed = subprocess.CompletedProcess([], 0)
+        with patch.object(credential_store.subprocess, 'run', return_value=completed) as run:
+            credential_store._run_interactive_native(['/usr/bin/security', 'example', '-w'])
+        run.assert_called_once_with(['/usr/bin/security', 'example', '-w'], check=False)
 
     def test_macos_keychain_load_and_delete(self):
         load = subprocess.CompletedProcess([], 0, 'mac-secret\n', '')
@@ -90,7 +103,7 @@ class CredentialStoreTests(unittest.TestCase):
         self.assertNotIn('upstream output', str(raised.exception))
         self.assertNotIn('backend failure', str(raised.exception))
 
-    def test_cli_supports_backend_delete_check_and_save(self):
+    def test_cli_supports_backend_delete_check(self):
         with patch.object(credential_store, 'backend_name', return_value='macos-keychain'):
             self.assertEqual(credential_store._main(['credential_store.py', 'backend']), 0)
         with patch.object(credential_store, 'load_token', return_value='x') as load:
