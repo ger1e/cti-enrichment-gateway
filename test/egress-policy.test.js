@@ -43,10 +43,14 @@ test('safeFetch refuses off-manifest hosts before network access', async () => {
   assert.equal(calls, 0);
 });
 
-test('safeFetch refuses protocol drift and undeclared methods', async () => {
-  const fetchImpl = async () => response();
+test('safeFetch refuses protocol drift, non-default ports and undeclared methods', async () => {
+  let calls = 0;
+  const fetchImpl = async () => { calls += 1; return response(); };
   await assert.rejects(safeFetch('http://api.example.test/x', policy, { fetchImpl }), /egress_protocol_not_allowed/);
+  await assert.rejects(safeFetch('https://api.example.test:4443/x', policy, { fetchImpl }), /egress_port_not_allowed/);
+  await safeFetch('https://api.example.test:443/x', policy, { fetchImpl });
   await assert.rejects(safeFetch('https://api.example.test/x', policy, { fetchImpl, method: 'POST' }), /egress_method_not_allowed/);
+  assert.equal(calls, 1);
 });
 
 test('safeFetch enforces redirect error and body ceilings', async () => {
