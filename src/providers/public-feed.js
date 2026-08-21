@@ -1,4 +1,6 @@
-const DEFAULT_FEED_CACHE = new Map();
+import { BoundedCache } from '../core/cache.js';
+
+const DEFAULT_FEED_CACHE = new BoundedCache({ maxEntries: 64 });
 
 function httpError(response) {
   const error = new Error(`provider HTTP ${response.status}`);
@@ -31,23 +33,40 @@ async function fetchText(url, {
   return value;
 }
 
+async function loadWithLegacyMap(store, url, loader, ttlMs, cache, now) {
+  if (cache) {
+    const cached = store.get(url);
+    if (cached && cached.expiresAt > now) return cached.value;
+  }
+  const value = await loader();
+  if (cache) store.set(url, { value, expiresAt: now + Math.max(1, ttlMs) });
+  return value;
+}
+
 export async function loadTextFeed(url, context = {}, {
   ttlMs = 60 * 60 * 1000,
   maxBytes = 2_000_000,
   cache = true,
 } = {}) {
   const store = context.feedCache ?? DEFAULT_FEED_CACHE;
-  const now = typeof context.nowMs === 'function' ? context.nowMs() : Date.now();
-  if (cache) {
-    const cached = store.get(url);
-    if (cached && cached.expiresAt > now) return cached.value;
-  }
-
-  const value = await fetchText(url, {
+  const loader = () => fetchText(url, {
     fetchImpl: context.fetchImpl,
     signal: context.signal,
     maxBytes,
   });
-  if (cache) store.set(url, { value, expiresAt: now + Math.max(1, ttlMs) });
-  return value;
+
+  if (store && typeof store.getOrLoad === 'function') {
+    return store.getOrLoad(url, loader, {
+      namespace: 'public-feed',
+      ttlMs: Math.max(1, ttlMs),
+      cache,
+    });
+  }
+
+  const now = typeof context.nowMs === 'function' ? context.nowMs() : Date.now();
+  return loadWithLegacyMap(store, url, loader, ttlMs, cache, now);
+}
+
+export function publicFeedCacheStats() {
+  return DEFAULT_FEED_CACHE.stats();
 }
