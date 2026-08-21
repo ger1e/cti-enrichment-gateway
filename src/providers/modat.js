@@ -9,6 +9,10 @@ function bounded(values, limit = MAX_VALUES) {
   return uniq(values).slice(0, limit);
 }
 
+function invalidResponse(message) {
+  return Object.assign(new Error(message), { status: 502 });
+}
+
 function asnValue(raw) {
   const value = raw?.asn;
   if (value && typeof value === 'object') {
@@ -76,11 +80,14 @@ async function runIp(input, context, key) {
     headers: { Authorization: `Bearer ${key}` },
     maxBytes: 4_000_000,
   });
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw Object.assign(new Error('invalid Modat host response'), { status: 502 });
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw invalidResponse('invalid Modat host response');
 
   const names = hostnames(raw);
   const asn = asnValue(raw);
   const { services, ports, tags, cves } = serviceValues(raw);
+  const hasHostEvidence = Boolean(raw?.ip ?? raw?.last_seen ?? raw?.lastSeen ?? asn) || names.length > 0 || services.length > 0;
+  if (!hasHostEvidence) throw invalidResponse('empty Modat host response');
+
   const relationships = compact([
     ...names.map(name => relation('domain', name, 'hostname')),
     asn ? relation('asn', asn, 'asn') : null,
@@ -115,9 +122,10 @@ async function runDomain(input, context, key) {
     headers: { Authorization: `Bearer ${key}` },
     maxBytes: 4_000_000,
   });
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw Object.assign(new Error('invalid Modat DNS response'), { status: 502 });
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw invalidResponse('invalid Modat DNS response');
+  if (!raw.records || typeof raw.records !== 'object' || Array.isArray(raw.records)) throw invalidResponse('empty Modat DNS response');
 
-  const records = raw?.records && typeof raw.records === 'object' ? raw.records : {};
+  const records = raw.records;
   const addresses = recordValues(records, ['A', 'AAAA']);
   const aliases = recordValues(records, ['CNAME']);
   const nameservers = recordValues(records, ['NS']);
