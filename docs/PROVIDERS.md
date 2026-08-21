@@ -36,9 +36,12 @@ Provider observations preserve their own meaning. Examples:
 - NVD/CIRCL/OSV: vulnerability metadata
 - MITRE ATT&CK TAXII: knowledge/mapping context
 - reputation/malware services: provider-specific threat observations
+- Modat Magnify: host/service exposure and passive-DNS infrastructure context; an observed service, tag, CVE or DNS relationship is not by itself a maliciousness verdict
 - TweetFeed.live: community-reported IOC context from exact IOC lookup; an observed report is a hunting/watchlist lead, not an automatic malicious verdict or block decision
 - RansomLook: bounded public search across ransomware posts and related datasets; matched posts are adversary/public-source claims, not proof that the named organization or asset was compromised
 - ransomware.live API-PRO: keyed victim-claim context for domain/URL workflows; search results are filtered to exact normalized victim website hosts before they become domain evidence
+
+Modat Magnify uses authenticated read-only retrieval at the fixed `api.magnify.modat.io` host. IP enrichment uses the bounded `/host/{ip}/v1` endpoint and domain enrichment uses `/dns/zones/{fqdn}/v1`. Search, history and bulk-export endpoints are deliberately excluded from the normal per-indicator workflow. `MODAT_API_KEY` is sent only in the `Authorization` header and is never copied into evidence or references. Modat is tier 3 / quota, so it participates in `standard` and `full` profiles but not `fast`.
 
 RansomLook and ransomware.live intentionally use different observation kinds. Two aggregators repeating the same leak-site post are not treated as independent compromise confirmation. Ransomware claims use the neutral `observed` verdict and remain outside reputation voting/corroboration.
 
@@ -48,7 +51,7 @@ RansomLook uses the public no-auth `/api/search?query=` surface and requires the
 
 ransomware.live uses API-PRO at `api-pro.ransomware.live` with `RANSOMWARE_LIVE_API_KEY` sent only in the `X-API-KEY` header. The adapter uses bounded `/victims/search?q=` retrieval for domain/URL context and does not enumerate all groups or IOC collections.
 
-These classes are not interchangeable. A Tor exit, scanner hit, registration record, community IOC report, ransomware claim or ATT&CK technique is not a malware-reputation vote.
+These classes are not interchangeable. A Tor exit, scanner hit, registration record, community IOC report, ransomware claim, infrastructure exposure record or ATT&CK technique is not a malware-reputation vote.
 
 ## Public feed hardening
 
@@ -84,5 +87,6 @@ Implemented does not imply configured, and configured does not imply production-
 - TLS/JA3 indicator class: not added because no current fixed, bounded source satisfied the v2 source gate.
 - Unbounded ATT&CK relationship download: omitted.
 - Ransomware-wide unbounded group/IOC enumeration: omitted from per-indicator enrichment; only fixed bounded lookup surfaces are used.
+- Modat bulk export, broad host/service search and history retrieval: omitted from ordinary enrichment to preserve fixed per-indicator call bounds.
 
 Run `node scripts/generate-release-manifest.mjs --check` to detect registry/parser-version drift.
