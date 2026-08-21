@@ -4,8 +4,16 @@ import { correlateEvidence } from './correlate.js';
 import { runScheduledProviders } from './scheduler.js';
 import { EVIDENCE_SCHEMA_VERSION } from './version.js';
 
+const NEGATIVE_SEMANTIC_VERDICTS = new Set(['not_listed', 'not_found', 'no_result', 'no_association', 'clean', 'benign']);
+
 function cacheKey(provider, type, indicator) {
   return `${provider}:${type}:${indicator}`;
+}
+
+function cacheTtlFor(adapter, result) {
+  if (!result?.ok) return null;
+  const verdict = String(result?.data?.verdict ?? '').toLowerCase();
+  return NEGATIVE_SEMANTIC_VERDICTS.has(verdict) ? adapter.negativeCacheTtlMs : adapter.cacheTtlMs;
 }
 
 function emptyHuntContext(indicator, type) {
@@ -103,10 +111,8 @@ export async function enrich({
     }
     const adapter = registry.get(item.provider);
     const result = item.result;
-    if (result) {
-      const ttl = result.ok ? adapter.cacheTtlMs : adapter.negativeCacheTtlMs;
-      cache?.set(cacheKey(item.provider, type, indicator), result, ttl ?? 1000);
-    }
+    const ttl = cacheTtlFor(adapter, result);
+    if (ttl != null) cache?.set(cacheKey(item.provider, type, indicator), result, ttl);
     records.set(item.provider, { result, cacheState: 'miss', attempts: item.attempts });
   }
 
