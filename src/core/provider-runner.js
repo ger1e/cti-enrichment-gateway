@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { egressPolicyForAdapter, safeFetch } from './egress.js';
 
 function hashRaw(data) {
   return createHash('sha256').update(JSON.stringify(data)).digest('hex');
@@ -8,6 +9,7 @@ function normalizeFailure(error, timedOut) {
   if (timedOut || error?.name === 'AbortError') return { reason: 'timeout' };
   if (error?.status === 429) return { reason: 'rate_limited', status: 429, retryAfter: error.retryAfter ?? null };
   if (Number.isInteger(error?.status)) return { reason: 'http_error', status: error.status };
+  if (error?.code && String(error.code).startsWith('egress_')) return { reason: error.code };
   return { reason: 'provider_error' };
 }
 
@@ -25,8 +27,12 @@ export async function runProvider(adapter, input, {
     controller.abort();
   }, timeoutMs);
 
+  const policy = egressPolicyForAdapter(adapter);
+  const upstreamFetch = context.fetchImpl ?? fetch;
+  const guardedFetch = (url, options = {}) => safeFetch(url, policy, { ...options, fetchImpl: upstreamFetch });
+
   try {
-    const data = await adapter.run(input, { ...context, signal: controller.signal });
+    const data = await adapter.run(input, { ...context, signal: controller.signal, fetchImpl: guardedFetch });
     const retrievedAt = now();
     return {
       ok: true,

@@ -17,6 +17,8 @@ function entry(adapter) {
     negativeCacheTtlMs: adapter.negativeCacheTtlMs,
     maxResponseBytes: adapter.maxResponseBytes,
     fixedHosts: frozenStrings(adapter.fixedHosts),
+    methods: frozenStrings(adapter.methods ?? ['GET']),
+    protocols: frozenStrings(adapter.protocols ?? ['https:']),
     parserVersion: adapter.parserVersion,
     sourceUrl: adapter.sourceUrl,
     active: adapter.active !== false,
