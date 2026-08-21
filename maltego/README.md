@@ -16,10 +16,10 @@ CTI Gateway client
 https://cti-enrichment-gateway.vercel.app/api/enrich
         |
         v
-Gateway provider router / normalized evidence
+Gateway provider router / normalized evidence v2
 ```
 
-The transform layer never receives Shodan, Censys, VirusTotal, Malpedia, GreyNoise or other vendor secrets. It knows only the gateway URL and the gateway bearer token.
+The transform layer never receives provider secrets. It knows only the gateway URL and the gateway bearer token.
 
 ## Install on Windows
 
@@ -30,7 +30,7 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 .\install.ps1
 ```
 
-The installer ensures Python is available, creates `.venv`, installs `maltego-trx==1.7.0`, runs the integration unit tests, prompts once for `CTI_GATEWAY_TOKEN`, protects that token with Windows DPAPI for the current Windows user, generates `cti-enrichment-gateway-local.mtz`, and lists the discovered transforms.
+The installer ensures Python is available, creates `.venv`, installs `maltego-trx==1.7.0`, runs integration tests, prompts once for `CTI_GATEWAY_TOKEN`, protects that token with Windows DPAPI for the current Windows user, generates `cti-enrichment-gateway-local.mtz`, and lists discovered transforms.
 
 Import `cti-enrichment-gateway-local.mtz` into Maltego Graph Desktop.
 
@@ -42,10 +42,14 @@ Import `cti-enrichment-gateway-local.mtz` into Maltego Graph Desktop.
 - CTI Enrich DNS Name -> `maltego.DNSName`
 - CTI Enrich URL -> `maltego.URL`
 - CTI Enrich Hash -> `maltego.Hash`
-- CTI Enrich CVE -> `maltego.Phrase` (use a value such as `CVE-2026-1234`)
-- CTI Enrich MITRE ATT&CK -> `maltego.Phrase` (use a value such as `T1059.001`, `G0007` or `DS0029`)
+- CTI Enrich CVE -> `maltego.Phrase`
+- CTI Enrich MITRE ATT&CK -> `maltego.Phrase`
+- CTI Enrich ASN -> `maltego.Phrase` input such as `AS3333`; graph output uses `maltego.AS` where appropriate
+- CTI Enrich CIDR -> `maltego.Phrase` input such as `192.0.2.0/24` or `2001:db8::/32`
 
-Transforms return normalized graph entities from gateway relationships, malware-family/actor context and graphable provider attributes. ATT&CK TAXII results are knowledge/mapping context, not IOC reputation or a maliciousness vote. When provider evidence has no graphable relationship, a compact evidence Phrase is returned rather than silently returning nothing.
+Transforms map normalized relationships, malware-family/actor context and graphable provider attributes. Evidence v2 additionally renders bounded Phrase nodes for provider provenance, corroboration, contradictions, freshness, huntability and separate KEV/EPSS/CVSS axes. Integrity fingerprints and parser versions are graphable; raw upstream hashes are deliberately not emitted as Maltego properties.
+
+ATT&CK TAXII results are knowledge/mapping context, not IOC reputation or a maliciousness vote. CIDR remains a Phrase because no stable built-in network-prefix entity is assumed. ASN uses the stable AS entity when the mapper can do so without changing the input contract.
 
 ## Configuration
 
@@ -57,14 +61,14 @@ MALTEGO_MAX_ENTITIES=50
 MALTEGO_INCLUDE_PROVIDER_NODES=false
 ```
 
-`MALTEGO_MAX_ENTITIES` is bounded to 1-250. `MALTEGO_INCLUDE_PROVIDER_NODES=true` adds explicit provider evidence nodes and is intentionally off by default to avoid graph clutter.
+`MALTEGO_MAX_ENTITIES` is bounded to 1-250. Evidence-v2 provenance nodes are emitted when an integrity fingerprint exists; `MALTEGO_INCLUDE_PROVIDER_NODES=true` also forces provider evidence nodes for legacy/attribute-rich responses.
 
 Secret resolution order:
 
 1. `CTI_GATEWAY_TOKEN` environment variable, if explicitly set.
 2. Windows DPAPI-protected token saved by `install.ps1` under the current user's local application-data directory.
 
-No vendor API secret is stored in this directory or in the generated MTZ.
+No provider API secret is stored in this directory or in the generated MTZ.
 
 ## Security behavior
 
@@ -72,8 +76,9 @@ No vendor API secret is stored in this directory or in the generated MTZ.
 - Redirects are refused so the bearer token cannot be forwarded to another host.
 - Response bodies are capped at 2 MB.
 - Gateway errors never include the bearer token.
-- Local graph expansion is capped and deduplicated.
+- Local graph expansion is capped at 250 and deduplicated.
 - Provider failures are surfaced as partial-result messages rather than terminating successful enrichment from other providers.
+- Vendor credential names/values are excluded from transform/project output.
 
 ## Manual commands
 

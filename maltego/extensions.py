@@ -6,5 +6,5 @@ registry = TransformRegistry(
     host_url='https://cti-enrichment-gateway.vercel.app',
     seed_ids=['cti-enrichment-gateway'],
 )
-registry.version = '1.0.0'
+registry.version = '2.0.0'
 registry.display_name_suffix = ' [CTI Gateway]'
