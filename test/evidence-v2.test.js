@@ -4,11 +4,11 @@ import { createApp } from '../src/app.js';
 import { EVIDENCE_SCHEMA_VERSION, GATEWAY_VERSION } from '../src/core/version.js';
 
 const fixture = Object.freeze({
-  name: 'fixture',
+  name: 'rdap',
   types: ['ip'],
   observationTypes: ['fixture_context'],
   costClass: 'free',
-  tier: 2,
+  tier: 1,
   timeoutMs: 1000,
   cacheTtlMs: 60_000,
   negativeCacheTtlMs: 10_000,
@@ -72,7 +72,7 @@ test('evidence v2 carries cache/duration/parser provenance and normalized finger
   const first = await app.handleEnrich(request({ indicator: '203.0.113.7' }));
   const second = await app.handleEnrich(request({ indicator: '203.0.113.7' }));
   const item = second.body.evidence[0];
-  assert.equal(item.provider, 'fixture');
+  assert.equal(item.provider, 'rdap');
   assert.equal(item.cacheState, 'hit');
   assert.equal(typeof item.durationMs, 'number');
   assert.equal(item.integrity.parserVersion, 'fixture-1');
