@@ -58,7 +58,8 @@ def _unprotect(data: bytes) -> bytes:
         _fields_ = [('cbData', wintypes.DWORD), ('pbData', ctypes.POINTER(ctypes.c_ubyte))]
 
     buffer = ctypes.create_string_buffer(data)
-    in_blob = DATA_BLOB(len(data), ctypes.cast(buffer, ctypes.POINTER(ctypes.c_ubyte)))
+    in_blob = DATA_BLOB(len(data), ctypes.cast(buffer, ctypes.POINTER(ctypes.c_ubyte))
+    )
     out_blob = DATA_BLOB()
     crypt32 = ctypes.windll.crypt32
     kernel32 = ctypes.windll.kernel32
@@ -120,6 +121,16 @@ def _run_native(args: list[str], *, input_text: str | None = None, not_found_ok:
     raise CredentialStoreError('native credential backend command failed')
 
 
+def _run_interactive_native(args: list[str]) -> None:
+    """Run a trusted native credential prompt attached directly to the user's terminal."""
+    try:
+        result = subprocess.run(args, check=False)
+    except OSError as exc:
+        raise CredentialStoreError('native credential backend command failed') from exc
+    if result.returncode != 0:
+        raise CredentialStoreError('native credential backend command failed')
+
+
 def _save_windows(token: str, path: Path) -> Path:
     protected = _protect(token.encode('utf-8'))
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -149,15 +160,18 @@ def _delete_windows(path: Path) -> None:
         raise CredentialStoreError('stored gateway token could not be deleted') from exc
 
 
-def _save_macos(token: str) -> None:
-    # Apple recommends placing -w last to prompt rather than placing the secret in argv.
-    # Feeding the prompt through stdin keeps the token out of shell history and process arguments.
-    _run_native([
+def _configure_macos_interactively() -> None:
+    # `security ... -w` with -w last prompts through the terminal. Deliberately do not
+    # pass a password argument or pipe one through stdin: the secret is entered directly
+    # into Apple's Keychain tool and never enters our argv/log/captured-output path.
+    _run_interactive_native([
         '/usr/bin/security', 'add-generic-password',
         '-a', KEYCHAIN_ACCOUNT,
         '-s', KEYCHAIN_SERVICE,
         '-U', '-w',
-    ], input_text=f'{token}\n')
+    ])
+    # Verify the resulting item is actually readable before setup continues.
+    _load_macos()
 
 
 def _load_macos() -> str:
@@ -219,6 +233,13 @@ def _delete_linux() -> None:
     ], not_found_ok=True)
 
 
+def configure_token_interactively() -> None:
+    backend = _native_backend_name()
+    if backend != 'macos-keychain':
+        raise CredentialStoreError('native interactive credential setup is available only for macOS Keychain')
+    _configure_macos_interactively()
+
+
 def save_token(token: str, path: Path = TOKEN_FILE) -> Path | None:
     token = token.strip()
     if not token:
@@ -227,8 +248,10 @@ def save_token(token: str, path: Path = TOKEN_FILE) -> Path | None:
     if backend == 'windows-dpapi':
         return _save_windows(token, path)
     if backend == 'macos-keychain':
-        _save_macos(token)
-        return None
+        raise CredentialStoreError(
+            'macOS Keychain token creation must use the interactive platform installer; '
+            'the token is intentionally never passed as a process argument or piped input'
+        )
     if backend == 'linux-secret-service':
         _save_linux(token)
         return None
@@ -269,7 +292,13 @@ def _main(argv: list[str]) -> int:
         return 2
     command = argv[1]
     if command == 'save':
-        save_token(sys.stdin.read())
+        if _native_backend_name() == 'macos-keychain':
+            if not sys.stdin.isatty():
+                print('macOS Keychain setup must be run interactively', file=sys.stderr)
+                return 2
+            configure_token_interactively()
+        else:
+            save_token(sys.stdin.read())
         print('saved')
         return 0
     if command == 'check':
