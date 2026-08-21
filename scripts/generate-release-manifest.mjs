@@ -8,6 +8,10 @@ function cleanCommit(value) {
   return /^[0-9a-f]{40}$/i.test(text) ? text.toLowerCase() : null;
 }
 
+function byName(a, b) {
+  return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+}
+
 export function buildReleaseManifest({ sourceCommit = null } = {}) {
   const providers = [...ALL_PROVIDERS]
     .map(provider => Object.freeze({
@@ -15,7 +19,7 @@ export function buildReleaseManifest({ sourceCommit = null } = {}) {
       parserVersion: String(provider.parserVersion),
       active: provider.active !== false,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort(byName);
 
   return Object.freeze({
     gatewayVersion: GATEWAY_VERSION,
