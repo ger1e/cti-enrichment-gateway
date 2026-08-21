@@ -33,6 +33,7 @@ class TransformParityTests(unittest.TestCase):
             'VIRUSTOTAL_API_KEY', 'SHODAN_API_KEY', 'ABUSEIPDB_API_KEY', 'GREYNOISE_API_KEY',
             'HYBRID_ANALYSIS_API_KEY', 'ABUSECH_API_KEY', 'URLSCAN_API_KEY', 'CENSYS_API_ID',
             'CENSYS_API_SECRET', 'OTX_API_KEY', 'PULSEDIVE_API_KEY', 'MALPEDIA_API_KEY',
+            'MODAT_API_KEY',
         ]
         files = [ROOT / 'mapper.py', ROOT / 'project.py', ROOT / 'extensions.py', *TRANSFORMS.glob('*.py')]
         combined = '\n'.join(path.read_text(encoding='utf-8') for path in files)
