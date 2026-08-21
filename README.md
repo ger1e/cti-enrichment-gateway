@@ -51,6 +51,29 @@ The gateway deliberately has no master maliciousness score. Registration, routin
 
 Evidence v2 preserves provider, parser version, retrieval time, cache state, duration, source references and integrity fingerprints. Compatible evidence can corroborate; incompatible observations do not vote together; contradictions remain explicit. For CVEs, KEV, EPSS and CVSS stay separate axes.
 
+## Maltego one-command setup
+
+After the gateway is provisioned, install the local Maltego transforms from `maltego/`:
+
+macOS / Linux (bash or zsh):
+
+```sh
+cd maltego
+./install.sh
+```
+
+Windows PowerShell:
+
+```powershell
+cd maltego
+Set-ExecutionPolicy -Scope Process Bypass -Force
+.\install.ps1
+```
+
+The shared bootstrap enforces Python >=3.10 (prefers 3.12), repairs stale/broken venvs, installs pinned dependencies, runs tests, stores only `CTI_GATEWAY_TOKEN` in the native user credential store (DPAPI / macOS Keychain / Linux Secret Service), generates the MTZ, verifies transform inventory/archive safety/secret absence, and prints its SHA-256 and import path. Vendor API keys remain in Vercel.
+
+See [`maltego/README.md`](maltego/README.md) for `--check`, `--repair`, `--update`, `--uninstall` and platform details.
+
 ## Documentation
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — execution model and trust boundaries
@@ -87,7 +110,7 @@ cd ..
 python3 -m compileall -q maltego
 ```
 
-The `Tooling smoke` GitHub workflow runs repository invariants, Node tests, public-release audit, Maltego unit tests, Python compilation and PowerShell syntax validation.
+The authoritative `Tooling smoke` status aggregates repository/MAXX validation with Maltego regression tests on Ubuntu, macOS and Windows plus bash/zsh/ShellCheck/PowerShell syntax checks.
 
 ## Configuration
 

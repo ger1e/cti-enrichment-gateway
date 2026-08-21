@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "transforms": [
+    {"class": "EnrichIPv4", "indicatorType": "ip", "inputEntity": "maltego.IPv4Address"},
+    {"class": "EnrichIPv6", "indicatorType": "ip", "inputEntity": "maltego.IPv6Address"},
+    {"class": "EnrichDomain", "indicatorType": "domain", "inputEntity": "maltego.Domain"},
+    {"class": "EnrichDNSName", "indicatorType": "domain", "inputEntity": "maltego.DNSName"},
+    {"class": "EnrichURL", "indicatorType": "url", "inputEntity": "maltego.URL"},
+    {"class": "EnrichHash", "indicatorType": "hash", "inputEntity": "maltego.Hash"},
+    {"class": "EnrichCVE", "indicatorType": "cve", "inputEntity": "maltego.Phrase"},
+    {"class": "EnrichATTACK", "indicatorType": "attack", "inputEntity": "maltego.Phrase"},
+    {"class": "EnrichASN", "indicatorType": "asn", "inputEntity": "maltego.Phrase"},
+    {"class": "EnrichCIDR", "indicatorType": "cidr", "inputEntity": "maltego.Phrase"}
+  ]
+}
