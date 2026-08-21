@@ -7,6 +7,7 @@ import { CircuitBreaker } from './core/circuit-breaker.js';
 import { createProviderRegistry } from './core/provider-registry.js';
 import { enrich } from './core/orchestrator.js';
 import { runBatch } from './core/batch.js';
+import { toStixBundle } from './export/stix.js';
 import { GATEWAY_VERSION } from './core/version.js';
 import { ALL_PROVIDERS } from './providers/index.js';
 import { PROFILE_NAMES, selectProviders } from './profiles.js';
@@ -121,11 +122,30 @@ export function createApp({
     });
   }
 
+  async function parseSingleIndicatorRequest(request, allowedFields) {
+    let body;
+    try {
+      body = parseBody(request);
+    } catch (error) {
+      return { error: response(error.status ?? 400, { error: error.status === 413 ? 'payload_too_large' : 'invalid_request' }) };
+    }
+    const allowed = new Set(allowedFields);
+    if (Object.keys(body).some(key => !allowed.has(key))) return { error: response(400, { error: 'unsupported_request_field' }) };
+    let classified;
+    try {
+      classified = classifyIndicator(body.indicator);
+    } catch {
+      return { error: response(400, { error: 'invalid_indicator' }) };
+    }
+    if (body.type !== undefined && body.type !== classified.type) return { error: response(400, { error: 'indicator_type_mismatch' }) };
+    const profile = body.profile ?? 'standard';
+    if (!PROFILE_NAMES.includes(profile)) return { error: response(400, { error: 'invalid_profile' }) };
+    return { body, classified, profile };
+  }
+
   return {
     async handleHealth(request) {
-      if (request?.method && request.method !== 'GET') {
-        return response(405, { error: 'method_not_allowed' }, { allow: 'GET' });
-      }
+      if (request?.method && request.method !== 'GET') return response(405, { error: 'method_not_allowed' }, { allow: 'GET' });
       const providers = Object.fromEntries(registry.names().map(name => {
         const adapter = registry.get(name);
         return [name, providerStatus(adapter, env)];
@@ -135,12 +155,7 @@ export function createApp({
         version: gatewayVersion,
         gatewayAuthConfigured: Boolean(env.CTI_GATEWAY_TOKEN),
         providers,
-        operations: {
-          sentry: {
-            configured: Boolean(env.SENTRY_AUTH_TOKEN),
-            role: 'observability_only',
-          },
-        },
+        operations: { sentry: { configured: Boolean(env.SENTRY_AUTH_TOKEN), role: 'observability_only' } },
         activeWorkflows: WORKFLOWS,
       });
     },
@@ -148,30 +163,12 @@ export function createApp({
     async handleEnrich(request) {
       const gate = requestGate(request, env);
       if (gate) return gate;
-
-      let body;
-      try {
-        body = parseBody(request);
-      } catch (error) {
-        return response(error.status ?? 400, { error: error.status === 413 ? 'payload_too_large' : 'invalid_request' });
-      }
-
-      let classified;
-      try {
-        classified = classifyIndicator(body.indicator);
-      } catch {
-        return response(400, { error: 'invalid_indicator' });
-      }
-      if (body.type !== undefined && body.type !== classified.type) {
-        return response(400, { error: 'indicator_type_mismatch' });
-      }
-
-      const profile = body.profile ?? 'standard';
+      const parsed = await parseSingleIndicatorRequest(request, ['indicator', 'type', 'profile']);
+      if (parsed.error) return parsed.error;
       let result;
       try {
-        result = await enrichClassified(classified, profile);
+        result = await enrichClassified(parsed.classified, parsed.profile);
       } catch (error) {
-        if (error?.message === 'invalid_profile') return response(400, { error: 'invalid_profile' });
         if (error?.message === 'unsupported_indicator_type') return response(400, { error: 'unsupported_indicator_type' });
         throw error;
       }
@@ -181,22 +178,17 @@ export function createApp({
     async handleBatch(request) {
       const gate = requestGate(request, env);
       if (gate) return gate;
-
       let body;
       try {
         body = parseBody(request, MAX_BATCH_BODY_BYTES);
       } catch (error) {
         return response(error.status ?? 400, { error: error.status === 413 ? 'payload_too_large' : 'invalid_request' });
       }
-
       const allowed = new Set(['indicators', 'profile']);
       if (Object.keys(body).some(key => !allowed.has(key))) return response(400, { error: 'unsupported_request_field' });
-      if (!Array.isArray(body.indicators) || body.indicators.length < 1 || body.indicators.length > 20 || body.indicators.some(value => typeof value !== 'string')) {
-        return response(400, { error: 'invalid_batch' });
-      }
+      if (!Array.isArray(body.indicators) || body.indicators.length < 1 || body.indicators.length > 20 || body.indicators.some(value => typeof value !== 'string')) return response(400, { error: 'invalid_batch' });
       const profile = body.profile ?? 'standard';
       if (!PROFILE_NAMES.includes(profile)) return response(400, { error: 'invalid_profile' });
-
       const batch = await runBatch({
         indicators: body.indicators,
         profile,
@@ -209,6 +201,21 @@ export function createApp({
         nowMs,
       });
       return response(200, { requestId: randomUUID(), gatewayVersion, ...batch });
+    },
+
+    async handleStix(request) {
+      const gate = requestGate(request, env);
+      if (gate) return gate;
+      const parsed = await parseSingleIndicatorRequest(request, ['indicator', 'type', 'profile']);
+      if (parsed.error) return parsed.error;
+      let enrichment;
+      try {
+        enrichment = await enrichClassified(parsed.classified, parsed.profile);
+      } catch (error) {
+        if (error?.message === 'unsupported_indicator_type') return response(400, { error: 'unsupported_indicator_type' });
+        throw error;
+      }
+      return response(200, toStixBundle(enrichment, { maxObjects: 100, now }));
     },
   };
 }
