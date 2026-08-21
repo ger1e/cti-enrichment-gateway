@@ -1,5 +1,6 @@
 import { runProvider } from './provider-runner.js';
 import { normalizeEvidence } from './normalize.js';
+import { correlateEvidence } from './correlate.js';
 import { runScheduledProviders } from './scheduler.js';
 import { EVIDENCE_SCHEMA_VERSION } from './version.js';
 
@@ -74,6 +75,7 @@ export async function enrich({
       status: 'error',
       evidence: [],
       relationships: [],
+      correlation: correlateEvidence({ indicator, type, evidence: [], relationships: [], now: queriedAt }),
       failures: [{ provider: 'gateway', reason: 'no_configured_providers' }],
       huntContext: emptyHuntContext(indicator, type),
       meta: { gatewayVersion, cache: {}, providerHealth: {} },
@@ -174,6 +176,7 @@ export async function enrich({
   const status = evidence.length === 0 ? 'error' : failures.length ? 'partial' : 'ok';
   const references = [...new Set(evidence.flatMap(item => item.references))];
   const queriedAt = now();
+  const correlation = correlateEvidence({ indicator, type, evidence, relationships, now: queriedAt });
 
   return {
     ...baseEnvelope({
@@ -182,7 +185,8 @@ export async function enrich({
     }),
     status,
     evidence,
-    relationships,
+    relationships: correlation.relationships,
+    correlation,
     failures,
     huntContext: {
       indicator,
