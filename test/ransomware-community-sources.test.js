@@ -105,6 +105,19 @@ test('ransomware.live sends X-API-KEY and rejects fuzzy victim-name hits whose w
   assert.equal(output.attributes.confirmedCompromise, false);
 });
 
+test('ransomware.live fails closed on malformed response shapes instead of manufacturing not_listed evidence', async () => {
+  await assert.rejects(
+    ransomwareLiveProvider.run(
+      { type: 'domain', value: 'acme.example' },
+      {
+        env: { RANSOMWARE_LIVE_API_KEY: 'test-key-not-secret' },
+        fetchImpl: async () => jsonResponse({ message: 'unexpected schema' }),
+      },
+    ),
+    error => error?.message === 'ransomware_live_invalid_response' && error?.status === 502,
+  );
+});
+
 test('community reports and ransomware claims do not become reputation corroboration', () => {
   const evidence = [
     normalizeEvidence('tweetfeed', 'evil.example', 'domain', { observationType: 'community_ioc_report', verdict: 'observed' }),

@@ -26,7 +26,7 @@
     { "name": "otx", "parserVersion": "2026-08-20", "active": true },
     { "name": "pulsedive", "parserVersion": "2026-08-20", "active": true },
     { "name": "ransomlook", "parserVersion": "2026-08-21.2", "active": true },
-    { "name": "ransomware-live", "parserVersion": "2026-08-21", "active": true },
+    { "name": "ransomware-live", "parserVersion": "2026-08-21.2", "active": true },
     { "name": "rdap", "parserVersion": "2026-08-21.2", "active": true },
     { "name": "ripestat", "parserVersion": "2026-08-21.2", "active": true },
     { "name": "shodan", "parserVersion": "2026-08-20", "active": true },
