@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import argparse
 import getpass
+import hashlib
+import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
+import zipfile
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
 
 from credential_store import CredentialStoreError, backend_name, delete_token, load_token, save_token
@@ -16,10 +20,36 @@ ROOT = Path(__file__).resolve().parent
 VENV = ROOT / '.venv'
 REQUIREMENTS = ROOT / 'requirements.txt'
 MTZ = ROOT / 'cti-enrichment-gateway-local.mtz'
+TRANSFORM_MANIFEST = ROOT / 'transform-manifest.json'
 MIN_PYTHON = (3, 10)
 PREFERRED_PYTHON = (3, 12)
 DEFAULT_GATEWAY_URL = 'https://cti-enrichment-gateway.vercel.app'
 MAX_CAPTURE_CHARS = 12_000
+MAX_MTZ_BYTES = 10_000_000
+MAX_MTZ_ENTRIES = 500
+MAX_MTZ_ENTRY_BYTES = 2_000_000
+MAX_MTZ_UNCOMPRESSED_BYTES = 20_000_000
+FORBIDDEN_MTZ_TOKENS = (
+    'CTI_GATEWAY_TOKEN',
+    'ABUSECH_API_KEY',
+    'ABUSEIPDB_API_KEY',
+    'GREYNOISE_API_KEY',
+    'VIRUSTOTAL_API_KEY',
+    'HYBRID_ANALYSIS_API_KEY',
+    'URLSCAN_API_KEY',
+    'WEBAMON_API_KEY',
+    'SENTRY_AUTH_TOKEN',
+    'OTX_API_KEY',
+    'SHODAN_API_KEY',
+    'CENSYS_PAT',
+    'PULSEDIVE_API_KEY',
+    'IPINFO_TOKEN',
+    'MALPEDIA_API_TOKEN',
+    'NVD_API_KEY',
+    'CLOUDFLARE_RADAR_TOKEN',
+    'RANSOMWARE_LIVE_API_KEY',
+)
+FORBIDDEN_DEV_URLS = ('localhost', '127.0.0.1', '[::1]')
 
 
 class BootstrapError(RuntimeError):
@@ -176,6 +206,76 @@ def run_checked(args: list[str], *, cwd: Path = ROOT, env: dict[str, str] | None
         raise BootstrapError(f'{Path(args[0]).name} failed with exit code {result.returncode}')
 
 
+def _load_transform_manifest(path: Path = TRANSFORM_MANIFEST) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise BootstrapError('transform manifest could not be read') from exc
+    transforms = value.get('transforms') if isinstance(value, dict) else None
+    if not isinstance(transforms, list) or not transforms:
+        raise BootstrapError('transform manifest is invalid')
+    classes = [item.get('class') for item in transforms if isinstance(item, dict)]
+    if len(classes) != len(transforms) or not all(isinstance(name, str) and name for name in classes):
+        raise BootstrapError('transform manifest contains invalid transform entries')
+    if len(classes) != len(set(classes)):
+        raise BootstrapError('transform manifest contains duplicate transform classes')
+    return value
+
+
+def _safe_zip_name(name: str) -> bool:
+    path = PurePosixPath(name.replace('\\', '/'))
+    return not path.is_absolute() and '..' not in path.parts and bool(path.parts)
+
+
+def verify_mtz(path: Path = MTZ, *, manifest_path: Path = TRANSFORM_MANIFEST) -> str:
+    if not path.is_file() or path.stat().st_size <= 0:
+        raise BootstrapError('Maltego MTZ is missing or empty')
+    if path.stat().st_size > MAX_MTZ_BYTES:
+        raise BootstrapError('Maltego MTZ exceeds archive size limit')
+    manifest = _load_transform_manifest(manifest_path)
+    expected = [item['class'] for item in manifest['transforms']]
+    try:
+        with zipfile.ZipFile(path, 'r') as archive:
+            infos = archive.infolist()
+            if not infos or len(infos) > MAX_MTZ_ENTRIES:
+                raise BootstrapError('Maltego MTZ contains an invalid number of entries')
+            names = [info.filename for info in infos]
+            if len(names) != len(set(names)):
+                raise BootstrapError('Maltego MTZ contains duplicate archive entries')
+            total_uncompressed = 0
+            text_parts: list[str] = []
+            for info in infos:
+                if not _safe_zip_name(info.filename):
+                    raise BootstrapError('Maltego MTZ contains an unsafe archive path')
+                mode = info.external_attr >> 16
+                if mode and stat.S_ISLNK(mode):
+                    raise BootstrapError('Maltego MTZ contains a symbolic link entry')
+                if info.file_size > MAX_MTZ_ENTRY_BYTES:
+                    raise BootstrapError('Maltego MTZ contains an oversized entry')
+                total_uncompressed += info.file_size
+                if total_uncompressed > MAX_MTZ_UNCOMPRESSED_BYTES:
+                    raise BootstrapError('Maltego MTZ exceeds uncompressed size limit')
+                if info.is_dir() or info.file_size == 0:
+                    continue
+                data = archive.read(info)
+                text_parts.append(data.decode('utf-8', errors='ignore'))
+    except zipfile.BadZipFile as exc:
+        raise BootstrapError('Maltego MTZ is not a valid ZIP archive') from exc
+
+    combined = '\n'.join(text_parts)
+    for token in FORBIDDEN_MTZ_TOKENS:
+        if token in combined:
+            raise BootstrapError(f'Maltego MTZ contains forbidden credential identifier {token}')
+    lowered = combined.lower()
+    for dev_host in FORBIDDEN_DEV_URLS:
+        if dev_host.lower() in lowered:
+            raise BootstrapError('Maltego MTZ contains a development/loopback gateway reference')
+    missing = [name for name in expected if name not in combined]
+    if missing:
+        raise BootstrapError(f'Maltego MTZ is missing expected transforms: {", ".join(missing)}')
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def _ensure_supported_bootstrap_python() -> PythonCandidate:
     candidates = discover_python()
     selected = choose_python(candidates)
@@ -212,10 +312,9 @@ def _run_validation(python: Path, *, verbose: bool) -> None:
     run_checked([str(python), '-m', 'compileall', '-q', '.'], verbose=verbose)
 
 
-def _generate_mtz(python: Path, *, verbose: bool) -> None:
+def _generate_mtz(python: Path, *, verbose: bool) -> str:
     run_checked([str(python), 'project.py', 'mtz'], verbose=verbose)
-    if not MTZ.is_file() or MTZ.stat().st_size == 0:
-        raise BootstrapError('Maltego MTZ generation did not produce a non-empty package')
+    return verify_mtz(MTZ)
 
 
 def _credential_ready(*, non_interactive: bool) -> str:
@@ -244,8 +343,7 @@ def check_state(*, gateway_url: str) -> dict[str, str]:
     action, version = venv_action(VENV)
     if action != 'reuse':
         raise BootstrapError(f'virtual environment requires {action}; run the installer or --repair')
-    if not MTZ.is_file() or MTZ.stat().st_size == 0:
-        raise BootstrapError('Maltego MTZ is missing; run the installer or --repair')
+    mtz_sha256 = verify_mtz(MTZ)
     try:
         credential = backend_name()
         load_token()
@@ -258,6 +356,7 @@ def check_state(*, gateway_url: str) -> dict[str, str]:
         'credential': credential,
         'gateway': validate_gateway_url(gateway_url),
         'mtz': str(MTZ),
+        'mtzSha256': mtz_sha256,
     }
 
 
@@ -269,6 +368,7 @@ def print_ready(state: dict[str, str]) -> None:
     print(f"Credential backend   {state['credential']} PASS")
     print(f"Gateway              {state['gateway']} PASS")
     print(f"MTZ                   {state['mtz']} PASS")
+    print(f"MTZ SHA-256           {state['mtzSha256']}")
     print('READY FOR MALTEGO')
 
 
@@ -279,9 +379,7 @@ def install(*, gateway_url: str, update: bool, non_interactive: bool, verbose: b
     _install_requirements(python, update=update, verbose=verbose)
     _run_validation(python, verbose=verbose)
     credential = _credential_ready(non_interactive=non_interactive)
-    env = os.environ.copy()
-    env['CTI_GATEWAY_URL'] = gateway_url
-    _generate_mtz(python, verbose=verbose)
+    mtz_sha256 = _generate_mtz(python, verbose=verbose)
     version = probe_python(str(python)) or (0, 0, 0)
     return {
         'platform': f'{sys.platform}/{os.uname().machine if hasattr(os, "uname") else os.name}',
@@ -290,6 +388,7 @@ def install(*, gateway_url: str, update: bool, non_interactive: bool, verbose: b
         'credential': credential,
         'gateway': gateway_url,
         'mtz': str(MTZ),
+        'mtzSha256': mtz_sha256,
     }
 
 
