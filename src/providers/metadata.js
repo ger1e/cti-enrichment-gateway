@@ -16,6 +16,7 @@ export const PROVIDER_METADATA = Object.freeze({
   abuseipdb: { observationTypes: ['abuse_reports'], tier: 3, costClass: 'quota', maxResponseBytes: 2 * MIB, fixedHosts: ['api.abuseipdb.com'], sourceUrl: 'https://docs.abuseipdb.com/' },
   shodan: { observationTypes: ['internet_exposure'], tier: 3, costClass: 'quota', maxResponseBytes: 4 * MIB, fixedHosts: ['api.shodan.io'], sourceUrl: 'https://developer.shodan.io/api' },
   censys: { observationTypes: ['internet_exposure'], tier: 3, costClass: 'quota', maxResponseBytes: 8 * MIB, fixedHosts: ['api.platform.censys.io'], sourceUrl: 'https://docs.censys.com/reference/get-started' },
+  modat: { observationTypes: ['internet_exposure', 'passive_dns'], tier: 3, costClass: 'quota', maxResponseBytes: 4 * MIB, fixedHosts: ['api.magnify.modat.io'], sourceUrl: 'https://api.magnify.modat.io/' },
   'cloudflare-radar': { observationTypes: ['network_identity'], tier: 3, costClass: 'quota', maxResponseBytes: 2 * MIB, fixedHosts: ['api.cloudflare.com'], sourceUrl: 'https://developers.cloudflare.com/radar/' },
   virustotal: { observationTypes: ['reputation', 'malware_association'], tier: 3, costClass: 'quota', maxResponseBytes: 8 * MIB, fixedHosts: ['www.virustotal.com'], sourceUrl: 'https://docs.virustotal.com/reference/overview' },
   otx: { observationTypes: ['threat_context'], tier: 3, costClass: 'quota', maxResponseBytes: 8 * MIB, fixedHosts: ['otx.alienvault.com'], sourceUrl: 'https://otx.alienvault.com/api' },
