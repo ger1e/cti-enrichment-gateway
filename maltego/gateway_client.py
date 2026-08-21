@@ -13,6 +13,7 @@ from credential_store import CredentialStoreError, load_token
 DEFAULT_GATEWAY_URL = 'https://cti-enrichment-gateway.vercel.app'
 DEFAULT_TIMEOUT_SECONDS = 15.0
 DEFAULT_MAX_RESPONSE_BYTES = 2_000_000
+SUPPORTED_INDICATOR_TYPES = frozenset({'ip', 'domain', 'url', 'hash', 'cve', 'attack', 'asn', 'cidr'})
 
 
 class GatewayError(RuntimeError):
@@ -63,7 +64,7 @@ class GatewayClient:
     def enrich(self, indicator: str, indicator_type: str) -> dict:
         if not isinstance(indicator, str) or not indicator.strip():
             raise GatewayError('indicator is empty')
-        if indicator_type not in {'ip', 'domain', 'url', 'hash', 'cve'}:
+        if indicator_type not in SUPPORTED_INDICATOR_TYPES:
             raise GatewayError('unsupported indicator type')
 
         endpoint = f'{_validate_base_url(self.base_url)}/api/enrich'
@@ -75,7 +76,7 @@ class GatewayClient:
                 'Authorization': f'Bearer {self.token}',
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'User-Agent': 'cti-enrichment-gateway-maltego/1.0',
+                'User-Agent': 'cti-enrichment-gateway-maltego/2.0',
             },
             method='POST',
         )
