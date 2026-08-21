@@ -101,7 +101,7 @@ test('evidence quality measures support without implying maliciousness', () => {
     agingCount: 0, staleCount: 0, unknownFreshnessCount: 0, contradictionCount: 0,
   });
   assert.equal('verdict' in out.evidenceQuality, false);
-  assert.equal('malicious' in JSON.stringify(out.evidenceQuality).toLowerCase(), false);
+  assert.equal(JSON.stringify(out.evidenceQuality).toLowerCase().includes('malicious'), false);
 });
 
 test('infrastructure context corroborates shared facts without creating reputation votes', () => {
