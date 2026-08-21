@@ -106,6 +106,7 @@ export async function safeFetch(url, policy = {}, options = {}) {
 
   if (!protocols.includes(target.protocol)) throw policyError('egress_protocol_not_allowed');
   if (!fixedHosts.length || !exactHostAllowed(target.hostname, fixedHosts)) throw policyError('egress_host_not_allowed');
+  if (target.port) throw policyError('egress_port_not_allowed');
   if (target.username || target.password) throw policyError('egress_userinfo_not_allowed');
   if (!methods.includes(method)) throw policyError('egress_method_not_allowed');
 
