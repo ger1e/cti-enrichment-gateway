@@ -34,9 +34,10 @@ Vercel CTI Enrichment Gateway
         +-- URL workflow
         +-- Hash workflow
         +-- CVE workflow
+        +-- ATT&CK workflow
         |
         v
-Read-only CTI providers and public sources
+Read-only CTI providers, public MISP feeds and fixed TAXII collections
 ```
 
 Runtime parity is Node.js 24.x across Vercel, GitHub Actions, Codespaces and the Windows bootstrap.
@@ -71,6 +72,7 @@ Supported deterministic indicator classes:
 - SHA-1
 - SHA-256
 - CVE identifier
+- MITRE ATT&CK identifier: techniques/sub-techniques, tactics, groups, software, mitigations, campaigns, data sources/components and detection strategies
 
 An optional `type` may be supplied only when it agrees with deterministic classification.
 
@@ -80,7 +82,7 @@ Response envelope:
 {
   "requestId": "uuid",
   "indicator": "canonical indicator",
-  "type": "ip|domain|url|hash|cve",
+  "type": "ip|domain|url|hash|cve|attack",
   "queriedAt": "UTC timestamp",
   "status": "ok|partial|error",
   "evidence": [],
@@ -103,25 +105,29 @@ Public/no-key sources are placed before scarcer credentialed enrichment where th
 
 ### IP
 
-`IPinfo -> RDAP -> RIPEstat -> DShield -> Spamhaus DROP -> Tor Exit -> Feodo Tracker -> ThreatMiner -> GreyNoise -> AbuseIPDB -> Shodan -> Censys -> Cloudflare Radar -> VirusTotal -> OTX -> ThreatFox -> urlscan -> Webamon -> Pulsedive`
+`IPinfo -> RDAP -> RIPEstat -> DShield -> Spamhaus DROP -> Tor Exit -> Feodo Tracker -> ThreatMiner -> CIRCL MISP OSINT -> Botvrij.eu MISP OSINT -> GreyNoise -> AbuseIPDB -> Shodan -> Censys -> Cloudflare Radar -> VirusTotal -> OTX -> ThreatFox -> urlscan -> Webamon -> Pulsedive`
 
 ### Domain
 
-`RDAP -> ThreatMiner -> OpenPhish -> urlscan -> Webamon -> VirusTotal -> OTX -> ThreatFox -> Pulsedive`
+`RDAP -> ThreatMiner -> OpenPhish -> CIRCL MISP OSINT -> Botvrij.eu MISP OSINT -> urlscan -> Webamon -> VirusTotal -> OTX -> ThreatFox -> Pulsedive`
 
 ### URL
 
-`OpenPhish -> ThreatMiner -> urlscan -> Webamon -> URLhaus -> VirusTotal -> OTX -> ThreatFox -> Pulsedive`
+`OpenPhish -> ThreatMiner -> CIRCL MISP OSINT -> Botvrij.eu MISP OSINT -> urlscan -> Webamon -> URLhaus -> VirusTotal -> OTX -> ThreatFox -> Pulsedive`
 
 ### Hash
 
-`CIRCL Hashlookup -> ThreatMiner -> MalwareBazaar -> Malpedia -> VirusTotal -> Hybrid Analysis -> OTX -> ThreatFox -> Pulsedive`
+`CIRCL Hashlookup -> ThreatMiner -> CIRCL MISP OSINT -> Botvrij.eu MISP OSINT -> MalwareBazaar -> Malpedia -> VirusTotal -> Hybrid Analysis -> OTX -> ThreatFox -> Pulsedive`
 
 ### CVE
 
-`CISA KEV -> FIRST EPSS -> CIRCL Vulnerability-Lookup -> NVD -> OSV -> OTX`
+`CISA KEV -> FIRST EPSS -> CIRCL Vulnerability-Lookup -> CIRCL MISP OSINT -> Botvrij.eu MISP OSINT -> NVD -> OSV -> OTX`
 
-Credentialed adapters are skipped when their required environment variable is absent. NVD remains usable without `NVD_API_KEY` at the public rate.
+### MITRE ATT&CK
+
+`MITRE ATT&CK TAXII 2.1`
+
+Credentialed adapters are skipped when their required environment variable is absent. NVD remains usable without `NVD_API_KEY` at the public rate. The MISP OSINT and ATT&CK TAXII integrations require no additional credential.
 
 ## Provider boundaries
 
@@ -131,6 +137,9 @@ Credentialed adapters are skipped when their required environment variable is ab
 - Tor Project: bulk exit-node membership only; Tor exit status is contextual and never treated as a malware verdict.
 - Feodo Tracker: current botnet-C2 IP blocklist membership only; source shape is validated before a negative result is accepted.
 - OpenPhish Community: official public phishing-feed exact URL/domain-host matching only; the gateway pins the official raw community feed and performs no submission.
+- CIRCL MISP OSINT: fixed public MISP-format feed correlation using `hashes.csv`, followed by bounded exact event/attribute verification before a positive result is accepted. Feed membership is context, not an automatic malicious verdict.
+- Botvrij.eu MISP OSINT: fixed public MISP-format feed correlation using `hashes.csv`, followed by bounded exact event/attribute verification before a positive result is accepted. Feed membership is context, not an automatic malicious verdict.
+- MITRE ATT&CK TAXII 2.1: fixed read-only Enterprise, ICS and Mobile ATT&CK collections only. Results are catalog/knowledge mappings, never IOC reputation or a maliciousness vote.
 - CIRCL Vulnerability-Lookup: public CVE lookup only; vulnerability metadata, EPSS metadata and KEV metadata remain separate fields.
 - abuse.ch: ThreatFox search, URLhaus URL lookup and MalwareBazaar `get_info` metadata only.
 - GreyNoise: Community IP context only.
@@ -151,11 +160,11 @@ Credentialed adapters are skipped when their required environment variable is ab
 
 The legacy SSLBL IP/C2 CSV feeds are intentionally not active. They were deprecated upstream, so treating their empty output as `not_listed` would create false-negative confidence. SSLBL certificate/JA3 data can be reconsidered only if matching indicator types are added with current supported sources.
 
-MITRE ATT&CK remains a knowledge/mapping layer rather than an IOC-reputation provider and is not treated as a vote in enrichment.
+MITRE ATT&CK is actively queried through its fixed TAXII 2.1 collections as a knowledge/mapping layer. It remains separate from IOC reputation and is never treated as a vote in enrichment.
 
 ## Evidence semantics
 
-Providers are not votes. Scanner/noise classification, abuse reports, exposed services, phishing-feed membership, Tor-exit membership, DROP netblock membership, passive DNS, botnet-C2 feed membership, malware associations, sandbox behavior, known-exploited membership, exploit probability and vulnerability metadata remain distinct observation types.
+Providers are not votes. Scanner/noise classification, abuse reports, exposed services, phishing-feed membership, MISP feed membership, Tor-exit membership, DROP netblock membership, passive DNS, botnet-C2 feed membership, malware associations, sandbox behavior, ATT&CK catalog knowledge, known-exploited membership, exploit probability and vulnerability metadata remain distinct observation types.
 
 The gateway does not calculate a simple `N of M vendors say malicious` score.
 
@@ -184,7 +193,10 @@ Infrastructure proximity, certificate reuse, ASN ownership, hosting overlap and 
 - Provider hosts are fixed by adapters; caller input cannot select an arbitrary outbound host.
 - Provider response bodies are bounded.
 - Bulk public feeds are fetched only from fixed adapter URLs, cached by source TTL, and reject redirects.
+- Public MISP feeds use only their fixed `hashes.csv` and event-JSON paths; caller input cannot select another MISP instance or event URL.
+- ATT&CK TAXII requests use only the fixed MITRE TAXII 2.1 root and hard-coded collection IDs; caller input cannot supply a TAXII server or collection.
 - Public-feed parsers validate expected source structure and fail as provider errors rather than manufacturing false-negative `not_listed` results from malformed upstream content.
+- MISP cache hits are verified against exact supported event attributes; a cache/event mismatch fails closed rather than becoming positive evidence.
 - Provider calls use explicit timeouts and structured rate-limit handling.
 - Provider exception text is not reflected to callers.
 - Authenticated responses use `Cache-Control: no-store` plus defensive response headers.
@@ -225,7 +237,7 @@ Provider credentials:
 - `NVD_API_KEY` — optional
 - `CLOUDFLARE_RADAR_TOKEN`
 
-No-key sources include RDAP, RIPEstat, ThreatMiner, DShield/SANS ISC, Spamhaus DROP, Tor Project exit list, Feodo Tracker, OpenPhish Community, CIRCL Hashlookup, CIRCL Vulnerability-Lookup, CISA KEV, FIRST EPSS and OSV. NVD also supports no-key access at its public rate.
+No-key sources include RDAP, RIPEstat, ThreatMiner, DShield/SANS ISC, Spamhaus DROP, Tor Project exit list, Feodo Tracker, OpenPhish Community, CIRCL MISP OSINT, Botvrij.eu MISP OSINT, MITRE ATT&CK TAXII 2.1, CIRCL Hashlookup, CIRCL Vulnerability-Lookup, CISA KEV, FIRST EPSS and OSV. NVD also supports no-key access at its public rate.
 
 ## Vercel bootstrap
 
@@ -267,6 +279,7 @@ The `maltego/` directory provides bounded local transforms for:
 - URL
 - hash
 - CVE
+- MITRE ATT&CK ID via a Phrase entity
 
 Architecture:
 
@@ -315,11 +328,11 @@ cd ..
 python3 -m compileall -q maltego
 ```
 
-GitHub Actions performs the Node/repository checks, Maltego standard-library tests, Python compilation and PowerShell syntax validation. The workflow uses least-privilege repository permissions and disables checkout credential persistence. Draft PRs do not run the full validation job; every ready PR runs the complete gate on each relevant update, and commit-message conventions never bypass validation.
+GitHub Actions performs the Node/repository checks, public-release audit, Maltego standard-library tests, Python compilation and PowerShell syntax validation. The workflow uses least-privilege repository permissions and disables checkout credential persistence. Draft PRs do not run the full validation job; every ready PR runs the complete gate on each relevant update, and commit-message conventions never bypass validation.
 
 ## Persistence
 
-The shipping caches are in-memory TTL/negative caches. The core enrichment cache is bounded by entry count; fixed-URL public-feed caches are bounded by the finite adapter source set. They improve warm-instance behavior but are not durable across Vercel cold starts or instances.
+The shipping caches are in-memory TTL/negative caches. The core enrichment cache is bounded by entry count; fixed-URL public-feed and TAXII caches are bounded by the finite adapter source set. They improve warm-instance behavior but are not durable across Vercel cold starts or instances.
 
 Durable cache, quota state, temporal graph relationships, IOC lifecycle state and investigation snapshots belong behind a separate storage interface. No paid/durable resource is auto-provisioned by this repository.
 

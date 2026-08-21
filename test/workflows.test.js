@@ -55,10 +55,11 @@ test('every active workflow provider has an implemented adapter', () => {
 });
 
 test('active workflows preserve MAX routing order', () => {
-  assert.deepEqual(WORKFLOWS.ip, ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']);
-  assert.deepEqual(WORKFLOWS.domain, ['rdap', 'threatminer', 'openphish', 'urlscan', 'webamon', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
-  assert.deepEqual(WORKFLOWS.url, ['openphish', 'threatminer', 'urlscan', 'webamon', 'urlhaus', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
-  assert.deepEqual(WORKFLOWS.hash, ['circl-hashlookup', 'threatminer', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox', 'pulsedive']);
-  assert.deepEqual(WORKFLOWS.cve, ['cisa-kev', 'epss', 'circl-vulnerability', 'nvd', 'osv', 'otx']);
+  assert.deepEqual(WORKFLOWS.ip, ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.domain, ['rdap', 'threatminer', 'openphish', 'misp-circl-osint', 'misp-botvrij-osint', 'urlscan', 'webamon', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.url, ['openphish', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'urlscan', 'webamon', 'urlhaus', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.hash, ['circl-hashlookup', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.cve, ['cisa-kev', 'epss', 'circl-vulnerability', 'misp-circl-osint', 'misp-botvrij-osint', 'nvd', 'osv', 'otx']);
+  assert.deepEqual(WORKFLOWS.attack, ['attack-taxii']);
   assert.equal(WORKFLOW_BLUEPRINTS, WORKFLOWS);
 });

@@ -3,6 +3,7 @@ import { domainToASCII } from 'node:url';
 
 const MAX_INDICATOR_LENGTH = 4096;
 const CVE_RE = /^CVE-\d{4}-\d{4,}$/i;
+const ATTACK_RE = /^(?:T\d{4}(?:\.\d{3})?|TA\d{4}|G\d{4}|S\d{4}|M\d{4}|C\d{4}|DS\d{4}|DC\d{4}|DET\d{4})$/i;
 const HASH_RE = /^(?:[a-fA-F0-9]{32}|[a-fA-F0-9]{40}|[a-fA-F0-9]{64})$/;
 
 function validDomain(value) {
@@ -28,6 +29,7 @@ export function classifyIndicator(input) {
   const value = input.trim(); if (!value) throw new TypeError('indicator is required');
   if (net.isIP(value)) return { value, type: 'ip' };
   if (CVE_RE.test(value)) return { value: value.toUpperCase(), type: 'cve' };
+  if (ATTACK_RE.test(value)) return { value: value.toUpperCase(), type: 'attack' };
   if (HASH_RE.test(value)) return { value: value.toLowerCase(), type: 'hash' };
   const url = validUrl(value); if (url) return { value: url, type: 'url' };
   const domain = validDomain(value); if (domain) return { value: domain, type: 'domain' };
