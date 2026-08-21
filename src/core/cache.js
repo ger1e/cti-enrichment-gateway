@@ -64,8 +64,14 @@ export class BoundedCache {
     const fullKey = this.#key(key, namespace);
     if (this.inflight.has(fullKey)) return this.inflight.get(fullKey);
 
-    const promise = Promise.resolve()
-      .then(loader)
+    let loaded;
+    try {
+      loaded = loader();
+    } catch (error) {
+      throw error;
+    }
+
+    const promise = Promise.resolve(loaded)
       .then(value => {
         this.set(key, value, ttlMs, { namespace });
         return value;

@@ -16,8 +16,9 @@ function req({ method = 'POST', auth = true, body = undefined, headers = {} } = 
 
 test('health exposes configuration booleans but never secret values', async () => {
   const app = createApp({ env });
-  const response = await app.handleHealth(req({ method: 'GET', auth: false }));
+  const response = await app.handleHealth(req({ method: 'GET' }));
   assert.equal(response.status, 200);
+  assert.equal(response.headers['cache-control'], 'no-store');
   assert.equal(response.body.gatewayAuthConfigured, true);
   assert.equal(response.body.providers.shodan.configured, true);
   assert.equal(response.body.providers.malpedia.configured, true);
@@ -29,7 +30,7 @@ test('health exposes configuration booleans but never secret values', async () =
 
 test('health lists actual registered providers rather than a drifting secret map', async () => {
   const app = createApp({ env });
-  const response = await app.handleHealth(req({ method: 'GET', auth: false }));
+  const response = await app.handleHealth(req({ method: 'GET' }));
   for (const name of ['threatfox', 'urlhaus', 'malwarebazaar', 'rdap', 'nvd']) {
     assert.ok(response.body.providers[name], `${name} missing from health`);
   }

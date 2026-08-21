@@ -54,7 +54,7 @@ test('RIPEstat uses AS Overview for ASN and bounded Prefix Overview for CIDR', a
     seen = String(url); return json({ data: { resource: '192.0.2.0/24', announced: true, asns: [{ asn: 64496, holder: 'EXAMPLE' }], related_prefixes: ['192.0.2.0/25'], actual_num_related: 1 } });
   }});
   assert.equal(seen, 'https://stat.ripe.net/data/prefix-overview/data.json?resource=192.0.2.0%2F24&max_related=10');
-  assert.deepEqual(cidr.relationships, [{ targetType: 'asn', target: 'AS64496', relation: 'origin_asn' }]);
+  assert.deepEqual(cidr.relationships, [{ targetType: 'asn', target: 'AS64496', relationship: 'origin_asn' }]);
 });
 
 test('Spamhaus ASN-DROP and DROP prefix enrichment remain contextual fixed-feed lookups', async () => {

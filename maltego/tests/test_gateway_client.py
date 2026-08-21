@@ -3,7 +3,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from gateway_client import GatewayClient, GatewayConfigurationError, _validate_base_url
+from gateway_client import GatewayClient, GatewayConfigurationError, GatewayError, SUPPORTED_INDICATOR_TYPES, _validate_base_url
 from credential_store import load_token
 
 class FakeResponse:
@@ -38,6 +38,24 @@ class GatewayClientTests(unittest.TestCase):
         self.assertEqual(seen['auth'], 'Bearer secret-token')
         self.assertEqual(seen['body'], {'indicator': '8.8.8.8', 'type': 'ip'})
         self.assertEqual(seen['timeout'], 15.0)
+
+    def test_v2_type_set_matches_transform_surface(self):
+        self.assertEqual(SUPPORTED_INDICATOR_TYPES, frozenset({'ip', 'domain', 'url', 'hash', 'cve', 'attack', 'asn', 'cidr'}))
+        seen = []
+        def opener(request, timeout):
+            seen.append(json.loads(request.data)['type'])
+            return FakeResponse(b'{"status":"ok","evidence":[]}')
+        client = GatewayClient('https://gateway.example', 'secret-token', opener=opener)
+        fixtures = {
+            'ip': '8.8.8.8', 'domain': 'example.com', 'url': 'https://example.com/',
+            'hash': 'a' * 64, 'cve': 'CVE-2026-12345', 'attack': 'T1059.001',
+            'asn': 'AS3333', 'cidr': '192.0.2.0/24',
+        }
+        for indicator_type, indicator in fixtures.items():
+            self.assertEqual(client.enrich(indicator, indicator_type)['status'], 'ok')
+        self.assertEqual(set(seen), set(fixtures))
+        with self.assertRaises(GatewayError):
+            client.enrich('x', 'unsupported')
 
     def test_environment_token_takes_precedence_without_touching_dpapi(self):
         with patch.dict(os.environ, {'CTI_GATEWAY_TOKEN': 'env-secret'}, clear=False):

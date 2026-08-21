@@ -131,12 +131,13 @@ export function createApp({
 
   return {
     async handleHealth(request) {
-      if (request?.method && request.method !== 'GET') return response(405, { error: 'method_not_allowed' }, { allow: 'GET' });
+      if (request?.method !== 'GET') return response(405, { error: 'method_not_allowed' }, { allow: 'GET' });
+      if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return response(401, { error: 'unauthorized' }, { 'cache-control': 'no-store' });
       const providers = Object.fromEntries(registry.names().map(name => [name, providerStatus(registry.get(name), env)]));
       return response(200, {
         status: 'ok', version: gatewayVersion, gatewayAuthConfigured: Boolean(env.CTI_GATEWAY_TOKEN), providers,
         operations: { sentry: { configured: Boolean(env.SENTRY_AUTH_TOKEN), role: 'observability_only' } }, activeWorkflows: WORKFLOWS,
-      });
+      }, { 'cache-control': 'no-store' });
     },
 
     async handleMeta(request) {

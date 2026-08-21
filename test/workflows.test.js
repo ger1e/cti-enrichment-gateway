@@ -14,8 +14,8 @@ function jsonFetch(expectedUrl, payload) {
   };
 }
 
-test('RDAP adapter uses fixed bootstrap host for IP registration', async () => {
-  assert.deepEqual(rdapProvider.types, ['ip', 'domain']);
+test('RDAP adapter uses fixed bootstrap host for IP registration and supports bounded network identifiers', async () => {
+  assert.deepEqual(rdapProvider.types, ['ip', 'domain', 'asn', 'cidr']);
   const data = await rdapProvider.run({ value: '8.8.8.8', type: 'ip' }, {
     fetchImpl: jsonFetch('https://rdap.org/ip/8.8.8.8', { handle: 'NET-8-8-8-0-2', name: 'GOGL', country: 'US', startAddress: '8.8.8.0', endAddress: '8.8.8.255' }),
     signal: new AbortController().signal,
@@ -61,5 +61,7 @@ test('active workflows preserve MAX routing order', () => {
   assert.deepEqual(WORKFLOWS.hash, ['circl-hashlookup', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.cve, ['cisa-kev', 'epss', 'circl-vulnerability', 'misp-circl-osint', 'misp-botvrij-osint', 'nvd', 'osv', 'otx']);
   assert.deepEqual(WORKFLOWS.attack, ['attack-taxii']);
+  assert.deepEqual(WORKFLOWS.asn, ['rdap', 'ripestat', 'spamhaus-drop']);
+  assert.deepEqual(WORKFLOWS.cidr, ['rdap', 'ripestat', 'spamhaus-drop']);
   assert.equal(WORKFLOW_BLUEPRINTS, WORKFLOWS);
 });
