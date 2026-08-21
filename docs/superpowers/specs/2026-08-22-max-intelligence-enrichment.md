@@ -13,16 +13,16 @@ Strengthen the existing CTI enrichment gateway without changing its public API s
 
 ## Design
 ### Evidence quality
-Correlation will expose an `evidenceQuality` object independent from `verdict`. It will summarize source diversity, evidence freshness, successful evidence count, failed-provider count, contradiction count, and an ordinal quality level. Quality measures how well-supported the result is, not whether the indicator is malicious.
+Correlation exposes an `evidenceQuality` object independent from `verdict`. It summarizes source diversity, evidence freshness, successful normalized evidence count, contradiction count, and an ordinal quality level. Quality measures how well-supported the result is, not whether the indicator is malicious; provider execution failures remain in the envelope's existing `failures` and `providerSummary` fields rather than being duplicated into correlation.
 
 ### Infrastructure correlation
-Correlation will expose `infrastructureContext` for network indicators. It will summarize infrastructure providers, shared relationship targets, and corroborated infrastructure facts. Modat, Shodan, Censys, RIPE/registration/network identity sources can corroborate infrastructure context without becoming reputation votes.
+Correlation exposes `infrastructureContext` for network indicators. It summarizes infrastructure providers, shared relationship targets, and corroborated infrastructure facts. Modat, Shodan, Censys, RIPE/registration/network identity sources can corroborate infrastructure context without becoming reputation votes.
 
 ### Telemetry
-The telemetry accumulator will retain the existing sanitized event model and add bounded aggregate counters by provider and status. No indicator, authorization header, secret, URL query, or response body is added to default telemetry.
+The telemetry accumulator retains the existing sanitized event model and adds bounded aggregate counters by provider and status. No indicator, authorization header, secret, URL query, or response body is added to default telemetry.
 
 ### Status
-Authenticated `/api/status` will continue returning aggregate telemetry only. New telemetry aggregates become visible there automatically through `telemetry.stats()`; secret values remain absent.
+Authenticated `/api/status` continues returning aggregate telemetry only. New telemetry aggregates become visible there automatically through `telemetry.stats()`; secret values remain absent.
 
 ### Modat safety
 Modat remains fixed to `api.magnify.modat.io`, tier 3/quota, server-side Bearer auth, bounded responses, fail-closed parsing, positive/negative cache TTLs, and neutral `observed` verdicts for infrastructure/passive-DNS facts.
