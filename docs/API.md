@@ -18,7 +18,7 @@ Returns operational readiness and provider configuration booleans without return
 
 Bearer required. `Cache-Control: no-store`.
 
-Returns count-only runtime state: uptime, provider configuration booleans/parser versions, bounded cache counters, circuit-breaker counters and telemetry counters. It does not return prior raw indicators, cached values or credentials.
+Returns count-only runtime state: uptime, provider configuration booleans/parser versions, bounded cache counters, circuit-breaker counters and telemetry counters. Cache state includes entry/in-flight counts, hit/miss/eviction/expiration counters, approximate retained serialized bytes, and the hard aggregate byte ceiling; it never returns cached values. The endpoint does not return prior raw indicators or credentials.
 
 ## `POST /api/enrich`
 
@@ -70,4 +70,4 @@ Provider failures inside a successful API request are represented in the evidenc
 
 ## Security invariants
 
-Caller input never selects an outbound host, method, provider secret or arbitrary adapter. Redirects are refused at the provider egress boundary. Request and upstream response sizes are capped. See `THREAT-MODEL.md`.
+Caller input never selects an outbound host, method, provider secret or arbitrary adapter. Redirects are refused at the provider egress boundary. Request bodies are capped, and upstream response bodies are byte-bounded while streaming before parsing. See `THREAT-MODEL.md`.
