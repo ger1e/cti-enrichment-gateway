@@ -10,8 +10,10 @@ const ASN_RE = /^AS([1-9]\d*)$/i;
 const MAX_ASN = 4_294_967_295n;
 
 function validDomain(value) {
-  const ascii = domainToASCII(value.toLowerCase());
-  if (!ascii || ascii.length > 253 || !ascii.includes('.')) return null;
+  const raw = String(value).toLowerCase();
+  if (!raw.includes('.')) return null;
+  const ascii = domainToASCII(raw);
+  if (!ascii || ascii.length > 253 || !ascii.includes('.') || net.isIP(ascii)) return null;
   const labels = ascii.split('.');
   if (labels.some(label => !label || label.length > 63 || !/^[a-z0-9-]+$/i.test(label) || label.startsWith('-') || label.endsWith('-'))) return null;
   return ascii;
