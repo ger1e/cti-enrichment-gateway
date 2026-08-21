@@ -46,6 +46,8 @@ The finalizer is responsible for enforcing its branch-protection contract where 
 
 Acceptance is against one exact source SHA. Verify deployment metadata first; reject a stale deployment.
 
+Do not use Vercel's dashboard **Redeploy** action to advance production to newer Git source. Redeploy reuses the selected deployment's source snapshot, so a deployment can be `READY` while still running an older commit. Production acceptance must come from a fresh Git/source deployment path such as the authorized finalizer/bootstrap, and the resulting deployment `meta.githubCommitSha` must equal the current verified `main` SHA.
+
 Required smoke set:
 
 - protected `GET /api/health`
