@@ -2,11 +2,23 @@ function positiveInteger(value, fallback) {
   return Number.isInteger(value) && value > 0 ? value : fallback;
 }
 
+function serializedBytes(value) {
+  try {
+    const json = JSON.stringify(value);
+    return typeof json === 'string' ? Buffer.byteLength(json, 'utf8') : null;
+  } catch {
+    return null;
+  }
+}
+
 export class BoundedCache {
-  constructor({ maxEntries = 500, now = () => Date.now() } = {}) {
+  constructor({ maxEntries = 500, maxBytes = 32_000_000, now = () => Date.now() } = {}) {
     if (!Number.isInteger(maxEntries) || maxEntries < 1) throw new TypeError('maxEntries must be a positive integer');
+    if (!Number.isInteger(maxBytes) || maxBytes < 1) throw new TypeError('maxBytes must be a positive integer');
     if (typeof now !== 'function') throw new TypeError('now must be a function');
     this.maxEntries = maxEntries;
+    this.maxBytes = maxBytes;
+    this.bytes = 0;
     this.now = now;
     this.map = new Map();
     this.inflight = new Map();
@@ -17,10 +29,19 @@ export class BoundedCache {
     return `${String(namespace)}\u0000${String(key)}`;
   }
 
+  #remove(fullKey, { eviction = false, expiration = false } = {}) {
+    const entry = this.map.get(fullKey);
+    if (!entry) return false;
+    this.map.delete(fullKey);
+    this.bytes = Math.max(0, this.bytes - (Number(entry.bytes) || 0));
+    if (eviction) this.counters.evictions += 1;
+    if (expiration) this.counters.expirations += 1;
+    return true;
+  }
+
   #deleteExpired(fullKey, entry) {
     if (!entry || entry.expiresAt > this.now()) return false;
-    this.map.delete(fullKey);
-    this.counters.expirations += 1;
+    this.#remove(fullKey, { expiration: true });
     return true;
   }
 
@@ -39,14 +60,18 @@ export class BoundedCache {
 
   set(key, value, ttlMs, { namespace = 'default' } = {}) {
     if (!Number.isFinite(ttlMs) || ttlMs <= 0) return false;
+    const bytes = serializedBytes(value);
+    if (bytes == null || bytes > this.maxBytes) return false;
+
     const fullKey = this.#key(key, namespace);
-    if (this.map.has(fullKey)) this.map.delete(fullKey);
-    while (this.map.size >= this.maxEntries) {
+    if (this.map.has(fullKey)) this.#remove(fullKey);
+    while (this.map.size >= this.maxEntries || this.bytes + bytes > this.maxBytes) {
       const oldest = this.map.keys().next().value;
-      this.map.delete(oldest);
-      this.counters.evictions += 1;
+      if (oldest === undefined) return false;
+      this.#remove(oldest, { eviction: true });
     }
-    this.map.set(fullKey, { value, expiresAt: this.now() + ttlMs });
+    this.map.set(fullKey, { value, expiresAt: this.now() + ttlMs, bytes });
+    this.bytes += bytes;
     return true;
   }
 
@@ -84,12 +109,13 @@ export class BoundedCache {
   }
 
   delete(key, { namespace = 'default' } = {}) {
-    return this.map.delete(this.#key(key, namespace));
+    return this.#remove(this.#key(key, namespace));
   }
 
   clear() {
     this.map.clear();
     this.inflight.clear();
+    this.bytes = 0;
   }
 
   stats() {
@@ -100,6 +126,8 @@ export class BoundedCache {
       misses: this.counters.misses,
       evictions: this.counters.evictions,
       expirations: this.counters.expirations,
+      bytes: this.bytes,
+      maxBytes: this.maxBytes,
     });
   }
 }

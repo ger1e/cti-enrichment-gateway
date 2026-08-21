@@ -322,12 +322,20 @@ function Set-SensitiveVercelEnv {
 }
 
 function Verify-ProductionHealth {
-    param([Parameter(Mandatory = $true)][string]$Vercel)
+    param(
+        [Parameter(Mandatory = $true)][string]$Vercel,
+        [Parameter(Mandatory = $true)][string]$GatewayToken
+    )
 
     $deploymentUrl = "https://$ProductionAlias"
     Write-Host "Verifying protected production health at $deploymentUrl/api/health ..."
 
-    $raw = (& $Vercel curl '/api/health' --deployment $deploymentUrl --scope $TeamSlug | Out-String).Trim()
+    $authorization = "Authorization: Bearer $GatewayToken"
+    try {
+        $raw = (& $Vercel curl '/api/health' --deployment $deploymentUrl --scope $TeamSlug -- --header $authorization | Out-String).Trim()
+    } finally {
+        $authorization = $null
+    }
     if ($LASTEXITCODE -ne 0) {
         throw "Authenticated Vercel production health request failed with exit code $LASTEXITCODE."
     }
@@ -363,6 +371,8 @@ Write-Host "Node.js: $(& node.exe --version)"
 Write-Host "Vercel CLI: $(& $Vercel --version)"
 Ensure-VercelLogin -Vercel $Vercel
 $workspace = Prepare-VerifiedWorkspace -Vercel $Vercel
+$gatewayToken = $null
+$healthToken = $null
 
 try {
     $gatewayToken = Get-StoredGatewayToken
@@ -407,8 +417,21 @@ try {
     $verifiedCommit = Assert-ExactOriginMain
     Write-Host "Deploying exact verified origin/main source $verifiedCommit to production..."
     Invoke-NativeChecked $Vercel deploy --prod --yes --scope $TeamSlug
-    Verify-ProductionHealth -Vercel $Vercel
+
+    $healthToken = Get-StoredGatewayToken
+    if ([string]::IsNullOrWhiteSpace($healthToken)) {
+        throw 'Production health check failed: stored gateway bearer is unavailable.'
+    }
+    try {
+        Verify-ProductionHealth -Vercel $Vercel -GatewayToken $healthToken
+    } finally {
+        $healthToken = $null
+        [GC]::Collect()
+    }
 } finally {
+    $gatewayToken = $null
+    $healthToken = $null
+    [GC]::Collect()
     if ((Get-Location).Path -eq $workspace) {
         Pop-Location
     }

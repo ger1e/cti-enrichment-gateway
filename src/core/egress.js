@@ -46,6 +46,43 @@ function responseView(response, text) {
   });
 }
 
+async function readBoundedText(response, maxBytes) {
+  const reader = response?.body?.getReader?.();
+  if (!reader) {
+    const text = await response.text();
+    if (Buffer.byteLength(text, 'utf8') > maxBytes) {
+      throw Object.assign(new Error('provider_response_too_large'), { status: 502 });
+    }
+    return text;
+  }
+
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = value instanceof Uint8Array ? value : new Uint8Array(value ?? 0);
+      if (total + chunk.byteLength > maxBytes) {
+        try { await reader.cancel(); } catch {}
+        throw Object.assign(new Error('provider_response_too_large'), { status: 502 });
+      }
+      chunks.push(chunk);
+      total += chunk.byteLength;
+    }
+  } finally {
+    try { reader.releaseLock?.(); } catch {}
+  }
+
+  const body = Buffer.allocUnsafe(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).copy(body, offset);
+    offset += chunk.byteLength;
+  }
+  return body.toString('utf8');
+}
+
 export async function safeFetch(url, policy = {}, options = {}) {
   let target;
   try {
@@ -94,10 +131,7 @@ export async function safeFetch(url, policy = {}, options = {}) {
     }
     if (!response?.ok) throw normalizedHttpError(response);
 
-    const text = await response.text();
-    if (Buffer.byteLength(text, 'utf8') > responseLimit) {
-      throw Object.assign(new Error('provider_response_too_large'), { status: 502 });
-    }
+    const text = await readBoundedText(response, responseLimit);
     return responseView(response, text);
   } catch (error) {
     throw transportError(error);

@@ -5,9 +5,17 @@ function retryableFailure(result) {
   return reason === 'http_error' && Number(result.failure.status) >= 500;
 }
 
-function retryDelayMs(result) {
-  const value = Number(result?.failure?.retryAfter);
-  return Number.isFinite(value) && value > 0 ? Math.floor(value * 1000) : 0;
+function retryDelayMs(result, nowMs) {
+  const raw = result?.failure?.retryAfter;
+  if (raw == null) return 0;
+  const text = String(raw).trim();
+  if (/^\d+(?:\.\d+)?$/.test(text)) {
+    const seconds = Number(text);
+    return Number.isFinite(seconds) && seconds >= 0 ? Math.floor(seconds * 1000) : 0;
+  }
+  const at = Date.parse(text);
+  if (!Number.isFinite(at)) return 0;
+  return Math.max(0, Math.floor(at - nowMs()));
 }
 
 function groupByTier(providers) {
@@ -99,7 +107,7 @@ export async function runScheduledProviders({
       });
       if (!retryable || attempts >= 2 || calls >= callLimit) break;
 
-      const delay = retryDelayMs(result);
+      const delay = retryDelayMs(result, nowMs);
       const remainingAfter = deadlineAt - nowMs();
       if (delay >= remainingAfter) break;
       if (delay > 0) await sleep(delay);

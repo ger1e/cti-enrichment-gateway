@@ -6,6 +6,27 @@ function response(body = '{}', { status = 200, headers = {} } = {}) {
   return new Response(body, { status, headers });
 }
 
+function streamedResponse(chunks, { status = 200, headers = {}, onCancel = () => {} } = {}) {
+  let index = 0;
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: '',
+    headers: new Headers(headers),
+    body: new ReadableStream({
+      pull(controller) {
+        if (index >= chunks.length) {
+          controller.close();
+          return;
+        }
+        controller.enqueue(Uint8Array.from(chunks[index]));
+        index += 1;
+      },
+      cancel() { onCancel(); },
+    }),
+  };
+}
+
 const policy = Object.freeze({
   fixedHosts: ['api.example.test'],
   methods: ['GET'],
@@ -48,6 +69,35 @@ test('safeFetch rejects oversized declared content length without reading body',
   });
   await assert.rejects(safeFetch('https://api.example.test/x', policy, { fetchImpl }), /provider_response_too_large/);
   assert.equal(read, false);
+});
+
+test('safeFetch stops a chunked body as soon as the response ceiling is exceeded', async () => {
+  let cancelled = false;
+  const chunks = [Buffer.from('a'.repeat(40)), Buffer.from('b'.repeat(40)), Buffer.from('c'.repeat(40))];
+  const fetchImpl = async () => streamedResponse(chunks, { onCancel: () => { cancelled = true; } });
+  await assert.rejects(safeFetch('https://api.example.test/x', policy, { fetchImpl }), /provider_response_too_large/);
+  assert.equal(cancelled, true);
+});
+
+test('safeFetch accepts a streamed response exactly at the byte ceiling', async () => {
+  const fetchImpl = async () => streamedResponse([Buffer.from('x'.repeat(64))]);
+  const result = await safeFetch('https://api.example.test/x', policy, { fetchImpl });
+  assert.equal(await result.text(), 'x'.repeat(64));
+});
+
+test('safeFetch bounds streamed UTF-8 by bytes rather than JavaScript characters', async () => {
+  const bytes = Buffer.from('€'.repeat(22), 'utf8');
+  assert.equal(bytes.byteLength, 66);
+  const fetchImpl = async () => streamedResponse([bytes]);
+  await assert.rejects(safeFetch('https://api.example.test/x', policy, { fetchImpl }), /provider_response_too_large/);
+});
+
+test('safeFetch does not trust an undersized content length over streamed bytes', async () => {
+  const fetchImpl = async () => streamedResponse(
+    [Buffer.from('x'.repeat(40)), Buffer.from('y'.repeat(40))],
+    { headers: { 'content-length': '10' } },
+  );
+  await assert.rejects(safeFetch('https://api.example.test/x', policy, { fetchImpl }), /provider_response_too_large/);
 });
 
 test('safeFetch does not reflect credential-bearing URLs in errors', async () => {

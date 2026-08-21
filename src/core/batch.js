@@ -80,12 +80,16 @@ export async function runBatch({
     availableCalls -= reserved;
 
     let enrichment;
+    let consumptionKnown = true;
     try {
       enrichment = await enrichOne(item.classified, { profile, deadlineMs: remainingMs, callLimit: reserved });
     } catch {
       enrichment = null;
+      consumptionKnown = false;
     }
-    const used = Math.max(0, Math.min(reserved, Number(enrichment?.budget?.providerCalls) || 0));
+    const used = consumptionKnown
+      ? Math.max(0, Math.min(reserved, Number(enrichment?.budget?.providerCalls) || 0))
+      : reserved;
     actualCalls += used;
     availableCalls += reserved - used;
 
