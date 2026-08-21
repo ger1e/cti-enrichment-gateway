@@ -10,7 +10,9 @@ Returns gateway/schema versions, supported indicator types, fixed profiles, hard
 
 ## `GET /api/health`
 
-Operational health endpoint. Production acceptance requires bearer protection; see `OPERATIONS.md` and the exact source version deployed. Health reports gateway readiness/configuration booleans, never secret values.
+Bearer required. `Cache-Control: no-store`.
+
+Returns operational readiness and provider configuration booleans without returning credential values. It is intentionally protected because configuration state is operational metadata rather than a public capability contract.
 
 ## `GET /api/status`
 
