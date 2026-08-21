@@ -54,25 +54,25 @@ test('TweetFeed treats SHA-1 as unsupported instead of manufacturing a negative 
   assert.equal(output.attributes.supported, false);
 });
 
-test('RansomLook uses bounded public search and preserves ransomware posts as adversary claims', async () => {
+test('RansomLook uses the documented query parameter and direct-array response while preserving adversary-claim semantics', async () => {
   let request;
   const output = await ransomlookProvider.run(
     { type: 'url', value: 'https://victim.example/login' },
     {
       fetchImpl: async (url, init) => {
         request = { url, init };
-        return jsonResponse({
-          groups: [], markets: [], leaks: [], notes: [],
-          posts: [{ group_name: 'example-group', post_title: 'Victim Example', discovered: '2026-08-20 11:22:33' }],
-        });
+        return jsonResponse([
+          { group_name: 'example-group', post_title: 'Victim Example', discovered: '2026-08-20 11:22:33' },
+        ]);
       },
     },
   );
 
-  assert.equal(request.url, 'https://www.ransomlook.io/api/search?q=victim.example');
+  assert.equal(request.url, 'https://www.ransomlook.io/api/search?query=victim.example');
   assert.equal(Object.keys(request.init.headers).some(name => name.toLowerCase() === 'authorization'), false);
   assert.equal(output.observationType, 'ransomware_post_reference');
   assert.equal(output.verdict, 'observed');
+  assert.equal(output.attributes.postCount, 1);
   assert.equal(output.attributes.adversaryClaims, true);
   assert.equal(output.attributes.confirmedCompromise, false);
   assert.deepEqual(output.relationships, [{ targetType: 'ransomware_group', target: 'example-group', relationship: 'claiming_group' }]);
