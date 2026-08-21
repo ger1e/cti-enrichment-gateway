@@ -20,8 +20,8 @@ class InstallPowerShellTests(unittest.TestCase):
         self.assertIn('Python.Python.3.13', SCRIPT)
         self.assertIn('winget.exe install', SCRIPT)
 
-    def test_windows_installer_delegates_lifecycle_to_shared_bootstrap(self):
-        self.assertIn("$Bootstrap = Join-Path $Root 'bootstrap.py'", SCRIPT)
+    def test_windows_installer_delegates_lifecycle_to_secure_shared_bootstrap_entry(self):
+        self.assertIn("$Bootstrap = Join-Path $Root 'bootstrap_entry.py'", SCRIPT)
         for flag in ['--check', '--repair', '--update', '--uninstall', '--delete-credential', '--non-interactive', '--gateway-url']:
             with self.subTest(flag=flag):
                 self.assertIn(flag, SCRIPT)
