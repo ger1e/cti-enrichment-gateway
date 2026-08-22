@@ -68,3 +68,9 @@ test('Tooling smoke cannot report a false-green run and publishes PR status on t
   assert.match(workflow, /STATUS_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
   assert.match(workflow, /statuses\/\$\{STATUS_SHA\}/);
 });
+
+test('Tooling smoke runs on pushes to main so the exact merged SHA receives post-merge CI', () => {
+  const workflow = read(workflowPath);
+
+  assert.match(workflow, /push:\s*\n\s*branches:\s*\[main\]/);
+});
