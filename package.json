@@ -3,6 +3,9 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
+  "bin": {
+    "cti": "./bin/cti.mjs"
+  },
   "scripts": {
     "bootstrap": "bash scripts/bootstrap-linux.sh",
     "verify:tooling": "bash scripts/verify-tooling.sh",
