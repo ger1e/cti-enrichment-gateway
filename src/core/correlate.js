@@ -1,43 +1,15 @@
+import { isDecisivePolarity, polarity, semanticClass } from './semantics.js';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_RELATIONSHIPS = 100;
 const MAX_CORROBORATED_FACTS = 50;
 const MAX_ASSESSMENT_PROVIDERS = 25;
 const MAX_LIMITATIONS = 16;
-
-const REPUTATION_KINDS = new Set([
-  'reputation', 'ioc_reputation', 'threat_intelligence', 'malicious_url',
-  'malware_distribution', 'phishing_feed', 'phishing_feed_match', 'botnet_c2',
-]);
-const NETWORK_CONTEXT_KINDS = new Set([
-  'network_identity', 'routing', 'registration', 'internet_exposure', 'passive_dns',
-]);
 const NETWORK_TYPES = new Set(['ip', 'domain', 'url', 'asn', 'cidr']);
 const INFRASTRUCTURE_RELATIONSHIP_TYPES = new Set([
   'asn', 'hostname', 'domain', 'ip', 'cidr', 'netblock', 'registration', 'nameserver', 'mx', 'certificate',
 ]);
 const THREAT_NOT_APPLICABLE_TYPES = new Set(['attack', 'cve', 'asn', 'cidr']);
-
-const POSITIVE = new Set(['malicious', 'suspicious', 'phishing', 'associated', 'listed', 'malware_sample', 'known_exploited']);
-const NEGATIVE = new Set(['benign', 'clean', 'no_association', 'not_listed']);
-
-function semanticClass(kind) {
-  if (REPUTATION_KINDS.has(kind)) return 'reputation';
-  if (kind === 'known_exploited') return 'exploitation';
-  if (kind === 'exploit_probability') return 'exploit_probability';
-  if (kind === 'vulnerability_metadata' || kind === 'vulnerability_catalog' || kind === 'open_source_vulnerability') return 'vulnerability_metadata';
-  if (kind === 'attack_knowledge') return 'attack_knowledge';
-  if (kind === 'scanner_activity') return 'scanner_activity';
-  if (kind === 'tor_exit') return 'tor_exit';
-  if (NETWORK_CONTEXT_KINDS.has(kind)) return 'network_context';
-  return kind || 'unknown';
-}
-
-function polarity(verdict) {
-  const value = String(verdict ?? '').toLowerCase();
-  if (POSITIVE.has(value)) return 'positive';
-  if (NEGATIVE.has(value)) return 'negative';
-  return 'neutral';
-}
 
 function parseDate(value) {
   if (!value) return null;
@@ -85,7 +57,7 @@ function corroboration(evidence) {
     const cls = semanticClass(item?.observation?.kind);
     if (cls === 'attack_knowledge' || cls === 'scanner_activity' || cls === 'tor_exit' || cls === 'network_context') continue;
     const p = polarity(item?.observation?.verdict);
-    if (p === 'neutral') continue;
+    if (!isDecisivePolarity(p)) continue;
     const key = `${cls}:${p}`;
     if (!groups.has(key)) groups.set(key, { semanticClass: cls, polarity: p, providers: new Set() });
     if (item?.provider) groups.get(key).providers.add(item.provider);
@@ -100,7 +72,7 @@ function contradictions(evidence) {
   for (const item of evidence) {
     const cls = semanticClass(item?.observation?.kind);
     const p = polarity(item?.observation?.verdict);
-    if (p === 'neutral' || cls === 'attack_knowledge' || cls === 'scanner_activity' || cls === 'tor_exit' || cls === 'network_context') continue;
+    if (!isDecisivePolarity(p) || cls === 'attack_knowledge' || cls === 'scanner_activity' || cls === 'tor_exit' || cls === 'network_context') continue;
     if (!byClass.has(cls)) byClass.set(cls, { positive: new Set(), negative: new Set() });
     if (item?.provider) byClass.get(cls)[p].add(item.provider);
   }
@@ -205,7 +177,7 @@ function evidenceLimitations(type, evidence, freshness, threat, infra) {
   if (threat.state === 'contradicted') limitations.add('contradictory_threat_evidence');
   if (evidence.length && freshness.items.every(item => item.observationClass === 'stale')) limitations.add('stale_evidence_only');
   if (freshness.items.some(item => item.observationClass === 'unknown')) limitations.add('unknown_observation_time');
-  const hasReputationEvidence = evidence.some(item => semanticClass(item?.observation?.kind) === 'reputation' && polarity(item?.observation?.verdict) !== 'neutral');
+  const hasReputationEvidence = evidence.some(item => semanticClass(item?.observation?.kind) === 'reputation' && isDecisivePolarity(polarity(item?.observation?.verdict)));
   const hasInfrastructureEvidence = Boolean(infra?.providers?.length);
   if (NETWORK_TYPES.has(type) && hasInfrastructureEvidence && !hasReputationEvidence) limitations.add('infrastructure_only_evidence');
   return [...limitations].sort().slice(0, MAX_LIMITATIONS);
