@@ -4,6 +4,7 @@ const BOOLEAN_FIELDS = new Set(['deadlineExhausted', 'callBudgetExhausted']);
 const PROVIDER_OUTCOMES = new Set(['success', 'failure', 'timeout', 'rate_limited', 'skipped']);
 const MAX_STRING = 128;
 const MAX_NUMBER = 1_000_000;
+const MAX_PROVIDER_OUTCOME_KEYS = 64;
 
 function boundedString(value) {
   if (typeof value !== 'string' || value.length === 0) return undefined;
@@ -67,8 +68,11 @@ export function createTelemetry({ sink = null, includeIndicator = false } = {}) 
       if (event.provider) byProvider.set(event.provider, (byProvider.get(event.provider) ?? 0) + 1);
       if (event.status) byStatus.set(event.status, (byStatus.get(event.status) ?? 0) + 1);
       if (event.event === 'provider_outcome' && event.provider && PROVIDER_OUTCOMES.has(event.status)) {
-        if (!providerOutcomes.has(event.provider)) providerOutcomes.set(event.provider, emptyOutcomeCounts());
-        providerOutcomes.get(event.provider)[event.status] += 1;
+        const known = providerOutcomes.has(event.provider);
+        if (known || providerOutcomes.size < MAX_PROVIDER_OUTCOME_KEYS) {
+          if (!known) providerOutcomes.set(event.provider, emptyOutcomeCounts());
+          providerOutcomes.get(event.provider)[event.status] += 1;
+        }
       }
       if (sink) {
         try { sink(event); } catch { sinkErrors += 1; }
