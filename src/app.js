@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { requireGatewayAuth } from './core/auth.js';
 import { securityHeaders } from './core/http.js';
+import { renderHttpError } from './core/error-surface.js';
 import { classifyIndicator } from './core/validate.js';
 import { TtlCache } from './core/cache.js';
 import { CircuitBreaker } from './core/circuit-breaker.js';
@@ -70,12 +71,14 @@ function publicProvider(adapter) {
 }
 
 function requestGate(request, env, method = 'POST') {
-  if (request?.method !== method) return response(405, { error: 'method_not_allowed' }, { allow: method });
-  if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return response(401, { error: 'unauthorized' });
+  if (request?.method !== method) return renderHttpError(request, 405, 'method_not_allowed', { headers: { allow: method } });
+  if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return renderHttpError(request, 401, 'unauthorized');
   const contentType = headerValue(request.headers, 'content-type');
-  if (contentType && !isJsonMediaType(contentType)) return response(415, { error: 'unsupported_media_type' });
+  if (contentType && !isJsonMediaType(contentType)) return renderHttpError(request, 415, 'unsupported_media_type');
   return null;
 }
+
+export { renderHttpError };
 
 export function createApp({
   env = process.env,
@@ -117,22 +120,22 @@ export function createApp({
   async function parseSingleIndicatorRequest(request, allowedFields) {
     let body;
     try { body = parseBody(request); }
-    catch (error) { return { error: response(error.status ?? 400, { error: error.status === 413 ? 'payload_too_large' : 'invalid_request' }) }; }
+    catch (error) { return { error: renderHttpError(request, error.status ?? 400, error.status === 413 ? 'payload_too_large' : 'invalid_request') }; }
     const allowed = new Set(allowedFields);
-    if (Object.keys(body).some(key => !allowed.has(key))) return { error: response(400, { error: 'unsupported_request_field' }) };
+    if (Object.keys(body).some(key => !allowed.has(key))) return { error: renderHttpError(request, 400, 'unsupported_request_field') };
     let classified;
     try { classified = classifyIndicator(body.indicator); }
-    catch { return { error: response(400, { error: 'invalid_indicator' }) }; }
-    if (body.type !== undefined && body.type !== classified.type) return { error: response(400, { error: 'indicator_type_mismatch' }) };
+    catch { return { error: renderHttpError(request, 400, 'invalid_indicator') }; }
+    if (body.type !== undefined && body.type !== classified.type) return { error: renderHttpError(request, 400, 'indicator_type_mismatch') };
     const profile = body.profile ?? 'standard';
-    if (!PROFILE_NAMES.includes(profile)) return { error: response(400, { error: 'invalid_profile' }) };
+    if (!PROFILE_NAMES.includes(profile)) return { error: renderHttpError(request, 400, 'invalid_profile') };
     return { body, classified, profile };
   }
 
   return {
     async handleHealth(request) {
-      if (request?.method !== 'GET') return response(405, { error: 'method_not_allowed' }, { allow: 'GET' });
-      if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return response(401, { error: 'unauthorized' }, { 'cache-control': 'no-store' });
+      if (request?.method !== 'GET') return renderHttpError(request, 405, 'method_not_allowed', { headers: { allow: 'GET' } });
+      if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return renderHttpError(request, 401, 'unauthorized');
       const providers = Object.fromEntries(registry.names().map(name => [name, providerStatus(registry.get(name), env)]));
       return response(200, {
         status: 'ok', version: gatewayVersion, gatewayAuthConfigured: Boolean(env.CTI_GATEWAY_TOKEN), providers,
@@ -141,7 +144,7 @@ export function createApp({
     },
 
     async handleMeta(request) {
-      if (request?.method !== 'GET') return response(405, { error: 'method_not_allowed' }, { allow: 'GET' });
+      if (request?.method !== 'GET') return renderHttpError(request, 405, 'method_not_allowed', { headers: { allow: 'GET' } });
       const providers = Object.fromEntries(registry.names().map(name => [name, publicProvider(registry.get(name))]));
       return response(200, {
         gatewayVersion, schemaVersion: EVIDENCE_SCHEMA_VERSION,
@@ -157,8 +160,8 @@ export function createApp({
     },
 
     async handleStatus(request) {
-      if (request?.method !== 'GET') return response(405, { error: 'method_not_allowed' }, { allow: 'GET' });
-      if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return response(401, { error: 'unauthorized' }, { 'cache-control': 'no-store' });
+      if (request?.method !== 'GET') return renderHttpError(request, 405, 'method_not_allowed', { headers: { allow: 'GET' } });
+      if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return renderHttpError(request, 401, 'unauthorized');
       const providers = Object.fromEntries(registry.names().map(name => {
         const adapter = registry.get(name);
         return [name, { ...providerStatus(adapter, env), parserVersion: adapter.parserVersion, active: adapter.active !== false }];
@@ -177,27 +180,34 @@ export function createApp({
       const gate = requestGate(request, env); if (gate) return gate;
       const parsed = await parseSingleIndicatorRequest(request, ['indicator', 'type', 'profile']); if (parsed.error) return parsed.error;
       try { return response(200, await enrichClassified(parsed.classified, parsed.profile)); }
-      catch (error) { if (error?.message === 'unsupported_indicator_type') return response(400, { error: 'unsupported_indicator_type' }); throw error; }
+      catch (error) {
+        if (error?.message === 'unsupported_indicator_type') return renderHttpError(request, 400, 'unsupported_indicator_type');
+        return renderHttpError(request, 500, 'internal_error');
+      }
     },
 
     async handleBatch(request) {
       const gate = requestGate(request, env); if (gate) return gate;
       let body;
       try { body = parseBody(request, MAX_BATCH_BODY_BYTES); }
-      catch (error) { return response(error.status ?? 400, { error: error.status === 413 ? 'payload_too_large' : 'invalid_request' }); }
+      catch (error) { return renderHttpError(request, error.status ?? 400, error.status === 413 ? 'payload_too_large' : 'invalid_request'); }
       const allowed = new Set(['indicators', 'profile']);
-      if (Object.keys(body).some(key => !allowed.has(key))) return response(400, { error: 'unsupported_request_field' });
-      if (!Array.isArray(body.indicators) || body.indicators.length < 1 || body.indicators.length > BATCH_INPUT_LIMIT || body.indicators.some(value => typeof value !== 'string')) return response(400, { error: 'invalid_batch' });
+      if (Object.keys(body).some(key => !allowed.has(key))) return renderHttpError(request, 400, 'unsupported_request_field');
+      if (!Array.isArray(body.indicators) || body.indicators.length < 1 || body.indicators.length > BATCH_INPUT_LIMIT || body.indicators.some(value => typeof value !== 'string')) return renderHttpError(request, 400, 'invalid_batch');
       const profile = body.profile ?? 'standard';
-      if (!PROFILE_NAMES.includes(profile)) return response(400, { error: 'invalid_profile' });
-      const batch = await runBatch({
-        indicators: body.indicators, profile, classify: classifyIndicator,
-        enrichOne: (classified, options) => enrichClassified(classified, profile, options),
-        callLimitFor: type => WORKFLOW_CALL_LIMITS[type] ?? 1,
-        providerCallLimit: batchProviderCallLimit, indicatorConcurrency: BATCH_INDICATOR_CONCURRENCY,
-        deadlineMs: batchDeadlineMs, nowMs,
-      });
-      return response(200, { requestId: randomUUID(), gatewayVersion, ...batch });
+      if (!PROFILE_NAMES.includes(profile)) return renderHttpError(request, 400, 'invalid_profile');
+      try {
+        const batch = await runBatch({
+          indicators: body.indicators, profile, classify: classifyIndicator,
+          enrichOne: (classified, options) => enrichClassified(classified, profile, options),
+          callLimitFor: type => WORKFLOW_CALL_LIMITS[type] ?? 1,
+          providerCallLimit: batchProviderCallLimit, indicatorConcurrency: BATCH_INDICATOR_CONCURRENCY,
+          deadlineMs: batchDeadlineMs, nowMs,
+        });
+        return response(200, { requestId: randomUUID(), gatewayVersion, ...batch });
+      } catch {
+        return renderHttpError(request, 500, 'internal_error');
+      }
     },
 
     async handleStix(request) {
@@ -205,7 +215,10 @@ export function createApp({
       const parsed = await parseSingleIndicatorRequest(request, ['indicator', 'type', 'profile']); if (parsed.error) return parsed.error;
       let enrichment;
       try { enrichment = await enrichClassified(parsed.classified, parsed.profile); }
-      catch (error) { if (error?.message === 'unsupported_indicator_type') return response(400, { error: 'unsupported_indicator_type' }); throw error; }
+      catch (error) {
+        if (error?.message === 'unsupported_indicator_type') return renderHttpError(request, 400, 'unsupported_indicator_type');
+        return renderHttpError(request, 500, 'internal_error');
+      }
       return response(200, toStixBundle(enrichment, { maxObjects: STIX_OBJECT_LIMIT, now }));
     },
   };
@@ -214,5 +227,7 @@ export function createApp({
 export function writeVercelResponse(res, result) {
   res.statusCode = result.status;
   for (const [name, value] of Object.entries(result.headers)) res.setHeader(name, value);
-  res.end(JSON.stringify(result.body));
+  const contentType = String(result.headers?.['content-type'] ?? '').toLowerCase();
+  if (contentType.startsWith('text/html') && typeof result.body === 'string') res.end(result.body);
+  else res.end(JSON.stringify(result.body));
 }
