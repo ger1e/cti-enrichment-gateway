@@ -102,6 +102,14 @@ export function createApp({
     return Boolean(adapter) && (!adapter.requiredEnv || Boolean(env[adapter.requiredEnv]));
   };
 
+  function internalHandlerError(request, reason) {
+    const requestId = randomUUID();
+    try {
+      events?.emit?.({ event: 'handler_error', requestId, status: 'failure', reason });
+    } catch {}
+    return renderHttpError(request, 500, 'internal_error', { requestId });
+  }
+
   async function enrichClassified(classified, profile = 'standard', { deadlineMs = REQUEST_DEADLINE_MS, callLimit = null } = {}) {
     const workflow = WORKFLOWS[classified.type];
     if (!workflow) throw new TypeError('unsupported_indicator_type');
@@ -182,7 +190,7 @@ export function createApp({
       try { return response(200, await enrichClassified(parsed.classified, parsed.profile)); }
       catch (error) {
         if (error?.message === 'unsupported_indicator_type') return renderHttpError(request, 400, 'unsupported_indicator_type');
-        return renderHttpError(request, 500, 'internal_error');
+        return internalHandlerError(request, 'enrich');
       }
     },
 
@@ -206,7 +214,7 @@ export function createApp({
         });
         return response(200, { requestId: randomUUID(), gatewayVersion, ...batch });
       } catch {
-        return renderHttpError(request, 500, 'internal_error');
+        return internalHandlerError(request, 'batch');
       }
     },
 
@@ -217,7 +225,7 @@ export function createApp({
       try { enrichment = await enrichClassified(parsed.classified, parsed.profile); }
       catch (error) {
         if (error?.message === 'unsupported_indicator_type') return renderHttpError(request, 400, 'unsupported_indicator_type');
-        return renderHttpError(request, 500, 'internal_error');
+        return internalHandlerError(request, 'stix');
       }
       return response(200, toStixBundle(enrichment, { maxObjects: STIX_OBJECT_LIMIT, now }));
     },
