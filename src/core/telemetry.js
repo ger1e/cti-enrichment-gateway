@@ -1,6 +1,7 @@
 const STRING_FIELDS = new Set(['event', 'requestId', 'type', 'provider', 'status', 'reason', 'profile', 'cacheState']);
 const NUMBER_FIELDS = new Set(['durationMs', 'providerCalls', 'providerCallLimit', 'deadlineMs', 'retryAfterMs', 'attempts']);
 const BOOLEAN_FIELDS = new Set(['deadlineExhausted', 'callBudgetExhausted']);
+const PROVIDER_OUTCOMES = new Set(['success', 'failure', 'timeout', 'rate_limited', 'skipped']);
 const MAX_STRING = 128;
 const MAX_NUMBER = 1_000_000;
 
@@ -38,6 +39,16 @@ function sortedCounts(map) {
   return Object.freeze(Object.fromEntries([...map.entries()].sort(([a], [b]) => a.localeCompare(b))));
 }
 
+function emptyOutcomeCounts() {
+  return { success: 0, failure: 0, timeout: 0, rate_limited: 0, skipped: 0 };
+}
+
+function sortedOutcomeCounts(map) {
+  return Object.freeze(Object.fromEntries([...map.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([provider, counts]) => [provider, Object.freeze({ ...counts })])));
+}
+
 export function createTelemetry({ sink = null, includeIndicator = false } = {}) {
   if (sink != null && typeof sink !== 'function') throw new TypeError('telemetry sink must be a function');
   let events = 0;
@@ -45,6 +56,7 @@ export function createTelemetry({ sink = null, includeIndicator = false } = {}) 
   const byEvent = new Map();
   const byProvider = new Map();
   const byStatus = new Map();
+  const providerOutcomes = new Map();
 
   return Object.freeze({
     emit(input) {
@@ -54,6 +66,10 @@ export function createTelemetry({ sink = null, includeIndicator = false } = {}) 
       byEvent.set(event.event, (byEvent.get(event.event) ?? 0) + 1);
       if (event.provider) byProvider.set(event.provider, (byProvider.get(event.provider) ?? 0) + 1);
       if (event.status) byStatus.set(event.status, (byStatus.get(event.status) ?? 0) + 1);
+      if (event.event === 'provider_outcome' && event.provider && PROVIDER_OUTCOMES.has(event.status)) {
+        if (!providerOutcomes.has(event.provider)) providerOutcomes.set(event.provider, emptyOutcomeCounts());
+        providerOutcomes.get(event.provider)[event.status] += 1;
+      }
       if (sink) {
         try { sink(event); } catch { sinkErrors += 1; }
       }
@@ -66,6 +82,7 @@ export function createTelemetry({ sink = null, includeIndicator = false } = {}) 
         byEvent: sortedCounts(byEvent),
         byProvider: sortedCounts(byProvider),
         byStatus: sortedCounts(byStatus),
+        providerOutcomes: sortedOutcomeCounts(providerOutcomes),
       });
     },
   });
