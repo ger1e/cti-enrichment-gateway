@@ -180,7 +180,7 @@ test('VirusTotal v3 NotFoundError is neutral absence for every lookup type', asy
   }
 });
 
-test('provider probe is sequential, secret-safe, and distinguishes unconfigured/auth/rate/upstream states', async () => {
+test('provider probe is sequential, secret-safe, and distinguishes auth, quota, transport, and contract states', async () => {
   let active = 0;
   let maxActive = 0;
   const make = (name, run, requiredEnv) => ({ name, types: ['ip'], requiredEnv, timeoutMs: 50, fixedHosts: ['api.example.test'], methods: ['GET'], protocols: ['https:'], maxResponseBytes: 1024, run });
@@ -194,10 +194,12 @@ test('provider probe is sequential, secret-safe, and distinguishes unconfigured/
     make('auth', async () => { throw Object.assign(new Error('provider HTTP 401 SECRET-MARKER'), { status: 401 }); }, 'AUTH_KEY'),
     make('rate', async () => { throw Object.assign(new Error('provider HTTP 429'), { status: 429 }); }),
     make('upstream', async () => { throw Object.assign(new Error('provider HTTP 503'), { status: 503 }); }),
+    make('transport', async () => { throw new Error('provider_transport_error'); }),
+    make('contract', async () => { throw new Error('unexpected schema'); }),
   ];
   const out = await probeProviders({ providers, env: { AUTH_KEY: 'SECRET-MARKER' }, includeCredentialed: true });
   assert.equal(maxActive, 1);
-  assert.deepEqual(out.map(x => x.status), ['ok', 'unconfigured', 'auth_failed', 'rate_limited', 'upstream_error']);
+  assert.deepEqual(out.map(x => x.status), ['ok', 'unconfigured', 'auth_failed', 'rate_limited', 'upstream_error', 'upstream_error', 'contract_error']);
   assert.equal(JSON.stringify(out).includes('SECRET-MARKER'), false);
 });
 
