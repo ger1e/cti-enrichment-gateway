@@ -1,6 +1,8 @@
-import { providerSecretNames } from '../providers/manifest.js';
+import { PROVIDER_MANIFEST, providerSecretNames } from '../providers/manifest.js';
 
 const MAX_VIOLATIONS = 64;
+const MAX_SCAN_NODES = 20_000;
+const MAX_SCAN_DEPTH = 32;
 const STALE_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
 const ATTACK_ID = /^T\d{4}(?:\.\d{3})?$/;
 const KNOWN_SECRET_IDENTIFIERS = Object.freeze([
@@ -8,12 +10,16 @@ const KNOWN_SECRET_IDENTIFIERS = Object.freeze([
   'CTI_GATEWAY_TOKEN',
   'SENTRY_AUTH_TOKEN',
 ]);
-const SECRET_VALUE_PATTERNS = [
+const SECRET_VALUE_PATTERNS = Object.freeze([
   /\bsk-[A-Za-z0-9_-]{16,}\b/,
   /\bsntryu_[A-Za-z0-9_-]{16,}\b/,
   /\bAIza[A-Za-z0-9_-]{20,}\b/,
   /\bAKIA[A-Z0-9]{12,}\b/,
-];
+  /\beyJ[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]{8,}\b/,
+  /\bBearer\s+[A-Za-z0-9._~+\/-]{16,}={0,2}\b/i,
+  /\bgh[pousr]_[A-Za-z0-9]{20,}\b/,
+  /\bgithub_pat_[A-Za-z0-9_]{20,}\b/,
+]);
 
 export class ReportQualityError extends Error {
   constructor(violations) {
@@ -27,15 +33,56 @@ function add(violations, code, path) {
   if (violations.length < MAX_VIOLATIONS) violations.push({ code, path });
 }
 
-function strings(value, path = '$', output = []) {
-  if (typeof value === 'string') {
-    output.push({ value, path });
-  } else if (Array.isArray(value)) {
-    value.forEach((item, index) => strings(item, `${path}[${index}]`, output));
-  } else if (value && typeof value === 'object') {
-    for (const [key, item] of Object.entries(value)) strings(item, `${path}.${key}`, output);
+function containsSecretMaterial(value) {
+  if (typeof value !== 'string') return false;
+  const upper = value.toUpperCase();
+  return KNOWN_SECRET_IDENTIFIERS.some(identifier => upper.includes(identifier.toUpperCase())) ||
+    SECRET_VALUE_PATTERNS.some(pattern => pattern.test(value));
+}
+
+function boundedSecretScan(value, violations, rootPath = '$') {
+  const stack = [{ value, path: rootPath, depth: 0 }];
+  const seen = new WeakSet();
+  let nodes = 0;
+
+  while (stack.length && violations.length < MAX_VIOLATIONS) {
+    const current = stack.pop();
+    nodes += 1;
+    if (nodes > MAX_SCAN_NODES) {
+      add(violations, 'snapshot_too_complex', current.path);
+      break;
+    }
+
+    if (typeof current.value === 'string') {
+      if (containsSecretMaterial(current.value)) add(violations, 'secret_material', current.path);
+      continue;
+    }
+    if (!current.value || typeof current.value !== 'object') continue;
+    if (seen.has(current.value)) {
+      add(violations, 'invalid_snapshot_cycle', current.path);
+      continue;
+    }
+    seen.add(current.value);
+    if (current.depth >= MAX_SCAN_DEPTH) {
+      add(violations, 'snapshot_too_complex', current.path);
+      continue;
+    }
+
+    if (Array.isArray(current.value)) {
+      for (let index = current.value.length - 1; index >= 0; index -= 1) {
+        stack.push({ value: current.value[index], path: `${current.path}[${index}]`, depth: current.depth + 1 });
+      }
+      continue;
+    }
+
+    const entries = Object.entries(current.value);
+    for (let index = entries.length - 1; index >= 0; index -= 1) {
+      const [key, item] = entries[index];
+      const path = `${current.path}[${JSON.stringify(key)}]`;
+      if (containsSecretMaterial(key)) add(violations, 'secret_material', path);
+      stack.push({ value: item, path, depth: current.depth + 1 });
+    }
   }
-  return output;
 }
 
 function safeReference(value) {
@@ -137,11 +184,7 @@ function checkReferences(model, violations) {
 }
 
 function checkSecrets(model, violations) {
-  for (const entry of strings(model)) {
-    if (KNOWN_SECRET_IDENTIFIERS.some(identifier => entry.value.includes(identifier)) || SECRET_VALUE_PATTERNS.some(pattern => pattern.test(entry.value))) {
-      add(violations, 'secret_material', entry.path);
-    }
-  }
+  boundedSecretScan(model, violations, '$');
 }
 
 function checkStaleness(model, violations) {
@@ -150,6 +193,33 @@ function checkStaleness(model, violations) {
   if (timestamps.length === 0) return;
   const newest = Math.max(...timestamps.map(value => Date.parse(value)));
   if (Date.parse(model.generatedAt) - newest > STALE_AFTER_MS) add(violations, 'stale_without_warning', 'limitations');
+}
+
+export function assertSnapshotQuality(snapshot) {
+  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
+    throw new ReportQualityError([{ code: 'invalid_snapshot', path: '$' }]);
+  }
+  const violations = [];
+  boundedSecretScan(snapshot, violations, '$');
+  if (violations.length) throw new ReportQualityError(violations);
+  return { ok: true, violations: [], warnings: [] };
+}
+
+export function assertReportDistribution(model, preset) {
+  if (preset !== 'sharing') return { ok: true, violations: [], warnings: [] };
+  const violations = [];
+  const checked = new Set();
+  (model?.evidence ?? []).forEach((item, index) => {
+    const provider = String(item?.provider ?? '');
+    if (!provider || checked.has(provider)) return;
+    checked.add(provider);
+    const policy = PROVIDER_MANIFEST[provider];
+    if (!policy || policy.distribution !== 'shareable') {
+      add(violations, 'restricted_distribution', `evidence[${index}].provider`);
+    }
+  });
+  if (violations.length) throw new ReportQualityError(violations);
+  return { ok: true, violations: [], warnings: [] };
 }
 
 export function assertReportQuality(model) {
