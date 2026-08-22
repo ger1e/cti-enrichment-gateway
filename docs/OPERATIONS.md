@@ -25,9 +25,17 @@ cd ..
 python3 -m compileall -q maltego
 ```
 
-The GitHub `Tooling smoke` workflow additionally validates PowerShell syntax and publishes the required status check.
-
 `node scripts/generate-release-manifest.mjs --check` must pass. The committed manifest intentionally has `sourceCommit: null`; a deployment/release process may supply an exact SHA with `--source-commit` or `SOURCE_COMMIT` when producing an external release record.
+
+## Hosted-CI cost boundary
+
+This private repository deliberately does **not** run GitHub Actions on pushes, pull requests, schedules, or repository activity. `Tooling smoke` is `workflow_dispatch` only. Starting a hosted runner therefore requires an explicit human action.
+
+The manual workflow is bounded to one Ubuntu runner, uses a ten-minute ceiling, cancels obsolete in-progress runs, fails fast on the first validation failure, and does not install operating-system packages. It still performs the locked npm install/audit, repository and Node checks, Maltego Python tests, Python compilation, ShellCheck/bash validation, and PowerShell syntax validation. It posts the exact selected SHA as `Tooling smoke`; the status is set to `pending` before validation so a rerun cannot accidentally reuse an older success.
+
+macOS and Windows hosted runners are intentionally absent from the recurring workflow. Platform-specific changes should be validated locally on the relevant OS before release; hosted cross-platform runs are an explicit exception, not a per-commit tax.
+
+Automatic Vercel Git deployments are also disabled in `vercel.json`. Feature pushes and pull requests must not consume Vercel builds. Production is deployed explicitly from exact verified `main` by the hardened finalizer/bootstrap.
 
 ## Authorized finalizer
 
