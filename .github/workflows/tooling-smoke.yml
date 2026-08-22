@@ -122,6 +122,10 @@ jobs:
           done
           echo "state=${state}" >> "${GITHUB_OUTPUT}"
 
+      - name: Enforce core validation result
+        if: ${{ always() && steps.core_status.outputs.state != 'success' }}
+        run: exit 1
+
   maltego_linux:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
@@ -154,6 +158,9 @@ jobs:
           state=success
           if [[ "${CHECKOUT}" != success || "${TESTS}" != success ]]; then state=failure; fi
           echo "state=${state}" >> "${GITHUB_OUTPUT}"
+      - name: Enforce Linux result
+        if: ${{ always() && steps.summary.outputs.state != 'success' }}
+        run: exit 1
 
   maltego_macos:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
@@ -188,6 +195,9 @@ jobs:
           state=success
           if [[ "${CHECKOUT}" != success || "${TESTS}" != success ]]; then state=failure; fi
           echo "state=${state}" >> "${GITHUB_OUTPUT}"
+      - name: Enforce macOS result
+        if: ${{ always() && steps.summary.outputs.state != 'success' }}
+        run: exit 1
 
   maltego_windows:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
@@ -255,6 +265,10 @@ jobs:
           $state = 'success'
           if ($env:CHECKOUT -ne 'success' -or $env:TESTS -ne 'success' -or $env:SYNTAX -ne 'success') { $state = 'failure' }
           "state=$state" >> $env:GITHUB_OUTPUT
+      - name: Enforce Windows result
+        if: ${{ always() && steps.summary.outputs.state != 'success' }}
+        shell: pwsh
+        run: exit 1
 
   publish_status:
     if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
@@ -265,6 +279,7 @@ jobs:
       - name: Publish authoritative Tooling smoke status
         env:
           GH_TOKEN: ${{ github.token }}
+          STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           CORE: ${{ needs.validate.outputs.state }}
           LINUX: ${{ needs.maltego_linux.outputs.state }}
           MACOS: ${{ needs.maltego_macos.outputs.state }}
@@ -285,5 +300,5 @@ jobs:
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${STATUS_SHA}" \
             -d "{\"state\":\"${state}\",\"context\":\"Tooling smoke\",\"description\":\"${description}\",\"target_url\":\"${target_url}\"}"
