@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { collectDoctorState } from '../src/control/doctor.js';
 import { printProviderList, printProviderEnvTemplate, runMaltegoCheck, runReleaseVerify, runSetup } from '../src/control/commands.js';
+import { runReportCompile, runReportDiff } from '../src/control/report-commands.js';
 
 const HELP = `cti-enrichment-gateway operator CLI
 
@@ -12,7 +13,7 @@ Usage:
   cti release verify
   cti setup
   cti repair
-  cti report compile <snapshot.json> --out <dir> [--preset <name>]
+  cti report compile <snapshot.json> --out <dir> [--preset <name>] [--generated-at <ISO8601>] [--source-sha <SHA1>]
   cti report diff <before.json> <after.json>
 `;
 
@@ -38,10 +39,13 @@ async function main(argv) {
   if (command === 'release' && subcommand === 'verify' && rest.length === 0) return runReleaseVerify();
   if (command === 'setup' && subcommand === undefined) return runSetup();
   if (command === 'repair' && subcommand === undefined) return runSetup({ repair: true });
-  if (command === 'report' && (subcommand === 'compile' || subcommand === 'diff')) {
-    return fail(`report ${subcommand} is not available until the report compiler is installed`, 3);
-  }
+  if (command === 'report' && subcommand === 'compile') return runReportCompile(rest);
+  if (command === 'report' && subcommand === 'diff') return runReportDiff(rest);
   return fail(`unknown command: ${[command, subcommand].filter(Boolean).join(' ')}`);
 }
 
-process.exitCode = await main(process.argv.slice(2));
+try {
+  process.exitCode = await main(process.argv.slice(2));
+} catch (error) {
+  process.exitCode = fail(error instanceof Error ? error.message : 'command failed', 1);
+}
