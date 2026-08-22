@@ -21,6 +21,7 @@ VENV = ROOT / '.venv'
 REQUIREMENTS = ROOT / 'requirements.txt'
 MTZ = ROOT / 'cti-enrichment-gateway-local.mtz'
 TRANSFORM_MANIFEST = ROOT / 'transform-manifest.json'
+PROVIDER_MANIFEST = ROOT.parent / 'config' / 'providers.json'
 MIN_PYTHON = (3, 10)
 PREFERRED_PYTHON = (3, 12)
 DEFAULT_GATEWAY_URL = 'https://cti-enrichment-gateway.vercel.app'
@@ -29,31 +30,34 @@ MAX_MTZ_BYTES = 10_000_000
 MAX_MTZ_ENTRIES = 500
 MAX_MTZ_ENTRY_BYTES = 2_000_000
 MAX_MTZ_UNCOMPRESSED_BYTES = 20_000_000
-FORBIDDEN_MTZ_TOKENS = (
-    'CTI_GATEWAY_TOKEN',
-    'ABUSECH_API_KEY',
-    'ABUSEIPDB_API_KEY',
-    'GREYNOISE_API_KEY',
-    'VIRUSTOTAL_API_KEY',
-    'HYBRID_ANALYSIS_API_KEY',
-    'URLSCAN_API_KEY',
-    'WEBAMON_API_KEY',
-    'SENTRY_AUTH_TOKEN',
-    'OTX_API_KEY',
-    'SHODAN_API_KEY',
-    'CENSYS_PAT',
-    'PULSEDIVE_API_KEY',
-    'IPINFO_TOKEN',
-    'MALPEDIA_API_TOKEN',
-    'NVD_API_KEY',
-    'CLOUDFLARE_RADAR_TOKEN',
-    'RANSOMWARE_LIVE_API_KEY',
-)
 FORBIDDEN_DEV_URLS = ('localhost', '127.0.0.1', '[::1]')
 
 
 class BootstrapError(RuntimeError):
     pass
+
+
+def _load_forbidden_mtz_tokens(path: Path = PROVIDER_MANIFEST) -> tuple[str, ...]:
+    try:
+        manifest = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise BootstrapError('provider manifest could not be read for MTZ verification') from exc
+    if not isinstance(manifest, dict) or not manifest or len(manifest) > 64:
+        raise BootstrapError('provider manifest is invalid for MTZ verification')
+    tokens = {'CTI_GATEWAY_TOKEN', 'SENTRY_AUTH_TOKEN'}
+    for name, policy in manifest.items():
+        if not isinstance(name, str) or not isinstance(policy, dict):
+            raise BootstrapError('provider manifest contains invalid entries')
+        credential = policy.get('credentialEnv')
+        if credential is None:
+            continue
+        if not isinstance(credential, str) or not credential or len(credential) > 80 or not credential.replace('_', '').isalnum() or credential.upper() != credential:
+            raise BootstrapError('provider manifest contains an invalid credential identifier')
+        tokens.add(credential)
+    return tuple(sorted(tokens))
+
+
+FORBIDDEN_MTZ_TOKENS = _load_forbidden_mtz_tokens()
 
 
 @dataclass(frozen=True, order=True)
