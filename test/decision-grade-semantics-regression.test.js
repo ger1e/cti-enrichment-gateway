@@ -5,7 +5,7 @@ import { normalizeEvidence } from '../src/core/normalize.js';
 import { enrich } from '../src/core/orchestrator.js';
 import { createProviderRegistry } from '../src/core/provider-registry.js';
 import { TtlCache } from '../src/core/cache.js';
-import { virustotalProvider, threatfoxProvider } from '../src/providers/index.js';
+import { threatminerProvider, virustotalProvider, threatfoxProvider } from '../src/providers/index.js';
 
 // Regression contract for decision-grade semantic interpretation and coverage.
 const SECRET = 'semantic-regression-secret';
@@ -133,4 +133,37 @@ test('coverage compares canonical runtime evidence classes with declared semanti
   });
   assert.equal(mixedResult.coverage.materialLoss, true);
   assert.ok(mixedResult.limitations.includes('material_coverage_loss'));
+});
+
+test('real multi-semantic providers use type-specific coverage expectations', async () => {
+  const vt = await enrich({
+    indicator: 'evil.example',
+    type: 'domain',
+    providerNames: ['virustotal'],
+    registry: createProviderRegistry([virustotalProvider]),
+    cache: new TtlCache(),
+    requestId: 'vt-coverage',
+    now: () => '2026-08-22T09:00:00Z',
+    context: {
+      env: { VIRUSTOTAL_API_KEY: SECRET },
+      fetchImpl: async () => json({ data: { attributes: { last_analysis_stats: { malicious: 3, suspicious: 0, harmless: 0, undetected: 1 }, last_analysis_date: 1787300000 } } }),
+    },
+  });
+  assert.equal(vt.status, 'ok');
+  assert.equal(vt.coverage.materialLoss, false);
+
+  const threatminer = await enrich({
+    indicator: 'example.com',
+    type: 'domain',
+    providerNames: ['threatminer'],
+    registry: createProviderRegistry([threatminerProvider]),
+    cache: new TtlCache(),
+    requestId: 'tm-coverage',
+    now: () => '2026-08-22T09:00:00Z',
+    context: {
+      fetchImpl: async () => json({ status_code: 200, results: [{ ip: '192.0.2.10', first_seen: '2026-08-20', last_seen: '2026-08-22' }] }),
+    },
+  });
+  assert.equal(threatminer.status, 'ok');
+  assert.equal(threatminer.coverage.materialLoss, false);
 });
