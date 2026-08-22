@@ -27,7 +27,7 @@ test('sink failure cannot break enrichment and stats remain aggregate-only', () 
   const stats = telemetry.stats();
   assert.equal(stats.events, 2);
   assert.equal(stats.sinkErrors, 2);
-  assert.deepEqual(Object.keys(stats).sort(), ['byEvent', 'byProvider', 'byStatus', 'events', 'sinkErrors']);
+  assert.deepEqual(Object.keys(stats).sort(), ['byEvent', 'byProvider', 'byStatus', 'events', 'providerOutcomes', 'sinkErrors']);
   assert.equal(JSON.stringify(stats).includes('192.0.2.44'), false);
 });
 
@@ -47,11 +47,31 @@ test('stats aggregate provider and status counts deterministically without retai
   telemetry.emit({ event: 'provider_complete', provider: 'modat', status: 'error', reason: 'rate_limited' });
   telemetry.emit({ event: 'provider_complete', provider: 'rdap', status: 'ok' });
   telemetry.emit({ event: 'request_complete', status: 'partial' });
-
   const stats = telemetry.stats();
   assert.deepEqual(stats.byProvider, { modat: 2, rdap: 1 });
   assert.deepEqual(stats.byStatus, { error: 1, ok: 2, partial: 1 });
   const serialized = JSON.stringify(stats);
+  assert.equal(serialized.includes('198.51.100.10'), false);
+  assert.equal(serialized.includes(SECRET), false);
+});
+
+test('provider outcome telemetry retains only bounded count categories', () => {
+  const telemetry = createTelemetry();
+  telemetry.emit({ event: 'provider_outcome', provider: 'modat', status: 'success', indicator: '198.51.100.10', authorization: `Bearer ${SECRET}` });
+  telemetry.emit({ event: 'provider_outcome', provider: 'modat', status: 'rate_limited', reason: '429' });
+  telemetry.emit({ event: 'provider_outcome', provider: 'rdap', status: 'success' });
+  telemetry.emit({ event: 'provider_outcome', provider: 'shodan', status: 'timeout' });
+  telemetry.emit({ event: 'provider_outcome', provider: 'censys', status: 'failure' });
+  telemetry.emit({ event: 'provider_outcome', provider: 'otx', status: 'skipped' });
+  telemetry.emit({ event: 'provider_outcome', provider: 'ignored', status: 'weird', indicator: SECRET });
+  assert.deepEqual(telemetry.stats().providerOutcomes, {
+    censys: { success: 0, failure: 1, timeout: 0, rate_limited: 0, skipped: 0 },
+    modat: { success: 1, failure: 0, timeout: 0, rate_limited: 1, skipped: 0 },
+    otx: { success: 0, failure: 0, timeout: 0, rate_limited: 0, skipped: 1 },
+    rdap: { success: 1, failure: 0, timeout: 0, rate_limited: 0, skipped: 0 },
+    shodan: { success: 0, failure: 0, timeout: 1, rate_limited: 0, skipped: 0 },
+  });
+  const serialized = JSON.stringify(telemetry.stats());
   assert.equal(serialized.includes('198.51.100.10'), false);
   assert.equal(serialized.includes(SECRET), false);
 });
