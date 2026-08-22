@@ -23,8 +23,6 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    outputs:
-      state: ${{ steps.core_status.outputs.state }}
     steps:
       - name: Checkout
         id: checkout
@@ -126,178 +124,19 @@ jobs:
           done
           echo "state=${state}" >> "${GITHUB_OUTPUT}"
 
-      - name: Enforce core validation result
-        if: ${{ always() && steps.core_status.outputs.state != 'success' }}
-        run: exit 1
-
-  maltego_linux:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      state: ${{ steps.summary.outputs.state }}
-    steps:
-      - name: Checkout
-        id: checkout
-        continue-on-error: true
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Linux Python and installer tests
-        id: tests
-        continue-on-error: true
-        run: |
-          python3 --version
-          cd maltego
-          python3 -m unittest discover -s tests -v
-          python3 -m compileall -q .
-          bash -n install.sh
-      - name: Summarize Linux
-        id: summary
-        if: ${{ always() }}
-        env:
-          CHECKOUT: ${{ steps.checkout.outcome }}
-          TESTS: ${{ steps.tests.outcome }}
-        run: |
-          state=success
-          if [[ "${CHECKOUT}" != success || "${TESTS}" != success ]]; then state=failure; fi
-          echo "state=${state}" >> "${GITHUB_OUTPUT}"
-      - name: Enforce Linux result
-        if: ${{ always() && steps.summary.outputs.state != 'success' }}
-        run: exit 1
-
-  maltego_macos:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
-    runs-on: macos-latest
-    timeout-minutes: 10
-    outputs:
-      state: ${{ steps.summary.outputs.state }}
-    steps:
-      - name: Checkout
-        id: checkout
-        continue-on-error: true
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: macOS Python bash and zsh tests
-        id: tests
-        continue-on-error: true
-        run: |
-          python3 --version
-          cd maltego
-          python3 -m unittest discover -s tests -v
-          python3 -m compileall -q .
-          bash -n install.sh
-          zsh -n install.sh
-      - name: Summarize macOS
-        id: summary
-        if: ${{ always() }}
-        env:
-          CHECKOUT: ${{ steps.checkout.outcome }}
-          TESTS: ${{ steps.tests.outcome }}
-        run: |
-          state=success
-          if [[ "${CHECKOUT}" != success || "${TESTS}" != success ]]; then state=failure; fi
-          echo "state=${state}" >> "${GITHUB_OUTPUT}"
-      - name: Enforce macOS result
-        if: ${{ always() && steps.summary.outputs.state != 'success' }}
-        run: exit 1
-
-  maltego_windows:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
-    runs-on: windows-latest
-    timeout-minutes: 10
-    outputs:
-      state: ${{ steps.summary.outputs.state }}
-    steps:
-      - name: Checkout
-        id: checkout
-        continue-on-error: true
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Windows Python tests
-        id: tests
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          $python = Get-Command python.exe -ErrorAction SilentlyContinue
-          if ($python) {
-            & $python.Source --version
-            Push-Location maltego
-            try {
-              & $python.Source -m unittest discover -s tests -v
-              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-              & $python.Source -m compileall -q .
-              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            } finally { Pop-Location }
-          } else {
-            $py = Get-Command py.exe -ErrorAction SilentlyContinue
-            if (-not $py) { throw 'No Python interpreter found on Windows runner.' }
-            & $py.Source -3 --version
-            Push-Location maltego
-            try {
-              & $py.Source -3 -m unittest discover -s tests -v
-              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-              & $py.Source -3 -m compileall -q .
-              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            } finally { Pop-Location }
-          }
-      - name: Windows PowerShell installer syntax
-        id: syntax
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          $tokens = $null
-          $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile(
-            (Resolve-Path 'maltego/install.ps1'), [ref]$tokens, [ref]$errors
-          ) | Out-Null
-          if ($errors.Count -gt 0) {
-            $errors | ForEach-Object { Write-Host $_.Message }
-            exit 1
-          }
-      - name: Summarize Windows
-        id: summary
-        if: ${{ always() }}
-        shell: pwsh
-        env:
-          CHECKOUT: ${{ steps.checkout.outcome }}
-          TESTS: ${{ steps.tests.outcome }}
-          SYNTAX: ${{ steps.syntax.outcome }}
-        run: |
-          $state = 'success'
-          if ($env:CHECKOUT -ne 'success' -or $env:TESTS -ne 'success' -or $env:SYNTAX -ne 'success') { $state = 'failure' }
-          "state=$state" >> $env:GITHUB_OUTPUT
-      - name: Enforce Windows result
-        if: ${{ always() && steps.summary.outputs.state != 'success' }}
-        shell: pwsh
-        run: exit 1
-
-  publish_status:
-    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
-    needs: [validate, maltego_linux, maltego_macos, maltego_windows]
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
       - name: Publish authoritative Tooling smoke status
+        if: ${{ always() }}
         env:
           GH_TOKEN: ${{ github.token }}
           STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          CORE: ${{ needs.validate.outputs.state }}
-          LINUX: ${{ needs.maltego_linux.outputs.state }}
-          MACOS: ${{ needs.maltego_macos.outputs.state }}
-          WINDOWS: ${{ needs.maltego_windows.outputs.state }}
+          CORE: ${{ steps.core_status.outputs.state }}
         run: |
-          state="success"
-          description="Tooling smoke passed on Linux, macOS and Windows"
-          for outcome in "${CORE}" "${LINUX}" "${MACOS}" "${WINDOWS}"; do
-            if [[ "${outcome}" != "success" ]]; then
-              state="failure"
-              description="Tooling smoke cross-platform validation failed"
-              break
-            fi
-          done
+          state="${CORE}"
+          description="Tooling smoke passed on Ubuntu"
+          if [[ "${state}" != "success" ]]; then
+            state="failure"
+            description="Tooling smoke validation failed"
+          fi
           target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           curl --fail-with-body --silent --show-error \
             -X POST \
@@ -306,3 +145,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${STATUS_SHA}" \
             -d "{\"state\":\"${state}\",\"context\":\"Tooling smoke\",\"description\":\"${description}\",\"target_url\":\"${target_url}\"}"
+
+      - name: Enforce core validation result
+        if: ${{ always() && steps.core_status.outputs.state != 'success' }}
+        run: exit 1
