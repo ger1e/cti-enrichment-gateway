@@ -2,11 +2,10 @@ import { runProvider } from './provider-runner.js';
 import { normalizeEvidence } from './normalize.js';
 import { correlateEvidence } from './correlate.js';
 import { runScheduledProviders } from './scheduler.js';
+import { semanticClass } from './semantics.js';
 import { EVIDENCE_SCHEMA_VERSION } from './version.js';
 
 const NEGATIVE_SEMANTIC_VERDICTS = new Set(['not_listed', 'not_found', 'no_result', 'no_association', 'clean', 'benign']);
-const REPUTATION_TYPES = new Set(['reputation', 'ioc_reputation', 'threat_intelligence', 'malicious_url', 'malware_distribution', 'phishing_feed', 'phishing_feed_match', 'botnet_c2']);
-const NETWORK_TYPES = new Set(['network_identity', 'routing', 'registration', 'internet_exposure', 'passive_dns']);
 const MAX_LIMITATIONS = 16;
 
 function cacheKey(provider, type, indicator) {
@@ -31,42 +30,42 @@ function baseEnvelope({ requestId, indicator, type, queriedAt, gatewayVersion, p
   return { schemaVersion: EVIDENCE_SCHEMA_VERSION, gatewayVersion, requestId, indicator, type, queriedAt, profile, durationMs, budget, providerSummary: summary };
 }
 
-function coverageClass(observationType) {
-  if (REPUTATION_TYPES.has(observationType)) return 'reputation';
-  if (NETWORK_TYPES.has(observationType)) return 'network_context';
-  if (observationType === 'known_exploited') return 'exploitation';
-  if (observationType === 'exploit_probability') return 'exploit_probability';
-  if (['vulnerability_metadata', 'vulnerability_catalog', 'open_source_vulnerability'].includes(observationType)) return 'vulnerability_metadata';
-  if (observationType === 'attack_knowledge') return 'attack_knowledge';
-  if (observationType === 'scanner_activity') return 'scanner_activity';
-  if (observationType === 'tor_exit') return 'tor_exit';
-  return observationType || 'unknown';
+function coverageObservationTypes(adapter, type) {
+  const byType = adapter?.coverageObservationTypesByType;
+  const typed = byType && typeof byType === 'object' ? byType[type] : null;
+  if (Array.isArray(typed) && typed.length) return typed;
+  return Array.isArray(adapter?.observationTypes) ? adapter.observationTypes : [];
 }
 
 function buildCoverage(providerNames, registry, type, records, summary, executedProviders) {
-  const successful = new Set();
   const classProviders = new Map();
+  const successfulClasses = new Set();
+
   for (const name of providerNames) {
     const adapter = registry.get(name);
-    if (adapter?.types?.includes(type)) {
-      for (const observationType of adapter.observationTypes ?? []) {
-        const cls = coverageClass(observationType);
-        if (!classProviders.has(cls)) classProviders.set(cls, new Set());
-        classProviders.get(cls).add(name);
-      }
+    if (!adapter?.types?.includes(type)) continue;
+
+    const expectedClasses = [...new Set(coverageObservationTypes(adapter, type).map(semanticClass))];
+    for (const cls of expectedClasses) {
+      if (!classProviders.has(cls)) classProviders.set(cls, new Set());
+      classProviders.get(cls).add(name);
     }
-    if (records.get(name)?.result?.ok) successful.add(name);
+
+    const record = records.get(name);
+    if (!record?.result?.ok) continue;
+    const actualKind = record.result?.data?.observationType;
+    if (typeof actualKind === 'string' && actualKind) {
+      successfulClasses.add(semanticClass(actualKind));
+    } else if (expectedClasses.length === 1) {
+      successfulClasses.add(expectedClasses[0]);
+    }
   }
+
   const selected = providerNames.length;
   const lost = summary.failed + summary.skipped;
   const ratioLoss = selected > 0 && (lost / selected) > 0.25;
-  let semanticLoss = false;
-  for (const providers of classProviders.values()) {
-    if (providers.size && ![...providers].some(name => successful.has(name))) {
-      semanticLoss = true;
-      break;
-    }
-  }
+  const semanticLoss = [...classProviders.keys()].some(cls => !successfulClasses.has(cls));
+
   return {
     selected,
     executed: executedProviders.size,
