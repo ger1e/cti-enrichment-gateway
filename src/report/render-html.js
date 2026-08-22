@@ -3,7 +3,7 @@ function esc(value) {
 }
 
 function section(title, content) {
-  return `<section><h2>${esc(title)}</h2>${content}</section>`;
+  return `<section><h2>${title}</h2>${content}</section>`;
 }
 
 function list(items, render, empty = 'None recorded.') {
