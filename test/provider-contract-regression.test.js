@@ -5,6 +5,7 @@ import { cloudflareRadarProvider } from '../src/providers/cloudflare-radar.js';
 import { webamonProvider } from '../src/providers/webamon.js';
 import { censysProvider } from '../src/providers/censys.js';
 import { circlHashlookupProvider } from '../src/providers/circl-hashlookup.js';
+import { greynoiseProvider } from '../src/providers/greynoise.js';
 import { probeProviders } from '../src/control/provider-probe.js';
 
 function json(value, status = 200) {
@@ -129,6 +130,21 @@ test('CIRCL Hashlookup treats 404 as absence and accepts current hyphenated hash
   assert.equal(found.verdict, 'known');
   assert.equal(found.relationships.some(r => r.target === 'c'.repeat(40)), true);
   assert.equal(found.relationships.some(r => r.target === 'a'.repeat(64)), true);
+});
+
+test('GreyNoise Community 404 means not observed, not provider failure or benign', async () => {
+  const output = await greynoiseProvider.run(
+    { type: 'ip', value: '192.0.2.44' },
+    {
+      env: { GREYNOISE_API_KEY: 'test-key' },
+      fetchImpl: async () => json({ ip: '192.0.2.44', noise: false, riot: false, message: 'IP not observed' }, 404),
+    },
+  );
+  assert.equal(output.observationType, 'internet_noise');
+  assert.equal(output.verdict, 'no_result');
+  assert.equal(output.attributes.noise, false);
+  assert.equal(output.attributes.riot, false);
+  assert.equal(output.attributes.classification, null);
 });
 
 test('provider probe is sequential, secret-safe, and distinguishes unconfigured/auth/rate/upstream states', async () => {
