@@ -1,7 +1,7 @@
 function retryableFailure(result) {
   if (!result || result.ok || !result.failure) return false;
   const reason = result.failure.reason;
-  if (reason === 'timeout' || reason === 'provider_error' || reason === 'rate_limited') return true;
+  if (reason === 'timeout' || reason === 'provider_error' || reason === 'provider_transport_error' || reason === 'rate_limited') return true;
   return reason === 'http_error' && Number(result.failure.status) >= 500;
 }
 
