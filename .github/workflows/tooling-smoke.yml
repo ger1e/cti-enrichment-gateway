@@ -7,6 +7,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      full_cross_platform:
+        description: Run paid macOS and Windows Maltego validation in addition to Ubuntu
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -24,66 +30,56 @@ jobs:
   validate:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    outputs:
-      state: ${{ steps.core_status.outputs.state }}
+    timeout-minutes: 12
     steps:
+      - name: Mark Tooling smoke pending
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${STATUS_SHA}" \
+            -d "{\"state\":\"pending\",\"context\":\"Tooling smoke\",\"description\":\"Core validation is running\",\"target_url\":\"${target_url}\"}"
+
       - name: Checkout
-        id: checkout
-        continue-on-error: true
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        id: setup_node
-        continue-on-error: true
         uses: actions/setup-node@ae0d4ed08881f17d1511386f5be3e62356acd4a6
         with:
           node-version-file: '.nvmrc'
           package-manager-cache: false
 
-      - name: Install validation tools
-        id: install_tools
-        continue-on-error: true
-        run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends shellcheck jq zsh
-
       - name: Validate locked dependencies
-        id: dependency_checks
-        continue-on-error: true
         run: |
           npm ci --ignore-scripts
           npm audit --omit=dev
 
       - name: Validate MAXX invariants and Node tests
-        id: node_checks
-        continue-on-error: true
         run: npm run check
 
       - name: Validate Maltego tests
-        id: maltego_tests
-        continue-on-error: true
         run: |
           python3 --version
           cd maltego
           python3 -m unittest discover -s tests -v
 
       - name: Compile Maltego Python
-        id: python_compile
-        continue-on-error: true
         run: python3 -m compileall -q maltego
 
-      - name: Validate bash zsh and ShellCheck
-        id: posix_syntax
-        continue-on-error: true
+      - name: Validate shell syntax
         run: |
           bash -n maltego/install.sh
-          zsh -n maltego/install.sh
           shellcheck maltego/install.sh
 
       - name: Validate PowerShell syntax
-        id: powershell_syntax
-        continue-on-error: true
         shell: pwsh
         run: |
           $files = @(
@@ -106,84 +102,31 @@ jobs:
             }
           }
 
-      - name: Summarize core validation
-        id: core_status
-        if: ${{ always() }}
+      - name: Publish Tooling smoke success
         env:
-          CHECKOUT: ${{ steps.checkout.outcome }}
-          SETUP_NODE: ${{ steps.setup_node.outcome }}
-          INSTALL_TOOLS: ${{ steps.install_tools.outcome }}
-          DEPENDENCY_CHECKS: ${{ steps.dependency_checks.outcome }}
-          NODE_CHECKS: ${{ steps.node_checks.outcome }}
-          MALTEGO_TESTS: ${{ steps.maltego_tests.outcome }}
-          PYTHON_COMPILE: ${{ steps.python_compile.outcome }}
-          POSIX_SYNTAX: ${{ steps.posix_syntax.outcome }}
-          POWERSHELL_SYNTAX: ${{ steps.powershell_syntax.outcome }}
+          GH_TOKEN: ${{ github.token }}
+          STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          state="success"
-          for outcome in \
-            "${CHECKOUT}" "${SETUP_NODE}" "${INSTALL_TOOLS}" "${DEPENDENCY_CHECKS}" "${NODE_CHECKS}" \
-            "${MALTEGO_TESTS}" "${PYTHON_COMPILE}" "${POSIX_SYNTAX}" "${POWERSHELL_SYNTAX}"; do
-            if [[ "${outcome}" != "success" ]]; then state="failure"; break; fi
-          done
-          echo "state=${state}" >> "${GITHUB_OUTPUT}"
-
-      - name: Enforce core validation result
-        if: ${{ always() && steps.core_status.outputs.state != 'success' }}
-        run: exit 1
-
-  maltego_linux:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      state: ${{ steps.summary.outputs.state }}
-    steps:
-      - name: Checkout
-        id: checkout
-        continue-on-error: true
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Linux Python and installer tests
-        id: tests
-        continue-on-error: true
-        run: |
-          python3 --version
-          cd maltego
-          python3 -m unittest discover -s tests -v
-          python3 -m compileall -q .
-          bash -n install.sh
-      - name: Summarize Linux
-        id: summary
-        if: ${{ always() }}
-        env:
-          CHECKOUT: ${{ steps.checkout.outcome }}
-          TESTS: ${{ steps.tests.outcome }}
-        run: |
-          state=success
-          if [[ "${CHECKOUT}" != success || "${TESTS}" != success ]]; then state=failure; fi
-          echo "state=${state}" >> "${GITHUB_OUTPUT}"
-      - name: Enforce Linux result
-        if: ${{ always() && steps.summary.outputs.state != 'success' }}
-        run: exit 1
+          target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${STATUS_SHA}" \
+            -d "{\"state\":\"success\",\"context\":\"Tooling smoke\",\"description\":\"Core validation passed on Ubuntu\",\"target_url\":\"${target_url}\"}"
 
   maltego_macos:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    needs: validate
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_cross_platform && needs.validate.result == 'success' }}
     runs-on: macos-latest
     timeout-minutes: 10
-    outputs:
-      state: ${{ steps.summary.outputs.state }}
     steps:
       - name: Checkout
-        id: checkout
-        continue-on-error: true
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: macOS Python bash and zsh tests
-        id: tests
-        continue-on-error: true
         run: |
           python3 --version
           cd maltego
@@ -191,37 +134,21 @@ jobs:
           python3 -m compileall -q .
           bash -n install.sh
           zsh -n install.sh
-      - name: Summarize macOS
-        id: summary
-        if: ${{ always() }}
-        env:
-          CHECKOUT: ${{ steps.checkout.outcome }}
-          TESTS: ${{ steps.tests.outcome }}
-        run: |
-          state=success
-          if [[ "${CHECKOUT}" != success || "${TESTS}" != success ]]; then state=failure; fi
-          echo "state=${state}" >> "${GITHUB_OUTPUT}"
-      - name: Enforce macOS result
-        if: ${{ always() && steps.summary.outputs.state != 'success' }}
-        run: exit 1
 
   maltego_windows:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    needs: validate
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_cross_platform && needs.validate.result == 'success' }}
     runs-on: windows-latest
     timeout-minutes: 10
-    outputs:
-      state: ${{ steps.summary.outputs.state }}
+    defaults:
+      run:
+        shell: pwsh
     steps:
       - name: Checkout
-        id: checkout
-        continue-on-error: true
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: Windows Python tests
-        id: tests
-        continue-on-error: true
-        shell: pwsh
         run: |
           $python = Get-Command python.exe -ErrorAction SilentlyContinue
           if ($python) {
@@ -246,9 +173,6 @@ jobs:
             } finally { Pop-Location }
           }
       - name: Windows PowerShell installer syntax
-        id: syntax
-        continue-on-error: true
-        shell: pwsh
         run: |
           $tokens = $null
           $errors = $null
@@ -259,52 +183,3 @@ jobs:
             $errors | ForEach-Object { Write-Host $_.Message }
             exit 1
           }
-      - name: Summarize Windows
-        id: summary
-        if: ${{ always() }}
-        shell: pwsh
-        env:
-          CHECKOUT: ${{ steps.checkout.outcome }}
-          TESTS: ${{ steps.tests.outcome }}
-          SYNTAX: ${{ steps.syntax.outcome }}
-        run: |
-          $state = 'success'
-          if ($env:CHECKOUT -ne 'success' -or $env:TESTS -ne 'success' -or $env:SYNTAX -ne 'success') { $state = 'failure' }
-          "state=$state" >> $env:GITHUB_OUTPUT
-      - name: Enforce Windows result
-        if: ${{ always() && steps.summary.outputs.state != 'success' }}
-        shell: pwsh
-        run: exit 1
-
-  publish_status:
-    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
-    needs: [validate, maltego_linux, maltego_macos, maltego_windows]
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Publish authoritative Tooling smoke status
-        env:
-          GH_TOKEN: ${{ github.token }}
-          STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          CORE: ${{ needs.validate.outputs.state }}
-          LINUX: ${{ needs.maltego_linux.outputs.state }}
-          MACOS: ${{ needs.maltego_macos.outputs.state }}
-          WINDOWS: ${{ needs.maltego_windows.outputs.state }}
-        run: |
-          state="success"
-          description="Tooling smoke passed on Linux, macOS and Windows"
-          for outcome in "${CORE}" "${LINUX}" "${MACOS}" "${WINDOWS}"; do
-            if [[ "${outcome}" != "success" ]]; then
-              state="failure"
-              description="Tooling smoke cross-platform validation failed"
-              break
-            fi
-          done
-          target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${STATUS_SHA}" \
-            -d "{\"state\":\"${state}\",\"context\":\"Tooling smoke\",\"description\":\"${description}\",\"target_url\":\"${target_url}\"}"

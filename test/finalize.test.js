@@ -58,13 +58,13 @@ test('Tooling smoke parses the finalizer and repository invariants require its c
   assert.match(verifyRepo, /branches\/main\/protection/);
 });
 
-test('Tooling smoke cannot report a false-green run and publishes PR status on the exact head SHA', () => {
+test('Tooling smoke fails closed in one required runner and publishes exact-head status without a publisher job', () => {
   const workflow = read(workflowPath);
 
-  assert.match(workflow, /name: Enforce core validation result/);
-  assert.match(workflow, /name: Enforce Linux result/);
-  assert.match(workflow, /name: Enforce macOS result/);
-  assert.match(workflow, /name: Enforce Windows result/);
+  assert.doesNotMatch(workflow, /continue-on-error:\s*true/);
+  assert.doesNotMatch(workflow, /\n\s*publish_status:/);
+  assert.match(workflow, /name: Mark Tooling smoke pending/);
+  assert.match(workflow, /name: Publish Tooling smoke success/);
   assert.match(workflow, /STATUS_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
   assert.match(workflow, /statuses\/\$\{STATUS_SHA\}/);
 });
@@ -77,4 +77,21 @@ test('Tooling smoke runs on pushes to main so the exact merged SHA receives post
     /push:\s*\n\s*branches:\s*\[main\]/,
     'merged main commits must trigger their own exact-SHA Tooling smoke run',
   );
+});
+
+test('paid cross-platform runners are explicit manual supplements and never run on ordinary PR or main pushes', () => {
+  const workflow = read(workflowPath);
+
+  assert.match(workflow, /workflow_dispatch:\s*\n\s*inputs:\s*\n\s*full_cross_platform:/);
+  assert.doesNotMatch(workflow, /\n\s*maltego_linux:/);
+  for (const job of ['maltego_macos', 'maltego_windows']) {
+    const start = workflow.indexOf(`  ${job}:`);
+    assert.notEqual(start, -1, job);
+    const next = workflow.indexOf('\n  maltego_', start + 1);
+    const block = workflow.slice(start, next === -1 ? workflow.length : next);
+    assert.match(block, /needs: validate/);
+    assert.match(block, /github\.event_name == 'workflow_dispatch'/);
+    assert.match(block, /inputs\.full_cross_platform/);
+    assert.match(block, /needs\.validate\.result == 'success'/);
+  }
 });
