@@ -6,6 +6,8 @@ import { webamonProvider } from '../src/providers/webamon.js';
 import { censysProvider } from '../src/providers/censys.js';
 import { circlHashlookupProvider } from '../src/providers/circl-hashlookup.js';
 import { greynoiseProvider } from '../src/providers/greynoise.js';
+import { shodanProvider } from '../src/providers/shodan.js';
+import { virustotalProvider } from '../src/providers/virustotal.js';
 import { probeProviders } from '../src/control/provider-probe.js';
 
 function json(value, status = 200) {
@@ -147,10 +149,41 @@ test('GreyNoise Community 404 means not observed, not provider failure or benign
   assert.equal(output.attributes.classification, null);
 });
 
+test('Shodan documented 404 means no host information, not provider failure', async () => {
+  const output = await shodanProvider.run(
+    { type: 'ip', value: '192.0.2.44' },
+    {
+      env: { SHODAN_API_KEY: 'test-key' },
+      fetchImpl: async () => json({ error: 'No information available for that IP.' }, 404),
+    },
+  );
+  assert.equal(output.observationType, 'internet_exposure');
+  assert.equal(output.verdict, 'no_result');
+  assert.equal(output.attributes.ip, '192.0.2.44');
+  assert.deepEqual(output.attributes.ports, []);
+});
+
+test('VirusTotal v3 NotFoundError is neutral absence for every lookup type', async () => {
+  for (const input of [
+    { type: 'ip', value: '192.0.2.44' },
+    { type: 'domain', value: 'missing.example' },
+    { type: 'url', value: 'https://missing.example/' },
+    { type: 'hash', value: 'a'.repeat(64) },
+  ]) {
+    const output = await virustotalProvider.run(input, {
+      env: { VIRUSTOTAL_API_KEY: 'test-key' },
+      fetchImpl: async () => json({ error: { code: 'NotFoundError', message: 'not found' } }, 404),
+    });
+    assert.equal(output.observationType, 'multi_engine_reputation');
+    assert.equal(output.verdict, 'no_result');
+    assert.deepEqual(output.relationships, []);
+  }
+});
+
 test('provider probe is sequential, secret-safe, and distinguishes unconfigured/auth/rate/upstream states', async () => {
   let active = 0;
   let maxActive = 0;
-  const make = (name, run, requiredEnv) => ({ name, types: ['ip'], requiredEnv, timeoutMs: 50, run });
+  const make = (name, run, requiredEnv) => ({ name, types: ['ip'], requiredEnv, timeoutMs: 50, fixedHosts: ['api.example.test'], methods: ['GET'], protocols: ['https:'], maxResponseBytes: 1024, run });
   const providers = [
     make('ok', async () => {
       active += 1; maxActive = Math.max(maxActive, active);
@@ -166,4 +199,23 @@ test('provider probe is sequential, secret-safe, and distinguishes unconfigured/
   assert.equal(maxActive, 1);
   assert.deepEqual(out.map(x => x.status), ['ok', 'unconfigured', 'auth_failed', 'rate_limited', 'upstream_error']);
   assert.equal(JSON.stringify(out).includes('SECRET-MARKER'), false);
+});
+
+test('provider probe preserves the production fixed-host egress boundary', async () => {
+  let networkCalls = 0;
+  const offHost = {
+    name: 'offhost', types: ['ip'], timeoutMs: 50,
+    fixedHosts: ['api.example.test'], methods: ['GET'], protocols: ['https:'], maxResponseBytes: 1024,
+    async run(_input, context) {
+      await context.fetchImpl('https://evil.example/x');
+      return { observationType: 'network_identity', verdict: 'unknown' };
+    },
+  };
+  const out = await probeProviders({
+    providers: [offHost],
+    includeCredentialed: true,
+    fetchImpl: async () => { networkCalls += 1; return json({}); },
+  });
+  assert.equal(networkCalls, 0);
+  assert.equal(out[0].status, 'contract_error');
 });
