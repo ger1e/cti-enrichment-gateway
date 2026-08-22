@@ -40,49 +40,47 @@ function containsSecretMaterial(value) {
     SECRET_VALUE_PATTERNS.some(pattern => pattern.test(value));
 }
 
-function boundedSecretScan(value, violations, rootPath = '$') {
-  const stack = [{ value, path: rootPath, depth: 0 }];
-  const seen = new WeakSet();
+function boundedSecretScan(value, violations, rootPath = '$', { rejectCycles = false } = {}) {
   let nodes = 0;
+  const ancestors = new WeakSet();
 
-  while (stack.length && violations.length < MAX_VIOLATIONS) {
-    const current = stack.pop();
+  function visit(current, path, depth) {
+    if (violations.length >= MAX_VIOLATIONS) return;
     nodes += 1;
     if (nodes > MAX_SCAN_NODES) {
-      add(violations, 'snapshot_too_complex', current.path);
-      break;
+      add(violations, 'snapshot_too_complex', path);
+      return;
+    }
+    if (typeof current === 'string') {
+      if (containsSecretMaterial(current)) add(violations, 'secret_material', path);
+      return;
+    }
+    if (!current || typeof current !== 'object') return;
+    if (ancestors.has(current)) {
+      if (rejectCycles) add(violations, 'invalid_snapshot_cycle', path);
+      return;
+    }
+    if (depth >= MAX_SCAN_DEPTH) {
+      add(violations, 'snapshot_too_complex', path);
+      return;
     }
 
-    if (typeof current.value === 'string') {
-      if (containsSecretMaterial(current.value)) add(violations, 'secret_material', current.path);
-      continue;
-    }
-    if (!current.value || typeof current.value !== 'object') continue;
-    if (seen.has(current.value)) {
-      add(violations, 'invalid_snapshot_cycle', current.path);
-      continue;
-    }
-    seen.add(current.value);
-    if (current.depth >= MAX_SCAN_DEPTH) {
-      add(violations, 'snapshot_too_complex', current.path);
-      continue;
-    }
-
-    if (Array.isArray(current.value)) {
-      for (let index = current.value.length - 1; index >= 0; index -= 1) {
-        stack.push({ value: current.value[index], path: `${current.path}[${index}]`, depth: current.depth + 1 });
+    ancestors.add(current);
+    if (Array.isArray(current)) {
+      for (let index = 0; index < current.length; index += 1) {
+        visit(current[index], `${path}[${index}]`, depth + 1);
       }
-      continue;
+    } else {
+      for (const [key, item] of Object.entries(current)) {
+        const childPath = `${path}[${JSON.stringify(key)}]`;
+        if (containsSecretMaterial(key)) add(violations, 'secret_material', childPath);
+        visit(item, childPath, depth + 1);
+      }
     }
-
-    const entries = Object.entries(current.value);
-    for (let index = entries.length - 1; index >= 0; index -= 1) {
-      const [key, item] = entries[index];
-      const path = `${current.path}[${JSON.stringify(key)}]`;
-      if (containsSecretMaterial(key)) add(violations, 'secret_material', path);
-      stack.push({ value: item, path, depth: current.depth + 1 });
-    }
+    ancestors.delete(current);
   }
+
+  visit(value, rootPath, 0);
 }
 
 function safeReference(value) {
@@ -200,7 +198,7 @@ export function assertSnapshotQuality(snapshot) {
     throw new ReportQualityError([{ code: 'invalid_snapshot', path: '$' }]);
   }
   const violations = [];
-  boundedSecretScan(snapshot, violations, '$');
+  boundedSecretScan(snapshot, violations, '$', { rejectCycles: true });
   if (violations.length) throw new ReportQualityError(violations);
   return { ok: true, violations: [], warnings: [] };
 }
