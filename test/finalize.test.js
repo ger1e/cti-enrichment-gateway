@@ -72,5 +72,9 @@ test('Tooling smoke cannot report a false-green run and publishes PR status on t
 test('Tooling smoke runs on pushes to main so the exact merged SHA receives post-merge CI', () => {
   const workflow = read(workflowPath);
 
-  assert.match(workflow, /push:\s*\n\s*branches:\s*\[main\]/);
+  assert.match(
+    workflow,
+    /push:\s*\n\s*branches:\s*\[main\]/,
+    'merged main commits must trigger their own exact-SHA Tooling smoke run',
+  );
 });
