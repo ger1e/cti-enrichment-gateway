@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { ransomlookProvider } from '../src/providers/ransomlook.js';
 import { cloudflareRadarProvider } from '../src/providers/cloudflare-radar.js';
 import { webamonProvider } from '../src/providers/webamon.js';
+import { censysProvider } from '../src/providers/censys.js';
+import { circlHashlookupProvider } from '../src/providers/circl-hashlookup.js';
 import { probeProviders } from '../src/control/provider-probe.js';
 
 function json(value, status = 200) {
@@ -92,6 +94,41 @@ test('Webamon Pro basic search sends required results fields and parses current 
   assert.equal(output.relationships.some(r => r.targetType === 'ip' && r.target === '192.0.2.44'), true);
   assert.equal(output.relationships.some(r => r.targetType === 'domain' && r.target === 'evil.example'), true);
   assert.equal(output.relationships.some(r => r.targetType === 'url' && r.target === 'https://evil.example/login'), true);
+});
+
+test('Censys treats documented 404 no-host response as absence rather than provider failure', async () => {
+  const output = await censysProvider.run(
+    { type: 'ip', value: '192.0.2.44' },
+    {
+      env: { CENSYS_PAT: 'test-pat' },
+      fetchImpl: async () => json({ detail: 'No host found' }, 404),
+    },
+  );
+  assert.equal(output.observationType, 'internet_exposure');
+  assert.equal(output.verdict, 'no_result');
+  assert.equal(output.attributes.ip, '192.0.2.44');
+  assert.equal(output.attributes.serviceCount, 0);
+});
+
+test('CIRCL Hashlookup treats 404 as absence and accepts current hyphenated hash fields', async () => {
+  const missing = await circlHashlookupProvider.run(
+    { type: 'hash', value: 'a'.repeat(64) },
+    { fetchImpl: async () => json({ message: 'not found' }, 404) },
+  );
+  assert.equal(missing.verdict, 'no_result');
+
+  const found = await circlHashlookupProvider.run(
+    { type: 'hash', value: 'a'.repeat(64) },
+    { fetchImpl: async () => json({
+      MD5: 'b'.repeat(32),
+      'SHA-1': 'c'.repeat(40),
+      'SHA-256': 'a'.repeat(64),
+      FileName: 'demo.exe',
+    }) },
+  );
+  assert.equal(found.verdict, 'known');
+  assert.equal(found.relationships.some(r => r.target === 'c'.repeat(40)), true);
+  assert.equal(found.relationships.some(r => r.target === 'a'.repeat(64)), true);
 });
 
 test('provider probe is sequential, secret-safe, and distinguishes unconfigured/auth/rate/upstream states', async () => {
