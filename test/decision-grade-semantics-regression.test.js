@@ -7,6 +7,7 @@ import { createProviderRegistry } from '../src/core/provider-registry.js';
 import { TtlCache } from '../src/core/cache.js';
 import { virustotalProvider, threatfoxProvider } from '../src/providers/index.js';
 
+// Regression contract for decision-grade semantic interpretation and coverage.
 const SECRET = 'semantic-regression-secret';
 
 function json(value, status = 200) {
