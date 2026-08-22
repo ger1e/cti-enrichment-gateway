@@ -57,3 +57,14 @@ test('Tooling smoke parses the finalizer and repository invariants require its c
   assert.match(verifyRepo, /Tooling smoke/);
   assert.match(verifyRepo, /branches\/main\/protection/);
 });
+
+test('Tooling smoke cannot report a false-green run and publishes PR status on the exact head SHA', () => {
+  const workflow = read(workflowPath);
+
+  assert.match(workflow, /name: Enforce core validation result/);
+  assert.match(workflow, /name: Enforce Linux result/);
+  assert.match(workflow, /name: Enforce macOS result/);
+  assert.match(workflow, /name: Enforce Windows result/);
+  assert.match(workflow, /STATUS_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
+  assert.match(workflow, /statuses\/\$\{STATUS_SHA\}/);
+});
