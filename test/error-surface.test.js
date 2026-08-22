@@ -66,6 +66,25 @@ test('renderer supports the hardened error status catalogue and never reflects u
   }
 });
 
+test('optional error headers cannot override security, representation, or correlation headers', () => {
+  const result = renderHttpError(req({ accept: 'text/html' }), 405, 'method_not_allowed', {
+    headers: {
+      allow: 'POST',
+      'cache-control': 'public, max-age=9999',
+      'content-type': 'text/plain',
+      'content-security-policy': "default-src * 'unsafe-inline'",
+      'x-request-id': 'attacker-controlled',
+      'x-frame-options': 'SAMEORIGIN',
+    },
+  });
+  assert.equal(result.headers.allow, 'POST');
+  assert.equal(result.headers['cache-control'], 'no-store');
+  assert.equal(result.headers['content-type'], 'text/html; charset=utf-8');
+  assert.equal(result.headers['content-security-policy'], "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+  assert.equal(result.headers['x-frame-options'], 'DENY');
+  assert.match(result.headers['x-request-id'], /^[0-9a-f-]{36}$/i);
+});
+
 test('wildcard and absent Accept headers remain JSON-safe for CLI and Maltego callers', () => {
   for (const accept of ['*/*', undefined]) {
     const request = { method: 'GET', headers: accept ? { accept } : {} };
