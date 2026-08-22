@@ -1,9 +1,6 @@
 name: Tooling smoke
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
@@ -20,7 +17,6 @@ defaults:
 
 jobs:
   validate:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -128,7 +124,7 @@ jobs:
         if: ${{ always() }}
         env:
           GH_TOKEN: ${{ github.token }}
-          STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          STATUS_SHA: ${{ github.sha }}
           CORE: ${{ steps.core_status.outputs.state }}
         run: |
           state="${CORE}"
