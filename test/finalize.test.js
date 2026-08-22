@@ -58,19 +58,31 @@ test('Tooling smoke parses the finalizer and repository invariants require its c
   assert.match(verifyRepo, /branches\/main\/protection/);
 });
 
-test('Tooling smoke is fail-closed, exact-SHA, PR/manual only, and single-runner Ubuntu on the private repo', () => {
+test('Tooling smoke is exact-SHA, manual-only, single-runner, and fail-fast on the private repo', () => {
   const workflow = read(workflowPath);
   const runnerLines = workflow.match(/^\s*runs-on:/gm) ?? [];
 
-  assert.match(workflow, /name: Enforce core validation result/);
-  assert.match(workflow, /STATUS_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
-  assert.match(workflow, /statuses\/\$\{STATUS_SHA\}/);
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /cancel-in-progress: true/);
   assert.equal(runnerLines.length, 1);
   assert.match(workflow, /runs-on: ubuntu-latest/);
   assert.doesNotMatch(workflow, /runs-on: macos-latest/);
   assert.doesNotMatch(workflow, /runs-on: windows-latest/);
+  assert.doesNotMatch(workflow, /^\s+pull_request:/m);
   assert.doesNotMatch(workflow, /^\s+push:/m);
   assert.doesNotMatch(workflow, /^\s+schedule:/m);
+  assert.doesNotMatch(workflow, /continue-on-error:\s*true/);
+  assert.doesNotMatch(workflow, /apt-get/);
+});
+
+test('Tooling smoke invalidates stale success first and publishes final exact-SHA status from the same runner', () => {
+  const workflow = read(workflowPath);
+
+  assert.match(workflow, /name: Mark Tooling smoke pending/);
+  assert.match(workflow, /name: Publish authoritative Tooling smoke status/);
+  assert.match(workflow, /if: \$\{\{ always\(\) \}\}/);
+  assert.match(workflow, /STATUS_SHA: \$\{\{ github\.sha \}\}/);
+  assert.match(workflow, /statuses\/\$\{STATUS_SHA\}/);
+  assert.match(workflow, /steps\.node_checks\.outcome/);
+  assert.match(workflow, /steps\.maltego_tests\.outcome/);
 });
