@@ -19,6 +19,9 @@ const ERROR_CATALOGUE = Object.freeze({
 });
 
 const OPTIONAL_HEADER_NAMES = new Set(['allow', 'retry-after']);
+const MAX_ACCEPT_BYTES = 4096;
+const MAX_ACCEPT_RANGES = 32;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function headerValue(headers, name) {
   if (!headers) return undefined;
@@ -26,13 +29,51 @@ function headerValue(headers, name) {
   return headers[name] ?? headers[name.toLowerCase()] ?? headers[name.toUpperCase()];
 }
 
+function parseAccept(value) {
+  const accept = String(value ?? '').trim().toLowerCase();
+  if (!accept || accept.length > MAX_ACCEPT_BYTES) return [];
+  return accept.split(',').slice(0, MAX_ACCEPT_RANGES).map((part, index) => {
+    const [rawMedia, ...params] = part.split(';');
+    const media = rawMedia.trim();
+    const match = /^([!#$%&'*+.^_`|~0-9a-z-]+|\*)\/([!#$%&'*+.^_`|~0-9a-z-]+|\*)$/.exec(media);
+    if (!match) return null;
+    let q = 1;
+    for (const param of params) {
+      const qMatch = /^\s*q\s*=\s*([0-9.]+)\s*$/i.exec(param);
+      if (!qMatch) continue;
+      const parsed = Number(qMatch[1]);
+      q = Number.isFinite(parsed) && parsed >= 0 && parsed <= 1 ? parsed : 0;
+      break;
+    }
+    const specificity = match[1] === '*' ? 0 : match[2] === '*' ? 1 : 2;
+    return { type: match[1], subtype: match[2], q, specificity, index };
+  }).filter(Boolean);
+}
+
+function qualityFor(ranges, mediaType) {
+  const [type, subtype] = mediaType.split('/');
+  let best = null;
+  for (const range of ranges) {
+    if (range.type !== '*' && range.type !== type) continue;
+    if (range.subtype !== '*' && range.subtype !== subtype) continue;
+    if (!best || range.specificity > best.specificity ||
+        (range.specificity === best.specificity && range.index < best.index)) {
+      best = range;
+    }
+  }
+  return best?.q ?? 0;
+}
+
 function wantsHtml(request) {
-  const accept = String(headerValue(request?.headers, 'accept') ?? '').toLowerCase();
-  if (!accept || accept === '*/*') return false;
-  const htmlIndex = accept.indexOf('text/html');
-  if (htmlIndex < 0) return false;
-  const jsonIndex = accept.indexOf('application/json');
-  return jsonIndex < 0 || htmlIndex < jsonIndex;
+  const ranges = parseAccept(headerValue(request?.headers, 'accept'));
+  if (!ranges.length) return false;
+  const htmlQ = qualityFor(ranges, 'text/html');
+  const jsonQ = qualityFor(ranges, 'application/json');
+  return htmlQ > 0 && htmlQ > jsonQ;
+}
+
+function safeRequestId(value) {
+  return typeof value === 'string' && UUID.test(value) ? value : randomUUID();
 }
 
 function safeStatus(status) {
@@ -91,9 +132,9 @@ h1{font-size:clamp(20px,4vw,34px);margin:0 0 14px;letter-spacing:.08em}p{color:v
 </html>`;
 }
 
-export function renderHttpError(request, status, code, { headers = {} } = {}) {
+export function renderHttpError(request, status, code, { headers = {}, requestId = null } = {}) {
   const normalizedStatus = safeStatus(status);
-  const requestId = randomUUID();
+  const correlationId = safeRequestId(requestId);
   const error = safeCode(normalizedStatus, code);
   const html = wantsHtml(request);
   return {
@@ -103,9 +144,9 @@ export function renderHttpError(request, status, code, { headers = {} } = {}) {
       ...securityHeaders(),
       'cache-control': 'no-store',
       'content-type': html ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8',
-      'x-request-id': requestId,
+      'x-request-id': correlationId,
     },
-    body: html ? htmlPage(normalizedStatus, requestId) : { error, requestId },
+    body: html ? htmlPage(normalizedStatus, correlationId) : { error, requestId: correlationId },
   };
 }
 
