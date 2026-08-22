@@ -18,6 +18,8 @@ const ERROR_CATALOGUE = Object.freeze({
   504: Object.freeze({ code: 'upstream_timeout', title: 'UPSTREAM TIMEOUT', message: 'An upstream intelligence source exceeded its bounded response window.' }),
 });
 
+const OPTIONAL_HEADER_NAMES = new Set(['allow', 'retry-after']);
+
 function headerValue(headers, name) {
   if (!headers) return undefined;
   if (typeof headers.get === 'function') return headers.get(name) ?? undefined;
@@ -42,6 +44,19 @@ function safeCode(status, code) {
   const fallback = ERROR_CATALOGUE[status].code;
   const value = typeof code === 'string' && /^[a-z0-9_]{1,64}$/.test(code) ? code : fallback;
   return value;
+}
+
+function optionalHeaders(headers) {
+  const safe = {};
+  if (!headers || typeof headers !== 'object') return safe;
+  for (const [name, value] of Object.entries(headers)) {
+    const normalized = String(name).toLowerCase();
+    if (!OPTIONAL_HEADER_NAMES.has(normalized)) continue;
+    const text = String(value ?? '');
+    if (!text || text.length > 128 || /[\r\n]/.test(text)) continue;
+    safe[normalized] = text;
+  }
+  return safe;
 }
 
 function htmlPage(status, requestId) {
@@ -84,11 +99,11 @@ export function renderHttpError(request, status, code, { headers = {} } = {}) {
   return {
     status: normalizedStatus,
     headers: {
+      ...optionalHeaders(headers),
       ...securityHeaders(),
       'cache-control': 'no-store',
       'content-type': html ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8',
       'x-request-id': requestId,
-      ...headers,
     },
     body: html ? htmlPage(normalizedStatus, requestId) : { error, requestId },
   };
