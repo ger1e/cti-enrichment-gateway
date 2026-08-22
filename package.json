@@ -3,10 +3,15 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
+  "bin": {
+    "cti": "./bin/cti.mjs"
+  },
   "scripts": {
     "bootstrap": "bash scripts/bootstrap-linux.sh",
     "verify:tooling": "bash scripts/verify-tooling.sh",
     "verify:repo": "bash scripts/verify-repo.sh",
+    "verify:deps": "npm ci --ignore-scripts && npm audit --omit=dev",
+    "verify:governance": "node scripts/verify-github-governance.mjs",
     "lint:shell": "shellcheck scripts/*.sh",
     "audit:public": "node scripts/audit-public-release.mjs",
     "check": "bash -n scripts/*.sh && npm run lint:shell && npm run verify:repo && npm run audit:public && npm test",

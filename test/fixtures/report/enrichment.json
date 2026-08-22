@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "2.0",
+  "gatewayVersion": "2.0.0",
+  "requestId": "req-report-fixture",
+  "indicator": "203.0.113.10",
+  "type": "ip",
+  "queriedAt": "2026-08-22T08:00:00.000Z",
+  "profile": "full",
+  "durationMs": 120,
+  "status": "partial",
+  "providerSummary": { "ok": 2, "failed": 1, "skipped": 0, "cached": 0 },
+  "budget": { "providerCallLimit": 6, "providerCalls": 3, "deadlineMs": 20000, "deadlineExhausted": false, "callBudgetExhausted": false },
+  "evidence": [
+    {
+      "provider": "virustotal",
+      "indicator": "203.0.113.10",
+      "type": "ip",
+      "observation": {
+        "kind": "reputation",
+        "verdict": "malicious",
+        "confidence": 0.91,
+        "firstSeen": "2026-08-20T10:00:00.000Z",
+        "lastSeen": "2026-08-22T07:40:00.000Z",
+        "tags": ["c2"],
+        "malwareFamily": "ExampleRAT",
+        "actor": null,
+        "attributes": { "attackIds": ["T1071.001"], "malicious": 12, "harmless": 0 }
+      },
+      "relationships": [
+        { "type": "domain", "value": "c2.example.test", "relationship": "communicates_with" }
+      ],
+      "references": ["https://www.virustotal.com/gui/ip-address/203.0.113.10"],
+      "retrievedAt": "2026-08-22T07:59:50.000Z",
+      "cacheState": "miss",
+      "durationMs": 40,
+      "integrity": {
+        "rawHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "parserVersion": "v3-2026-08-20",
+        "fingerprint": "1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    },
+    {
+      "provider": "modat",
+      "indicator": "203.0.113.10",
+      "type": "ip",
+      "observation": {
+        "kind": "internet_exposure",
+        "verdict": "observed",
+        "confidence": null,
+        "firstSeen": "2026-08-18T00:00:00.000Z",
+        "lastSeen": "2026-08-22T06:00:00.000Z",
+        "tags": [],
+        "malwareFamily": null,
+        "actor": null,
+        "attributes": { "ports": [443], "services": ["https"] }
+      },
+      "relationships": [
+        { "type": "domain", "value": "c2.example.test", "relationship": "passive_dns" }
+      ],
+      "references": ["https://api.magnify.modat.io/"],
+      "retrievedAt": "2026-08-22T07:59:55.000Z",
+      "cacheState": "miss",
+      "durationMs": 35,
+      "integrity": {
+        "rawHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "parserVersion": "2026-08-21.1",
+        "fingerprint": "2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    }
+  ],
+  "relationships": [
+    { "type": "domain", "value": "c2.example.test", "relationship": "communicates_with", "provider": "virustotal" },
+    { "type": "domain", "value": "c2.example.test", "relationship": "passive_dns", "provider": "modat" }
+  ],
+  "correlation": {
+    "assessment": { "state": "supported", "confidence": "high" },
+    "contradictions": [],
+    "relationships": [
+      { "type": "domain", "value": "c2.example.test", "relationship": "communicates_with", "provider": "virustotal" },
+      { "type": "domain", "value": "c2.example.test", "relationship": "passive_dns", "provider": "modat" }
+    ],
+    "limitations": ["partial_provider_failure"]
+  },
+  "coverage": { "selected": 3, "executed": 3, "succeeded": 2, "failed": 1, "skipped": 0, "materialLoss": false },
+  "limitations": ["partial_provider_failure"],
+  "failures": [{ "provider": "greynoise", "reason": "timeout", "retrievedAt": "2026-08-22T07:59:59.000Z" }],
+  "huntContext": {
+    "indicator": "203.0.113.10",
+    "type": "ip",
+    "firstSeen": "2026-08-18T00:00:00.000Z",
+    "lastSeen": "2026-08-22T07:40:00.000Z",
+    "families": ["ExampleRAT"],
+    "actors": [],
+    "sourceReferences": [
+      "https://www.virustotal.com/gui/ip-address/203.0.113.10",
+      "https://api.magnify.modat.io/"
+    ]
+  },
+  "meta": {
+    "gatewayVersion": "2.0.0",
+    "cache": { "virustotal": "miss", "modat": "miss", "greynoise": "miss" },
+    "providerHealth": { "virustotal": "ok", "modat": "ok", "greynoise": "timeout" }
+  },
+  "reportContext": {
+    "tlp": "CLEAR",
+    "behaviors": [
+      {
+        "id": "behavior-observed-https-c2",
+        "state": "OBSERVED",
+        "mappingState": "OBSERVED",
+        "title": "HTTPS communication with infrastructure carrying malicious reputation evidence",
+        "evidenceFingerprints": ["1111111111111111111111111111111111111111111111111111111111111111"],
+        "attackIds": ["T1071.001"]
+      },
+      {
+        "id": "behavior-next-dns",
+        "state": "LOOK_FOR_NEXT",
+        "mappingState": "INFERRED",
+        "title": "Look for DNS resolution and follow-on connections to the related domain",
+        "evidenceFingerprints": ["1111111111111111111111111111111111111111111111111111111111111111", "2222222222222222222222222222222222222222222222222222222222222222"],
+        "attackIds": []
+      },
+      {
+        "id": "behavior-contextual-web",
+        "state": "CONTEXTUAL_NOT_OBSERVED",
+        "mappingState": "CONTEXTUAL_NOT_OBSERVED",
+        "title": "Web protocol C2 is contextual to the ATT&CK mapping but not independently observed beyond this infrastructure evidence",
+        "evidenceFingerprints": ["1111111111111111111111111111111111111111111111111111111111111111"],
+        "attackIds": ["T1071.001"]
+      }
+    ],
+    "huntOpportunities": [
+      {
+        "id": "hunt-related-domain",
+        "hypothesis": "Endpoints resolving c2.example.test may show follow-on HTTPS connections.",
+        "telemetry": ["DeviceNetworkEvents", "DeviceDnsEvents"],
+        "evidenceFingerprints": ["1111111111111111111111111111111111111111111111111111111111111111", "2222222222222222222222222222222222222222222222222222222222222222"],
+        "kql": "DeviceNetworkEvents | where RemoteUrl =~ \"c2.example.test\""
+      }
+    ]
+  }
+}

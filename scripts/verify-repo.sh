@@ -14,6 +14,13 @@ node_engine_ok() { [[ "$(jq -r '.engines.node // empty' package.json)" == "24.x"
 nvmrc_ok() { [[ "$(tr -d '[:space:]' < .nvmrc)" == "24" ]]; }
 devcontainer_node_ok() { [[ "$(jq -r '.features["ghcr.io/devcontainers/features/node:1"].version // empty' .devcontainer/devcontainer.json)" == "24" ]]; }
 npm_policy_ok() { grep -Fxq 'engine-strict=true' .npmrc && grep -Fxq 'audit=true' .npmrc && grep -Fxq 'fund=false' .npmrc && grep -Fxq 'save-exact=true' .npmrc; }
+lockfile_ok() {
+  [[ -s package-lock.json ]] &&
+  [[ "$(jq -r '.lockfileVersion // empty' package-lock.json)" == "3" ]] &&
+  [[ "$(jq -r '.name // empty' package-lock.json)" == "$(jq -r '.name // empty' package.json)" ]] &&
+  [[ "$(jq -r '.version // empty' package-lock.json)" == "$(jq -r '.version // empty' package.json)" ]] &&
+  [[ "$(jq -r '.packages[""] .name // empty' package-lock.json)" == "$(jq -r '.name // empty' package.json)" ]]
+}
 
 actions_pinned_ok() {
   local workflow=.github/workflows/tooling-smoke.yml
@@ -86,7 +93,7 @@ qa_suite_ok() {
   [[ -s test/fuzz-deterministic.test.js ]] && [[ -s test/chaos-provider.test.js ]] && [[ -s test/manifest-invariants.test.js ]] && grep -Fq "1000 deterministic arbitrary strings" test/fuzz-deterministic.test.js && grep -Fq 'transient provider failures are never negative-cached' test/chaos-provider.test.js && grep -Fq 'every active workflow adapter is registered' test/manifest-invariants.test.js
 }
 
-vnext_api_surface_ok() { local path; for path in api/enrich.js api/batch.js api/stix.js api/meta.js api/status.js api/health.js; do [[ -s "${path}" ]] || return 1; done; }
+vnext_api_surface_ok() { local path; for path in api/enrich.js api/batch.js api/stix.js api/meta.js api/status.js api/health.js 'api/[...path].js'; do [[ -s "${path}" ]] || return 1; done; }
 egress_boundary_ok() { grep -Fq 'safeFetch' src/core/provider-runner.js && ! grep -R -E '[^[:alnum:]_]fetch[[:space:]]*\(' src/providers --include='*.js'; }
 
 release_docs_ok() {
@@ -103,6 +110,7 @@ check "package.json Node 24.x" node_engine_ok
 check ".nvmrc Node 24" nvmrc_ok
 check "devcontainer Node 24" devcontainer_node_ok
 check "npm strict/deterministic policy" npm_policy_ok
+check "npm lockfile committed" lockfile_ok
 check "GitHub Actions SHA-pinned" actions_pinned_ok
 check "Maltego CI gates present" maltego_ci_ok
 check "Vercel bootstrap pinned" vercel_bootstrap_ok
@@ -120,11 +128,9 @@ check "central egress boundary" egress_boundary_ok
 check "release docs linked" release_docs_ok
 check "release manifest current" release_manifest_ok
 
-if [[ -f package-lock.json ]]; then
-  echo; echo "== Dependency audit =="; npm audit --audit-level=high
-else
-  echo; echo "[i] No package-lock.json; dependency audit skipped (no locked npm dependency set)."
-fi
+echo
+echo "== Dependency audit =="
+npm audit --omit=dev
 
 if ((fail != 0)); then echo "[!] Repository invariant verification failed." >&2; exit 2; fi
 echo "[+] Repository invariant verification passed."

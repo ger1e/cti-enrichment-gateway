@@ -10,6 +10,7 @@ $RequiredBranch   = 'main'
 $RequiredStatus   = 'Tooling smoke'
 $RepoRoot         = Split-Path -Parent $PSScriptRoot
 $BootstrapPath    = Join-Path $PSScriptRoot 'bootstrap-vercel.ps1'
+$GovernanceVerifierPath = Join-Path $PSScriptRoot 'verify-github-governance.mjs'
 $AllowedOrigins   = @(
     'https://github.com/ger1e/cti-enrichment-gateway.git',
     'https://github.com/ger1e/cti-enrichment-gateway',
@@ -198,6 +199,9 @@ function Assert-MainProtection {
     if (-not $protection.required_pull_request_reviews) {
         throw 'Branch protection verification failed: pull requests are not required.'
     }
+    if (-not $protection.required_pull_request_reviews.dismiss_stale_reviews) {
+        throw 'Branch protection verification failed: stale pull-request approvals are not dismissed.'
+    }
     if ($protection.required_pull_request_reviews.required_approving_review_count -ne 0) {
         throw 'Branch protection verification failed: the solo-maintainer policy must require a PR without requiring self-approval.'
     }
@@ -214,7 +218,18 @@ function Assert-MainProtection {
         throw 'Branch protection verification failed: review-conversation resolution is not required.'
     }
 
-    Write-Host "Verified main protection: PR-only changes, strict '$RequiredStatus', admin enforcement, no force pushes/deletion."
+    Write-Host "Verified main protection: PR-only changes, stale-review dismissal, strict '$RequiredStatus', admin enforcement, no force pushes/deletion."
+}
+
+function Assert-GovernanceVerifier {
+    if (-not (Test-Path $GovernanceVerifierPath)) {
+        throw 'scripts/verify-github-governance.mjs is missing.'
+    }
+    $node = Get-Command node.exe -ErrorAction SilentlyContinue
+    if (-not $node) {
+        throw 'Node.js is required to run the read-only GitHub governance verifier.'
+    }
+    Invoke-NativeChecked $node.Source $GovernanceVerifierPath
 }
 
 Write-Host '=== CTI Enrichment Gateway / finalization ==='
@@ -228,6 +243,7 @@ Assert-ToolingSmokeSuccess -Gh $gh -Commit $commit
 Write-Host 'Applying main branch protection...'
 Set-MainProtection -Gh $gh
 Assert-MainProtection -Gh $gh
+Assert-GovernanceVerifier
 
 $commitAfterProtection = Assert-ExactOriginMain
 if ($commitAfterProtection -ne $commit) {
@@ -246,6 +262,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Assert-MainProtection -Gh $gh
+Assert-GovernanceVerifier
 $finalCommit = Assert-ExactOriginMain
 if ($finalCommit -ne $commit) {
     throw 'origin/main changed during production deployment. Re-run finalization against the new verified main.'
