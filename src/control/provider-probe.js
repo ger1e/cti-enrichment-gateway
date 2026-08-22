@@ -1,4 +1,5 @@
 import { ALL_PROVIDERS } from '../providers/index.js';
+import { runProvider } from '../core/provider-runner.js';
 
 const SAMPLE_BY_TYPE = Object.freeze({
   ip: '8.8.8.8',
@@ -21,12 +22,12 @@ function configured(env, name) {
   return typeof name === 'string' && typeof env?.[name] === 'string' && env[name].trim().length > 0;
 }
 
-function classify(error) {
-  const status = Number(error?.status);
+function classifyFailure(failure) {
+  const status = Number(failure?.status);
   if (status === 401 || status === 403) return 'auth_failed';
-  if (status === 429) return 'rate_limited';
-  if (status === 408 || status === 504 || error?.name === 'TimeoutError' || error?.name === 'AbortError') return 'timeout';
-  if (Number.isFinite(status) && status >= 500) return 'upstream_error';
+  if (failure?.reason === 'rate_limited' || status === 429) return 'rate_limited';
+  if (failure?.reason === 'timeout' || status === 408 || status === 504) return 'timeout';
+  if ((Number.isFinite(status) && status >= 500) || failure?.reason === 'provider_transport_error') return 'upstream_error';
   return 'contract_error';
 }
 
@@ -40,35 +41,34 @@ export async function probeProvider(provider, {
     return Object.freeze({ provider: provider.name, status: 'unconfigured', type: input.type });
   }
 
-  const started = Date.now();
   const timeoutMs = Math.min(Math.max(Number(provider.timeoutMs) || 5000, 1000), 15000);
-  try {
-    const data = await provider.run(input, {
-      env,
-      fetchImpl,
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-    if (!data || typeof data !== 'object' || typeof data.observationType !== 'string' || !data.observationType) {
-      return Object.freeze({ provider: provider.name, status: 'contract_error', type: input.type, latencyMs: Date.now() - started });
-    }
+  const result = await runProvider(provider, input, {
+    timeoutMs,
+    context: { env, fetchImpl },
+  });
+  if (!result.ok) {
+    const status = Number(result.failure?.status);
     return Object.freeze({
       provider: provider.name,
-      status: 'ok',
+      status: classifyFailure(result.failure),
       type: input.type,
-      latencyMs: Date.now() - started,
-      observationType: data.observationType,
-      verdict: typeof data.verdict === 'string' ? data.verdict : 'unknown',
-    });
-  } catch (error) {
-    const status = Number(error?.status);
-    return Object.freeze({
-      provider: provider.name,
-      status: classify(error),
-      type: input.type,
-      latencyMs: Date.now() - started,
+      latencyMs: result.durationMs,
       ...(Number.isFinite(status) ? { httpStatus: status } : {}),
     });
   }
+
+  const data = result.data;
+  if (!data || typeof data !== 'object' || typeof data.observationType !== 'string' || !data.observationType) {
+    return Object.freeze({ provider: provider.name, status: 'contract_error', type: input.type, latencyMs: result.durationMs });
+  }
+  return Object.freeze({
+    provider: provider.name,
+    status: 'ok',
+    type: input.type,
+    latencyMs: result.durationMs,
+    observationType: data.observationType,
+    verdict: typeof data.verdict === 'string' ? data.verdict : 'unknown',
+  });
 }
 
 export async function probeProviders({
