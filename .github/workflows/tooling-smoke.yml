@@ -1,22 +1,18 @@
 name: Tooling smoke
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
-  schedule:
-    - cron: '17 4 * * *'
 
 permissions:
   contents: read
   statuses: write
 
 concurrency:
-  group: tooling-smoke-${{ github.ref }}
-  cancel-in-progress: false
+  group: tooling-smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
