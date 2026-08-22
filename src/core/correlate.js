@@ -1,6 +1,8 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_RELATIONSHIPS = 100;
 const MAX_CORROBORATED_FACTS = 50;
+const MAX_ASSESSMENT_PROVIDERS = 25;
+const MAX_LIMITATIONS = 16;
 
 const REPUTATION_KINDS = new Set([
   'reputation', 'ioc_reputation', 'threat_intelligence', 'malicious_url',
@@ -10,6 +12,10 @@ const NETWORK_CONTEXT_KINDS = new Set([
   'network_identity', 'routing', 'registration', 'internet_exposure', 'passive_dns',
 ]);
 const NETWORK_TYPES = new Set(['ip', 'domain', 'url', 'asn', 'cidr']);
+const INFRASTRUCTURE_RELATIONSHIP_TYPES = new Set([
+  'asn', 'hostname', 'domain', 'ip', 'cidr', 'netblock', 'registration', 'nameserver', 'mx', 'certificate',
+]);
+const THREAT_NOT_APPLICABLE_TYPES = new Set(['attack', 'cve', 'asn', 'cidr']);
 
 const POSITIVE = new Set(['malicious', 'suspicious', 'phishing', 'associated', 'listed', 'malware_sample', 'known_exploited']);
 const NEGATIVE = new Set(['benign', 'clean', 'no_association', 'not_listed']);
@@ -46,26 +52,30 @@ function freshnessClass(ageMs) {
   return 'stale';
 }
 
-function evidenceTime(item) {
-  return parseDate(item?.observation?.lastSeen)
-    ?? parseDate(item?.observation?.firstSeen)
-    ?? parseDate(item?.retrievedAt);
+function observationTime(item) {
+  return parseDate(item?.observation?.lastSeen) ?? parseDate(item?.observation?.firstSeen);
 }
 
 function buildFreshness(evidence, now) {
   const nowMs = parseDate(now) ?? Date.now();
   const items = evidence.map(item => {
-    const observedMs = evidenceTime(item);
+    const observedMs = observationTime(item);
+    const retrievedMs = parseDate(item?.retrievedAt);
+    const observationClass = freshnessClass(observedMs == null ? null : nowMs - observedMs);
+    const retrievalClass = freshnessClass(retrievedMs == null ? null : nowMs - retrievedMs);
     return {
       provider: item.provider,
-      class: freshnessClass(observedMs == null ? null : nowMs - observedMs),
+      class: observationClass,
+      observationClass,
+      retrievalClass,
       observedAt: observedMs == null ? null : new Date(observedMs).toISOString(),
+      retrievedAt: retrievedMs == null ? null : new Date(retrievedMs).toISOString(),
     };
   });
-  if (!items.length || items.every(item => item.class === 'unknown')) return { overall: 'unknown', items };
+  if (!items.length || items.every(item => item.observationClass === 'unknown')) return { overall: 'unknown', items };
   const ranks = { current: 0, aging: 1, stale: 2, unknown: 3 };
-  const known = items.filter(item => item.class !== 'unknown');
-  const worst = known.sort((a, b) => ranks[b.class] - ranks[a.class])[0]?.class ?? 'unknown';
+  const known = items.filter(item => item.observationClass !== 'unknown');
+  const worst = known.sort((a, b) => ranks[b.observationClass] - ranks[a.observationClass])[0]?.observationClass ?? 'unknown';
   return { overall: worst, items };
 }
 
@@ -78,7 +88,7 @@ function corroboration(evidence) {
     if (p === 'neutral') continue;
     const key = `${cls}:${p}`;
     if (!groups.has(key)) groups.set(key, { semanticClass: cls, polarity: p, providers: new Set() });
-    groups.get(key).providers.add(item.provider);
+    if (item?.provider) groups.get(key).providers.add(item.provider);
   }
   return [...groups.values()]
     .filter(group => group.providers.size >= 2)
@@ -92,7 +102,7 @@ function contradictions(evidence) {
     const p = polarity(item?.observation?.verdict);
     if (p === 'neutral' || cls === 'attack_knowledge' || cls === 'scanner_activity' || cls === 'tor_exit' || cls === 'network_context') continue;
     if (!byClass.has(cls)) byClass.set(cls, { positive: new Set(), negative: new Set() });
-    byClass.get(cls)[p].add(item.provider);
+    if (item?.provider) byClass.get(cls)[p].add(item.provider);
   }
   const output = [];
   for (const [cls, group] of byClass) {
@@ -111,7 +121,7 @@ function contradictions(evidence) {
 function evidenceQuality(evidence, freshness, contradictionItems) {
   const providerCount = new Set(evidence.map(item => item?.provider).filter(Boolean)).size;
   const counts = { current: 0, aging: 0, stale: 0, unknown: 0 };
-  for (const item of freshness.items) counts[item.class] = (counts[item.class] ?? 0) + 1;
+  for (const item of freshness.items) counts[item.observationClass] = (counts[item.observationClass] ?? 0) + 1;
   const contradictionCount = contradictionItems.length;
   let level = 'none';
   if (evidence.length > 0) {
@@ -131,6 +141,41 @@ function evidenceQuality(evidence, freshness, contradictionItems) {
   };
 }
 
+function threatAssessment(type, evidence) {
+  if (THREAT_NOT_APPLICABLE_TYPES.has(type)) {
+    return { state: 'not_applicable', assessmentBasis: { providers: [], semanticClasses: [] } };
+  }
+  const positive = new Set();
+  const negative = new Set();
+  for (const item of evidence) {
+    if (semanticClass(item?.observation?.kind) !== 'reputation' || !item?.provider) continue;
+    const p = polarity(item?.observation?.verdict);
+    if (p === 'positive') positive.add(item.provider);
+    if (p === 'negative') negative.add(item.provider);
+  }
+  let state = 'insufficient';
+  let providers = [];
+  if (positive.size && negative.size) {
+    state = 'contradicted';
+    providers = [...new Set([...positive, ...negative])];
+  } else if (positive.size >= 2) {
+    state = 'supported';
+    providers = [...positive];
+  } else if (negative.size && !positive.size) {
+    state = 'negative';
+    providers = [...negative];
+  } else if (positive.size === 1) {
+    providers = [...positive];
+  }
+  return {
+    state,
+    assessmentBasis: {
+      providers: providers.sort().slice(0, MAX_ASSESSMENT_PROVIDERS),
+      semanticClasses: providers.length ? ['reputation'] : [],
+    },
+  };
+}
+
 function infrastructureContext(type, evidence, relationships) {
   if (!NETWORK_TYPES.has(type)) return undefined;
   const providers = [...new Set(evidence
@@ -140,7 +185,7 @@ function infrastructureContext(type, evidence, relationships) {
 
   const facts = new Map();
   for (const rel of relationships) {
-    if (!rel?.provider || !rel?.type || rel?.target == null || rel.target === '') continue;
+    if (!rel?.provider || !INFRASTRUCTURE_RELATIONSHIP_TYPES.has(rel?.type) || rel?.target == null || rel.target === '') continue;
     const key = `${rel.type}\u0000${String(rel.target)}`;
     if (!facts.has(key)) facts.set(key, { type: rel.type, target: rel.target, providers: new Set() });
     facts.get(key).providers.add(rel.provider);
@@ -152,6 +197,18 @@ function infrastructureContext(type, evidence, relationships) {
     .slice(0, MAX_CORROBORATED_FACTS);
 
   return { providers, corroboratedFacts };
+}
+
+function evidenceLimitations(type, evidence, freshness, threat, infra) {
+  const limitations = new Set();
+  if (threat.state === 'insufficient' && threat.assessmentBasis.providers.length === 1) limitations.add('single_source_threat_support');
+  if (threat.state === 'contradicted') limitations.add('contradictory_threat_evidence');
+  if (evidence.length && freshness.items.every(item => item.observationClass === 'stale')) limitations.add('stale_evidence_only');
+  if (freshness.items.some(item => item.observationClass === 'unknown')) limitations.add('unknown_observation_time');
+  const hasReputationEvidence = evidence.some(item => semanticClass(item?.observation?.kind) === 'reputation' && polarity(item?.observation?.verdict) !== 'neutral');
+  const hasInfrastructureEvidence = Boolean(infra?.providers?.length);
+  if (NETWORK_TYPES.has(type) && hasInfrastructureEvidence && !hasReputationEvidence) limitations.add('infrastructure_only_evidence');
+  return [...limitations].sort().slice(0, MAX_LIMITATIONS);
 }
 
 function huntability(type, evidence) {
@@ -171,16 +228,8 @@ function riskAxes(evidence) {
   const epss = evidence.find(item => item?.observation?.kind === 'exploit_probability');
   const cvss = evidence.find(item => Number.isFinite(Number(item?.observation?.attributes?.cvss)));
   return {
-    kev: kev ? {
-      listed: kev.observation.verdict === 'known_exploited' || kev.observation.attributes?.cataloged === true,
-      ransomwareUse: kev.observation.attributes?.knownRansomwareCampaignUse ?? null,
-      provider: kev.provider,
-    } : null,
-    epss: epss ? {
-      score: Number.isFinite(Number(epss.observation.attributes?.epss)) ? Number(epss.observation.attributes.epss) : null,
-      percentile: Number.isFinite(Number(epss.observation.attributes?.percentile)) ? Number(epss.observation.attributes.percentile) : null,
-      provider: epss.provider,
-    } : null,
+    kev: kev ? { listed: kev.observation.verdict === 'known_exploited' || kev.observation.attributes?.cataloged === true, ransomwareUse: kev.observation.attributes?.knownRansomwareCampaignUse ?? null, provider: kev.provider } : null,
+    epss: epss ? { score: Number.isFinite(Number(epss.observation.attributes?.epss)) ? Number(epss.observation.attributes.epss) : null, percentile: Number.isFinite(Number(epss.observation.attributes?.percentile)) ? Number(epss.observation.attributes.percentile) : null, provider: epss.provider } : null,
     cvss: cvss ? { score: Number(cvss.observation.attributes.cvss), provider: cvss.provider } : null,
   };
 }
@@ -199,10 +248,7 @@ function dedupeRelationships(relationships) {
 }
 
 function attributionFromRelationships(relationships) {
-  const actors = [...new Set(relationships
-    .filter(rel => rel?.targetType === 'actor' || rel?.type === 'attributed_to')
-    .map(rel => rel?.target)
-    .filter(Boolean))].sort();
+  const actors = [...new Set(relationships.filter(rel => rel?.targetType === 'actor' || rel?.type === 'attributed_to').map(rel => rel?.target).filter(Boolean))].sort();
   if (!actors.length) return undefined;
   return { basis: 'explicit_relationship', actors };
 }
@@ -211,6 +257,8 @@ export function correlateEvidence({ indicator, type, evidence = [], relationship
   const deduped = dedupeRelationships(relationships);
   const contradictionItems = contradictions(evidence);
   const freshness = buildFreshness(evidence, now);
+  const threat = threatAssessment(type, evidence);
+  const infra = infrastructureContext(type, evidence, deduped);
   const output = {
     indicator,
     type,
@@ -218,10 +266,11 @@ export function correlateEvidence({ indicator, type, evidence = [], relationship
     contradictions: contradictionItems,
     freshness,
     evidenceQuality: evidenceQuality(evidence, freshness, contradictionItems),
+    threatAssessment: threat,
+    limitations: evidenceLimitations(type, evidence, freshness, threat, infra),
     huntability: huntability(type, evidence),
     relationships: deduped,
   };
-  const infra = infrastructureContext(type, evidence, deduped);
   if (infra) output.infrastructureContext = infra;
   if (type === 'cve') output.riskAxes = riskAxes(evidence);
   const attributionConfidence = attributionFromRelationships(deduped);
