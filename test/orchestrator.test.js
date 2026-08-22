@@ -5,11 +5,11 @@ import { createProviderRegistry } from '../src/core/provider-registry.js';
 import { normalizeEvidence } from '../src/core/normalize.js';
 import { enrich } from '../src/core/orchestrator.js';
 
-function adapter(name, { types = ['ip'], run, parserVersion = '1' } = {}) {
+function adapter(name, { types = ['ip'], observationTypes = ['fixture_context'], run, parserVersion = '1' } = {}) {
   return {
     name,
     types,
-    observationTypes: ['fixture_context'],
+    observationTypes,
     cacheTtlMs: 1000,
     negativeCacheTtlMs: 100,
     costClass: 'free',
@@ -24,9 +24,7 @@ function adapter(name, { types = ['ip'], run, parserVersion = '1' } = {}) {
 }
 
 test('normalizes provider result into canonical evidence', () => {
-  const evidence = normalizeEvidence('demo', '8.8.8.8', 'ip', {
-    verdict: 'benign', confidence: 90, firstSeen: '2026-01-01T00:00:00Z', tags: ['resolver'], references: ['https://example.test/ref']
-  }, { retrievedAt: '2026-08-20T12:00:00Z', rawHash: 'a'.repeat(64), parserVersion: '1' });
+  const evidence = normalizeEvidence('demo', '8.8.8.8', 'ip', { verdict: 'benign', confidence: 90, firstSeen: '2026-01-01T00:00:00Z', tags: ['resolver'], references: ['https://example.test/ref'] }, { retrievedAt: '2026-08-20T12:00:00Z', rawHash: 'a'.repeat(64), parserVersion: '1' });
   assert.equal(evidence.provider, 'demo');
   assert.equal(evidence.indicator, '8.8.8.8');
   assert.equal(evidence.observation.verdict, 'benign');
@@ -69,16 +67,33 @@ test('all provider failures return error response without throwing', async () =>
 });
 
 test('empty provider selection returns explicit gateway failure', async () => {
-  const result = await enrich({
-    indicator: 'https://example.com/',
-    type: 'url',
-    providerNames: [],
-    registry: createProviderRegistry([]),
-    cache: new TtlCache(),
-    requestId: 'r',
-    now: () => '2026-08-20T12:00:00Z',
-  });
+  const result = await enrich({ indicator: 'https://example.com/', type: 'url', providerNames: [], registry: createProviderRegistry([]), cache: new TtlCache(), requestId: 'r', now: () => '2026-08-20T12:00:00Z' });
   assert.equal(result.status, 'error');
   assert.deepEqual(result.failures, [{ provider: 'gateway', reason: 'no_configured_providers' }]);
   assert.deepEqual(result.evidence, []);
+});
+
+test('coverage separates selected executed succeeded failed skipped and cached success', async () => {
+  let calls = 0;
+  const good = adapter('good', { run: async () => { calls++; return { verdict: 'unknown' }; } });
+  const bad = adapter('bad', { run: async () => { calls++; throw new Error('down'); } });
+  const registry = createProviderRegistry([good, bad]);
+  const cache = new TtlCache();
+  const base = { indicator: '8.8.8.8', type: 'ip', providerNames: ['good', 'bad', 'missing'], registry, cache, now: () => '2026-08-20T12:00:00Z' };
+  const first = await enrich({ ...base, requestId: 'r1' });
+  assert.deepEqual(first.coverage, { selected: 3, executed: 2, succeeded: 1, failed: 1, skipped: 1, materialLoss: true });
+  assert.ok(first.limitations.includes('partial_provider_failure'));
+  assert.ok(first.limitations.includes('material_coverage_loss'));
+  const second = await enrich({ ...base, providerNames: ['good'], requestId: 'r2' });
+  assert.deepEqual(second.coverage, { selected: 1, executed: 0, succeeded: 1, failed: 0, skipped: 0, materialLoss: false });
+  assert.equal(calls >= 2, true);
+});
+
+test('loss of every selected provider for a semantic class is material coverage loss', async () => {
+  const reputation = adapter('rep', { observationTypes: ['reputation'], run: async () => { throw new Error('down'); } });
+  const context = adapter('ctx', { observationTypes: ['network_identity'], run: async () => ({ verdict: 'observed' }) });
+  const registry = createProviderRegistry([reputation, context]);
+  const result = await enrich({ indicator: '8.8.8.8', type: 'ip', providerNames: ['rep', 'ctx'], registry, cache: new TtlCache(), requestId: 'r', now: () => '2026-08-20T12:00:00Z' });
+  assert.equal(result.coverage.materialLoss, true);
+  assert.ok(result.limitations.includes('material_coverage_loss'));
 });
