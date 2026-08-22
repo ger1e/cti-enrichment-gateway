@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildReportModel } from './model.js';
-import { assertReportQuality } from './quality.js';
+import { assertReportDistribution, assertReportQuality, assertSnapshotQuality } from './quality.js';
 import { renderHtml } from './render-html.js';
 import { renderText } from './render-text.js';
 import { renderObservablesCsv } from './render-csv.js';
@@ -109,9 +109,11 @@ export function compileReportBundle(snapshot, {
 } = {}) {
   const files = REPORT_PRESETS[preset];
   if (!files) throw new Error(`unknown report preset: ${preset}`);
+  assertSnapshotQuality(snapshot);
   const absolute = validateOutputDirectory(outDir);
   const model = buildReportModel(snapshot, { generatedAt, sourceSha });
   assertReportQuality(model);
+  assertReportDistribution(model, preset);
 
   const artifacts = renderArtifacts(snapshot, model);
   const selected = files.filter(name => name !== 'manifest.json').sort((a, b) => a.localeCompare(b));
