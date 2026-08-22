@@ -38,6 +38,7 @@ test('authenticated status is no-store and aggregate-only', async () => {
   const telemetry = createTelemetry();
   telemetry.emit({ event: 'request_start', requestId: 'r1', type: 'ip', indicator: '192.0.2.44', status: 'start' });
   telemetry.emit({ event: 'provider_complete', requestId: 'r1', type: 'ip', provider: 'rdap', status: 'ok', indicator: '192.0.2.44', authorization: 'Bearer actual-secret' });
+  telemetry.emit({ event: 'provider_outcome', requestId: 'r1', type: 'ip', provider: 'rdap', status: 'success', indicator: '192.0.2.44', authorization: 'Bearer actual-secret' });
   const app = createApp({ env: { CTI_GATEWAY_TOKEN: 'gateway', RDAP_SECRET_TEST: 'actual-secret' }, adapters: [adapter()], cache, telemetry, nowMs: () => now });
   assert.equal((await app.handleStatus(get())).status, 401);
   now = 1500;
@@ -49,9 +50,9 @@ test('authenticated status is no-store and aggregate-only', async () => {
   assert.equal(out.body.providers.rdap.parserVersion, 'test-parser');
   assert.equal(out.body.cache.entries, 1);
   assert.equal(out.body.circuit.providers >= 0, true);
-  assert.equal(out.body.telemetry.events, 2);
-  assert.deepEqual(out.body.telemetry.byProvider, { rdap: 1 });
-  assert.deepEqual(out.body.telemetry.byStatus, { ok: 1, start: 1 });
+  assert.equal(out.body.telemetry.events, 3);
+  assert.deepEqual(out.body.telemetry.byProvider, { rdap: 2 });
+  assert.deepEqual(out.body.telemetry.providerOutcomes, { rdap: { success: 1, failure: 0, timeout: 0, rate_limited: 0, skipped: 0 } });
   const text = JSON.stringify(out.body);
   assert.equal(text.includes('actual-secret'), false);
   assert.equal(text.includes('192.0.2.44'), false);
