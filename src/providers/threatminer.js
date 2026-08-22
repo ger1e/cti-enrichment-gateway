@@ -2,6 +2,13 @@ import { isIP } from 'node:net';
 import { fetchJson } from '../core/fetch-json.js';
 import { compact, relation } from './helpers.js';
 
+const COVERAGE_OBSERVATION_TYPES = Object.freeze({
+  ip: Object.freeze(['passive_dns']),
+  domain: Object.freeze(['passive_dns']),
+  url: Object.freeze(['passive_dns']),
+  hash: Object.freeze(['sample_hosts']),
+});
+
 function endpoint(input) {
   if (input.type === 'ip') return { url: `https://api.threatminer.org/v2/host.php?q=${encodeURIComponent(input.value)}&rt=2`, kind: 'passive_dns', pivot: input.value };
   if (input.type === 'domain') return { url: `https://api.threatminer.org/v2/domain.php?q=${encodeURIComponent(input.value)}&rt=2`, kind: 'passive_dns', pivot: input.value };
@@ -48,6 +55,7 @@ function seen(results, field) {
 
 export const threatminerProvider = Object.freeze({
   name: 'threatminer', types: ['ip', 'domain', 'url', 'hash'], cacheTtlMs: 6 * 60 * 60 * 1000, negativeCacheTtlMs: 60 * 60 * 1000, costClass: 'free', timeoutMs: 5000, parserVersion: '2026-08-20',
+  coverageObservationTypesByType: COVERAGE_OBSERVATION_TYPES,
   async run(input, context = {}) {
     const { url, kind, pivot } = endpoint(input);
     const raw = await fetchJson(url, { ...context, maxBytes: 2_000_000 });
