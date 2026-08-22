@@ -36,6 +36,28 @@ test('RDAP routes IPv4 through IANA bootstrap to authoritative RIR without redir
   assert.equal(output.attributes.handle, 'NET-8-0-0-0-1');
 });
 
+test('RDAP CIDR query preserves the RFC 9082 literal prefix slash', async () => {
+  const requests = [];
+  await rdapProvider.run(
+    { type: 'cidr', value: '8.8.8.0/24' },
+    {
+      feedCache: new Map(),
+      fetchImpl: async (url) => {
+        requests.push(String(url));
+        if (String(url) === 'https://data.iana.org/rdap/ipv4.json') {
+          return json({ version: '1.0', services: [[['8.0.0.0/8'], ['https://rdap.arin.net/registry/']]] });
+        }
+        if (String(url) === 'https://rdap.arin.net/registry/ip/8.8.8.0/24') {
+          return json({ handle: 'NET-8-0-0-0-1', name: 'LVLT-ORG-8-8', startAddress: '8.0.0.0', endAddress: '8.255.255.255' });
+        }
+        throw new Error(`unexpected request ${url}`);
+      },
+    },
+  );
+  assert.equal(requests[1], 'https://rdap.arin.net/registry/ip/8.8.8.0/24');
+  assert.equal(requests[1].includes('%2F'), false);
+});
+
 test('RDAP routes ASN through IANA bootstrap to authoritative RIR', async () => {
   const requests = [];
   const output = await rdapProvider.run(
