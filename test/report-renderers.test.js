@@ -42,6 +42,27 @@ test('CSV, KQL, and ATT&CK Navigator exports are deterministic and bounded', () 
   assert.equal(navigator.techniques[0].comment.includes('OBSERVED'), true);
 });
 
+test('CSV export neutralizes spreadsheet formula prefixes without changing ordinary observables', () => {
+  const csv = renderObservablesCsv({ observables: [
+    { type: 'domain', value: '=HYPERLINK("https://attacker.invalid","x")' },
+    { type: 'domain', value: '+SUM(1,1)' },
+    { type: 'domain', value: '-1+1' },
+    { type: 'domain', value: '@SUM(1,1)' },
+    { type: 'domain', value: '\t=1+1' },
+    { type: 'domain', value: 'safe.example' },
+  ] });
+  assert.match(csv, /'=""HYPERLINK|'=HYPERLINK/);
+  assert.match(csv, /'\+SUM/);
+  assert.match(csv, /'-1\+1/);
+  assert.match(csv, /'@SUM/);
+  assert.match(csv, /'\t=1\+1/);
+  assert.match(csv, /domain,safe\.example/);
+  for (const line of csv.trimEnd().split('\n').slice(1)) {
+    const value = line.slice(line.indexOf(',') + 1).replace(/^"|"$/g, '').replace(/""/g, '"');
+    assert.doesNotMatch(value, /^[=+\-@\t\r]/);
+  }
+});
+
 test('PDF renderer emits stable self-contained PDF bytes without network or wall-clock access', () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = () => { throw new Error('network must not be used by PDF renderer'); };
