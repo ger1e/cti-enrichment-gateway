@@ -37,14 +37,22 @@ test('canonical provider manifest has exactly one complete policy for every acti
   }
 });
 
-test('provider secret inventory is canonical and excludes gateway and observability credentials', () => {
-  const names = providerSecretNames();
-  assert.deepEqual([...names].sort(), [...new Set(names)].sort());
-  assert.equal(names.includes('CTI_GATEWAY_TOKEN'), false);
-  assert.equal(names.includes('SENTRY_AUTH_TOKEN'), false);
-  for (const name of names) assert.match(name, /^[A-Z0-9_]+$/);
-  const envNames = text('.env.example').split(/\r?\n/).filter(Boolean).map(line => line.split('=',1)[0]);
-  for (const name of names) assert.ok(envNames.includes(name), `missing ${name} from .env.example`);
+test('provider secret inventory is the exact source for env and bootstrap provider credentials', () => {
+  const providerNames = [...providerSecretNames()].sort();
+  assert.deepEqual(providerNames, [...new Set(providerNames)].sort());
+  assert.equal(providerNames.includes('CTI_GATEWAY_TOKEN'), false);
+  assert.equal(providerNames.includes('SENTRY_AUTH_TOKEN'), false);
+  for (const name of providerNames) assert.match(name, /^[A-Z0-9_]+$/);
+
+  const expected = ['CTI_GATEWAY_TOKEN', ...providerNames, 'SENTRY_AUTH_TOKEN'].sort();
+  const envNames = text('.env.example').split(/\r?\n/).filter(line => /^[A-Z0-9_]+=$/.test(line)).map(line => line.slice(0, -1)).sort();
+  assert.deepEqual(envNames, expected);
+
+  const bootstrap = text('scripts/bootstrap-vercel.ps1');
+  const block = bootstrap.match(/\$SecretNames\s*=\s*@\(([\s\S]*?)\)\s*\n/);
+  assert.ok(block, 'bootstrap SecretNames block missing');
+  const bootstrapNames = [...block[1].matchAll(/'([A-Z0-9_]+)'/g)].map(match => match[1]).sort();
+  assert.deepEqual(bootstrapNames, expected);
 });
 
 test('checked-in JSON is identical to the runtime manifest projection and contains no credential values', () => {
