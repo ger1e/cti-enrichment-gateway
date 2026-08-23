@@ -34,6 +34,20 @@ API surfaces:
 
 Profiles are fixed: `fast`, `standard`, `full`. Callers cannot select individual providers, outbound hosts, arbitrary methods, arbitrary headers or provider credentials.
 
+## Provider / API coverage
+
+The active registry currently contains **37 upstream APIs and feeds**. Provider selection is workflow-controlled; callers select only a fixed enrichment profile, never an individual upstream service.
+
+| Coverage | Active integrations |
+| --- | --- |
+| **Network identity, routing & exposure** | IPinfo · RDAP · RIPEstat · Shodan · Censys · Modat Magnify · Cloudflare Radar · Tor Exit List · Spamhaus DROP / ASN-DROP |
+| **Threat reputation & IOC context** | DShield · Feodo Tracker · ThreatMiner · CIRCL MISP OSINT · Botvrij MISP OSINT · GreyNoise · AbuseIPDB · VirusTotal · AlienVault / LevelBlue OTX · ThreatFox · urlscan.io · Webamon · Pulsedive · OpenPhish · URLhaus · TweetFeed.live |
+| **File & malware intelligence** | CIRCL Hashlookup · MalwareBazaar · Malpedia · Hybrid Analysis |
+| **Vulnerability & ATT&CK knowledge** | CISA KEV · FIRST EPSS · CIRCL Vulnerability-Lookup · NVD · OSV · MITRE ATT&CK TAXII |
+| **Ransomware intelligence** | RansomLook · Ransomware.live API-PRO |
+
+Canonical provider capabilities, supported indicator types, parser versions, credential requirements, fixed hosts, methods, tier/cost policy and distribution rules live in [`config/providers.json`](config/providers.json). Source semantics and intentional omissions are documented in [`docs/PROVIDERS.md`](docs/PROVIDERS.md); endpoint contracts are documented in [`docs/API.md`](docs/API.md).
+
 ## Error contract
 
 Errors use the same status semantics for humans and machine clients. JSON is the safe default for absent, wildcard, tied or JSON-preferred `Accept` headers. Explicit browser preference for `text/html` receives a branded hardened HTML page. Quality values are honored, JSON wins ties, and explicit HTML rejection is respected.
