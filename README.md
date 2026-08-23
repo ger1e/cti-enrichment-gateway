@@ -9,6 +9,24 @@ The gateway normalizes heterogeneous CTI sources behind fixed workflows. Provide
 
 Current scope is personal research and lab use. Do not send commercial-client, internal-enterprise, restricted or otherwise sensitive data unless the relevant authorization, licensing and data-handling requirements have been explicitly satisfied.
 
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+    A[Client / Maltego] --> B[Auth + bounded input]
+    B --> C[Canonical classifier]
+    C --> D[Fixed profile / workflow]
+    D --> E[Tiered scheduler]
+    E --> F[safeFetch fixed egress]
+    F --> P[(37 fixed APIs / feeds)]
+    P --> G[Provider parsers]
+    G --> H[Evidence v2 + integrity]
+    H --> I[Typed correlation + huntability]
+    I --> J[JSON / Batch / STIX 2.1]
+```
+
+The central security boundary is `safeFetch`: the caller never controls an arbitrary provider, outbound host, method, header or provider credential. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for trust boundaries and [`docs/END-TO-END-EXAMPLE.md`](docs/END-TO-END-EXAMPLE.md) for a sanitized indicator-to-evidence walkthrough.
+
 ## v2 capabilities
 
 Supported indicator classes:
@@ -68,6 +86,7 @@ Controlled errors cover 400, 401, 403, 404, 405, 408, 413, 415, 422, 429 and saf
 - Operational telemetry is allowlisted and excludes raw indicators by default.
 - GitHub Actions are pinned to immutable commit SHAs.
 - npm dependency state is lockfile-backed; CI uses `npm ci --ignore-scripts` and a real `npm audit --omit=dev`.
+- Tagged releases generate CycloneDX and SPDX SBOMs, source/build provenance metadata and SHA-256 checksums before GitHub Release publication.
 - Maltego knows only the gateway bearer; provider secrets never enter the MTZ/project output.
 
 ## Evidence and provider policy
@@ -143,7 +162,8 @@ See [`maltego/README.md`](maltego/README.md) for `--check`, `--repair`, `--updat
 
 ## Documentation
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — execution model and trust boundaries
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — execution model, compact diagram and trust boundaries
+- [`docs/END-TO-END-EXAMPLE.md`](docs/END-TO-END-EXAMPLE.md) — sanitized IOC → routing → evidence-v2 → STIX/report walkthrough
 - [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md) — evidence-v2 semantics
 - [`docs/PROVIDERS.md`](docs/PROVIDERS.md) — registry/source semantics and state model
 - [`docs/API.md`](docs/API.md) — endpoint contracts and hard limits
@@ -151,6 +171,7 @@ See [`maltego/README.md`](maltego/README.md) for `--check`, `--repair`, `--updat
 - [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — repository/configuration/production acceptance and incident runbook
 - [`SECURITY.md`](SECURITY.md) — repository security policy
 - [`release-manifest.json`](release-manifest.json) — deterministic gateway/schema/provider-parser release identity
+- [`.github/workflows/release-provenance.yml`](.github/workflows/release-provenance.yml) — tag-gated verification, CycloneDX/SPDX SBOM generation, provenance/checksums and GitHub Release publication
 - [`PUBLIC-RELEASE-CHECKLIST.md`](PUBLIC-RELEASE-CHECKLIST.md) — sanitized public-extraction gate
 
 The executable provider registry, canonical provider manifest, workflows and release manifest are authoritative. Documentation does not replace runtime/configuration checks.
@@ -207,6 +228,8 @@ npm run verify:governance
 ```
 
 The required `main` policy is: PR-only changes, strict `Tooling smoke`, stale-review dismissal, admin enforcement, linear history, resolved review conversations, no force pushes and no branch deletion. The bootstrap/finalizer requires a clean checkout matching fetched `origin/main`, verifies the exact status SHA, applies and reads back branch protection, stores the gateway bearer with current-user DPAPI locally, writes production secrets to the deployment platform rather than Git, and refuses deployment if governance drifts.
+
+A pushed `v*` tag activates `release-provenance`: the exact tagged source is verified, dependency audit and full checks run, the committed deterministic release manifest is checked, CycloneDX and SPDX SBOMs are generated with native npm, immutable build metadata is recorded, SHA-256 checksums are produced, and the resulting assets are attached to the GitHub Release. Manual workflow dispatch performs the verification/build path without publishing a release.
 
 ## Deliberate gaps
 
