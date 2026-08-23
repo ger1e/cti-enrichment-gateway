@@ -7,31 +7,34 @@ function json(value, status = 200) {
   return new Response(JSON.stringify(value), { status, headers: { 'content-type': 'application/json' } });
 }
 
-test('GreyNoise Community works without a key and only sends key header when configured', async () => {
-  let unauthRequest;
-  const unauth = await greynoiseProvider.run(
+test('GreyNoise Community uses the configured key header', async () => {
+  let request;
+  const output = await greynoiseProvider.run(
     { type: 'ip', value: '8.8.8.8' },
-    { fetchImpl: async (url, init) => {
-      unauthRequest = { url: String(url), init };
-      return json({ ip: '8.8.8.8', noise: false, riot: true, classification: 'benign', name: 'Google Public DNS' });
-    } },
+    {
+      env: { GREYNOISE_API_KEY: 'test-key' },
+      fetchImpl: async (url, init) => {
+        request = { url: String(url), init };
+        return json({ ip: '8.8.8.8', noise: false, riot: true, classification: 'benign', name: 'Google Public DNS' });
+      },
+    },
   );
-  assert.equal(new URL(unauthRequest.url).pathname, '/v3/community/8.8.8.8');
-  assert.equal(Object.hasOwn(unauthRequest.init.headers ?? {}, 'key'), false);
-  assert.equal(unauth.verdict, 'benign');
-
-  let authRequest;
-  await greynoiseProvider.run(
-    { type: 'ip', value: '8.8.8.8' },
-    { env: { GREYNOISE_API_KEY: 'test-key' }, fetchImpl: async (url, init) => {
-      authRequest = { url: String(url), init };
-      return json({ ip: '8.8.8.8', noise: false, riot: true, classification: 'benign' });
-    } },
-  );
-  assert.equal(authRequest.init.headers.key, 'test-key');
+  assert.equal(new URL(request.url).pathname, '/v3/community/8.8.8.8');
+  assert.equal(request.init.headers.key, 'test-key');
+  assert.equal(output.verdict, 'benign');
 });
 
-test('GreyNoise manifest marks the Community API credential optional', () => {
+test('GreyNoise adapter fails closed without the configured key', async () => {
+  await assert.rejects(
+    () => greynoiseProvider.run(
+      { type: 'ip', value: '8.8.8.8' },
+      { fetchImpl: async () => json({}) },
+    ),
+    /GREYNOISE_API_KEY/,
+  );
+});
+
+test('GreyNoise manifest requires the configured API credential', () => {
   assert.equal(PROVIDER_MANIFEST.greynoise.credentialEnv, 'GREYNOISE_API_KEY');
-  assert.equal(PROVIDER_MANIFEST.greynoise.optionalCredential, true);
+  assert.equal(PROVIDER_MANIFEST.greynoise.optionalCredential, false);
 });
