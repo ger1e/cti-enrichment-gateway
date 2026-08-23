@@ -2,6 +2,8 @@ name: Tooling smoke
 
 on:
   workflow_dispatch:
+  push:
+    branches: [fix/provider-contract-readiness]
 
 permissions:
   contents: read
