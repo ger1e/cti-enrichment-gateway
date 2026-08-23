@@ -70,7 +70,7 @@ The current gateway is for personal research and lab use. Do not route commercia
 - `main` release policy requires PR-only changes, strict `Tooling smoke`, stale-review dismissal, admin enforcement, linear history, resolved review conversations, force-push denial and deletion denial.
 - `npm run verify:governance` is read-only and must fail nonzero when the authenticated GitHub branch-protection state drifts.
 - `scripts/finalize.ps1` is the authoritative admin write/read-back path and refuses production deployment if governance or exact-main identity is not satisfied.
-- Vercel Git auto-deployment remains disabled; deployment is a separate explicit finalization step.
+- Vercel Git deployment is fail-closed for every branch except protected `main`; preview/feature branches must not auto-build. A production build is accepted only when its Git metadata SHA equals the exact verified `main` SHA.
 
 ## Validation
 
