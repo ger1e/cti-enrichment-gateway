@@ -5,11 +5,12 @@ import { readFileSync } from 'node:fs';
 const workflow = readFileSync(new URL('../.github/workflows/tooling-smoke.yml', import.meta.url), 'utf8');
 const vercel = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
 
-test('public hosted CI runs only for pull requests to main or manual dispatch', () => {
+test('public hosted CI runs only for pull requests to main, pushes to main, or manual dispatch', () => {
   assert.match(workflow, /on:\s*\n\s*workflow_dispatch:/);
   assert.match(workflow, /^\s+pull_request:\s*$/m);
   assert.match(workflow, /pull_request:\s*\n\s+branches:\s*\n\s+- main/);
-  assert.doesNotMatch(workflow, /^\s+push:/m);
+  assert.match(workflow, /^\s+push:\s*$/m);
+  assert.match(workflow, /push:\s*\n\s+branches:\s*\n\s+- main/);
   assert.doesNotMatch(workflow, /^\s+schedule:/m);
   assert.doesNotMatch(workflow, /^\s+workflow_run:/m);
   assert.doesNotMatch(workflow, /^\s+repository_dispatch:/m);

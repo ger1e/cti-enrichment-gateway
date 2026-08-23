@@ -69,25 +69,26 @@ test('Tooling smoke parses the finalizer and repository invariants require its d
   assert.match(verifyRepo, /Tooling smoke/);
 });
 
-test('Tooling smoke is PR-triggered for public main, manual-capable, single-runner, and fail-fast', () => {
+test('Tooling smoke gates PRs and attests exact merged main while remaining bounded and manual-capable', () => {
   const workflow = read(workflowPath);
   const runnerLines = workflow.match(/^\s+runs-on:/gm) ?? [];
 
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /^\s+pull_request:\s*$/m);
   assert.match(workflow, /pull_request:\s*\n\s+branches:\s*\n\s+- main/);
+  assert.match(workflow, /^\s+push:\s*$/m);
+  assert.match(workflow, /push:\s*\n\s+branches:\s*\n\s+- main/);
   assert.match(workflow, /cancel-in-progress: true/);
   assert.equal(runnerLines.length, 1);
   assert.match(workflow, /runs-on: ubuntu-latest/);
   assert.doesNotMatch(workflow, /runs-on: macos-latest/);
   assert.doesNotMatch(workflow, /runs-on: windows-latest/);
-  assert.doesNotMatch(workflow, /^\s+push:/m);
   assert.doesNotMatch(workflow, /^\s+schedule:/m);
   assert.doesNotMatch(workflow, /continue-on-error:\s*true/);
   assert.doesNotMatch(workflow, /apt-get/);
 });
 
-test('Tooling smoke invalidates stale success and publishes final status for the PR head or manual exact SHA', () => {
+test('Tooling smoke invalidates stale success and publishes final status for PR head, merged main, or manual exact SHA', () => {
   const workflow = read(workflowPath);
 
   assert.match(workflow, /name: Mark Tooling smoke pending/);
