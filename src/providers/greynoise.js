@@ -1,14 +1,15 @@
 import { fetchJson } from '../core/fetch-json.js';
-import { compact, relation, requireEnv } from './helpers.js';
+import { compact, envValue, relation } from './helpers.js';
 
 export const greynoiseProvider = Object.freeze({
-  name: 'greynoise', types: ['ip'], requiredEnv: 'GREYNOISE_API_KEY', cacheTtlMs: 86400000, negativeCacheTtlMs: 21600000, costClass: 'scarce', timeoutMs: 5000, parserVersion: '2026-08-22.1',
+  name: 'greynoise', types: ['ip'], optionalEnv: 'GREYNOISE_API_KEY', cacheTtlMs: 86400000, negativeCacheTtlMs: 21600000, costClass: 'scarce', timeoutMs: 5000, parserVersion: '2026-08-23.1',
   async run(input, context = {}) {
-    const key = requireEnv(context, 'GREYNOISE_API_KEY');
+    const key = envValue(context, 'GREYNOISE_API_KEY');
     const url = `https://api.greynoise.io/v3/community/${encodeURIComponent(input.value)}`;
+    const headers = key ? { key } : {};
     let raw;
     try {
-      raw = await fetchJson(url, { ...context, headers: { key } });
+      raw = await fetchJson(url, { ...context, headers });
     } catch (error) {
       if (error?.status === 404) {
         return {
