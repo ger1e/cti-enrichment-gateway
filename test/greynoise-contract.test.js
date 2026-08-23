@@ -24,13 +24,13 @@ test('GreyNoise Community uses the configured key header', async () => {
   assert.equal(output.verdict, 'benign');
 });
 
-test('GreyNoise adapter fails closed without the configured key', async () => {
+test('GreyNoise adapter fails closed without revealing credential identifiers', async () => {
   await assert.rejects(
     () => greynoiseProvider.run(
       { type: 'ip', value: '8.8.8.8' },
       { fetchImpl: async () => json({}) },
     ),
-    /GREYNOISE_API_KEY/,
+    error => error?.message === 'provider credential not configured' && !error.message.includes('GREYNOISE_API_KEY'),
   );
 });
 
