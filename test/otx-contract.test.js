@@ -12,7 +12,7 @@ test('OTX uses official indicator slugs and X-OTX-API-KEY header', async () => {
     [{ type: 'domain', value: 'example.com' }, 'domain'],
     [{ type: 'url', value: 'https://example.com/' }, 'url'],
     [{ type: 'hash', value: 'a'.repeat(64) }, 'file'],
-    [{ type: 'cve', value: 'CVE-2021-44228' }, 'cve'],
+    [{ type: 'cve', value: 'CVE-2021-44228' }, 'CVE'],
   ]) {
     let request;
     await otxProvider.run(input, {
