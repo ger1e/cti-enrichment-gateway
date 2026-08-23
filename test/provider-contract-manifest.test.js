@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import { PROVIDER_MANIFEST } from '../src/providers/manifest.js';
 
 const expectedVersions = Object.freeze({
+  ipinfo: '2026-08-22.1',
   rdap: '2026-08-22.1',
   threatminer: '2026-08-22.1',
   greynoise: '2026-08-22.1',
   shodan: '2026-08-22.1',
   censys: 'v3-2026-08-22.1',
+  modat: '2026-08-22.1',
   'cloudflare-radar': '2026-08-22.1',
   virustotal: 'v3-2026-08-22.1',
   otx: '2026-08-22.1',
@@ -17,6 +19,7 @@ const expectedVersions = Object.freeze({
   'circl-hashlookup': '2026-08-22.1',
   malpedia: '2026-08-22.1',
   'hybrid-analysis': 'v2.38.0-2026-08-22.1',
+  'circl-vulnerability': '2026-08-22.1',
   ransomlook: '2026-08-22.1',
 });
 
