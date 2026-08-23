@@ -46,6 +46,9 @@ test('configured provider is activated in deterministic IP workflow position', a
   const app = createApp({ env, fetchImpl, cache: new TtlCache(), adapters: routingAdapters });
   const out = await app.handleEnrich(req('8.8.8.8'));
   assert.deepEqual(out.body.evidence.map(x => x.provider), ['rdap', 'ripestat', 'shodan']);
-  assert.equal(seen.length, 4);
+  assert.equal(seen.length, 3);
+  assert.equal(seen.some(url => url.startsWith('https://rdap.arin.net/registry/ip/8.8.8.8')), true);
+  assert.equal(seen.some(url => url.startsWith('https://stat.ripe.net/')), true);
+  assert.equal(seen.some(url => url.startsWith('https://api.shodan.io/')), true);
   assert.equal(JSON.stringify(out.body).includes('secret'), false);
 });
