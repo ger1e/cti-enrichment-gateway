@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 const REPOSITORY = 'ger1e/cti-enrichment-gateway';
 const BRANCH = 'main';
@@ -98,4 +99,6 @@ function main() {
   }
 }
 
-process.exitCode = main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  process.exitCode = main();
+}

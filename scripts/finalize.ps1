@@ -140,6 +140,27 @@ function Assert-PublicRepository {
     }
 }
 
+function Assert-ToolingSmokeSuccess {
+    param(
+        [Parameter(Mandatory = $true)][string]$Gh,
+        [Parameter(Mandatory = $true)][string]$Commit
+    )
+
+    $json = Invoke-NativeCapture $Gh api "repos/$Repository/commits/$Commit/status"
+    $status = $json | ConvertFrom-Json
+    $matching = @($status.statuses | Where-Object { $_.context -eq $RequiredStatus })
+    if ($matching.Count -eq 0) {
+        throw "Required status '$RequiredStatus' is missing from commit $Commit."
+    }
+
+    $latest = $matching | Select-Object -First 1
+    if ($latest.state -ne 'success') {
+        throw "Required status '$RequiredStatus' is '$($latest.state)' on commit $Commit; success is required before finalization."
+    }
+
+    Write-Host "Verified $RequiredStatus = success on $Commit."
+}
+
 function Set-MainProtection {
     param([Parameter(Mandatory = $true)][string]$Gh)
 
@@ -279,7 +300,7 @@ function Invoke-LocalToolingSmoke {
             ) | Out-Null
             if ($parseErrors.Count -gt 0) {
                 $messages = ($parseErrors | ForEach-Object { $_.Message }) -join '; '
-                throw "PowerShell syntax errors in $file: $messages"
+                throw "PowerShell syntax errors in ${file}: $messages"
             }
         }
 
@@ -291,12 +312,13 @@ function Invoke-LocalToolingSmoke {
 
 Write-Host '=== CTI Enrichment Gateway / finalization ==='
 Write-Host 'This script never reads or prints provider secret values. Vercel secret entry remains inside the hardened bootstrap.'
-Write-Host 'Governance mode: public repository with GitHub server-side branch protection plus local exact-SHA validation.'
+Write-Host 'Governance mode: public repository with GitHub server-side branch protection plus exact-SHA hosted and local validation.'
 Write-Host ''
 
 $commit = Assert-ExactOriginMain
 $gh = Ensure-GitHubCli
 Assert-PublicRepository -Gh $gh
+Assert-ToolingSmokeSuccess -Gh $gh -Commit $commit
 
 Write-Host 'Applying main branch protection...'
 Set-MainProtection -Gh $gh
@@ -314,7 +336,7 @@ if (-not (Test-Path $BootstrapPath)) {
 }
 
 Write-Host ''
-Write-Host 'GitHub protection and local smoke verified. Starting hardened exact-main Vercel deployment...'
+Write-Host 'GitHub protection, hosted status, and local smoke verified. Starting hardened exact-main Vercel deployment...'
 & $BootstrapPath
 if ($LASTEXITCODE -ne 0) {
     throw "bootstrap-vercel.ps1 failed with exit code $LASTEXITCODE"
@@ -330,4 +352,4 @@ if ($finalCommit -ne $commit) {
 
 Write-Host ''
 Write-Host "Finalization complete for $Repository@$finalCommit."
-Write-Host "Public governance verified: protected main, required '$RequiredStatus', local smoke suite, and exact-SHA deployment checks completed."
+Write-Host "Public governance verified: protected main, required '$RequiredStatus', hosted exact-SHA status, local smoke suite, and exact-SHA deployment checks completed."
