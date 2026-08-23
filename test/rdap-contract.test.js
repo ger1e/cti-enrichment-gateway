@@ -31,7 +31,6 @@ test('RDAP routes IPv4 through IANA bootstrap to authoritative RIR without redir
     'https://data.iana.org/rdap/ipv4.json',
     'https://rdap.arin.net/registry/ip/8.8.8.8',
   ]);
-  assert.equal(requests.some(item => item.url.includes('rdap.org')), false);
   assert.equal(output.attributes.ip, '8.8.8.8');
   assert.equal(output.attributes.handle, 'NET-8-0-0-0-1');
 });
