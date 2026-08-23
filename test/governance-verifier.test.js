@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateBranchProtection } from '../scripts/verify-github-governance.mjs';
+import { validatePublicProtectedGovernance } from '../scripts/verify-github-governance.mjs';
+
+function validRepo() {
+  return { private: false, visibility: 'public' };
+}
+
+function validBranch() {
+  return { name: 'main', protected: true };
+}
 
 function validProtection() {
   return {
@@ -22,8 +30,14 @@ function validProtection() {
   };
 }
 
-test('governance verifier accepts the exact solo-maintainer protection contract', () => {
-  assert.deepEqual(validateBranchProtection(validProtection()), []);
+test('governance verifier accepts the exact public solo-maintainer protection contract', () => {
+  assert.deepEqual(validatePublicProtectedGovernance(validRepo(), validBranch(), validProtection()), []);
+});
+
+test('governance verifier rejects public visibility and protected-main failures independently', () => {
+  assert.ok(validatePublicProtectedGovernance({ private: true, visibility: 'private' }, validBranch(), validProtection()).includes('repository_not_public'));
+  assert.ok(validatePublicProtectedGovernance(validRepo(), { name: 'main', protected: false }, validProtection()).includes('main_not_protected'));
+  assert.ok(validatePublicProtectedGovernance(validRepo(), { name: 'other', protected: true }, validProtection()).includes('main_branch_unavailable'));
 });
 
 test('governance verifier rejects every required protection property independently', () => {
@@ -42,7 +56,7 @@ test('governance verifier rejects every required protection property independent
   for (const [code, mutate] of cases) {
     const protection = validProtection();
     mutate(protection);
-    assert.ok(validateBranchProtection(protection).some(item => item.code === code), code);
+    assert.ok(validatePublicProtectedGovernance(validRepo(), validBranch(), protection).includes(code), code);
   }
 });
 
@@ -50,12 +64,12 @@ test('governance verifier accepts required checks represented by GitHub checks o
   const protection = validProtection();
   protection.required_status_checks.contexts = [];
   protection.required_status_checks.checks = [{ context: 'Tooling smoke', app_id: 1 }];
-  assert.deepEqual(validateBranchProtection(protection), []);
+  assert.deepEqual(validatePublicProtectedGovernance(validRepo(), validBranch(), protection), []);
 });
 
 test('governance verifier fails closed on absent or malformed protection payloads', () => {
   for (const value of [null, [], {}, 'bad']) {
-    const violations = validateBranchProtection(value);
+    const violations = validatePublicProtectedGovernance(validRepo(), validBranch(), value);
     assert.ok(violations.length > 0);
     assert.ok(violations.length <= 16);
   }

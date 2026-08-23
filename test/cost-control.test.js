@@ -5,15 +5,18 @@ import { readFileSync } from 'node:fs';
 const workflow = readFileSync(new URL('../.github/workflows/tooling-smoke.yml', import.meta.url), 'utf8');
 const vercel = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
 
-test('hosted CI cannot start automatically from repository activity', () => {
+test('public hosted CI runs only for pull requests to main or manual dispatch', () => {
   assert.match(workflow, /on:\s*\n\s*workflow_dispatch:/);
-  assert.doesNotMatch(workflow, /^\s+pull_request:/m);
+  assert.match(workflow, /^\s+pull_request:\s*$/m);
+  assert.match(workflow, /pull_request:\s*\n\s+branches:\s*\n\s+- main/);
   assert.doesNotMatch(workflow, /^\s+push:/m);
   assert.doesNotMatch(workflow, /^\s+schedule:/m);
+  assert.doesNotMatch(workflow, /^\s+workflow_run:/m);
+  assert.doesNotMatch(workflow, /^\s+repository_dispatch:/m);
 });
 
-test('manual hosted CI is bounded to one fail-fast Ubuntu runner without package installation churn', () => {
-  const runners = workflow.match(/^\s*runs-on:/gm) ?? [];
+test('hosted CI is bounded to one fail-fast Ubuntu runner without package installation churn', () => {
+  const runners = workflow.match(/^\s+runs-on:/gm) ?? [];
   assert.equal(runners.length, 1);
   assert.match(workflow, /runs-on: ubuntu-latest/);
   assert.doesNotMatch(workflow, /continue-on-error:\s*true/);
