@@ -1,6 +1,6 @@
 # Security policy
 
-This repository is a private, read-only CTI enrichment gateway. Security controls are intentionally conservative.
+This repository is a public, read-only CTI enrichment gateway. Security controls are intentionally conservative, and every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
 
 ## Supported use
 
@@ -65,11 +65,12 @@ The current gateway is for personal research and lab use. Do not route commercia
 - Runtime parity is Node.js 24.x across Vercel, CI, Codespaces, and local bootstrap flows.
 - `package-lock.json` is mandatory even with an empty dependency set; CI uses deterministic `npm ci --ignore-scripts` and runs a real `npm audit --omit=dev`.
 - The Windows Vercel bootstrap uses the repository-pinned CLI version rather than `vercel@latest`.
-- CI runs the Node suite, repository invariants, public-release audit, Maltego standard-library tests, Python compilation, bash/zsh/ShellCheck checks and PowerShell syntax validation on the supported OS matrix.
-- Authoritative `Tooling smoke` must fail closed if any summarized validation step fails and must publish status against the exact PR head SHA.
+- `Tooling smoke` is bounded to one Ubuntu runner and validates repository invariants, Node tests, Maltego standard-library tests, Python compilation, shell syntax/ShellCheck and PowerShell syntax. CodeQL performs JavaScript/TypeScript static analysis separately.
+- Authoritative `Tooling smoke` must fail closed if any summarized validation step fails, must publish status against the exact PR head SHA, and must attest the exact merged `main` SHA on push before production finalization.
 - `main` release policy requires PR-only changes, strict `Tooling smoke`, stale-review dismissal, admin enforcement, linear history, resolved review conversations, force-push denial and deletion denial.
 - `npm run verify:governance` is read-only and must fail nonzero when the authenticated GitHub branch-protection state drifts.
 - `scripts/finalize.ps1` is the authoritative admin write/read-back path and refuses production deployment if governance or exact-main identity is not satisfied.
+- Vercel Git auto-deployment remains disabled; deployment is a separate explicit finalization step.
 
 ## Validation
 
