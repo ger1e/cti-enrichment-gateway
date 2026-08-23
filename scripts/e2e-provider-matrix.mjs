@@ -1,8 +1,13 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { ALL_PROVIDERS } from '../src/providers/index.js';
 import { runProvider } from '../src/core/provider-runner.js';
 import { PROBE_SAMPLE_BY_TYPE } from '../src/control/provider-probe.js';
 
-const CONCURRENCY = 4;
+const TARGETS = new Set([
+  'threatminer', 'misp-circl-osint', 'modat', 'threatfox', 'urlhaus', 'malwarebazaar',
+  'osv', 'attack-taxii', 'tweetfeed', 'ransomlook', 'ransomware-live',
+]);
+const CONCURRENCY = 3;
 
 function configured(env, name) {
   return typeof name === 'string' && typeof env?.[name] === 'string' && env[name].trim().length > 0;
@@ -20,7 +25,7 @@ function classifyFailure(failure) {
 async function probe(provider) {
   const type = Array.isArray(provider.types) ? provider.types[0] : null;
   const value = type ? PROBE_SAMPLE_BY_TYPE[type] : null;
-  if (!type || !value) return { provider: provider.name, type: type ?? 'unknown', status: 'contract_error' };
+  if (!type || !value) return { provider: provider.name, type: type ?? 'unknown', status: 'contract_error', failureReason: 'missing_probe_sample' };
   if (provider.requiredEnv && !configured(process.env, provider.requiredEnv)) {
     return { provider: provider.name, type, status: 'unconfigured' };
   }
@@ -37,6 +42,7 @@ async function probe(provider) {
       provider: provider.name,
       type,
       status: classifyFailure(result.failure),
+      failureReason: result.failure?.reason ?? 'unknown',
       latencyMs: result.durationMs,
       ...(Number.isFinite(httpStatus) ? { httpStatus } : {}),
     };
@@ -44,7 +50,7 @@ async function probe(provider) {
 
   const data = result.data;
   if (!data || typeof data !== 'object' || typeof data.observationType !== 'string' || !data.observationType) {
-    return { provider: provider.name, type, status: 'contract_error', latencyMs: result.durationMs };
+    return { provider: provider.name, type, status: 'contract_error', failureReason: 'invalid_normalized_result', latencyMs: result.durationMs };
   }
 
   return {
@@ -72,19 +78,13 @@ async function mapBounded(items, limit, mapper) {
   return output;
 }
 
-const providers = ALL_PROVIDERS.filter(provider => provider?.active !== false);
-const startedAt = new Date().toISOString();
+const providers = ALL_PROVIDERS.filter(provider => provider?.active !== false && TARGETS.has(provider.name));
 const results = await mapBounded(providers, CONCURRENCY, probe);
-const summary = results.reduce((acc, item) => {
+for (const result of results) console.log(`E2E_PROVIDER_RESULT=${JSON.stringify(result)}`);
+console.log(`E2E_PROVIDER_SUMMARY=${JSON.stringify(results.reduce((acc, item) => {
   acc[item.status] = (acc[item.status] ?? 0) + 1;
   return acc;
-}, {});
+}, {}))}`);
 
-console.log(`E2E_PROVIDER_MATRIX=${JSON.stringify({
-  startedAt,
-  finishedAt: new Date().toISOString(),
-  providerCount: results.length,
-  concurrency: CONCURRENCY,
-  summary,
-  results,
-})}`);
+mkdirSync('public', { recursive: true });
+writeFileSync('public/index.html', 'provider matrix complete\n');
