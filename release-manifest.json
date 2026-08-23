@@ -90,7 +90,7 @@
     },
     {
       "name": "modat",
-      "parserVersion": "2026-08-22.1",
+      "parserVersion": "2026-08-23.1",
       "active": true
     },
     {
@@ -185,7 +185,7 @@
     },
     {
       "name": "webamon",
-      "parserVersion": "2026-08-22.1",
+      "parserVersion": "2026-08-23.1",
       "active": true
     }
   ]

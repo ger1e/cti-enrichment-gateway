@@ -57,6 +57,9 @@ function providerResult(provider, checks) {
     status,
     checks: Object.freeze(checks),
   };
+  if ((status === 'auth_failed' || status === 'unconfigured') && provider.requiredEnv) {
+    output.credentialEnv = provider.requiredEnv;
+  }
   if (checks.length === 1) {
     const [check] = checks;
     for (const key of ['type', 'latencyMs', 'httpStatus', 'observationType', 'verdict']) {

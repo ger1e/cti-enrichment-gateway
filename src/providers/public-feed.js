@@ -1,6 +1,8 @@
 import { BoundedCache } from '../core/cache.js';
 
 const DEFAULT_FEED_CACHE = new BoundedCache({ maxEntries: 64 });
+const TRANSIENT_HTTP = new Set([502, 503, 504]);
+const defaultSleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function httpError(response) {
   const error = new Error(`provider HTTP ${response.status}`);
@@ -33,6 +35,20 @@ async function fetchText(url, {
   return value;
 }
 
+async function fetchTextWithRetry(url, options = {}, {
+  sleep = defaultSleep,
+  retryDelayMs = 150,
+} = {}) {
+  try {
+    return await fetchText(url, options);
+  } catch (error) {
+    if (!TRANSIENT_HTTP.has(Number(error?.status)) || options.signal?.aborted) throw error;
+    await sleep(Math.max(0, retryDelayMs));
+    if (options.signal?.aborted) throw Object.assign(new Error('provider request aborted'), { name: 'AbortError' });
+    return fetchText(url, options);
+  }
+}
+
 async function loadWithLegacyMap(store, url, loader, ttlMs, cache, now) {
   if (cache) {
     const cached = store.get(url);
@@ -49,10 +65,12 @@ export async function loadTextFeed(url, context = {}, {
   cache = true,
 } = {}) {
   const store = context.feedCache ?? DEFAULT_FEED_CACHE;
-  const loader = () => fetchText(url, {
+  const loader = () => fetchTextWithRetry(url, {
     fetchImpl: context.fetchImpl,
     signal: context.signal,
     maxBytes,
+  }, {
+    sleep: context.sleep ?? defaultSleep,
   });
 
   if (store && typeof store.getOrLoad === 'function') {
