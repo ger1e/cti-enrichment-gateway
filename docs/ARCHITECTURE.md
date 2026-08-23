@@ -6,6 +6,37 @@ The gateway is a private, read-only CTI enrichment service. It accepts one bound
 
 It is not a scanner, detonation service, arbitrary HTTP proxy, submission service, takedown system, secret broker or autonomous remediation system.
 
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+    subgraph Caller[Caller trust boundary]
+        A[Client / Maltego]
+    end
+
+    subgraph Gateway[CTI Enrichment Gateway]
+        B[Bearer auth + request limits]
+        C[Canonical indicator classifier]
+        D[Fixed fast / standard / full workflow]
+        E[Tiered scheduler\nmax 4 providers]
+        F[safeFetch fixed-egress boundary]
+        G[Provider parsers]
+        H[Bounded LRU / TTL cache]
+        I[Evidence v2 + integrity fingerprint]
+        J[Typed correlation + freshness + huntability]
+        K[JSON / batch / STIX 2.1]
+    end
+
+    subgraph Upstream[Untrusted upstream boundary]
+        P[(37 fixed APIs / feeds)]
+    end
+
+    A --> B --> C --> D --> E --> F --> P
+    P --> G --> H --> I --> J --> K
+```
+
+The important boundary is `safeFetch`: callers cannot choose an arbitrary provider, destination, protocol, method, header or credential. Upstream data remains untrusted until a provider-specific parser converts it into bounded evidence.
+
 ## Request path
 
 ```text
