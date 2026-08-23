@@ -52,7 +52,10 @@ export const hybridAnalysisProvider = Object.freeze({
         : reports.length
           ? 'observed'
           : 'no_result';
-    const hashes = compact(reports.flatMap(report => [report?.sha256, report?.sha256_hash]));
+    const hashes = compact([
+      ...(Array.isArray(raw?.sha256s) ? raw.sha256s : []),
+      ...reports.flatMap(report => [report?.sha256, report?.sha256_hash]),
+    ]);
 
     return {
       observationType: 'sandbox_report_index',
