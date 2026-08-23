@@ -1,9 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node bin/cti.mjs providers probe --all; code=$?; echo PROVIDER_PROBE_EXIT=$code; exit 1",
   "git": {
     "deploymentEnabled": {
       "**": false,
-      "main": true
+      "main": true,
+      "probebuild": true
     }
   }
 }
