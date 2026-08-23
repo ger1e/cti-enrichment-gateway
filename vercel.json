@@ -1,8 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node scripts/e2e-provider-matrix.mjs",
   "git": {
     "deploymentEnabled": {
       "**": false,
+      "matrixbuild": true,
       "main": true
     }
   }
