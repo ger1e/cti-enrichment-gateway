@@ -1,5 +1,8 @@
 # CTI Enrichment Gateway
 
+[![Tooling smoke](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/tooling-smoke.yml)
+[![CodeQL](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/codeql.yml)
+
 Private, read-only CTI enrichment gateway for Vercel with bounded batch/STIX APIs, a local Maltego Graph Desktop client, deterministic operator tooling, and an offline decision-grade report compiler.
 
 The gateway normalizes heterogeneous CTI sources behind fixed workflows. Provider credentials remain server-side. Callers receive evidence-v2 observations, provenance, relationships, typed correlation and explicit coverage failures rather than unrestricted provider access or a synthetic “vendors say malicious” score.

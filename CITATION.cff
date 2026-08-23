@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If this project informs your work, cite the repository and preserve provenance for any derived intelligence, detections, or reports."
+title: "CTI Enrichment Gateway"
+type: software
+authors:
+  - family-names: "Illy"
+    given-names: "Gergő"
+repository-code: "https://github.com/ger1e/cti-enrichment-gateway"
+url: "https://github.com/ger1e/cti-enrichment-gateway"
+keywords:
+  - cyber threat intelligence
+  - CTI enrichment
+  - threat hunting
+  - STIX
+  - Maltego
+  - KQL
+  - OSINT
+  - detection engineering
