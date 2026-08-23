@@ -4,7 +4,7 @@ import { compact, requireEnv } from './helpers.js';
 function slug(type, value) {
   if (type === 'ip') return value.includes(':') ? 'IPv6' : 'IPv4';
   if (type === 'hash') return 'file';
-  if (type === 'cve') return 'cve';
+  if (type === 'cve') return 'CVE';
   if (type === 'domain') return 'domain';
   if (type === 'url') return 'url';
   throw Object.assign(new Error('unsupported indicator type'), { status: 400 });

@@ -7,7 +7,7 @@ export const threatfoxProvider = Object.freeze({
     const key = requireEnv(context, 'ABUSECH_API_KEY');
     const body = input.type === 'hash'
       ? { query: 'search_hash', hash: input.value }
-      : { query: 'search_ioc', search_term: input.value };
+      : { query: 'search_ioc', search_term: input.value, exact_match: true };
     const raw = await fetchJson('https://threatfox-api.abuse.ch/api/v1/', {
       ...context,
       method: 'POST',
