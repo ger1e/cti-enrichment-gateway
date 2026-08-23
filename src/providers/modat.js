@@ -110,26 +110,38 @@ function latestTimestamp(values) {
 }
 
 async function runIp(input, context, key) {
-  const url = `${API_ROOT}/host/${encodeURIComponent(input.value)}/v1`;
+  const url = `${API_ROOT}/host/search/v1`;
   let raw;
   try {
     raw = await fetchJson(url, {
       ...context,
-      method: 'GET',
-      headers: { Authorization: `Bearer ${key}` },
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `ip:\"${input.value}\"`,
+        page: 1,
+        page_size: 10,
+      }),
       maxBytes: 4_000_000,
     });
   } catch (error) {
     if (error?.status === 404) return noHostResult(input);
     throw error;
   }
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw invalidResponse('invalid Modat host response');
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw invalidResponse('invalid Modat host search response');
+  const rows = Array.isArray(raw.page) ? raw.page : Array.isArray(raw.results) ? raw.results : [];
+  if (!rows.length) return noHostResult(input);
+  const host = rows[0];
+  if (!host || typeof host !== 'object' || Array.isArray(host)) throw invalidResponse('invalid Modat host result');
 
-  const names = hostnames(raw);
-  const asn = asnValue(raw);
-  const { services, ports, tags, cves } = serviceValues(raw);
-  const hasHostEvidence = Boolean(raw?.ip ?? raw?.last_seen ?? raw?.lastSeen ?? asn) || names.length > 0 || services.length > 0;
-  if (!hasHostEvidence) throw invalidResponse('empty Modat host response');
+  const names = hostnames(host);
+  const asn = asnValue(host);
+  const { services, ports, tags, cves } = serviceValues(host);
+  const hasHostEvidence = Boolean(host?.ip ?? host?.last_seen ?? host?.lastSeen ?? asn) || names.length > 0 || services.length > 0;
+  if (!hasHostEvidence) throw invalidResponse('empty Modat host result');
 
   const relationships = compact([
     ...names.map(name => relation('domain', name, 'hostname')),
@@ -139,13 +151,13 @@ async function runIp(input, context, key) {
   return {
     observationType: 'internet_exposure',
     verdict: 'observed',
-    lastSeen: raw?.last_seen ?? raw?.lastSeen ?? null,
+    lastSeen: host?.last_seen ?? host?.lastSeen ?? null,
     tags,
     attributes: {
-      ip: raw?.ip ?? input.value,
+      ip: host?.ip ?? input.value,
       asn,
-      organization: asnOrganization(raw),
-      country: raw?.geo?.country_code ?? raw?.geo?.country ?? raw?.country_code ?? null,
+      organization: asnOrganization(host),
+      country: host?.geo?.country_code ?? host?.geo?.country ?? host?.country_code ?? null,
       hostnames: names,
       ports,
       serviceCount: services.length,
@@ -213,7 +225,7 @@ export const modatProvider = Object.freeze({
   negativeCacheTtlMs: 3_600_000,
   costClass: 'quota',
   timeoutMs: 7_000,
-  parserVersion: '2026-08-22.1',
+  parserVersion: '2026-08-23.1',
   async run(input, context = {}) {
     const key = requireEnv(context, 'MODAT_API_KEY');
     if (input?.type === 'ip') return runIp(input, context, key);
