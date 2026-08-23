@@ -22,7 +22,7 @@ function noResult(type, value) {
 }
 
 export const otxProvider = Object.freeze({
-  name: 'otx', types: ['ip', 'domain', 'url', 'hash', 'cve'], requiredEnv: 'OTX_API_KEY', cacheTtlMs: 21600000, negativeCacheTtlMs: 3600000, costClass: 'free', timeoutMs: 7000, parserVersion: '2026-08-22.1',
+  name: 'otx', types: ['ip', 'domain', 'url', 'hash', 'cve'], requiredEnv: 'OTX_API_KEY', cacheTtlMs: 21600000, negativeCacheTtlMs: 3600000, costClass: 'free', timeoutMs: 12000, parserVersion: '2026-08-23.1',
   async run(input, context = {}) {
     const key = requireEnv(context, 'OTX_API_KEY');
     const type = slug(input.type, input.value);
