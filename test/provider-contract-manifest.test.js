@@ -14,7 +14,7 @@ const expectedVersions = Object.freeze({
   virustotal: 'v3-2026-08-22.1',
   otx: '2026-08-22.1',
   threatfox: '2026-08-22.1',
-  webamon: '2026-08-22.1',
+  webamon: '2026-08-23.1',
   pulsedive: '2026-08-22.1',
   'circl-hashlookup': '2026-08-22.1',
   malpedia: '2026-08-22.1',
@@ -42,6 +42,12 @@ test('Pulsedive manifest models optional authentication and current indicator sc
   assert.equal(pulsedive.optionalCredential, true);
   assert.equal(pulsedive.costClass, 'free');
   assert.deepEqual(pulsedive.types, ['ip', 'domain', 'url']);
+  assert.equal(pulsedive.probeIntervalMs, 1100);
+});
+
+test('live provider policy preserves rate and latency headroom observed in E2E', () => {
+  assert.equal(PROVIDER_MANIFEST.modat.probeIntervalMs, 3100);
+  assert.equal(PROVIDER_MANIFEST.webamon.timeoutMs, 12000);
 });
 
 test('Hybrid Analysis manifest uses canonical non-redirecting API host', () => {
