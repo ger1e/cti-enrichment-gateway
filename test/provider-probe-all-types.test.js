@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { probeProviders, PROBE_SAMPLE_BY_TYPE } from '../src/control/provider-probe.js';
 import { PROVIDER_MANIFEST } from '../src/providers/manifest.js';
+import { WORKFLOWS } from '../src/workflows.js';
 
 test('provider probe executes every advertised type sequentially and fails closed on one broken surface', async () => {
   const seen = [];
@@ -37,6 +38,18 @@ test('every active manifest indicator type has a canonical harmless probe sample
     for (const type of policy.types) {
       assert.equal(typeof PROBE_SAMPLE_BY_TYPE[type], 'string', `${name}:${type}`);
       assert.ok(PROBE_SAMPLE_BY_TYPE[type].length > 0, `${name}:${type}`);
+    }
+  }
+});
+
+test('every workflow entry is backed by a provider that actually advertises that indicator type', () => {
+  for (const [type, providers] of Object.entries(WORKFLOWS)) {
+    assert.equal(new Set(providers).size, providers.length, `${type}: duplicate provider`);
+    for (const name of providers) {
+      const policy = PROVIDER_MANIFEST[name];
+      assert.ok(policy, `${type}:${name}: missing manifest provider`);
+      assert.ok(policy.active, `${type}:${name}: inactive provider`);
+      assert.ok(policy.types.includes(type), `${type}:${name}: unsupported type`);
     }
   }
 });
