@@ -1,0 +1,91 @@
+name: release-provenance
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@ae0d4ed08881f17d1511386f5be3e62356acd4a6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+          check-latest: false
+
+      - name: Verify release source
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npm audit --omit=dev
+          npm run check
+          node scripts/generate-release-manifest.mjs --check
+
+      - name: Generate SBOM and build provenance
+        run: |
+          set -euo pipefail
+          npm sbom --sbom-format=cyclonedx --sbom-type=application > sbom.cdx.json
+          npm sbom --sbom-format=spdx --sbom-type=application > sbom.spdx.json
+          node <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { writeFileSync } from 'node:fs';
+
+          const provenance = {
+            schema: 'ger1e-release-provenance/v1',
+            repository: process.env.GITHUB_REPOSITORY,
+            sourceSha: process.env.GITHUB_SHA,
+            ref: process.env.GITHUB_REF,
+            refName: process.env.GITHUB_REF_NAME,
+            workflow: process.env.GITHUB_WORKFLOW,
+            runId: process.env.GITHUB_RUN_ID,
+            runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+            runnerOs: process.env.RUNNER_OS,
+            runnerArch: process.env.RUNNER_ARCH,
+            nodeVersion: process.version,
+            npmVersion: execFileSync('npm', ['--version'], { encoding: 'utf8' }).trim(),
+          };
+          writeFileSync('build-provenance.json', `${JSON.stringify(provenance, null, 2)}\n`, 'utf8');
+          NODE
+          sha256sum \
+            release-manifest.json \
+            sbom.cdx.json \
+            sbom.spdx.json \
+            build-provenance.json \
+            > SHA256SUMS
+
+      - name: Publish tagged GitHub release
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          assets=(release-manifest.json sbom.cdx.json sbom.spdx.json build-provenance.json SHA256SUMS)
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "${assets[@]}" --clobber
+          else
+            gh release create "$tag" \
+              --verify-tag \
+              --title "$tag" \
+              --generate-notes \
+              "${assets[@]}"
+          fi
+
+      - name: Manual verification summary
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          echo 'Manual run verified release generation only; no GitHub release was created.'
+          cat SHA256SUMS
