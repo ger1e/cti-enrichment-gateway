@@ -18,7 +18,7 @@ test('ThreatMiner status_code 404 is neutral absence rather than an unknown obse
   assert.equal(output.attributes.resultCount, 0);
 });
 
-test('ThreatFox search_ioc request matches the vendor sample contract without undocumented exact_match', async () => {
+test('ThreatFox search_ioc request matches the vendor exact-match contract', async () => {
   let request;
   await threatfoxProvider.run(
     { type: 'domain', value: 'example.com' },
@@ -31,6 +31,6 @@ test('ThreatFox search_ioc request matches the vendor sample contract without un
     },
   );
   const body = JSON.parse(request.init.body);
-  assert.deepEqual(body, { query: 'search_ioc', search_term: 'example.com' });
+  assert.deepEqual(body, { query: 'search_ioc', search_term: 'example.com', exact_match: true });
   assert.equal(request.init.headers['Auth-Key'], 'test-key');
 });
