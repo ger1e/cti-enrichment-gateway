@@ -85,7 +85,12 @@ function hostnames(raw) {
 
 function serviceValues(raw) {
   const services = arr(raw?.services).slice(0, MAX_VALUES);
-  const ports = bounded(services.map(item => item?.port).filter(value => Number.isInteger(Number(value))).map(Number));
+  const ports = [...new Set(
+    services
+      .map(item => item?.port)
+      .filter(value => Number.isInteger(Number(value)))
+      .map(Number),
+  )].slice(0, MAX_VALUES);
   const tags = bounded(services.flatMap(item => arr(item?.tags)));
   const cves = bounded(services.flatMap(item => arr(item?.cves).map(cve => typeof cve === 'string' ? cve : cve?.id ?? cve?.cve)));
   return { services, ports, tags, cves };
@@ -132,7 +137,10 @@ async function runIp(input, context, key) {
     throw error;
   }
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw invalidResponse('invalid Modat host search response');
-  const rows = Array.isArray(raw.page) ? raw.page : Array.isArray(raw.results) ? raw.results : [];
+  const hasPage = Array.isArray(raw.page);
+  const hasResults = Array.isArray(raw.results);
+  if (!hasPage && !hasResults) throw invalidResponse('invalid Modat host search response');
+  const rows = hasPage ? raw.page : raw.results;
   if (!rows.length) return noHostResult(input);
   const host = rows[0];
   if (!host || typeof host !== 'object' || Array.isArray(host)) throw invalidResponse('invalid Modat host result');
