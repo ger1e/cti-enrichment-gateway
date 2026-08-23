@@ -24,13 +24,13 @@ test('urlscan Search API uses configured api-key header', async () => {
   assert.equal(output.verdict, 'no_result');
 });
 
-test('urlscan adapter fails closed when the configured key is missing', async () => {
+test('urlscan adapter fails closed without revealing credential identifiers', async () => {
   await assert.rejects(
     () => urlscanProvider.run(
       { type: 'ip', value: '8.8.8.8' },
       { fetchImpl: async () => json({ results: [] }) },
     ),
-    /URLSCAN_API_KEY/,
+    error => error?.message === 'provider credential not configured' && !error.message.includes('URLSCAN_API_KEY'),
   );
 });
 
