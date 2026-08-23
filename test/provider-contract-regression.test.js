@@ -65,7 +65,7 @@ test('Cloudflare Radar parses the current nested result.ip response', async () =
   assert.equal(output.attributes.asnLocation, 'US');
 });
 
-test('Webamon Pro basic search sends required results fields and parses current result shape', async () => {
+test('Webamon Pro basic IP search sends documented IP fields and parses current result shape', async () => {
   let request;
   const output = await webamonProvider.run(
     { type: 'ip', value: '192.0.2.44' },
@@ -75,7 +75,7 @@ test('Webamon Pro basic search sends required results fields and parses current 
         request = { url: String(url), init };
         return json({
           search_string: '192.0.2.44',
-          fields: ['server.ip', 'resolved_url', 'submission_url', 'resource.sha256'],
+          fields: ['server.ip', 'request.response.ip'],
           total_hits: 1,
           results: [{
             resolved_url: 'https://evil.example/login',
@@ -91,12 +91,26 @@ test('Webamon Pro basic search sends required results fields and parses current 
   assert.equal(url.hostname, 'pro.webamon.com');
   assert.equal(url.searchParams.get('search'), '192.0.2.44');
   assert.ok(url.searchParams.get('results')?.includes('server.ip'));
-  assert.ok(url.searchParams.get('results')?.includes('resource.sha256'));
+  assert.ok(url.searchParams.get('results')?.includes('request.response.ip'));
+  assert.equal(url.searchParams.get('results')?.includes('resource.sha256'), false);
   assert.equal(request.init.headers['x-api-key'], 'test-key');
   assert.equal(output.attributes.resultCount, 1);
   assert.equal(output.relationships.some(r => r.targetType === 'ip' && r.target === '192.0.2.44'), true);
   assert.equal(output.relationships.some(r => r.targetType === 'domain' && r.target === 'evil.example'), true);
   assert.equal(output.relationships.some(r => r.targetType === 'url' && r.target === 'https://evil.example/login'), true);
+});
+
+test('Webamon hash search uses documented resource SHA-256 fields only', async () => {
+  let request;
+  await webamonProvider.run(
+    { type: 'hash', value: 'a'.repeat(64) },
+    {
+      env: { WEBAMON_API_KEY: 'test-key' },
+      fetchImpl: async (url, init) => { request = { url: String(url), init }; return json({ results: [] }); },
+    },
+  );
+  const fields = new URL(request.url).searchParams.get('results')?.split(',') ?? [];
+  assert.deepEqual(fields, ['resource.sha256', 'server.resource.sha256']);
 });
 
 test('Censys treats documented 404 no-host response as absence rather than provider failure', async () => {
