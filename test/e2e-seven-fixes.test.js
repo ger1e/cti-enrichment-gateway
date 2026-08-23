@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { modatProvider } from '../src/providers/index.js';
+import { modatProvider, pulsediveProvider, webamonProvider } from '../src/providers/index.js';
 import { loadTextFeed } from '../src/providers/public-feed.js';
 import { probeProviders } from '../src/control/provider-probe.js';
 
@@ -9,9 +9,19 @@ function response(body, status = 200, headers = {}) {
   return new Response(body, { status, headers });
 }
 
-test('canonical Modat policy permits both GET DNS and POST host-search requests', () => {
+test('canonical Modat policy permits host POST and spaces multi-type probes across the rate window', () => {
   assert.deepEqual([...modatProvider.methods].sort(), ['GET', 'POST']);
   assert.equal(modatProvider.parserVersion, '2026-08-23.1');
+  assert.equal(modatProvider.probeIntervalMs, 3100);
+});
+
+test('Pulsedive probes respect the documented one-request-per-second free limit', () => {
+  assert.equal(pulsediveProvider.probeIntervalMs, 1100);
+});
+
+test('Webamon canonical runtime policy preserves the adapter headroom observed in live E2E', () => {
+  assert.equal(webamonProvider.timeoutMs, 12000);
+  assert.equal(webamonProvider.parserVersion, '2026-08-23.1');
 });
 
 test('public feeds retry one transient 502 before surfacing an upstream failure', async () => {
