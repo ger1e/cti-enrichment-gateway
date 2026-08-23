@@ -27,15 +27,13 @@ python3 -m compileall -q maltego
 
 `node scripts/generate-release-manifest.mjs --check` must pass. The committed manifest intentionally has `sourceCommit: null`; a deployment/release process may supply an exact SHA with `--source-commit` or `SOURCE_COMMIT` when producing an external release record.
 
-## Hosted-CI cost boundary
+## Hosted-CI and deployment cost boundary
 
-This private repository deliberately does **not** run GitHub Actions on pushes, pull requests, schedules, or repository activity. `Tooling smoke` is `workflow_dispatch` only. Starting a hosted runner therefore requires an explicit human action.
+This public repository runs one bounded Ubuntu `Tooling smoke` job for pull requests targeting `main`, pushes to `main`, and explicit manual dispatch. There are no scheduled runs, no recurring macOS/Windows hosted runners, and no package-install churn. Obsolete in-progress runs are cancelled and the job has a ten-minute ceiling.
 
-The manual workflow is bounded to one Ubuntu runner, uses a ten-minute ceiling, cancels obsolete in-progress runs, fails fast on the first validation failure, and does not install operating-system packages. It still performs the locked npm install/audit, repository and Node checks, Maltego Python tests, Python compilation, ShellCheck/bash validation, and PowerShell syntax validation. It posts the exact selected SHA as `Tooling smoke`; the status is set to `pending` before validation so a rerun cannot accidentally reuse an older success.
+The workflow performs the locked npm install/audit, repository and Node checks, Maltego Python tests, Python compilation, ShellCheck/bash validation, and PowerShell syntax validation. It publishes `Tooling smoke` against the exact PR head or merged `main` SHA and marks that SHA pending before validation so stale success cannot be reused.
 
-macOS and Windows hosted runners are intentionally absent from the recurring workflow. Platform-specific changes should be validated locally on the relevant OS before release; hosted cross-platform runs are an explicit exception, not a per-commit tax.
-
-Automatic Vercel Git deployments are also disabled in `vercel.json`. Feature pushes and pull requests must not consume Vercel builds. Production is deployed explicitly from exact verified `main` by the hardened finalizer/bootstrap.
+Vercel Git deployment is intentionally narrower than CI: `vercel.json` disables automatic builds for every branch pattern except `main`. Feature pushes and pull requests therefore consume no Vercel build quota. A protected, verified merge to `main` may produce one production build, which is accepted only when Vercel deployment metadata reports that exact `main` SHA.
 
 ## Authorized finalizer
 
@@ -48,7 +46,7 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 .\scripts\finalize.ps1
 ```
 
-The finalizer is responsible for enforcing its branch-protection contract where the caller has permission, verifying required status checks, and invoking the pinned Vercel bootstrap/deployment workflow. If account permissions prevent branch-protection mutation, that is an explicit external prerequisite, not a successful configuration.
+The finalizer is responsible for enforcing its branch-protection contract where the caller has permission, verifying required status checks, and invoking the pinned Vercel bootstrap/deployment workflow when an explicit deployment is needed. If account permissions prevent branch-protection mutation, that is an explicit external prerequisite, not a successful configuration.
 
 ## Production smoke acceptance
 
@@ -64,7 +62,13 @@ Required smoke set:
 - no credential or bearer reflection in response bodies/error surfaces
 - gateway/schema version matches repository release identity
 
-A provider may be repository-implemented but unconfigured; that is not a production failure if it is explicitly recorded as unconfigured. At least one configured credentialed provider should be exercised for full production acceptance.
+For provider readiness, use the sequential secret-safe probe in the credential-bearing operator environment:
+
+```bash
+cti providers probe --all
+```
+
+The probe distinguishes `ok`, `unconfigured`, `auth_failed`, `rate_limited`, `timeout`, `upstream_error`, and `contract_error`. Never reinterpret `unconfigured`, upstream failure, or feed absence as a clean verdict.
 
 ## Secret handling
 
@@ -107,4 +111,4 @@ Cache and circuit state are in-memory and instance-local. Cold starts reset them
 
 ## Public release
 
-This private repository may contain operational architecture unsuitable for direct publication even when secrets are absent. Run `npm run audit:public` and follow `PUBLIC-RELEASE-CHECKLIST.md` before extracting any public version.
+Treat every tracked repository artifact as public. Run `npm run audit:public` and follow `PUBLIC-RELEASE-CHECKLIST.md` before publishing release artifacts or derived bundles.
