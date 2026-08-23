@@ -26,7 +26,6 @@ const expectedVersions = Object.freeze({
 test('RDAP manifest uses IANA bootstrap and direct allowlisted RIR hosts with no redirector/domain claim', () => {
   const rdap = PROVIDER_MANIFEST.rdap;
   assert.deepEqual(rdap.types, ['ip', 'asn', 'cidr']);
-  assert.equal(rdap.fixedHosts.includes('rdap.org'), false);
   assert.deepEqual(rdap.fixedHosts, [
     'data.iana.org',
     'rdap.afrinic.net',
