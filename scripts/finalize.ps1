@@ -10,7 +10,6 @@ $RequiredBranch   = 'main'
 $RequiredStatus   = 'Tooling smoke'
 $RepoRoot         = Split-Path -Parent $PSScriptRoot
 $BootstrapPath    = Join-Path $PSScriptRoot 'bootstrap-vercel.ps1'
-$GovernanceVerifierPath = Join-Path $PSScriptRoot 'verify-github-governance.mjs'
 $AllowedOrigins   = @(
     'https://github.com/ger1e/cti-enrichment-gateway.git',
     'https://github.com/ger1e/cti-enrichment-gateway',
@@ -141,113 +140,38 @@ function Assert-ToolingSmokeSuccess {
     Write-Host "Verified $RequiredStatus = success on $Commit."
 }
 
-function Set-MainProtection {
+function Assert-PrivateFreeGovernance {
     param([Parameter(Mandatory = $true)][string]$Gh)
 
-    $payload = [ordered]@{
-        required_status_checks = [ordered]@{
-            strict = $true
-            contexts = @($RequiredStatus)
-        }
-        enforce_admins = $true
-        required_pull_request_reviews = [ordered]@{
-            dismiss_stale_reviews = $true
-            require_code_owner_reviews = $false
-            required_approving_review_count = 0
-        }
-        restrictions = $null
-        required_linear_history = $true
-        allow_force_pushes = $false
-        allow_deletions = $false
-        required_conversation_resolution = $true
-        lock_branch = $false
-        allow_fork_syncing = $false
-    } | ConvertTo-Json -Depth 8 -Compress
-
-    $endpoint = "repos/$Repository/branches/main/protection"
-    $null = ($payload | & $Gh api --method PUT $endpoint --input - 2>&1 | Out-String).Trim()
-    if ($LASTEXITCODE -ne 0) {
-        throw 'GitHub branch protection update failed. Confirm the authenticated account has repository admin access and the repository plan supports branch protection.'
-    }
-}
-
-function Assert-MainProtection {
-    param([Parameter(Mandatory = $true)][string]$Gh)
-
-    $endpoint = "repos/$Repository/branches/main/protection"
-    $json = Invoke-NativeCapture $Gh api $endpoint
-    $protection = $json | ConvertFrom-Json
-
-    if (-not $protection.required_status_checks -or -not $protection.required_status_checks.strict) {
-        throw 'Branch protection verification failed: strict required status checks are not enabled.'
+    $repoJson = Invoke-NativeCapture $Gh api "repos/$Repository"
+    $repo = $repoJson | ConvertFrom-Json
+    if (-not $repo.private) {
+        throw 'Repository governance policy expects this repository to remain private.'
     }
 
-    $contexts = @()
-    if ($protection.required_status_checks.contexts) {
-        $contexts += @($protection.required_status_checks.contexts)
+    $branchJson = Invoke-NativeCapture $Gh api "repos/$Repository/branches/$RequiredBranch"
+    $branch = $branchJson | ConvertFrom-Json
+    if ($branch.protected) {
+        Write-Host 'Server-side branch protection is enabled; procedural controls remain valid.'
+    } else {
+        Write-Host 'Server-side branch protection is unavailable on the current private/free plan.'
+        Write-Host "Procedural gate active: exact origin/main + clean tree + exact remote SHA + '$RequiredStatus' success before deployment."
     }
-    if ($protection.required_status_checks.checks) {
-        $contexts += @($protection.required_status_checks.checks | ForEach-Object { $_.context })
-    }
-    if ($RequiredStatus -notin $contexts) {
-        throw "Branch protection verification failed: '$RequiredStatus' is not required."
-    }
-
-    if (-not $protection.enforce_admins.enabled) {
-        throw 'Branch protection verification failed: administrators are not bound by protection.'
-    }
-    if (-not $protection.required_pull_request_reviews) {
-        throw 'Branch protection verification failed: pull requests are not required.'
-    }
-    if (-not $protection.required_pull_request_reviews.dismiss_stale_reviews) {
-        throw 'Branch protection verification failed: stale pull-request approvals are not dismissed.'
-    }
-    if ($protection.required_pull_request_reviews.required_approving_review_count -ne 0) {
-        throw 'Branch protection verification failed: the solo-maintainer policy must require a PR without requiring self-approval.'
-    }
-    if ($protection.allow_force_pushes.enabled) {
-        throw 'Branch protection verification failed: force pushes are allowed.'
-    }
-    if ($protection.allow_deletions.enabled) {
-        throw 'Branch protection verification failed: branch deletion is allowed.'
-    }
-    if (-not $protection.required_linear_history.enabled) {
-        throw 'Branch protection verification failed: linear history is not required.'
-    }
-    if (-not $protection.required_conversation_resolution.enabled) {
-        throw 'Branch protection verification failed: review-conversation resolution is not required.'
-    }
-
-    Write-Host "Verified main protection: PR-only changes, stale-review dismissal, strict '$RequiredStatus', admin enforcement, no force pushes/deletion."
-}
-
-function Assert-GovernanceVerifier {
-    if (-not (Test-Path $GovernanceVerifierPath)) {
-        throw 'scripts/verify-github-governance.mjs is missing.'
-    }
-    $node = Get-Command node.exe -ErrorAction SilentlyContinue
-    if (-not $node) {
-        throw 'Node.js is required to run the read-only GitHub governance verifier.'
-    }
-    Invoke-NativeChecked $node.Source $GovernanceVerifierPath
 }
 
 Write-Host '=== CTI Enrichment Gateway / finalization ==='
 Write-Host 'This script never reads or prints provider secret values. Vercel secret entry remains inside the hardened bootstrap.'
+Write-Host 'Governance mode: private/free procedural enforcement; server-side branch protection is optional when the GitHub plan supports it.'
 Write-Host ''
 
 $commit = Assert-ExactOriginMain
 $gh = Ensure-GitHubCli
+Assert-PrivateFreeGovernance -Gh $gh
 Assert-ToolingSmokeSuccess -Gh $gh -Commit $commit
 
-Write-Host 'Applying main branch protection...'
-Set-MainProtection -Gh $gh
-Assert-MainProtection -Gh $gh
-Assert-GovernanceVerifier
-
-$commitAfterProtection = Assert-ExactOriginMain
-if ($commitAfterProtection -ne $commit) {
-    throw 'origin/main changed during GitHub protection setup. Refusing to deploy a moving target.'
+$commitBeforeDeploy = Assert-ExactOriginMain
+if ($commitBeforeDeploy -ne $commit) {
+    throw 'origin/main changed during pre-deployment verification. Refusing to deploy a moving target.'
 }
 
 if (-not (Test-Path $BootstrapPath)) {
@@ -255,14 +179,14 @@ if (-not (Test-Path $BootstrapPath)) {
 }
 
 Write-Host ''
-Write-Host 'GitHub protection verified. Starting the hardened exact-main Vercel bootstrap/deployment...'
+Write-Host 'Procedural GitHub gate verified. Starting the hardened exact-main Vercel bootstrap/deployment...'
 & $BootstrapPath
 if ($LASTEXITCODE -ne 0) {
     throw "bootstrap-vercel.ps1 failed with exit code $LASTEXITCODE"
 }
 
-Assert-MainProtection -Gh $gh
-Assert-GovernanceVerifier
+Assert-PrivateFreeGovernance -Gh $gh
+Assert-ToolingSmokeSuccess -Gh $gh -Commit $commit
 $finalCommit = Assert-ExactOriginMain
 if ($finalCommit -ne $commit) {
     throw 'origin/main changed during production deployment. Re-run finalization against the new verified main.'
@@ -270,4 +194,4 @@ if ($finalCommit -ne $commit) {
 
 Write-Host ''
 Write-Host "Finalization complete for $Repository@$finalCommit."
-Write-Host "GitHub main protection is enforced and the hardened bootstrap completed production deployment/health verification."
+Write-Host "Private/free governance verified: exact main, clean source, successful '$RequiredStatus', and exact-SHA deployment checks completed."
