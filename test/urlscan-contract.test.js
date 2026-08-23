@@ -7,31 +7,34 @@ function json(value, status = 200) {
   return new Response(JSON.stringify(value), { status, headers: { 'content-type': 'application/json' } });
 }
 
-test('urlscan Search API works without a key and only sends api-key when configured', async () => {
-  let unauthRequest;
-  const unauth = await urlscanProvider.run(
+test('urlscan Search API uses configured api-key header', async () => {
+  let request;
+  const output = await urlscanProvider.run(
     { type: 'domain', value: 'example.com' },
-    { fetchImpl: async (url, init) => {
-      unauthRequest = { url: String(url), init };
-      return json({ results: [] });
-    } },
+    {
+      env: { URLSCAN_API_KEY: 'test-key' },
+      fetchImpl: async (url, init) => {
+        request = { url: String(url), init };
+        return json({ results: [] });
+      },
+    },
   );
-  assert.equal(new URL(unauthRequest.url).pathname, '/api/v1/search');
-  assert.equal(Object.hasOwn(unauthRequest.init.headers ?? {}, 'api-key'), false);
-  assert.equal(unauth.verdict, 'no_result');
-
-  let authRequest;
-  await urlscanProvider.run(
-    { type: 'ip', value: '8.8.8.8' },
-    { env: { URLSCAN_API_KEY: 'test-key' }, fetchImpl: async (url, init) => {
-      authRequest = { url: String(url), init };
-      return json({ results: [] });
-    } },
-  );
-  assert.equal(authRequest.init.headers['api-key'], 'test-key');
+  assert.equal(new URL(request.url).pathname, '/api/v1/search');
+  assert.equal(request.init.headers['api-key'], 'test-key');
+  assert.equal(output.verdict, 'no_result');
 });
 
-test('urlscan manifest marks Search API credential optional', () => {
+test('urlscan adapter fails closed when the configured key is missing', async () => {
+  await assert.rejects(
+    () => urlscanProvider.run(
+      { type: 'ip', value: '8.8.8.8' },
+      { fetchImpl: async () => json({ results: [] }) },
+    ),
+    /URLSCAN_API_KEY/,
+  );
+});
+
+test('urlscan manifest requires the configured API credential', () => {
   assert.equal(PROVIDER_MANIFEST.urlscan.credentialEnv, 'URLSCAN_API_KEY');
-  assert.equal(PROVIDER_MANIFEST.urlscan.optionalCredential, true);
+  assert.equal(PROVIDER_MANIFEST.urlscan.optionalCredential, false);
 });

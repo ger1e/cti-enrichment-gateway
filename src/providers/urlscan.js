@@ -1,5 +1,5 @@
 import { fetchJson } from '../core/fetch-json.js';
-import { compact, envValue, relation } from './helpers.js';
+import { compact, relation, requireEnv } from './helpers.js';
 
 function query(input) {
   if (input.type === 'ip') return `ip:${input.value}`;
@@ -9,12 +9,11 @@ function query(input) {
 }
 
 export const urlscanProvider = Object.freeze({
-  name: 'urlscan', types: ['ip', 'domain', 'url'], optionalEnv: 'URLSCAN_API_KEY', cacheTtlMs: 21600000, negativeCacheTtlMs: 3600000, costClass: 'free', timeoutMs: 7000, parserVersion: '2026-08-23.1',
+  name: 'urlscan', types: ['ip', 'domain', 'url'], requiredEnv: 'URLSCAN_API_KEY', cacheTtlMs: 21600000, negativeCacheTtlMs: 3600000, costClass: 'free', timeoutMs: 7000, parserVersion: '2026-08-20',
   async run(input, context = {}) {
-    const key = envValue(context, 'URLSCAN_API_KEY');
+    const key = requireEnv(context, 'URLSCAN_API_KEY');
     const url = `https://urlscan.io/api/v1/search?q=${encodeURIComponent(query(input))}&size=25`;
-    const headers = key ? { 'api-key': key } : {};
-    const raw = await fetchJson(url, { ...context, headers, maxBytes: 3_000_000 });
+    const raw = await fetchJson(url, { ...context, headers: { 'api-key': key }, maxBytes: 3_000_000 });
     const rows = Array.isArray(raw?.results) ? raw.results : [];
     const malicious = rows.some(r => r?.verdicts?.overall?.malicious === true);
     const rels = [];
