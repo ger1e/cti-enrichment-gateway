@@ -2,6 +2,11 @@ name: Tooling smoke
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/tooling-smoke.yml'
 
 permissions:
   contents: read
