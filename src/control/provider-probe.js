@@ -98,9 +98,12 @@ async function probeInput(provider, input, { env, fetchImpl }) {
   });
 }
 
+const defaultSleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function probeProvider(provider, {
   env = process.env,
   fetchImpl = fetch,
+  sleep = defaultSleep,
 } = {}) {
   const inputs = inputsFor(provider);
   if (!inputs.length) return providerResult(provider, [{ type: 'unknown', status: 'contract_error' }]);
@@ -110,7 +113,11 @@ export async function probeProvider(provider, {
   }
 
   const checks = [];
-  for (const input of inputs) checks.push(await probeInput(provider, input, { env, fetchImpl }));
+  const intervalMs = Math.max(Number(provider.probeIntervalMs) || 0, 0);
+  for (let index = 0; index < inputs.length; index += 1) {
+    checks.push(await probeInput(provider, inputs[index], { env, fetchImpl }));
+    if (intervalMs > 0 && index < inputs.length - 1) await sleep(intervalMs);
+  }
   return providerResult(provider, checks);
 }
 

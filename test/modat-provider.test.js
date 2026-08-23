@@ -31,20 +31,25 @@ test('Modat is a quota-bounded infrastructure provider in IP and domain workflow
   assert.ok(WORKFLOWS.domain.includes('modat'));
 });
 
-test('Modat IP lookup uses the fixed host endpoint and bearer header without leaking the key', async () => {
+test('Modat IP lookup uses the fixed host-search endpoint and bearer header without leaking the key', async () => {
   const adapter = provider();
   let captured;
   const fetchImpl = async (url, init) => {
     captured = { url: String(url), init };
     return json({
-      ip: '203.0.113.10',
-      asn: { number: 64500, organization: 'Example Transit' },
-      geo: { country_code: 'NL' },
-      fqdns: ['node.example.test'],
-      services: [
-        { port: 443, transport_protocol: 'tcp', tags: ['C2'], cves: [{ id: 'CVE-2026-12345' }] },
-      ],
-      last_seen: '2026-08-20T12:00:00Z',
+      page_nr: 1,
+      total_pages: 1,
+      total_records: 1,
+      page: [{
+        ip: '203.0.113.10',
+        asn: { number: 64500, organization: 'Example Transit' },
+        geo: { country_code: 'NL' },
+        fqdns: ['node.example.test'],
+        services: [
+          { port: 443, transport_protocol: 'tcp', tags: ['C2'], cves: [{ id: 'CVE-2026-12345' }] },
+        ],
+        last_seen: '2026-08-20T12:00:00Z',
+      }],
     });
   };
 
@@ -56,11 +61,18 @@ test('Modat IP lookup uses the fixed host endpoint and bearer header without lea
   const url = new URL(captured.url);
   assert.equal(url.protocol, 'https:');
   assert.equal(url.hostname, 'api.magnify.modat.io');
-  assert.equal(url.pathname, '/host/203.0.113.10/v1');
-  assert.equal(captured.init.method, 'GET');
+  assert.equal(url.pathname, '/host/search/v1');
+  assert.equal(captured.init.method, 'POST');
   assert.equal(captured.init.headers.Authorization, `Bearer ${SECRET}`);
+  assert.equal(captured.init.headers['Content-Type'], 'application/json');
+  assert.deepEqual(JSON.parse(captured.init.body), {
+    query: 'ip:"203.0.113.10"',
+    page: 1,
+    page_size: 10,
+  });
   assert.equal(data.observationType, 'internet_exposure');
   assert.equal(data.verdict, 'observed');
+  assert.deepEqual(data.attributes.ports, [443]);
   assert.ok(data.relationships.some(item => item.targetType === 'domain' && item.target === 'node.example.test'));
   assert.ok(data.relationships.some(item => item.targetType === 'asn' && item.target === 'AS64500'));
   assert.equal(JSON.stringify(data).includes(SECRET), false);

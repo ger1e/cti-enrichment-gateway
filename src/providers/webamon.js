@@ -25,10 +25,10 @@ function totalFrom(raw, rows) {
 }
 
 export const webamonProvider = Object.freeze({
-  name: 'webamon', types: ['ip', 'domain', 'url', 'hash'], requiredEnv: 'WEBAMON_API_KEY', cacheTtlMs: 21600000, negativeCacheTtlMs: 3600000, costClass: 'free', timeoutMs: 7000, parserVersion: '2026-08-22.1',
+  name: 'webamon', types: ['ip', 'domain', 'url', 'hash'], requiredEnv: 'WEBAMON_API_KEY', cacheTtlMs: 21600000, negativeCacheTtlMs: 3600000, costClass: 'free', timeoutMs: 12000, parserVersion: '2026-08-23.1',
   async run(input, context = {}) {
     const key = requireEnv(context, 'WEBAMON_API_KEY');
-    const params = new URLSearchParams({ search: input.value, results: SEARCH_FIELDS[input.type], size: '25' });
+    const params = new URLSearchParams({ search: input.value, results: SEARCH_FIELDS[input.type], size: '10' });
     const url = `https://pro.webamon.com/search?${params}`;
     const raw = await fetchJson(url, { ...context, headers: { 'x-api-key': key }, maxBytes: 3_000_000 });
     const rows = rowsFrom(raw);
