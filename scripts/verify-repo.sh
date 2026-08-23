@@ -39,7 +39,7 @@ vercel_bootstrap_ok() {
 
 finalizer_ok() {
   local script=scripts/finalize.ps1 workflow=.github/workflows/tooling-smoke.yml
-  [[ -s "${script}" ]] && grep -Eq "RequiredBranch[[:space:]]*=[[:space:]]*'main'" "${script}" && grep -Fq 'branches/$RequiredBranch/protection' "${script}" && grep -Fq 'Tooling smoke' "${script}" && grep -Fq 'required_pull_request_reviews' "${script}" && grep -Fq 'required_status_checks' "${script}" && grep -Fq 'enforce_admins' "${script}" && grep -Fq 'allow_force_pushes' "${script}" && grep -Fq 'allow_deletions' "${script}" && grep -Fq 'bootstrap-vercel.ps1' "${script}" && grep -Fq "'scripts/finalize.ps1'" "${workflow}"
+  [[ -s "${script}" ]] && grep -Eq "RequiredBranch[[:space:]]*=[[:space:]]*'main'" "${script}" && grep -Fq "branches/\$RequiredBranch/protection" "${script}" && grep -Fq 'Tooling smoke' "${script}" && grep -Fq 'required_pull_request_reviews' "${script}" && grep -Fq 'required_status_checks' "${script}" && grep -Fq 'enforce_admins' "${script}" && grep -Fq 'allow_force_pushes' "${script}" && grep -Fq 'allow_deletions' "${script}" && grep -Fq 'bootstrap-vercel.ps1' "${script}" && grep -Fq "'scripts/finalize.ps1'" "${workflow}"
 }
 
 canonical_env_ok() {
