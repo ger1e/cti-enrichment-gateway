@@ -9,7 +9,7 @@ const expectedVersions = Object.freeze({
   greynoise: '2026-08-22.1',
   shodan: '2026-08-22.1',
   censys: 'v3-2026-08-22.1',
-  modat: '2026-08-22.1',
+  modat: '2026-08-23.1',
   'cloudflare-radar': '2026-08-22.1',
   virustotal: 'v3-2026-08-22.1',
   otx: '2026-08-22.1',
