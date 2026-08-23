@@ -300,7 +300,7 @@ function Invoke-LocalToolingSmoke {
             ) | Out-Null
             if ($parseErrors.Count -gt 0) {
                 $messages = ($parseErrors | ForEach-Object { $_.Message }) -join '; '
-                throw "PowerShell syntax errors in $file: $messages"
+                throw "PowerShell syntax errors in ${file}: $messages"
             }
         }
 
