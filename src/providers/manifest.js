@@ -41,6 +41,10 @@ function validatePolicy(name, input) {
   for (const field of REQUIRED_NUMBERS) {
     if (!Number.isSafeInteger(input[field]) || input[field] < 1) fail(`${name}.${field}`);
   }
+  if (input.probeIntervalMs !== undefined) {
+    if (!Number.isSafeInteger(input.probeIntervalMs) || input.probeIntervalMs < 0 || input.probeIntervalMs > 60_000) fail(`${name}.probeIntervalMs`);
+    output.probeIntervalMs = input.probeIntervalMs;
+  }
   for (const field of REQUIRED_ARRAYS) output[field] = boundedArray(input[field], `${name}.${field}`);
   output.semanticClassHints = Array.isArray(input.semanticClassHints) && input.semanticClassHints.length
     ? boundedArray(input.semanticClassHints, `${name}.semanticClassHints`)
