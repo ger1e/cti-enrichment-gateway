@@ -7,7 +7,6 @@ $ErrorActionPreference = 'Stop'
 
 $Repository       = 'ger1e/cti-enrichment-gateway'
 $RequiredBranch   = 'main'
-$RequiredStatus   = 'Tooling smoke'
 $RepoRoot         = Split-Path -Parent $PSScriptRoot
 $BootstrapPath    = Join-Path $PSScriptRoot 'bootstrap-vercel.ps1'
 $AllowedOrigins   = @(
@@ -45,6 +44,15 @@ function Invoke-NativeCapture {
         throw "$FilePath failed with exit code $LASTEXITCODE"
     }
     return $output
+}
+
+function Require-Command {
+    param([Parameter(Mandatory = $true)][string]$Name)
+    $command = Get-Command $Name -ErrorAction SilentlyContinue
+    if (-not $command) {
+        throw "Required command '$Name' is not available in PATH."
+    }
+    return $command.Source
 }
 
 function Ensure-GitHubCli {
@@ -91,24 +99,25 @@ function Assert-ExactOriginMain {
 
     Push-Location $RepoRoot
     try {
-        $origin = Invoke-NativeCapture git.exe remote get-url origin
+        $git = Require-Command 'git.exe'
+        $origin = Invoke-NativeCapture $git remote get-url origin
         if ($origin -notin $AllowedOrigins) {
             throw "Unexpected origin '$origin'. Refusing to finalize an unapproved repository."
         }
 
-        $branch = Invoke-NativeCapture git.exe branch --show-current
+        $branch = Invoke-NativeCapture $git branch --show-current
         if ($branch -ne $RequiredBranch) {
             throw "Checkout must be on main; found '$branch'."
         }
 
-        $dirty = Invoke-NativeCapture git.exe status --porcelain
+        $dirty = Invoke-NativeCapture $git status --porcelain
         if (-not [string]::IsNullOrWhiteSpace($dirty)) {
             throw 'Repository has modified or untracked files. Refusing to finalize dirty source.'
         }
 
-        Invoke-NativeChecked git.exe fetch --depth 1 origin main
-        $fetchedHead = Invoke-NativeCapture git.exe rev-parse FETCH_HEAD
-        $currentHead = Invoke-NativeCapture git.exe rev-parse HEAD
+        Invoke-NativeChecked $git fetch --depth 1 origin main
+        $fetchedHead = Invoke-NativeCapture $git rev-parse FETCH_HEAD
+        $currentHead = Invoke-NativeCapture $git rev-parse HEAD
         if ($currentHead -ne $fetchedHead) {
             throw "Local checkout is stale and does not match the current origin/main ($fetchedHead). Pull main and rerun."
         }
@@ -117,27 +126,6 @@ function Assert-ExactOriginMain {
     } finally {
         Pop-Location
     }
-}
-
-function Assert-ToolingSmokeSuccess {
-    param(
-        [Parameter(Mandatory = $true)][string]$Gh,
-        [Parameter(Mandatory = $true)][string]$Commit
-    )
-
-    $json = Invoke-NativeCapture $Gh api "repos/$Repository/commits/$Commit/status"
-    $status = $json | ConvertFrom-Json
-    $matching = @($status.statuses | Where-Object { $_.context -eq $RequiredStatus })
-    if ($matching.Count -eq 0) {
-        throw "Required status '$RequiredStatus' is missing from commit $Commit."
-    }
-
-    $latest = $matching | Select-Object -First 1
-    if ($latest.state -ne 'success') {
-        throw "Required status '$RequiredStatus' is '$($latest.state)' on commit $Commit; success is required before finalization."
-    }
-
-    Write-Host "Verified $RequiredStatus = success on $Commit."
 }
 
 function Assert-PrivateFreeGovernance {
@@ -152,10 +140,66 @@ function Assert-PrivateFreeGovernance {
     $branchJson = Invoke-NativeCapture $Gh api "repos/$Repository/branches/$RequiredBranch"
     $branch = $branchJson | ConvertFrom-Json
     if ($branch.protected) {
-        Write-Host 'Server-side branch protection is enabled; procedural controls remain valid.'
+        Write-Host 'Server-side branch protection is enabled; local procedural controls remain additive.'
     } else {
         Write-Host 'Server-side branch protection is unavailable on the current private/free plan.'
-        Write-Host "Procedural gate active: exact origin/main + clean tree + exact remote SHA + '$RequiredStatus' success before deployment."
+        Write-Host 'Procedural gate active: exact origin/main + clean tree + local smoke suite + exact-SHA deployment checks.'
+    }
+}
+
+function Invoke-LocalToolingSmoke {
+    Push-Location $RepoRoot
+    try {
+        $npm = Require-Command 'npm.cmd'
+        $bash = Require-Command 'bash.exe'
+        $python = Get-Command python.exe -ErrorAction SilentlyContinue
+        if (-not $python) { $python = Get-Command python3.exe -ErrorAction SilentlyContinue }
+        if (-not $python) { throw "Required command 'python.exe' or 'python3.exe' is not available in PATH." }
+        $shellcheck = Require-Command 'shellcheck.exe'
+
+        Write-Host 'Running locked dependency validation...'
+        Invoke-NativeChecked $npm ci --ignore-scripts
+        Invoke-NativeChecked $npm audit --omit=dev
+
+        Write-Host 'Running repository checks and Node tests...'
+        Invoke-NativeChecked $npm run check
+
+        Write-Host 'Running Maltego Python tests and compile validation...'
+        Push-Location (Join-Path $RepoRoot 'maltego')
+        try {
+            Invoke-NativeChecked $python.Source -m unittest discover -s tests -v
+        } finally {
+            Pop-Location
+        }
+        Invoke-NativeChecked $python.Source -m compileall -q (Join-Path $RepoRoot 'maltego')
+
+        Write-Host 'Running shell syntax and ShellCheck validation...'
+        Invoke-NativeChecked $bash -n (Join-Path $RepoRoot 'maltego/install.sh')
+        Invoke-NativeChecked $shellcheck (Join-Path $RepoRoot 'maltego/install.sh')
+
+        Write-Host 'Running PowerShell syntax validation...'
+        $files = @(
+            'scripts/bootstrap-vercel.ps1',
+            'scripts/finalize.ps1',
+            'maltego/install.ps1'
+        )
+        foreach ($file in $files) {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+                (Resolve-Path (Join-Path $RepoRoot $file)),
+                [ref]$tokens,
+                [ref]$parseErrors
+            ) | Out-Null
+            if ($parseErrors.Count -gt 0) {
+                $messages = ($parseErrors | ForEach-Object { $_.Message }) -join '; '
+                throw "PowerShell syntax errors in $file: $messages"
+            }
+        }
+
+        Write-Host 'Local Tooling smoke passed.'
+    } finally {
+        Pop-Location
     }
 }
 
@@ -167,7 +211,7 @@ Write-Host ''
 $commit = Assert-ExactOriginMain
 $gh = Ensure-GitHubCli
 Assert-PrivateFreeGovernance -Gh $gh
-Assert-ToolingSmokeSuccess -Gh $gh -Commit $commit
+Invoke-LocalToolingSmoke
 
 $commitBeforeDeploy = Assert-ExactOriginMain
 if ($commitBeforeDeploy -ne $commit) {
@@ -186,7 +230,6 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Assert-PrivateFreeGovernance -Gh $gh
-Assert-ToolingSmokeSuccess -Gh $gh -Commit $commit
 $finalCommit = Assert-ExactOriginMain
 if ($finalCommit -ne $commit) {
     throw 'origin/main changed during production deployment. Re-run finalization against the new verified main.'
@@ -194,4 +237,4 @@ if ($finalCommit -ne $commit) {
 
 Write-Host ''
 Write-Host "Finalization complete for $Repository@$finalCommit."
-Write-Host "Private/free governance verified: exact main, clean source, successful '$RequiredStatus', and exact-SHA deployment checks completed."
+Write-Host 'Private/free governance verified: exact main, clean source, local smoke suite, and exact-SHA deployment checks completed.'
