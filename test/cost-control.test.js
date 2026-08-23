@@ -26,9 +26,9 @@ test('hosted CI is bounded to one fail-fast Ubuntu runner without package instal
   assert.match(workflow, /cancel-in-progress: true/);
 });
 
-test('automatic Vercel Git deployment is limited to protected main', () => {
+test('automatic Vercel Git deployment is limited to protected main including slash branches', () => {
   assert.deepEqual(vercel?.git?.deploymentEnabled, {
-    '*': false,
+    '**': false,
     main: true,
   });
 });
