@@ -48,13 +48,22 @@ test('enrichment rejects unauthorized requests', async () => {
 
 test('IP enrichment can run an isolated RDAP workflow fixture', async () => {
   const seen = [];
-  const fetchImpl = async url => { seen.push(String(url)); return new Response(JSON.stringify({ handle: 'NET-X', country: 'US' }), { status: 200 }); };
+  const fetchImpl = async url => {
+    const u = String(url); seen.push(u);
+    if (u === 'https://data.iana.org/rdap/ipv4.json') {
+      return new Response(JSON.stringify({ services: [[['8.0.0.0/8'], ['https://rdap.arin.net/registry/']]] }), { status: 200 });
+    }
+    if (u === 'https://rdap.arin.net/registry/ip/8.8.8.8') {
+      return new Response(JSON.stringify({ handle: 'NET-X', country: 'US' }), { status: 200 });
+    }
+    throw new Error(`unexpected URL ${u}`);
+  };
   const app = createApp({ env, fetchImpl, adapters: [rdapProvider], cache: new TtlCache(), now: () => '2026-08-20T12:00:00Z' });
   const response = await app.handleEnrich(req({ body: { indicator: '8.8.8.8' } }));
   assert.equal(response.status, 200);
   assert.equal(response.body.type, 'ip');
   assert.equal(response.body.status, 'ok');
-  assert.deepEqual(seen, ['https://rdap.org/ip/8.8.8.8']);
+  assert.deepEqual(seen, ['https://data.iana.org/rdap/ipv4.json', 'https://rdap.arin.net/registry/ip/8.8.8.8']);
 });
 
 test('CVE enrichment fixture preserves KEV and EPSS as separate semantics', async () => {
