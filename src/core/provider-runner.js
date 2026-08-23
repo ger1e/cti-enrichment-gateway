@@ -10,6 +10,7 @@ function normalizeFailure(error, timedOut) {
   if (error?.status === 429) return { reason: 'rate_limited', status: 429, retryAfter: error.retryAfter ?? null };
   if (Number.isInteger(error?.status)) return { reason: 'http_error', status: error.status };
   if (error?.code && String(error.code).startsWith('egress_')) return { reason: error.code };
+  if (error?.message === 'provider_transport_error') return { reason: 'provider_transport_error' };
   return { reason: 'provider_error' };
 }
 

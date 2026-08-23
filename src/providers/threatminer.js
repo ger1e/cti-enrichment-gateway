@@ -54,21 +54,22 @@ function seen(results, field) {
 }
 
 export const threatminerProvider = Object.freeze({
-  name: 'threatminer', types: ['ip', 'domain', 'url', 'hash'], cacheTtlMs: 6 * 60 * 60 * 1000, negativeCacheTtlMs: 60 * 60 * 1000, costClass: 'free', timeoutMs: 5000, parserVersion: '2026-08-20',
+  name: 'threatminer', types: ['ip', 'domain', 'url', 'hash'], cacheTtlMs: 6 * 60 * 60 * 1000, negativeCacheTtlMs: 60 * 60 * 1000, costClass: 'free', timeoutMs: 5000, parserVersion: '2026-08-22.1',
   coverageObservationTypesByType: COVERAGE_OBSERVATION_TYPES,
   async run(input, context = {}) {
     const { url, kind, pivot } = endpoint(input);
     const raw = await fetchJson(url, { ...context, maxBytes: 2_000_000 });
     const results = Array.isArray(raw?.results) ? raw.results : [];
+    const statusCode = Number.isFinite(Number(raw?.status_code)) ? Number(raw.status_code) : null;
     return {
       observationType: kind,
-      verdict: 'unknown',
+      verdict: statusCode === 404 ? 'no_result' : 'unknown',
       firstSeen: seen(results, 'first_seen'),
       lastSeen: seen(results, 'last_seen'),
       attributes: {
         pivot,
         resultCount: results.length,
-        statusCode: raw?.status_code ?? null,
+        statusCode,
         statusMessage: raw?.status_message ?? null,
       },
       relationships: relationshipsFor(results, input),

@@ -42,9 +42,11 @@ test('batch accepts 1..20 strings and rejects 21 or provider overrides', async (
 
 test('canonical duplicates perform provider work once and re-associate to input order', async () => {
   let calls = 0;
-  const a = adapter('rdap');
-  const counted = Object.freeze({ ...a, async run(input) { calls += 1; return a.run(input); } });
-  const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [counted] });
+  const counted = name => {
+    const a = adapter(name);
+    return Object.freeze({ ...a, async run(input) { calls += 1; return a.run(input); } });
+  };
+  const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [counted('rdap'), counted('threatminer')] });
   const result = await target.handleBatch(request({ indicators: ['AS3333', 'as3333', 'EXAMPLE.com', 'example.com'], profile: 'full' }));
   assert.equal(result.status, 200);
   assert.equal(calls, 2);
@@ -55,7 +57,8 @@ test('canonical duplicates perform provider work once and re-associate to input 
 });
 
 test('an invalid individual indicator is represented independently instead of rejecting the batch', async () => {
-  const result = await app().handleBatch(request({ indicators: ['192.0.2.1', 'not an indicator', 'example.com'] }));
+  const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [adapter('rdap'), adapter('threatminer')] });
+  const result = await target.handleBatch(request({ indicators: ['192.0.2.1', 'not an indicator', 'example.com'] }));
   assert.equal(result.status, 200);
   assert.equal(result.body.results[0].status, 'ok');
   assert.equal(result.body.results[1].status, 'invalid');

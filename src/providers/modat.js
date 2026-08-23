@@ -13,6 +13,43 @@ function invalidResponse(message) {
   return Object.assign(new Error(message), { status: 502 });
 }
 
+function noHostResult(input) {
+  return {
+    observationType: 'internet_exposure',
+    verdict: 'no_result',
+    attributes: {
+      ip: input.value,
+      asn: null,
+      organization: null,
+      country: null,
+      hostnames: [],
+      ports: [],
+      serviceCount: 0,
+      serviceTags: [],
+      cves: [],
+    },
+    relationships: [],
+    references: ['https://api.magnify.modat.io/docs'],
+  };
+}
+
+function noDnsResult(input) {
+  return {
+    observationType: 'passive_dns',
+    verdict: 'no_result',
+    attributes: {
+      fqdn: input.value,
+      recordTypes: [],
+      addressCount: 0,
+      aliasCount: 0,
+      nameserverCount: 0,
+      mailExchangerCount: 0,
+    },
+    relationships: [],
+    references: ['https://api.magnify.modat.io/docs'],
+  };
+}
+
 function asnValue(raw) {
   const value = raw?.asn;
   if (value && typeof value === 'object') {
@@ -74,12 +111,18 @@ function latestTimestamp(values) {
 
 async function runIp(input, context, key) {
   const url = `${API_ROOT}/host/${encodeURIComponent(input.value)}/v1`;
-  const raw = await fetchJson(url, {
-    ...context,
-    method: 'GET',
-    headers: { Authorization: `Bearer ${key}` },
-    maxBytes: 4_000_000,
-  });
+  let raw;
+  try {
+    raw = await fetchJson(url, {
+      ...context,
+      method: 'GET',
+      headers: { Authorization: `Bearer ${key}` },
+      maxBytes: 4_000_000,
+    });
+  } catch (error) {
+    if (error?.status === 404) return noHostResult(input);
+    throw error;
+  }
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw invalidResponse('invalid Modat host response');
 
   const names = hostnames(raw);
@@ -116,12 +159,18 @@ async function runIp(input, context, key) {
 
 async function runDomain(input, context, key) {
   const url = `${API_ROOT}/dns/zones/${encodeURIComponent(input.value)}/v1`;
-  const raw = await fetchJson(url, {
-    ...context,
-    method: 'GET',
-    headers: { Authorization: `Bearer ${key}` },
-    maxBytes: 4_000_000,
-  });
+  let raw;
+  try {
+    raw = await fetchJson(url, {
+      ...context,
+      method: 'GET',
+      headers: { Authorization: `Bearer ${key}` },
+      maxBytes: 4_000_000,
+    });
+  } catch (error) {
+    if (error?.status === 404) return noDnsResult(input);
+    throw error;
+  }
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw invalidResponse('invalid Modat DNS response');
   if (!raw.records || typeof raw.records !== 'object' || Array.isArray(raw.records)) throw invalidResponse('empty Modat DNS response');
 
@@ -164,7 +213,7 @@ export const modatProvider = Object.freeze({
   negativeCacheTtlMs: 3_600_000,
   costClass: 'quota',
   timeoutMs: 7_000,
-  parserVersion: '2026-08-21.1',
+  parserVersion: '2026-08-22.1',
   async run(input, context = {}) {
     const key = requireEnv(context, 'MODAT_API_KEY');
     if (input?.type === 'ip') return runIp(input, context, key);

@@ -25,19 +25,26 @@ test('ASN and CIDR use fixed bounded workflows only', () => {
   assert.deepEqual(WORKFLOWS.cidr, ['rdap', 'ripestat', 'spamhaus-drop']);
 });
 
-test('RDAP uses autnum for ASN and standards-defined ip prefix lookup for CIDR', async () => {
+test('RDAP uses IANA bootstrap then the authoritative RIR for ASN and CIDR', async () => {
   const p = provider('rdap');
-  let seen;
-  const asn = await p.run({ value: 'AS3333', type: 'asn' }, { signal: new AbortController().signal, fetchImpl: async url => {
-    seen = String(url); return json({ handle: 'AS3333', name: 'RIPE-NCC-AS', startAutnum: 3333, endAutnum: 3333, country: 'NL', status: ['active'] });
+  const seenAsn = [];
+  const asn = await p.run({ value: 'AS3333', type: 'asn' }, { signal: new AbortController().signal, feedCache: new Map(), fetchImpl: async url => {
+    const u = String(url); seenAsn.push(u);
+    if (u === 'https://data.iana.org/rdap/asn.json') return json({ services: [[['3333'], ['https://rdap.db.ripe.net/']]] });
+    if (u === 'https://rdap.db.ripe.net/autnum/3333') return json({ handle: 'AS3333', name: 'RIPE-NCC-AS', startAutnum: 3333, endAutnum: 3333, country: 'NL', status: ['active'] });
+    throw new Error(`unexpected ${u}`);
   }});
-  assert.equal(seen, 'https://rdap.org/autnum/3333');
+  assert.deepEqual(seenAsn, ['https://data.iana.org/rdap/asn.json', 'https://rdap.db.ripe.net/autnum/3333']);
   assert.equal(asn.attributes.startAutnum, 3333);
 
-  const cidr = await p.run({ value: '192.0.2.0/24', type: 'cidr' }, { signal: new AbortController().signal, fetchImpl: async url => {
-    seen = String(url); return json({ handle: 'NET-TEST', startAddress: '192.0.2.0', endAddress: '192.0.2.255', cidr0_cidrs: [{ v4prefix: '192.0.2.0', length: 24 }] });
+  const seenCidr = [];
+  const cidr = await p.run({ value: '192.0.2.0/24', type: 'cidr' }, { signal: new AbortController().signal, feedCache: new Map(), fetchImpl: async url => {
+    const u = String(url); seenCidr.push(u);
+    if (u === 'https://data.iana.org/rdap/ipv4.json') return json({ services: [[['192.0.0.0/8'], ['https://rdap.arin.net/registry/']]] });
+    if (u === 'https://rdap.arin.net/registry/ip/192.0.2.0/24') return json({ handle: 'NET-TEST', startAddress: '192.0.2.0', endAddress: '192.0.2.255', cidr0_cidrs: [{ v4prefix: '192.0.2.0', length: 24 }] });
+    throw new Error(`unexpected ${u}`);
   }});
-  assert.equal(seen, 'https://rdap.org/ip/192.0.2.0/24');
+  assert.deepEqual(seenCidr, ['https://data.iana.org/rdap/ipv4.json', 'https://rdap.arin.net/registry/ip/192.0.2.0/24']);
   assert.equal(cidr.attributes.startAddress, '192.0.2.0');
 });
 

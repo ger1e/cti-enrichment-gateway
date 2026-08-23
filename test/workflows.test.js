@@ -14,15 +14,28 @@ function jsonFetch(expectedUrl, payload) {
   };
 }
 
-test('RDAP adapter uses fixed bootstrap host for IP registration and supports bounded network identifiers', async () => {
-  assert.deepEqual(rdapProvider.types, ['ip', 'domain', 'asn', 'cidr']);
+test('RDAP adapter uses IANA bootstrap and an allowlisted RIR for bounded network identifiers', async () => {
+  assert.deepEqual(rdapProvider.types, ['ip', 'asn', 'cidr']);
+  const seen = [];
   const data = await rdapProvider.run({ value: '8.8.8.8', type: 'ip' }, {
-    fetchImpl: jsonFetch('https://rdap.org/ip/8.8.8.8', { handle: 'NET-8-8-8-0-2', name: 'GOGL', country: 'US', startAddress: '8.8.8.0', endAddress: '8.8.8.255' }),
+    feedCache: new Map(),
+    fetchImpl: async (url, options = {}) => {
+      const u = String(url); seen.push(u);
+      assert.equal(options.method ?? 'GET', 'GET');
+      if (u === 'https://data.iana.org/rdap/ipv4.json') {
+        return new Response(JSON.stringify({ services: [[['8.0.0.0/8'], ['https://rdap.arin.net/registry/']]] }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+      if (u === 'https://rdap.arin.net/registry/ip/8.8.8.8') {
+        return new Response(JSON.stringify({ handle: 'NET-8-8-8-0-2', name: 'GOGL', country: 'US', startAddress: '8.8.8.0', endAddress: '8.8.8.255' }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+      throw new Error(`unexpected ${u}`);
+    },
     signal: new AbortController().signal,
   });
   assert.equal(data.observationType, 'registration');
   assert.equal(data.attributes.handle, 'NET-8-8-8-0-2');
-  assert.deepEqual(data.references, ['https://rdap.org/ip/8.8.8.8']);
+  assert.deepEqual(data.references, ['https://data.iana.org/rdap/ipv4.json', 'https://rdap.arin.net/registry/ip/8.8.8.8']);
+  assert.deepEqual(seen, data.references);
 });
 
 test('EPSS adapter queries FIRST by CVE and preserves probability separately', async () => {
@@ -56,9 +69,9 @@ test('every active workflow provider has an implemented adapter', () => {
 
 test('active workflows preserve MAX routing order', () => {
   assert.deepEqual(WORKFLOWS.ip, ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'modat', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']);
-  assert.deepEqual(WORKFLOWS.domain, ['rdap', 'threatminer', 'openphish', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'urlscan', 'webamon', 'modat', 'ransomware-live', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.domain, ['threatminer', 'openphish', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'urlscan', 'webamon', 'modat', 'ransomware-live', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.url, ['openphish', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'urlscan', 'webamon', 'urlhaus', 'ransomware-live', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
-  assert.deepEqual(WORKFLOWS.hash, ['circl-hashlookup', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.hash, ['circl-hashlookup', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox']);
   assert.deepEqual(WORKFLOWS.cve, ['cisa-kev', 'epss', 'circl-vulnerability', 'misp-circl-osint', 'misp-botvrij-osint', 'nvd', 'osv', 'otx']);
   assert.deepEqual(WORKFLOWS.attack, ['attack-taxii']);
   assert.deepEqual(WORKFLOWS.asn, ['rdap', 'ripestat', 'spamhaus-drop']);
