@@ -5,6 +5,17 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Create the version tag and GitHub Release after verification'
+        required: true
+        default: false
+        type: boolean
+      version:
+        description: 'Release version; must match package.json when publishing'
+        required: true
+        default: 'v2.0.0'
+        type: string
 
 permissions:
   contents: write
@@ -26,6 +37,26 @@ jobs:
           package-manager-cache: false
           check-latest: false
 
+      - name: Validate manual release intent
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = 'refs/heads/main' || {
+            echo '::error::Manual release publication is allowed only from main.'
+            exit 1
+          }
+          [[ "$REQUESTED_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo '::error::Version must be strict vMAJOR.MINOR.PATCH.'
+            exit 1
+          }
+          package_version="v$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")"
+          test "$REQUESTED_VERSION" = "$package_version" || {
+            echo "::error::Requested version $REQUESTED_VERSION does not match package.json $package_version."
+            exit 1
+          }
+
       - name: Verify release source
         run: |
           set -euo pipefail
@@ -35,6 +66,8 @@ jobs:
           node scripts/generate-release-manifest.mjs --check
 
       - name: Generate SBOM and build provenance
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           npm sbom --sbom-format=cyclonedx --sbom-type=application > sbom.cdx.json
@@ -43,12 +76,16 @@ jobs:
           import { execFileSync } from 'node:child_process';
           import { writeFileSync } from 'node:fs';
 
+          const releaseVersion = process.env.GITHUB_REF?.startsWith('refs/tags/v')
+            ? process.env.GITHUB_REF_NAME
+            : (process.env.REQUESTED_VERSION || null);
           const provenance = {
             schema: 'ger1e-release-provenance/v1',
             repository: process.env.GITHUB_REPOSITORY,
             sourceSha: process.env.GITHUB_SHA,
             ref: process.env.GITHUB_REF,
             refName: process.env.GITHUB_REF_NAME,
+            releaseVersion,
             workflow: process.env.GITHUB_WORKFLOW,
             runId: process.env.GITHUB_RUN_ID,
             runAttempt: process.env.GITHUB_RUN_ATTEMPT,
@@ -66,13 +103,40 @@ jobs:
             build-provenance.json \
             > SHA256SUMS
 
-      - name: Publish tagged GitHub release
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      - name: Create or verify manual version tag
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          tag="${GITHUB_REF_NAME}"
+          existing="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" --jq '.object.sha' 2>/dev/null || true)"
+          if [ -n "$existing" ]; then
+            test "$existing" = "$GITHUB_SHA" || {
+              echo "::error::Tag $TAG already exists at $existing, not verified source $GITHUB_SHA."
+              exit 1
+            }
+          else
+            gh api --method POST \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2026-03-10' \
+              "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f "ref=refs/tags/${TAG}" \
+              -f "sha=${GITHUB_SHA}" >/dev/null
+          fi
+
+      - name: Publish GitHub release
+        if: ${{ startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MANUAL_TAG: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            tag="$GITHUB_REF_NAME"
+          else
+            tag="$MANUAL_TAG"
+          fi
           assets=(release-manifest.json sbom.cdx.json sbom.spdx.json build-provenance.json SHA256SUMS)
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" "${assets[@]}" --clobber
@@ -84,8 +148,8 @@ jobs:
               "${assets[@]}"
           fi
 
-      - name: Manual verification summary
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+      - name: Verification-only summary
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.publish }}
         run: |
-          echo 'Manual run verified release generation only; no GitHub release was created.'
+          echo 'Verification-only run complete; no tag or GitHub Release was created.'
           cat SHA256SUMS
