@@ -19,6 +19,7 @@ export function withProviderMetadata(adapter) {
     tier: policy.tier,
     costClass: policy.costClass,
     timeoutMs: policy.timeoutMs,
+    probeIntervalMs: policy.probeIntervalMs ?? 0,
     cacheTtlMs: policy.cacheTtlMs,
     negativeCacheTtlMs: policy.negativeCacheTtlMs,
     maxResponseBytes: policy.maxResponseBytes,
