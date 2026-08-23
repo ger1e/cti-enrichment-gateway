@@ -1,7 +1,7 @@
 import { ALL_PROVIDERS } from '../providers/index.js';
 import { runProvider } from '../core/provider-runner.js';
 
-const SAMPLE_BY_TYPE = Object.freeze({
+export const PROBE_SAMPLE_BY_TYPE = Object.freeze({
   ip: '8.8.8.8',
   domain: 'example.com',
   url: 'https://example.com/',
@@ -12,10 +12,21 @@ const SAMPLE_BY_TYPE = Object.freeze({
   cidr: '8.8.8.0/24',
 });
 
-function inputFor(provider) {
-  const type = provider.types?.find(candidate => SAMPLE_BY_TYPE[candidate]);
-  if (!type) return null;
-  return Object.freeze({ type, value: SAMPLE_BY_TYPE[type] });
+const STATUS_PRIORITY = Object.freeze({
+  contract_error: 6,
+  auth_failed: 5,
+  rate_limited: 4,
+  timeout: 3,
+  upstream_error: 2,
+  unconfigured: 1,
+  ok: 0,
+});
+
+function inputsFor(provider) {
+  return (Array.isArray(provider?.types) ? provider.types : []).map(type => ({
+    type,
+    value: PROBE_SAMPLE_BY_TYPE[type] ?? null,
+  }));
 }
 
 function configured(env, name) {
@@ -31,27 +42,44 @@ function classifyFailure(failure) {
   return 'contract_error';
 }
 
-export async function probeProvider(provider, {
-  env = process.env,
-  fetchImpl = fetch,
-} = {}) {
-  const input = inputFor(provider);
-  if (!input) return Object.freeze({ provider: provider.name, status: 'unsupported_probe' });
-  if (provider.requiredEnv && !configured(env, provider.requiredEnv)) {
-    return Object.freeze({ provider: provider.name, status: 'unconfigured', type: input.type });
-  }
+function aggregateStatus(checks) {
+  if (!checks.length) return 'contract_error';
+  return checks.reduce((worst, check) =>
+    (STATUS_PRIORITY[check.status] ?? STATUS_PRIORITY.contract_error) > (STATUS_PRIORITY[worst] ?? -1)
+      ? check.status
+      : worst, 'ok');
+}
 
+function providerResult(provider, checks) {
+  const status = aggregateStatus(checks);
+  const output = {
+    provider: provider.name,
+    status,
+    checks: Object.freeze(checks),
+  };
+  if (checks.length === 1) {
+    const [check] = checks;
+    for (const key of ['type', 'latencyMs', 'httpStatus', 'observationType', 'verdict']) {
+      if (check[key] !== undefined) output[key] = check[key];
+    }
+  } else {
+    output.latencyMs = checks.reduce((sum, check) => sum + (Number(check.latencyMs) || 0), 0);
+  }
+  return Object.freeze(output);
+}
+
+async function probeInput(provider, input, { env, fetchImpl }) {
+  if (!input?.value) return Object.freeze({ type: input?.type ?? 'unknown', status: 'contract_error' });
   const timeoutMs = Math.min(Math.max(Number(provider.timeoutMs) || 5000, 1000), 15000);
-  const result = await runProvider(provider, input, {
+  const result = await runProvider(provider, Object.freeze({ type: input.type, value: input.value }), {
     timeoutMs,
     context: { env, fetchImpl },
   });
   if (!result.ok) {
     const status = Number(result.failure?.status);
     return Object.freeze({
-      provider: provider.name,
-      status: classifyFailure(result.failure),
       type: input.type,
+      status: classifyFailure(result.failure),
       latencyMs: result.durationMs,
       ...(Number.isFinite(status) ? { httpStatus: status } : {}),
     });
@@ -59,16 +87,31 @@ export async function probeProvider(provider, {
 
   const data = result.data;
   if (!data || typeof data !== 'object' || typeof data.observationType !== 'string' || !data.observationType) {
-    return Object.freeze({ provider: provider.name, status: 'contract_error', type: input.type, latencyMs: result.durationMs });
+    return Object.freeze({ type: input.type, status: 'contract_error', latencyMs: result.durationMs });
   }
   return Object.freeze({
-    provider: provider.name,
-    status: 'ok',
     type: input.type,
+    status: 'ok',
     latencyMs: result.durationMs,
     observationType: data.observationType,
     verdict: typeof data.verdict === 'string' ? data.verdict : 'unknown',
   });
+}
+
+export async function probeProvider(provider, {
+  env = process.env,
+  fetchImpl = fetch,
+} = {}) {
+  const inputs = inputsFor(provider);
+  if (!inputs.length) return providerResult(provider, [{ type: 'unknown', status: 'contract_error' }]);
+
+  if (provider.requiredEnv && !configured(env, provider.requiredEnv)) {
+    return providerResult(provider, inputs.map(input => Object.freeze({ type: input.type, status: 'unconfigured' })));
+  }
+
+  const checks = [];
+  for (const input of inputs) checks.push(await probeInput(provider, input, { env, fetchImpl }));
+  return providerResult(provider, checks);
 }
 
 export async function probeProviders({
@@ -86,8 +129,6 @@ export async function probeProviders({
   if (providerName && selected.length === 0) throw new Error('unknown or excluded provider');
 
   const output = [];
-  for (const provider of selected) {
-    output.push(await probeProvider(provider, { env, fetchImpl }));
-  }
+  for (const provider of selected) output.push(await probeProvider(provider, { env, fetchImpl }));
   return output;
 }
