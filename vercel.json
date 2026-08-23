@@ -3,6 +3,7 @@
   "git": {
     "deploymentEnabled": {
       "**": false,
+      "matrixprobe": true,
       "main": true
     }
   }
