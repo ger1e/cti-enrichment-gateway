@@ -67,6 +67,6 @@
       </rect>
     </g>
   </g>
-  <circle cx="1130" cy="55" r="4" fill="#39FF88"/>
-  <text x="1145" y="61" fill="#39FF88" font-size="13" letter-spacing="2" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">EVIDENCE</text>
+  <circle cx="1084" cy="55" r="4" fill="#39FF88"/>
+  <text x="1098" y="61" fill="#39FF88" font-size="13" letter-spacing="2" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">EVIDENCE</text>
 </svg>
