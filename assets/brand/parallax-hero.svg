@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
   <title id="title">PARALLAX — CTI Evidence Gateway</title>
-  <desc id="desc">Black glass cyberpunk banner with cyan parallax geometry and an oscillating red scanner.</desc>
+  <desc id="desc">Black glass cyberpunk banner with cyan parallax geometry, an oscillating red scanner, and the John Kiriakou evidence quotation.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#030405"/>
@@ -41,6 +41,8 @@
     <text x="0" y="72" fill="#F3F7FA" font-size="82" font-weight="800" letter-spacing="13" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">PARALLAX</text>
     <text x="3" y="116" fill="#00E5FF" font-size="20" font-weight="700" letter-spacing="6" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">CTI // EVIDENCE GATEWAY</text>
     <text x="3" y="154" fill="#7D8B95" font-size="15" letter-spacing="3" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">OBSERVE · CORRELATE · PRESERVE PROVENANCE</text>
+    <text x="3" y="198" fill="#7D8B95" font-size="14" letter-spacing=".7" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">“You’ve got to follow the <tspan fill="#00E5FF">evidence</tspan>…</text>
+    <text x="3" y="222" fill="#7D8B95" font-size="14" letter-spacing=".7" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">That doesn’t make it <tspan fill="#F3F7FA">fact</tspan>.”  — John Kiriakou</text>
   </g>
   <g transform="translate(360 270)">
     <rect x="0" y="0" width="735" height="22" rx="11" fill="#110306" stroke="#FF1E2D" stroke-opacity=".28"/>
