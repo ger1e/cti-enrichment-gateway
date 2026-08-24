@@ -20,21 +20,29 @@ concurrency:
 
 jobs:
   prune-merged:
-    name: Prune fully merged branches
+    name: Prune or archive stale branches
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Delete only merged, unprotected branches
+      - name: Preserve unique tips before branch deletion
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           set -euo pipefail
 
           deleted=0
+          archived=0
           preserved=0
+          archive_unmerged=false
+
+          if [[ "${HEAD_MESSAGE:-}" == *"[archive-stale]"* ]]; then
+            archive_unmerged=true
+            echo "One-time archive mode enabled for stale unmerged branches."
+          fi
 
           while IFS=$'\t' read -r branch protected original_sha; do
             [[ -z "$branch" ]] && continue
@@ -59,10 +67,35 @@ jobs:
                 --jq "[.[] | select(.headRefOid == \"$original_sha\")] | length > 0")
             fi
 
+            archive_this=false
             if [[ "$ahead" != "0" && "$merged_head" != "true" ]]; then
-              echo "PRESERVE unique/unmerged commits ($ahead ahead): $branch"
-              preserved=$((preserved + 1))
-              continue
+              if [[ "$archive_unmerged" != "true" ]]; then
+                echo "PRESERVE unique/unmerged commits ($ahead ahead): $branch"
+                preserved=$((preserved + 1))
+                continue
+              fi
+              archive_this=true
+            fi
+
+            if [[ "$archive_this" == "true" ]]; then
+              short_sha="${original_sha:0:12}"
+              tag="archive/$branch-$short_sha"
+              existing_sha=$(gh api "repos/$REPO/git/ref/tags/$tag" --jq '.object.sha' 2>/dev/null || true)
+
+              if [[ -z "$existing_sha" ]]; then
+                gh api --method POST "repos/$REPO/git/refs" \
+                  -f ref="refs/tags/$tag" \
+                  -f sha="$original_sha" >/dev/null
+              elif [[ "$existing_sha" != "$original_sha" ]]; then
+                echo "ERROR archive tag collision: $tag"
+                exit 1
+              fi
+
+              tag_sha=$(gh api "repos/$REPO/git/ref/tags/$tag" --jq '.object.sha')
+              if [[ "$tag_sha" != "$original_sha" ]]; then
+                echo "ERROR archive verification failed: $branch"
+                exit 1
+              fi
             fi
 
             current_sha=$(gh api "repos/$REPO/git/ref/heads/$branch" --jq '.object.sha')
@@ -73,16 +106,21 @@ jobs:
             fi
 
             gh api --method DELETE "repos/$REPO/git/refs/heads/$branch"
-            if [[ "$merged_head" == "true" ]]; then
+            deleted=$((deleted + 1))
+
+            if [[ "$archive_this" == "true" ]]; then
+              echo "ARCHIVED+DELETED $branch -> refs/tags/$tag"
+              archived=$((archived + 1))
+            elif [[ "$merged_head" == "true" ]]; then
               echo "DELETED exact head of merged PR: $branch"
             else
               echo "DELETED fully merged ancestor: $branch"
             fi
-            deleted=$((deleted + 1))
           done < <(
             gh api --paginate "repos/$REPO/branches?per_page=100" \
               --jq '.[] | [.name, .protected, .commit.sha] | @tsv'
           )
 
           echo "Deleted: $deleted"
+          echo "Archived before deletion: $archived"
           echo "Preserved: $preserved"
