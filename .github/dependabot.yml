@@ -8,6 +8,10 @@ updates:
       time: "06:00"
       timezone: "Europe/Budapest"
     open-pull-requests-limit: 5
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action/*"
 
   - package-ecosystem: "npm"
     directory: "/"
