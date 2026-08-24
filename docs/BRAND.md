@@ -24,6 +24,24 @@ The result should feel like black-glass intelligence tooling: technical, precise
 
 Use [`../assets/brand/parallax-hero.svg`](../assets/brand/parallax-hero.svg) for the repository hero, [`../assets/brand/parallax-lockup.svg`](../assets/brand/parallax-lockup.svg) for horizontal surfaces, and [`../assets/brand/parallax-mark.svg`](../assets/brand/parallax-mark.svg) for compact/icon surfaces.
 
+## Canonical quotation
+
+> “You’ve got to follow the evidence… That doesn’t make it fact.”  
+> — **John Kiriakou**
+
+This is the canonical philosophical close for PARALLAX. It captures the core operating rule: evidence is collected, preserved, correlated, and challenged; it is not automatically promoted to fact.
+
+Usage rules:
+
+- preserve the ellipsis — it marks omitted intervening remarks rather than pretending the excerpt was one uninterrupted sentence;
+- preserve the attribution;
+- use the quotation as a design/philosophy cue, not as an endorsement claim;
+- `evidence` may use `parallax-cyan`;
+- `fact` stays `signal-white` or neutral text — **never** `evidence-green`, because the quotation explicitly warns against promoting evidence into verified fact;
+- keep the quotation secondary to the product name and descriptor.
+
+Source context: John Kiriakou, *The Joe Rogan Experience* #2392, approximately 01:32:47–01:33:55. The two quoted clauses occur in the same discussion with intervening remarks omitted by the ellipsis.
+
 ## Color system
 
 | Token | Hex | Role |
