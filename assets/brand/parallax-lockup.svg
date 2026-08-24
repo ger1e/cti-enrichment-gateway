@@ -1,34 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 190" role="img" aria-labelledby="title desc">
-  <title id="title">PARA11AX lockup</title>
-  <desc id="desc">PARA11AX CTI Evidence Gateway wordmark with cyan parallax geometry, twin 11 observation rails, and red observation node.</desc>
-  <defs>
-    <filter id="cyanGlow" x="-80%" y="-80%" width="260%" height="260%">
-      <feGaussianBlur stdDeviation="5" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="redGlow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="7" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  <rect width="980" height="190" rx="22" fill="#050608"/>
-  <rect x="1" y="1" width="978" height="188" rx="21" fill="none" stroke="#00E5FF" stroke-opacity=".16"/>
-  <g transform="translate(28 20)">
-    <path d="M8 18 L66 75 L8 132" fill="none" stroke="#00E5FF" stroke-width="8" filter="url(#cyanGlow)"/>
-    <path d="M124 18 L66 75 L124 132" fill="none" stroke="#00E5FF" stroke-width="8" opacity=".40"/>
-    <circle cx="66" cy="75" r="8" fill="#FF4050" filter="url(#redGlow)"/>
-    <circle cx="66" cy="75" r="2.5" fill="#FFFFFF"/>
-  </g>
-  <g transform="translate(190 34)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
-    <text x="0" y="67" fill="#F3F7FA" font-size="66" font-weight="900" letter-spacing="8">PARA</text>
-    <g transform="translate(216 5)">
-      <rect x="3" y="0" width="12" height="63" rx="2" fill="#00E5FF" opacity=".22" filter="url(#cyanGlow)"/>
-      <rect x="29" y="0" width="12" height="63" rx="2" fill="#00E5FF" opacity=".22" filter="url(#cyanGlow)"/>
-      <text x="0" y="58" fill="#00E5FF" font-size="66" font-weight="900" letter-spacing="5">11</text>
-      <rect x="31" y="4" width="8" height="55" fill="#FF4050" opacity=".14"/>
-    </g>
-    <text x="306" y="67" fill="#F3F7FA" font-size="66" font-weight="900" letter-spacing="8">AX</text>
-    <text x="3" y="108" fill="#00E5FF" font-size="16" font-weight="800" letter-spacing="5">CTI // EVIDENCE GATEWAY</text>
-    <text x="3" y="137" fill="#7D8B95" font-size="11" font-weight="700" letter-spacing="2.5">BOUNDED · READ-ONLY · PROVENANCE-FIRST</text>
-  </g>
+<title id="title">PARA11AX lockup</title>
+<desc id="desc">PARA11AX CTI Evidence Gateway wordmark with cyan observation geometry and a red observation node.</desc>
+<defs><filter id="cg" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="rg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<rect width="980" height="190" rx="22" fill="#050608"/><rect x="1" y="1" width="978" height="188" rx="21" fill="none" stroke="#00E5FF" stroke-opacity=".16"/>
+<g transform="translate(28 20)"><path d="M8 18 66 75 8 132M124 18 66 75 124 132" fill="none" stroke="#00E5FF" stroke-width="8" filter="url(#cg)"/><circle cx="66" cy="75" r="8" fill="#FF4050" filter="url(#rg)"/><circle cx="66" cy="75" r="2.5" fill="#fff"/></g>
+<g transform="translate(190 34)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"><text x="0" y="67" font-size="66" font-weight="900" letter-spacing="5"><tspan fill="#F3F7FA">PARA</tspan><tspan fill="#00E5FF">11</tspan><tspan fill="#F3F7FA">AX</tspan></text><text x="3" y="108" fill="#00E5FF" font-size="16" font-weight="800" letter-spacing="5">CTI // EVIDENCE GATEWAY</text><text x="3" y="137" fill="#7D8B95" font-size="11" font-weight="700" letter-spacing="2.5">BOUNDED · READ-ONLY · PROVENANCE-FIRST</text></g>
 </svg>
