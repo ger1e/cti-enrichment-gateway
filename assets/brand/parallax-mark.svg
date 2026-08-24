@@ -1,22 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-  <title id="title">PARALLAX mark</title>
-  <desc id="desc">Offset cyan sight lines converge on a red observation node.</desc>
+  <title id="title">PARA11AX mark</title>
+  <desc id="desc">Offset cyan sight lines and twin observation rails converge on a red evidence-observation node.</desc>
   <defs>
-    <filter id="cyanGlow" x="-60%" y="-60%" width="220%" height="220%">
+    <filter id="cyanGlow" x="-70%" y="-70%" width="240%" height="240%">
       <feGaussianBlur stdDeviation="4" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="redGlow" x="-100%" y="-100%" width="300%" height="300%">
+    <filter id="redGlow" x="-110%" y="-110%" width="320%" height="320%">
       <feGaussianBlur stdDeviation="7" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  <rect width="256" height="256" rx="28" fill="#050608"/>
-  <path d="M42 62 L112 128 L42 194" fill="none" stroke="#00E5FF" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter" opacity=".92" filter="url(#cyanGlow)"/>
-  <path d="M214 62 L144 128 L214 194" fill="none" stroke="#00E5FF" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter" opacity=".55"/>
-  <path d="M67 62 L128 118 L189 62" fill="none" stroke="#E8EEF2" stroke-width="4" opacity=".26"/>
-  <path d="M67 194 L128 138 L189 194" fill="none" stroke="#E8EEF2" stroke-width="4" opacity=".18"/>
-  <circle cx="128" cy="128" r="19" fill="#FF1E2D" opacity=".20" filter="url(#redGlow)"/>
+  <rect width="256" height="256" rx="30" fill="#050608"/>
+  <rect x="1.5" y="1.5" width="253" height="253" rx="28.5" fill="none" stroke="#00E5FF" stroke-opacity=".16" stroke-width="3"/>
+  <path d="M38 58 L108 128 L38 198" fill="none" stroke="#00E5FF" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter" opacity=".96" filter="url(#cyanGlow)"/>
+  <path d="M218 58 L148 128 L218 198" fill="none" stroke="#00E5FF" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter" opacity=".40"/>
+  <path d="M66 58 L128 117 L190 58" fill="none" stroke="#F3F7FA" stroke-width="4" opacity=".18"/>
+  <path d="M66 198 L128 139 L190 198" fill="none" stroke="#F3F7FA" stroke-width="4" opacity=".11"/>
+  <rect x="118" y="74" width="6" height="108" rx="3" fill="#00E5FF" opacity=".28"/>
+  <rect x="132" y="74" width="6" height="108" rx="3" fill="#00E5FF" opacity=".18"/>
+  <circle cx="128" cy="128" r="21" fill="#FF1E2D" opacity=".16" filter="url(#redGlow)"/>
   <circle cx="128" cy="128" r="8" fill="#FF4050" filter="url(#redGlow)"/>
   <circle cx="128" cy="128" r="2.5" fill="#FFFFFF"/>
 </svg>
