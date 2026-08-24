@@ -1,0 +1,71 @@
+name: Branch hygiene
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 0"
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/branch-hygiene.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: branch-hygiene-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  prune-merged:
+    name: Prune fully merged branches
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Delete only fully merged, unprotected branches
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          deleted=0
+          preserved=0
+
+          while IFS=$'\t' read -r branch protected original_sha; do
+            [[ -z "$branch" ]] && continue
+            [[ "$branch" == "$DEFAULT_BRANCH" ]] && continue
+
+            if [[ "$protected" == "true" ]]; then
+              echo "PRESERVE protected: $branch"
+              preserved=$((preserved + 1))
+              continue
+            fi
+
+            ahead=$(gh api "repos/$REPO/compare/$DEFAULT_BRANCH...$branch" --jq '.ahead_by')
+            if [[ "$ahead" != "0" ]]; then
+              echo "PRESERVE unique commits ($ahead ahead): $branch"
+              preserved=$((preserved + 1))
+              continue
+            fi
+
+            current_sha=$(gh api "repos/$REPO/git/ref/heads/$branch" --jq '.object.sha')
+            if [[ "$current_sha" != "$original_sha" ]]; then
+              echo "PRESERVE changed during run: $branch"
+              preserved=$((preserved + 1))
+              continue
+            fi
+
+            gh api --method DELETE "repos/$REPO/git/refs/heads/$branch"
+            echo "DELETED fully merged: $branch"
+            deleted=$((deleted + 1))
+          done < <(
+            gh api --paginate "repos/$REPO/branches?per_page=100" \
+              --jq '.[] | [.name, .protected, .commit.sha] | @tsv'
+          )
+
+          echo "Deleted: $deleted"
+          echo "Preserved: $preserved"
