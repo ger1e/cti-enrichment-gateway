@@ -2,7 +2,7 @@
 
 # CTI ENRICHMENT GATEWAY
 
-**37 fixed intelligence sources → evidence-v2 → typed correlation → STIX 2.1 → deterministic analyst reports**
+**37 fixed intelligence sources → Evidence v2 → typed correlation → STIX 2.1 → deterministic analyst reports**
 
 [![Tooling smoke](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/tooling-smoke.yml)
 [![CodeQL](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/codeql.yml)
@@ -12,103 +12,75 @@
 ![Node](https://img.shields.io/badge/NODE-24.x-39ff88?style=flat-square)
 ![Mode](https://img.shields.io/badge/MODE-READ--ONLY-39ff88?style=flat-square)
 
-**Public source. Private bearer-protected runtime. Fixed egress. No arbitrary provider calls. No synthetic “vendors say malicious” score.**
+**Public source · private bearer-protected runtime · fixed egress · no arbitrary provider calls · no synthetic master score**
 
 [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Providers](docs/PROVIDERS.md) · [Evidence v2](docs/EVIDENCE-SCHEMA.md) · [E2E example](docs/END-TO-END-EXAMPLE.md) · [Operations](docs/OPERATIONS.md) · [Security](SECURITY.md)
 
 </div>
 
----
-
 > [!IMPORTANT]
-> This gateway is built for **personal research and lab use**. Do not send commercial-client, internal-enterprise, restricted, or otherwise sensitive data unless the relevant authorization, licensing, and data-handling requirements are explicitly satisfied.
+> Built for **personal research and lab use**. Do not send commercial-client, internal-enterprise, restricted, or otherwise sensitive data unless authorization, licensing, and data-handling requirements are explicitly satisfied.
 
-## ⚡ What this is
-
-A bounded, read-only CTI enrichment gateway for Vercel with a local Maltego Graph Desktop client, a dependency-free operator CLI, STIX 2.1 export, and a deterministic offline report compiler.
-
-The design goal is not “query everything and average the answers.” It is:
+## ⚡ Signal
 
 ```text
-INPUT
-  ↓
-canonical indicator
-  ↓
-fixed workflow + bounded provider fan-out
-  ↓
+indicator
+   ↓
+canonical classification
+   ↓
+fixed profile + bounded provider fan-out
+   ↓
 provider-native observations + provenance
-  ↓
+   ↓
 typed correlation / contradictions / freshness / huntability
-  ↓
-JSON · Batch · STIX 2.1 · offline report bundle
+   ↓
+JSON · Batch · STIX 2.1 · frozen offline report
 ```
-
-### Visual legend
 
 | Cue | Meaning |
 | --- | --- |
 | 🟢 | enforced / verified / bounded |
-| 🟡 | partial coverage, upstream state, or analyst caveat |
-| 🔒 | authentication / secret boundary |
+| 🟡 | partial coverage / upstream caveat |
+| 🔒 | auth / secret boundary |
 | 🧱 | fail-closed security boundary |
-| 🧭 | context for investigation, **not** a maliciousness verdict |
-| 🧬 | normalized evidence / provenance / integrity |
+| 🧭 | investigative context, **not** maliciousness |
+| 🧬 | evidence / provenance / integrity |
 
----
-
-## 🛰️ Architecture at a glance
+## 🛰️ Architecture
 
 ```mermaid
 flowchart TB
     A[Client / CLI / Maltego] --> B[🔒 Bearer auth + request limits]
-    B --> C[Canonical indicator classifier]
-    C --> D[Fixed fast / standard / full profile]
+    B --> C[Canonical classifier]
+    C --> D[fast / standard / full]
     D --> E[Tiered scheduler<br/>max 4 providers]
-    E --> F[🧱 safeFetch fixed-egress boundary]
+    E --> F[🧱 safeFetch fixed egress]
     F --> P[(37 fixed APIs / feeds)]
-    P --> G[Provider-specific parsers]
+    P --> G[Provider parsers]
     G --> H[Bounded LRU / TTL cache]
-    H --> I[🧬 Evidence v2 + integrity fingerprint]
-    I --> J[Typed correlation + freshness + huntability]
+    H --> I[🧬 Evidence v2 + integrity]
+    I --> J[Typed correlation + huntability]
     J --> K[JSON / Batch / STIX 2.1]
-    K --> L[Optional frozen offline report]
+    K --> L[Frozen offline report]
 
     style F fill:#082b2f,stroke:#00e5ff,stroke-width:3px
     style I fill:#0b2d20,stroke:#39ff88,stroke-width:2px
     style P fill:#242424,stroke:#f6c945,stroke-width:2px
 ```
 
-### The critical trust boundary
+`safeFetch` is the critical boundary: callers cannot choose arbitrary providers, destinations, protocols, methods, headers, redirect targets, or provider credentials. Upstream responses remain untrusted until provider-specific parsers validate them.
 
-`safeFetch` is the center of gravity. Callers **cannot** choose an arbitrary provider, destination, protocol, method, header, redirect target, or provider credential.
-
-```mermaid
-flowchart TB
-    U[Untrusted caller input] --> V[Validate + canonicalize]
-    V --> W[Static workflow]
-    W --> S[🧱 safeFetch]
-    S -->|exact HTTPS host + declared method| P[Known provider]
-    S -. blocked .-> X[Arbitrary host / redirect / method drift]
-    P --> R[Untrusted upstream response]
-    R --> Q[Provider parser + byte / shape limits]
-    Q --> E[Evidence v2]
-```
-
-**Read-only means read-only:** there are no scanning, detonation, submission, sample-download, takedown, remediation, or arbitrary-proxy routes.
-
----
+**Read-only means read-only:** no scanning, detonation, submission, sample download, takedown, remediation, or arbitrary-proxy routes.
 
 ## 🧠 Semantic firewall
-
-The gateway deliberately refuses to collapse unlike evidence into one global risk score.
 
 ```mermaid
 flowchart TB
     O[Provider observation] --> C{Semantic class}
     C --> N[Network / registration / routing]
     C --> S[Scanner / noise / Tor]
-    C --> R[Reputation / malware association]
-    C --> V[Vulnerability / KEV / EPSS / CVSS]
+    C --> R[Reputation / malware]
+    C --> V[KEV / EPSS / CVSS / vuln metadata]
     C --> A[ATT&CK knowledge]
     C --> X[Community / ransomware claims]
 
@@ -116,161 +88,127 @@ flowchart TB
     S --> K
     A --> K
     X --> K
-    R --> T[Corroborate only with compatible independent evidence]
+    R --> T[Corroborate only compatible independent evidence]
     V --> Y[Keep risk axes separate]
 ```
 
-### The rules that matter
-
-- **Absence ≠ benign.** `not_listed`, `not_found`, `no_result`, and `no_association` are semantic absence, never a clean verdict by default.
-- **Context ≠ reputation.** RDAP registration, Tor exit status, Shodan exposure, Modat infrastructure, or ATT&CK knowledge cannot vote an IOC malicious.
-- **Claims ≠ compromise proof.** Ransomware leak-site and community IOC reports stay neutral claim/report semantics.
-- **Infrastructure ≠ attribution.** ASN, hosting, DNS, certificate, or malware proximity cannot create actor attribution without explicit supporting relationships.
-- **KEV ≠ EPSS ≠ CVSS.** Exploited status, exploitation probability, and severity stay separate axes.
-
-See [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md) for the full evidence-v2 contract.
-
----
+- **Absence ≠ benign.** `not_listed`, `not_found`, `no_result`, and `no_association` are absence semantics.
+- **Context ≠ reputation.** RDAP, Tor, Shodan, Modat, routing, and ATT&CK context cannot vote an IOC malicious.
+- **Claims ≠ compromise proof.** Community reports and ransomware claims remain neutral claims.
+- **Infrastructure ≠ attribution.** Hosting/DNS/ASN proximity cannot manufacture actor attribution.
+- **KEV ≠ EPSS ≠ CVSS.** Exploitation status, probability, and severity remain separate axes.
 
 ## 🎯 Supported pivots
 
-| Indicator | Canonical support | Typical intelligence |
+| Pivot | Support | Typical output |
 | --- | :---: | --- |
 | IPv4 / IPv6 | 🟢 | identity, routing, exposure, abuse, reputation, passive DNS |
-| Domain / DNS | 🟢 | DNS/infrastructure, phishing, reputation, ransomware claims |
-| HTTP(S) URL | 🟢 | URL intelligence, phishing/malware context, community reports |
-| MD5 / SHA-1 / SHA-256 | 🟢 | malware/sample intelligence, sandbox/catalog context |
+| Domain / DNS | 🟢 | infrastructure, phishing, reputation, ransomware context |
+| HTTP(S) URL | 🟢 | URL intelligence, phishing/malware, community context |
+| MD5 / SHA-1 / SHA-256 | 🟢 | sample/catalog/sandbox intelligence |
 | CVE | 🟢 | KEV, EPSS, NVD/CIRCL/OSV metadata |
 | MITRE ATT&CK ID | 🟢 | fixed TAXII knowledge lookup |
 | ASN | 🟢 | registration, routing, DROP context |
 | IPv4 / IPv6 CIDR | 🟢 | registration, routing, DROP context |
-| TLS / JA3 | ⚪ intentionally omitted | no fixed bounded source met the source gate |
-
----
+| TLS / JA3 | ⚪ omitted | no fixed bounded source passed the source gate |
 
 ## 🔌 API surface
 
-| Endpoint | Auth | Purpose | Hard boundary |
+| Endpoint | Auth | Purpose | Boundary |
 | --- | :---: | --- | --- |
-| `GET /api/meta` | public | static capabilities + limits | no secret/configuration state |
-| `GET /api/health` | 🔒 | operational readiness | `no-store`, no credential values |
-| `GET /api/status` | 🔒 | aggregate runtime state | count-only cache/circuit/config state |
-| `POST /api/enrich` | 🔒 | one indicator | fixed workflow/profile only |
-| `POST /api/batch` | 🔒 | 1–20 indicators | max 3 active indicators / 200 calls |
+| `GET /api/meta` | public | capabilities + hard limits | no secret/config state |
+| `GET /api/health` | 🔒 | readiness | `no-store`, no secret values |
+| `GET /api/status` | 🔒 | aggregate runtime state | count-only |
+| `POST /api/enrich` | 🔒 | one indicator | fixed profile/workflow |
+| `POST /api/batch` | 🔒 | 1–20 indicators | max 3 active / 200 calls |
 | `POST /api/stix` | 🔒 | enrich → STIX 2.1 | max 100 objects |
-| unknown `/api/*` | — | controlled rejection | fail-closed 404 |
+| unknown `/api/*` | — | rejection | controlled fail-closed 404 |
 
-Profiles are fixed: **`fast` · `standard` · `full`**. A caller cannot name an upstream provider or override egress policy.
+Profiles are fixed: **`fast` · `standard` · `full`**. Callers cannot select individual upstreams.
 
 ```json
-{
-  "indicator": "203.0.113.10",
-  "profile": "standard"
-}
+{"indicator":"203.0.113.10","profile":"standard"}
 ```
 
-For the complete request/error contract, see [`docs/API.md`](docs/API.md).
+## 🌐 Provider coverage — 37 active integrations
 
----
+**Live health/configuration is intentionally not hardcoded here** because it changes independently of source code. The canonical machine-readable policy is [`config/providers.json`](config/providers.json).
 
-## 🌐 37 upstream APIs and feeds
-
-Provider routing is static and manifest-driven. **Configured state and live upstream health are intentionally not hardcoded into this README** because both can change independently of source code.
-
-| Intelligence lane | Active integrations |
+| Intelligence lane | Integrations |
 | --- | --- |
-| 🌍 **Network identity / routing / exposure** | IPinfo · RDAP · RIPEstat · Shodan · Censys · Modat Magnify · Cloudflare Radar · Tor Exit · Spamhaus DROP / ASN-DROP |
-| ☣️ **Threat reputation / IOC context** | DShield · Feodo Tracker · ThreatMiner · CIRCL MISP OSINT · Botvrij MISP OSINT · GreyNoise · AbuseIPDB · VirusTotal · OTX · ThreatFox · urlscan.io · Webamon · Pulsedive · OpenPhish · URLhaus · TweetFeed |
-| 🧬 **File / malware intelligence** | CIRCL Hashlookup · MalwareBazaar · Malpedia · Hybrid Analysis |
+| 🌍 **Identity / routing / exposure** | IPinfo · RDAP · RIPEstat · Shodan · Censys · Modat Magnify · Cloudflare Radar · Tor Exit · Spamhaus DROP / ASN-DROP |
+| ☣️ **Threat / IOC context** | DShield · Feodo Tracker · ThreatMiner · CIRCL MISP OSINT · Botvrij MISP OSINT · GreyNoise · AbuseIPDB · VirusTotal · OTX · ThreatFox · urlscan.io · Webamon · Pulsedive · OpenPhish · URLhaus · TweetFeed |
+| 🧬 **File / malware** | CIRCL Hashlookup · MalwareBazaar · Malpedia · Hybrid Analysis |
 | 🛡️ **Vulnerability / ATT&CK** | CISA KEV · FIRST EPSS · CIRCL Vulnerability-Lookup · NVD · OSV · MITRE ATT&CK TAXII |
-| 💀 **Ransomware intelligence** | RansomLook · Ransomware.live API-PRO |
+| 💀 **Ransomware** | RansomLook · Ransomware.live API-PRO |
 
-The canonical machine-readable contract is [`config/providers.json`](config/providers.json): supported types, observation semantics, credential identifiers, tiers, cost classes, timeouts, probe pacing, cache TTLs, response ceilings, exact hosts, methods, protocols, parser versions, source URLs, and distribution policy.
+The manifest defines supported types, observation semantics, credentials, tier/cost policy, timeouts, probe pacing, cache TTLs, response ceilings, exact hosts/methods/protocols, parser versions, source URLs, and distribution policy.
 
 > [!NOTE]
-> Tier is execution priority/cost policy—not analytical authority. A tier-1 source is not automatically “more trusted” than a tier-4 source.
-
----
+> Tier is execution priority/cost policy—not analytical authority.
 
 ## 🧱 Security model
 
 ```text
-CALLER SECRET          CTI_GATEWAY_TOKEN
-      │
-      ▼
-┌───────────────────────────────────────────┐
-│              GATEWAY RUNTIME              │
-│                                           │
-│  auth → classify → workflow → safeFetch   │
-│                           │               │
-│                     vendor secrets        │
-└───────────────────────────┼───────────────┘
-                            ▼
-                    FIXED UPSTREAM APIs
+CLIENT                       VERCEL RUNTIME                    UPSTREAM
+
+CTI_GATEWAY_TOKEN ──► auth ─► workflow ─► safeFetch ─────────► fixed APIs
+                                  │
+                                  └── vendor credentials stay server-side
 ```
 
-### Enforced controls
-
-| Boundary | Control |
+| Boundary | Enforced control |
 | --- | --- |
-| 🔒 Authentication | private API requires `CTI_GATEWAY_TOKEN` |
-| 🔑 Provider secrets | stay server-side; never enter Maltego project/MTZ output |
+| 🔒 Auth | bearer required for private API surfaces |
+| 🔑 Secrets | provider credentials stay server-side; Maltego gets only the gateway bearer |
 | 🧱 Egress | exact fixed hosts + declared HTTPS methods/protocols |
 | ↪ Redirects | refused |
-| 📦 Upstream bodies | streamed and byte-capped before parsing |
+| 📦 Bodies | streamed and byte-capped before parsing |
 | ⏱ Runtime | provider timeout + 20 s request deadline |
 | 🧵 Concurrency | max 4 providers; batch max 3 active indicators |
 | 🔁 Retry | at most one retry for explicitly retryable conditions |
-| 🧯 Circuit breaker | bounded, instance-local, retryable-failure driven |
-| 🗄 Cache | bounded LRU/TTL + in-flight de-duplication |
-| 🧪 Parser behavior | malformed feeds fail closed |
+| 🧯 Circuit | bounded, instance-local |
+| 🗄 Cache | bounded LRU/TTL + in-flight dedupe; failures never cached |
+| 🧪 Parsing | malformed public feeds fail closed |
 | 🕵️ Telemetry | allowlisted operational fields; raw indicators excluded by default |
-| 🌐 HTTP errors | `no-store`, CSP-locked, frame-denied, `nosniff`, correlation-ID tagged |
+| 🌐 Errors | `no-store`, CSP, frame denial, `nosniff`, request correlation IDs |
 
-Runtime parity is **Node.js 24.x**. GitHub Actions are pinned to immutable commit SHAs. npm state is lockfile-backed and CI runs a real `npm audit --omit=dev`.
+Runtime parity is **Node.js 24.x**. GitHub Actions are SHA-pinned. npm state is lockfile-backed and CI performs a real production dependency audit.
 
-Security details: [`docs/SECURITY-CONTROLS.md`](docs/SECURITY-CONTROLS.md) · [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) · [`SECURITY.md`](SECURITY.md)
+## 🧪 QA posture
 
----
+Current protected-`main` automated baseline:
 
-## 🧪 QA / verification posture
-
-Current automated baseline on protected `main`:
-
-| Gate | Baseline |
+| Gate | Result |
 | --- | ---: |
-| Node test suite | **342 / 342** 🟢 |
-| Maltego Python suite | **65 / 65** 🟢 |
+| Node tests | **342 / 342** 🟢 |
+| Maltego tests | **65 / 65** 🟢 |
 | npm production audit | **0 vulnerabilities** 🟢 |
 | Repository invariants | 🟢 |
 | Public-release audit | 🟢 |
 | Python compilation | 🟢 |
 | ShellCheck / bash syntax | 🟢 |
-| PowerShell syntax | 🟢 |
-| CodeQL | 🟢 live badge above |
+| PowerShell parsing | 🟢 |
+| CodeQL | 🟢 live badge |
 
-`Tooling smoke` is intentionally one bounded Ubuntu job. It verifies Node/repository/MAXX invariants, Maltego regression tests, Python compilation, shell checks, and PowerShell parsing without recurring macOS/Windows hosted-runner spend.
+`Tooling smoke` is intentionally one bounded Ubuntu job. It validates the repository/Node suite, Maltego tests, Python compilation, shell checks, and PowerShell syntax without recurring macOS/Windows hosted-runner spend.
 
-### Production acceptance is stricter than CI
+### Production acceptance
 
 ```mermaid
 flowchart LR
     A[PR] --> B[Tooling smoke + CodeQL]
     B --> C[Protected main]
-    C --> D[Vercel production build]
-    D --> E{deployed SHA == exact main?}
+    C --> D[Vercel production]
+    D --> E{deployment SHA == exact main?}
     E -->|yes| F[Production smoke]
     E -->|no| X[Reject stale deployment]
     F --> G[🟢 Production-complete]
 ```
 
-Repository-complete, configured, and production-complete are separate states. See [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
-
----
+**Repository-complete ≠ configured ≠ production-complete.** See [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 
 ## 🧰 Operator CLI
-
-Routine operations stay behind a bounded, dependency-free control plane:
 
 ```text
 cti doctor
@@ -285,84 +223,60 @@ cti report compile <snapshot.json> --out <dir> [--preset <name>]
 cti report diff <before.json> <after.json>
 ```
 
-`doctor` reports configuration presence/counts only. The sequential provider probe classifies `ok`, `unconfigured`, `auth_failed`, `rate_limited`, `timeout`, `upstream_error`, and `contract_error` without printing secret values or raw exception text.
+The sequential provider probe distinguishes `ok`, `unconfigured`, `auth_failed`, `rate_limited`, `timeout`, `upstream_error`, and `contract_error` without printing secret values or raw exception text.
 
----
+## 🕸️ Maltego
 
-## 🕸️ Maltego boundary
-
-Maltego knows **one credential only**: the gateway bearer. Vendor API keys remain in the server-side runtime.
-
-### macOS / Linux
+Maltego crosses only the gateway bearer boundary. Vendor credentials never enter the MTZ/project output.
 
 ```sh
-cd maltego
-./install.sh
+# macOS / Linux
+cd maltego && ./install.sh
 ```
 
-### Windows PowerShell
-
 ```powershell
+# Windows
 cd maltego
 Set-ExecutionPolicy -Scope Process Bypass -Force
 .\install.ps1
 ```
 
-The bootstrap enforces Python ≥3.10, prefers 3.12, repairs stale virtual environments, runs tests, uses the native credential store, generates the MTZ, validates archive safety/transform inventory/secret absence, and prints the resulting SHA-256.
+The bootstrap enforces Python ≥3.10, prefers 3.12, repairs stale environments, runs tests, uses native credential storage, generates the MTZ, checks archive safety/transform parity/secret absence, and prints the SHA-256. See [`maltego/README.md`](maltego/README.md).
 
-See [`maltego/README.md`](maltego/README.md).
-
----
-
-## 📦 Decision-grade offline reports
-
-Report rendering never calls providers. It compiles from a **frozen evidence snapshot** through a canonical `ReportModel` and hard quality gate.
+## 📦 Deterministic offline reports
 
 ```mermaid
-flowchart TB
-    A[Frozen evidence snapshot] --> B[Secret / structure preflight]
-    B --> C[Canonical ReportModel]
-    C --> D[Quality gate]
-    D --> E[Audience / sharing preset]
-    E --> F[Deterministic renderers]
-    F --> G[SHA-256 manifest]
+flowchart LR
+    A[Frozen evidence] --> B[Secret + structure preflight]
+    B --> C[ReportModel]
+    C --> D[Hard quality gate]
+    D --> E[Preset / sharing policy]
+    E --> F[Deterministic artifacts + SHA-256 manifest]
 ```
 
-The `all` preset can emit:
+`cti report compile` can emit:
 
 ```text
-report.html
-report.pdf
-report.txt
-evidence.json
-intelligence.stix.json
-observables.csv
-hunts.kql
-attack-navigator.json
+report.html              intelligence.stix.json
+report.pdf               observables.csv
+report.txt               hunts.kql
+evidence.json            attack-navigator.json
 manifest.json
 ```
 
-The gate rejects orphan claims, missing provenance, malformed ATT&CK IDs, contextual behavior represented as observed, duplicate observables, impossible timestamps, unsafe references, unsupported attribution, stale evidence without an explicit limitation, known secret material, and unsafe sharing of `internal` / `internal_only` evidence.
-
-CSV export neutralizes spreadsheet-formula prefixes. Snapshot diffing reports structural evidence change without inventing a risk-score delta.
-
----
+The gate rejects orphan claims, missing provenance, malformed ATT&CK IDs, contextual behavior presented as observed, duplicate observables, impossible timestamps, unsafe references, unsupported attribution, stale evidence without limitation, secret material, and unsafe sharing of `internal` / `internal_only` evidence.
 
 ## 🚀 Deployment / governance
 
-Production is deliberately narrower than CI:
-
 ```text
-feature branch / PR ──► GitHub validation
-                    └─X Vercel preview build
+feature / PR ─────► GitHub validation
+               └─X Vercel preview
 
-protected main ───────► GitHub validation
-                    └─► one Vercel production build
+protected main ───► GitHub validation
+               └─► one Vercel production build
 ```
 
-`vercel.json` denies Git deployment for `**` and explicitly permits only `main`, closing slash-branch preview loopholes while allowing the protected production path.
-
-The authorized Windows provisioning/finalization path is:
+`vercel.json` denies Git deployment for `**` and explicitly enables only `main`.
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass -Force
@@ -370,17 +284,13 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 .\scripts\finalize.ps1
 ```
 
-Branch/deployment governance can be checked read-only with:
-
 ```bash
 npm run verify:governance
 ```
 
-Tagged `v*` releases use [`.github/workflows/release-provenance.yml`](.github/workflows/release-provenance.yml) to verify the exact source, run dependency/full checks, validate [`release-manifest.json`](release-manifest.json), generate CycloneDX + SPDX SBOMs, record provenance/checksums, and attach assets to the GitHub Release.
+Tagged `v*` releases use [`.github/workflows/release-provenance.yml`](.github/workflows/release-provenance.yml) to verify the exact source, run checks/audit, validate [`release-manifest.json`](release-manifest.json), generate CycloneDX + SPDX SBOMs, record provenance/checksums, and publish GitHub Release assets.
 
----
-
-## 🧭 Quick development verification
+## 🔬 Development verification
 
 ```bash
 npm run bootstrap
@@ -394,8 +304,6 @@ npm test
 node scripts/generate-release-manifest.mjs --check
 ```
 
-Maltego:
-
 ```bash
 cd maltego
 python3 -m unittest discover -s tests -v
@@ -403,39 +311,27 @@ cd ..
 python3 -m compileall -q maltego
 ```
 
----
+## 📚 Deep docs
 
-## 📚 Deep documentation
-
-| Document | Use it for |
+| Document | Purpose |
 | --- | --- |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | execution model + trust boundaries |
-| [`docs/END-TO-END-EXAMPLE.md`](docs/END-TO-END-EXAMPLE.md) | sanitized IOC → evidence → STIX/report walkthrough |
-| [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md) | evidence-v2 semantics + correlation model |
-| [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | provider semantics + state model |
+| [`docs/END-TO-END-EXAMPLE.md`](docs/END-TO-END-EXAMPLE.md) | IOC → evidence → STIX/report walkthrough |
+| [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md) | evidence-v2 + correlation semantics |
+| [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | source semantics + provider state model |
 | [`docs/API.md`](docs/API.md) | endpoint contracts + hard limits |
-| [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) | threats, controls, residual risk, executable checks |
+| [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) | threats + residual risk + executable checks |
 | [`docs/SECURITY-CONTROLS.md`](docs/SECURITY-CONTROLS.md) | control → risk mapping |
-| [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | CI, production acceptance, incident behavior |
+| [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | CI + production acceptance + incident behavior |
 | [`SECURITY.md`](SECURITY.md) | repository security policy |
-| [`PUBLIC-RELEASE-CHECKLIST.md`](PUBLIC-RELEASE-CHECKLIST.md) | public-extraction gate |
-| [`release-manifest.json`](release-manifest.json) | deterministic gateway/provider release identity |
+| [`docs/PUBLIC-RELEASE-CHECKLIST.md`](docs/PUBLIC-RELEASE-CHECKLIST.md) | public-extraction gate |
+| [`release-manifest.json`](release-manifest.json) | deterministic release identity |
 
-The executable provider registry, canonical provider manifest, workflows, and release manifest are authoritative. Documentation never overrides runtime/configuration checks.
-
----
+The executable registry, canonical manifest, workflows, and release manifest are authoritative. Documentation never overrides runtime/configuration checks.
 
 ## 🚧 Deliberate gaps
 
-These are intentional design decisions, not forgotten TODOs:
-
-- no TLS / JA3 indicator class without a fixed bounded source that passes the source gate;
-- no deprecated SSLBL C2 path;
-- no stale SecurityTrails configuration;
-- no unbounded ATT&CK relationship collection download;
-- no ransomware-wide unbounded group/IOC enumeration inside per-indicator enrichment;
-- no Modat bulk export or broad history/search workflow;
-- no universal maliciousness score.
+No TLS/JA3 without a bounded source that passes the source gate. No deprecated SSLBL C2 path. No stale SecurityTrails configuration. No unbounded ATT&CK relationship download. No ransomware-wide enumeration in per-indicator enrichment. No Modat bulk export/broad history path. **No universal maliciousness score.**
 
 ---
 
@@ -443,6 +339,6 @@ These are intentional design decisions, not forgotten TODOs:
 
 ### `OBSERVED ≠ INFERRED ≠ CONTEXTUAL`
 
-**Preserve provenance. Keep semantics separate. Fail closed. Make uncertainty visible.**
+**Preserve provenance · keep semantics separate · fail closed · make uncertainty visible**
 
 </div>
