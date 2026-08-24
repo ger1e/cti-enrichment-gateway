@@ -20,33 +20,48 @@ concurrency:
 
 jobs:
   prune-merged:
-    name: Prune or archive stale branches
+    name: Prune safely archived branches
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Preserve unique tips before branch deletion
+      - name: Delete only merged or archive-captured refs
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+          ARCHIVE_BRANCH: archive/stale-branches-20260824
+          ARCHIVE_COMMIT: 61457a0a672b0616c02a03cf8da77b464741d65f
         run: |
           set -euo pipefail
 
           deleted=0
-          archived=0
           preserved=0
-          archive_unmerged=false
+          collapse_archive=false
 
-          if [[ "${HEAD_MESSAGE:-}" == *"[archive-stale]"* ]]; then
-            archive_unmerged=true
-            echo "One-time archive mode enabled for stale unmerged branches."
+          if [[ "${HEAD_MESSAGE:-}" == *"[collapse-archive]"* ]]; then
+            collapse_archive=true
+            echo "One-time archive-collapse mode enabled."
           fi
+
+          mapfile -t archived_parents < <(
+            gh api "repos/$REPO/commits/$ARCHIVE_COMMIT" --jq '.parents[].sha'
+          )
+
+          is_archived_parent() {
+            local candidate="$1"
+            local parent
+            for parent in "${archived_parents[@]}"; do
+              [[ "$candidate" == "$parent" ]] && return 0
+            done
+            return 1
+          }
 
           while IFS=$'\t' read -r branch protected original_sha; do
             [[ -z "$branch" ]] && continue
             [[ "$branch" == "$DEFAULT_BRANCH" ]] && continue
+            [[ "$branch" == "$ARCHIVE_BRANCH" ]] && continue
 
             if [[ "$protected" == "true" ]]; then
               echo "PRESERVE protected: $branch"
@@ -67,35 +82,15 @@ jobs:
                 --jq "[.[] | select(.headRefOid == \"$original_sha\")] | length > 0")
             fi
 
-            archive_this=false
-            if [[ "$ahead" != "0" && "$merged_head" != "true" ]]; then
-              if [[ "$archive_unmerged" != "true" ]]; then
-                echo "PRESERVE unique/unmerged commits ($ahead ahead): $branch"
-                preserved=$((preserved + 1))
-                continue
-              fi
-              archive_this=true
+            archive_captured=false
+            if [[ "$collapse_archive" == "true" ]] && is_archived_parent "$original_sha"; then
+              archive_captured=true
             fi
 
-            if [[ "$archive_this" == "true" ]]; then
-              short_sha="${original_sha:0:12}"
-              tag="archive/$branch-$short_sha"
-              existing_sha=$(gh api "repos/$REPO/git/ref/tags/$tag" --jq '.object.sha' 2>/dev/null || true)
-
-              if [[ -z "$existing_sha" ]]; then
-                gh api --method POST "repos/$REPO/git/refs" \
-                  -f ref="refs/tags/$tag" \
-                  -f sha="$original_sha" >/dev/null
-              elif [[ "$existing_sha" != "$original_sha" ]]; then
-                echo "ERROR archive tag collision: $tag"
-                exit 1
-              fi
-
-              tag_sha=$(gh api "repos/$REPO/git/ref/tags/$tag" --jq '.object.sha')
-              if [[ "$tag_sha" != "$original_sha" ]]; then
-                echo "ERROR archive verification failed: $branch"
-                exit 1
-              fi
+            if [[ "$ahead" != "0" && "$merged_head" != "true" && "$archive_captured" != "true" ]]; then
+              echo "PRESERVE unique/unarchived commits ($ahead ahead): $branch"
+              preserved=$((preserved + 1))
+              continue
             fi
 
             current_sha=$(gh api "repos/$REPO/git/ref/heads/$branch" --jq '.object.sha')
@@ -108,9 +103,8 @@ jobs:
             gh api --method DELETE "repos/$REPO/git/refs/heads/$branch"
             deleted=$((deleted + 1))
 
-            if [[ "$archive_this" == "true" ]]; then
-              echo "ARCHIVED+DELETED $branch -> refs/tags/$tag"
-              archived=$((archived + 1))
+            if [[ "$archive_captured" == "true" ]]; then
+              echo "DELETED archive-captured branch: $branch"
             elif [[ "$merged_head" == "true" ]]; then
               echo "DELETED exact head of merged PR: $branch"
             else
@@ -122,5 +116,4 @@ jobs:
           )
 
           echo "Deleted: $deleted"
-          echo "Archived before deletion: $archived"
           echo "Preserved: $preserved"
