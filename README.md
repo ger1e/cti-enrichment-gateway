@@ -5,13 +5,8 @@
   <img src="assets/brand/parallax-hero.svg" alt="PARA11AX — CTI Evidence Gateway" width="100%" />
 </picture>
 
-# PARA11AX
-
-**CTI Evidence Gateway**
-
-### `BOUNDED · READ-ONLY · PROVENANCE-FIRST`
-
-**37 fixed intelligence sources → Evidence v2 → typed correlation → STIX 2.1 → deterministic analyst reports**
+<sub><b>CTI Evidence Gateway</b> · <code>BOUNDED · READ-ONLY · PROVENANCE-FIRST</code></sub><br/>
+<sub>37 fixed intelligence sources → Evidence v2 → typed correlation → STIX 2.1 → deterministic analyst reports</sub>
 
 [![Tooling smoke](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/tooling-smoke.yml)
 [![CodeQL](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/codeql.yml)
@@ -21,9 +16,8 @@
 ![Node](https://img.shields.io/badge/NODE-24.x-39ff88?style=flat-square)
 ![Mode](https://img.shields.io/badge/MODE-READ--ONLY-39ff88?style=flat-square)
 
-**Public source · private bearer-protected runtime · fixed egress · no arbitrary provider calls · no synthetic master score**
-
-[Brand](docs/BRAND.md) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Providers](docs/PROVIDERS.md) · [Evidence v2](docs/EVIDENCE-SCHEMA.md) · [E2E example](docs/END-TO-END-EXAMPLE.md) · [Operations](docs/OPERATIONS.md) · [Security](SECURITY.md)
+<sub><b>Public source · private bearer-protected runtime · fixed egress · no arbitrary provider calls · no synthetic master score</b></sub><br/>
+<sub>[Brand](docs/BRAND.md) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Providers](docs/PROVIDERS.md) · [Evidence v2](docs/EVIDENCE-SCHEMA.md) · [E2E example](docs/END-TO-END-EXAMPLE.md) · [Operations](docs/OPERATIONS.md) · [Security](SECURITY.md)</sub>
 
 </div>
 
@@ -33,7 +27,7 @@
 > [!NOTE]
 > **PARA11AX is the product/visual identity.** Compatibility surfaces remain `cti-enrichment-gateway`, the `cti` CLI, `CTI_GATEWAY_TOKEN`, and the existing `/api/*` contracts. See [`docs/BRAND.md`](docs/BRAND.md).
 
-## ⚡ One-screen model
+#### ⚡ One-screen model
 
 | | |
 | --- | --- |
@@ -61,7 +55,7 @@ JSON · Batch · STIX 2.1 · frozen offline report
 > [!TIP]
 > **Absence is not benign. Context is not reputation. Infrastructure is not attribution. Claims are not proof.**
 
-## 🛰️ Architecture
+#### 🛰️ Architecture
 
 ```mermaid
 flowchart TB
@@ -87,7 +81,7 @@ flowchart TB
 
 **Read-only means read-only:** no scanning, detonation, submission, sample download, takedown, remediation, or arbitrary-proxy routes.
 
-## 🧠 Semantic firewall
+#### 🧠 Semantic firewall
 
 The gateway deliberately refuses to flatten unlike intelligence into a universal maliciousness score.
 
@@ -120,7 +114,7 @@ flowchart TB
 
 Full contract: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
 
-## 🎯 Supported pivots
+#### 🎯 Supported pivots
 
 | Pivot | Support | Typical intelligence |
 | --- | :---: | --- |
@@ -134,7 +128,7 @@ Full contract: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
 | IPv4 / IPv6 CIDR | 🟢 | registration, routing, DROP context |
 | TLS / JA3 | ⚪ omitted | no fixed bounded source passed the source gate |
 
-## 🔌 API surface
+#### 🔌 API surface
 
 | Endpoint | Auth | Purpose | Hard boundary |
 | --- | :---: | --- | --- |
@@ -154,7 +148,7 @@ Profiles are fixed: **`fast` · `standard` · `full`**. A caller cannot name an 
 
 Complete endpoint/error contract: [`docs/API.md`](docs/API.md).
 
-## 🌐 37 upstream APIs and feeds
+#### 🌐 37 upstream APIs and feeds
 
 Provider routing is static and manifest-driven. **Configured state and live upstream health are intentionally not hardcoded here** because they can change independently of source code.
 
@@ -171,7 +165,7 @@ Provider routing is static and manifest-driven. **Configured state and live upst
 > [!CAUTION]
 > **Implemented ≠ configured ≠ production-verified.** Source presence, runtime secret state, and exact-deployment acceptance are separate facts.
 
-## 🧱 Security model
+#### 🧱 Security model
 
 ```text
 CLIENT                       VERCEL RUNTIME                    UPSTREAM
@@ -201,7 +195,7 @@ Runtime parity is **Node.js 24.x**. GitHub Actions are pinned to immutable commi
 
 Security detail: [`docs/SECURITY-CONTROLS.md`](docs/SECURITY-CONTROLS.md) · [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) · [`SECURITY.md`](SECURITY.md)
 
-## 🧪 Verification & release
+#### 🧪 Verification & release
 
 Current protected-`main` automated baseline:
 
@@ -357,7 +351,7 @@ python3 -m compileall -q maltego
 
 </details>
 
-## 📚 Deep docs
+#### 📚 Deep docs
 
 | Document | Purpose |
 | --- | --- |
@@ -376,7 +370,7 @@ python3 -m compileall -q maltego
 
 The executable registry, canonical provider manifest, workflows, and release manifest are authoritative. Documentation never overrides runtime/configuration checks.
 
-## 🚧 Deliberate gaps
+#### 🚧 Deliberate gaps
 
 No TLS/JA3 without a bounded source that passes the source gate. No deprecated SSLBL C2 path. No stale SecurityTrails configuration. No unbounded ATT&CK relationship download. No ransomware-wide enumeration in per-indicator enrichment. No Modat bulk export or broad history path. **No universal maliciousness score.**
 
@@ -384,10 +378,9 @@ No TLS/JA3 without a bounded source that passes the source gate. No deprecated S
 
 <div align="center">
 
-<img src="assets/brand/parallax-mark.svg" alt="PARA11AX mark" width="82" />
+<img src="assets/brand/parallax-mark.svg" alt="PARA11AX mark" width="68" />
 
-### `OBSERVED ≠ INFERRED ≠ CONTEXTUAL`
-
-**Preserve provenance · keep semantics separate · fail closed · make uncertainty visible**
+<sub><code>OBSERVED ≠ INFERRED ≠ CONTEXTUAL</code></sub><br/>
+<sub><b>Preserve provenance · keep semantics separate · fail closed · make uncertainty visible</b></sub>
 
 </div>
