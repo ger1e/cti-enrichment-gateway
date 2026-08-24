@@ -1,8 +1,11 @@
 <div align="center">
 
-<img src="assets/brand/parallax-hero.svg" alt="PARALLAX — CTI Evidence Gateway" width="100%" />
+<picture>
+  <source media="(max-width: 640px)" srcset="assets/brand/para11ax-hero-mobile.svg">
+  <img src="assets/brand/parallax-hero.svg" alt="PARA11AX — CTI Evidence Gateway" width="100%" />
+</picture>
 
-# PARALLAX
+# PARA11AX
 
 **CTI Evidence Gateway**
 
@@ -28,7 +31,7 @@
 > Built for **personal research and lab use**. Do not send commercial-client, internal-enterprise, restricted, or otherwise sensitive data unless authorization, licensing, and data-handling requirements are explicitly satisfied.
 
 > [!NOTE]
-> **PARALLAX is the product/visual identity.** Compatibility surfaces remain `cti-enrichment-gateway`, the `cti` CLI, `CTI_GATEWAY_TOKEN`, and the existing `/api/*` contracts. See [`docs/BRAND.md`](docs/BRAND.md).
+> **PARA11AX is the product/visual identity.** Compatibility surfaces remain `cti-enrichment-gateway`, the `cti` CLI, `CTI_GATEWAY_TOKEN`, and the existing `/api/*` contracts. See [`docs/BRAND.md`](docs/BRAND.md).
 
 ## ⚡ One-screen model
 
@@ -358,7 +361,7 @@ python3 -m compileall -q maltego
 
 | Document | Purpose |
 | --- | --- |
-| [`docs/BRAND.md`](docs/BRAND.md) | PARALLAX identity, color, motion, logo, and compatibility rules |
+| [`docs/BRAND.md`](docs/BRAND.md) | product identity, color, motion, logo, and compatibility rules |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | execution model + trust boundaries |
 | [`docs/END-TO-END-EXAMPLE.md`](docs/END-TO-END-EXAMPLE.md) | IOC → evidence → STIX/report walkthrough |
 | [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md) | Evidence v2 + correlation semantics |
@@ -381,7 +384,7 @@ No TLS/JA3 without a bounded source that passes the source gate. No deprecated S
 
 <div align="center">
 
-<img src="assets/brand/parallax-mark.svg" alt="PARALLAX mark" width="82" />
+<img src="assets/brand/parallax-mark.svg" alt="PARA11AX mark" width="82" />
 
 ### `OBSERVED ≠ INFERRED ≠ CONTEXTUAL`
 
