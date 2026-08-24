@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: read
 
 concurrency:
   group: branch-hygiene-${{ github.repository }}
@@ -23,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Delete only fully merged, unprotected branches
+      - name: Delete only merged, unprotected branches
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -46,8 +47,20 @@ jobs:
             fi
 
             ahead=$(gh api "repos/$REPO/compare/$DEFAULT_BRANCH...$branch" --jq '.ahead_by')
+            merged_head=false
+
             if [[ "$ahead" != "0" ]]; then
-              echo "PRESERVE unique commits ($ahead ahead): $branch"
+              merged_head=$(gh pr list \
+                --repo "$REPO" \
+                --state merged \
+                --head "$branch" \
+                --limit 100 \
+                --json headRefOid \
+                --jq "[.[] | select(.headRefOid == \"$original_sha\")] | length > 0")
+            fi
+
+            if [[ "$ahead" != "0" && "$merged_head" != "true" ]]; then
+              echo "PRESERVE unique/unmerged commits ($ahead ahead): $branch"
               preserved=$((preserved + 1))
               continue
             fi
@@ -60,7 +73,11 @@ jobs:
             fi
 
             gh api --method DELETE "repos/$REPO/git/refs/heads/$branch"
-            echo "DELETED fully merged: $branch"
+            if [[ "$merged_head" == "true" ]]; then
+              echo "DELETED exact head of merged PR: $branch"
+            else
+              echo "DELETED fully merged ancestor: $branch"
+            fi
             deleted=$((deleted + 1))
           done < <(
             gh api --paginate "repos/$REPO/branches?per_page=100" \
