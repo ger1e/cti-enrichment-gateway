@@ -1,115 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 480" role="img" aria-labelledby="title desc">
-  <title id="title">PARA11AX — CTI Evidence Gateway</title>
-  <desc id="desc">Black-glass PARA11AX CTI banner with cyan parallax geometry, a Knight Rider-style red scanner, evidence-state accents, and the John Kiriakou evidence quotation.</desc>
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#020305"/>
-      <stop offset=".48" stop-color="#080D11"/>
-      <stop offset="1" stop-color="#020305"/>
-    </linearGradient>
-    <radialGradient id="cyanBloom" cx="28%" cy="45%" r="52%">
-      <stop offset="0" stop-color="#00E5FF" stop-opacity=".12"/>
-      <stop offset=".48" stop-color="#00E5FF" stop-opacity=".035"/>
-      <stop offset="1" stop-color="#00E5FF" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="scanTail" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#FF1E2D" stop-opacity="0"/>
-      <stop offset=".42" stop-color="#FF1E2D" stop-opacity=".16"/>
-      <stop offset=".78" stop-color="#FF1E2D" stop-opacity=".58"/>
-      <stop offset="1" stop-color="#FF4050" stop-opacity="1"/>
-    </linearGradient>
-    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
-      <path d="M36 0H0V36" fill="none" stroke="#00E5FF" stroke-width="1" opacity=".048"/>
-    </pattern>
-    <pattern id="scanlines" width="4" height="4" patternUnits="userSpaceOnUse">
-      <rect width="4" height="1" fill="#FFFFFF" opacity=".018"/>
-    </pattern>
-    <filter id="cyanGlow" x="-80%" y="-80%" width="260%" height="260%">
-      <feGaussianBlur stdDeviation="5" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="redGlow" x="-120%" y="-120%" width="340%" height="340%">
-      <feGaussianBlur stdDeviation="10" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="softRed" x="-60%" y="-120%" width="220%" height="340%">
-      <feGaussianBlur stdDeviation="18"/>
-    </filter>
-  </defs>
-
-  <rect width="1440" height="480" rx="28" fill="url(#bg)"/>
-  <rect width="1440" height="480" rx="28" fill="url(#cyanBloom)"/>
-  <rect width="1440" height="480" rx="28" fill="url(#grid)"/>
-  <rect width="1440" height="480" rx="28" fill="url(#scanlines)"/>
-  <rect x="1.5" y="1.5" width="1437" height="477" rx="26.5" fill="none" stroke="#00E5FF" stroke-opacity=".22" stroke-width="3"/>
-
-  <!-- left parallax observation geometry -->
-  <g transform="translate(58 72)">
-    <path d="M12 24 L132 168 L12 312" fill="none" stroke="#00E5FF" stroke-width="14" opacity=".96" filter="url(#cyanGlow)"/>
-    <path d="M292 24 L172 168 L292 312" fill="none" stroke="#00E5FF" stroke-width="14" opacity=".38"/>
-    <path d="M58 24 L152 134 L246 24" fill="none" stroke="#F3F7FA" stroke-width="4" opacity=".17"/>
-    <path d="M58 312 L152 202 L246 312" fill="none" stroke="#F3F7FA" stroke-width="4" opacity=".11"/>
-    <path d="M32 168 H272" stroke="#00E5FF" stroke-width="2" stroke-dasharray="5 12" opacity=".22"/>
-    <path d="M152 52 V284" stroke="#00E5FF" stroke-width="2" stroke-dasharray="5 12" opacity=".17"/>
-    <circle cx="152" cy="168" r="31" fill="#FF1E2D" opacity=".13" filter="url(#redGlow)"/>
-    <circle cx="152" cy="168" r="11" fill="#FF4050" filter="url(#redGlow)"/>
-    <circle cx="152" cy="168" r="3" fill="#FFFFFF"/>
-    <text x="8" y="350" fill="#7D8B95" font-size="12" letter-spacing="3" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">OBSERVATION NODE // 01</text>
-  </g>
-
-  <!-- main identity -->
-  <g transform="translate(405 76)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
-    <text x="0" y="95" fill="#F3F7FA" font-size="98" font-weight="900" letter-spacing="10">PARA</text>
-    <g transform="translate(310 11)">
-      <rect x="4" y="0" width="18" height="94" rx="3" fill="#00E5FF" opacity=".22" filter="url(#cyanGlow)"/>
-      <rect x="42" y="0" width="18" height="94" rx="3" fill="#00E5FF" opacity=".22" filter="url(#cyanGlow)"/>
-      <text x="0" y="84" fill="#00E5FF" font-size="98" font-weight="900" letter-spacing="9">11</text>
-      <rect x="7" y="7" width="11" height="80" fill="#F3F7FA" opacity=".10"/>
-      <rect x="45" y="7" width="11" height="80" fill="#FF4050" opacity=".13"/>
-    </g>
-    <text x="438" y="95" fill="#F3F7FA" font-size="98" font-weight="900" letter-spacing="10">AX</text>
-
-    <text x="4" y="139" fill="#00E5FF" font-size="20" font-weight="800" letter-spacing="6">CTI // EVIDENCE GATEWAY</text>
-    <text x="4" y="177" fill="#7D8B95" font-size="15" font-weight="700" letter-spacing="3.4">BOUNDED · READ-ONLY · PROVENANCE-FIRST</text>
-
-    <g transform="translate(4 212)">
-      <rect width="720" height="1" fill="#00E5FF" opacity=".18"/>
-      <circle cx="8" cy="27" r="4" fill="#39FF88"/>
-      <text x="22" y="32" fill="#39FF88" font-size="12" font-weight="800" letter-spacing="2.2">EVIDENCE STATE // VERIFIED</text>
-      <text x="0" y="72" fill="#7D8B95" font-size="15" letter-spacing=".65">“You’ve got to follow the <tspan fill="#00E5FF" font-weight="800">evidence</tspan>… That doesn’t make it <tspan fill="#F3F7FA" font-weight="800">fact</tspan>.”</text>
-      <text x="0" y="98" fill="#7D8B95" font-size="13" letter-spacing="1.7">— JOHN KIRIAKOU</text>
-    </g>
-  </g>
-
-  <!-- Knight Rider scanner -->
-  <g transform="translate(408 382)">
-    <rect x="0" y="0" width="880" height="34" rx="17" fill="#100205" stroke="#FF1E2D" stroke-opacity=".34" stroke-width="1.5"/>
-    <rect x="18" y="14" width="844" height="6" rx="3" fill="#2A0509"/>
-    <g fill="#FF1E2D" opacity=".26">
-      <circle cx="42" cy="17" r="3.3"/><circle cx="78" cy="17" r="3.3"/><circle cx="114" cy="17" r="3.3"/><circle cx="150" cy="17" r="3.3"/>
-      <circle cx="186" cy="17" r="3.3"/><circle cx="222" cy="17" r="3.3"/><circle cx="258" cy="17" r="3.3"/><circle cx="294" cy="17" r="3.3"/>
-      <circle cx="330" cy="17" r="3.3"/><circle cx="366" cy="17" r="3.3"/><circle cx="402" cy="17" r="3.3"/><circle cx="438" cy="17" r="3.3"/>
-      <circle cx="474" cy="17" r="3.3"/><circle cx="510" cy="17" r="3.3"/><circle cx="546" cy="17" r="3.3"/><circle cx="582" cy="17" r="3.3"/>
-      <circle cx="618" cy="17" r="3.3"/><circle cx="654" cy="17" r="3.3"/><circle cx="690" cy="17" r="3.3"/><circle cx="726" cy="17" r="3.3"/>
-      <circle cx="762" cy="17" r="3.3"/><circle cx="798" cy="17" r="3.3"/><circle cx="834" cy="17" r="3.3"/>
-    </g>
-    <rect x="22" y="8" width="170" height="18" rx="9" fill="#FF1E2D" opacity=".18" filter="url(#softRed)">
-      <animate attributeName="x" values="22;688;22" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".42 0 .58 1;.42 0 .58 1"/>
-    </rect>
-    <g filter="url(#redGlow)">
-      <rect x="18" y="9" width="150" height="16" rx="8" fill="url(#scanTail)">
-        <animate attributeName="x" values="18;710;18" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".42 0 .58 1;.42 0 .58 1"/>
-      </rect>
-      <rect x="150" y="7" width="18" height="20" rx="9" fill="#FF4050">
-        <animate attributeName="x" values="150;842;150" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".42 0 .58 1;.42 0 .58 1"/>
-      </rect>
-    </g>
-    <text x="0" y="58" fill="#7D8B95" font-size="11" letter-spacing="2.5" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">ACTIVE OBSERVATION // CORRELATE WITHOUT COLLAPSING SEMANTICS</text>
-  </g>
-
-  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11" letter-spacing="2.4">
-    <text x="1280" y="52" fill="#00E5FF">37 SOURCES</text>
-    <text x="1280" y="73" fill="#39FF88">EVIDENCE V2</text>
-    <text x="1280" y="94" fill="#7D8B95">STIX 2.1</text>
-  </g>
+<title id="title">PARA11AX — CTI Evidence Gateway</title>
+<desc id="desc">Black-glass PARA11AX CTI banner with cyan observation geometry, an oscillating red scanner, evidence-state accents, and the John Kiriakou evidence quotation.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#020305"/><stop offset=".5" stop-color="#080D11"/><stop offset="1" stop-color="#020305"/></linearGradient>
+<linearGradient id="tail"><stop stop-color="#FF1E2D" stop-opacity="0"/><stop offset=".72" stop-color="#FF1E2D" stop-opacity=".55"/><stop offset="1" stop-color="#FF4050"/></linearGradient>
+<pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M36 0H0V36" fill="none" stroke="#00E5FF" opacity=".045"/></pattern>
+<filter id="cg" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="rg" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="1440" height="480" rx="28" fill="url(#bg)"/><rect width="1440" height="480" rx="28" fill="url(#grid)"/><rect x="2" y="2" width="1436" height="476" rx="26" fill="none" stroke="#00E5FF" stroke-opacity=".22" stroke-width="3"/>
+<g transform="translate(60 72)"><path d="M12 24 132 168 12 312M292 24 172 168 292 312" fill="none" stroke="#00E5FF" stroke-width="14" filter="url(#cg)"/><path d="M58 24 152 134 246 24M58 312 152 202 246 312" fill="none" stroke="#F3F7FA" stroke-width="4" opacity=".13"/><path d="M32 168H272M152 52V284" stroke="#00E5FF" stroke-width="2" stroke-dasharray="5 12" opacity=".18"/><circle cx="152" cy="168" r="31" fill="#FF1E2D" opacity=".13" filter="url(#rg)"/><circle cx="152" cy="168" r="11" fill="#FF4050" filter="url(#rg)"/><circle cx="152" cy="168" r="3" fill="#fff"/><text x="8" y="350" fill="#7D8B95" font-size="12" letter-spacing="3" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">OBSERVATION NODE // 01</text></g>
+<g transform="translate(405 76)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
+<text x="0" y="95" font-size="98" font-weight="900" letter-spacing="7"><tspan fill="#F3F7FA">PARA</tspan><tspan fill="#00E5FF">11</tspan><tspan fill="#F3F7FA">AX</tspan></text>
+<rect x="302" y="11" width="13" height="94" rx="3" fill="#00E5FF" opacity=".10"/><rect x="354" y="11" width="13" height="94" rx="3" fill="#00E5FF" opacity=".10"/>
+<text x="4" y="139" fill="#00E5FF" font-size="20" font-weight="800" letter-spacing="6">CTI // EVIDENCE GATEWAY</text><text x="4" y="177" fill="#7D8B95" font-size="15" font-weight="700" letter-spacing="3.4">BOUNDED · READ-ONLY · PROVENANCE-FIRST</text>
+<g transform="translate(4 212)"><rect width="720" height="1" fill="#00E5FF" opacity=".18"/><circle cx="8" cy="27" r="4" fill="#39FF88"/><text x="22" y="32" fill="#39FF88" font-size="12" font-weight="800" letter-spacing="2.2">EVIDENCE STATE // VERIFIED</text><text x="0" y="72" fill="#7D8B95" font-size="15">“You’ve got to follow the <tspan fill="#00E5FF" font-weight="800">evidence</tspan>… That doesn’t make it <tspan fill="#F3F7FA" font-weight="800">fact</tspan>.”</text><text x="0" y="98" fill="#7D8B95" font-size="13" letter-spacing="1.7">— JOHN KIRIAKOU</text></g>
+</g>
+<g transform="translate(408 382)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"><rect width="880" height="34" rx="17" fill="#100205" stroke="#FF1E2D" stroke-opacity=".34"/><rect x="18" y="14" width="844" height="6" rx="3" fill="#2A0509"/><g filter="url(#rg)"><rect x="18" y="9" width="150" height="16" rx="8" fill="url(#tail)"><animate attributeName="x" values="18;710;18" dur="1.8s" repeatCount="indefinite"/></rect><rect x="150" y="7" width="18" height="20" rx="9" fill="#FF4050"><animate attributeName="x" values="150;842;150" dur="1.8s" repeatCount="indefinite"/></rect></g><text x="0" y="58" fill="#7D8B95" font-size="11" letter-spacing="2.5">ACTIVE OBSERVATION // CORRELATE WITHOUT COLLAPSING SEMANTICS</text></g>
+<g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11" letter-spacing="2.4"><text x="1280" y="52" fill="#00E5FF">37 SOURCES</text><text x="1280" y="73" fill="#39FF88">EVIDENCE V2</text><text x="1280" y="94" fill="#7D8B95">STIX 2.1</text></g>
 </svg>
