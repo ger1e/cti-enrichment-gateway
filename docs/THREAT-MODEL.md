@@ -1,6 +1,6 @@
-# Threat Model
+### Threat Model
 
-## Assets
+#### Assets
 
 - gateway bearer token
 - provider API credentials
@@ -9,11 +9,11 @@
 - repository, CI and deployment integrity
 - analyst privacy: queried indicators should not leak through operational surfaces
 
-## Adversaries and failure sources
+#### Adversaries and failure sources
 
 The design assumes an untrusted caller may control indicator text and request timing, upstream providers can be malformed/compromised/unavailable, credentials can be exposed outside the application, and repository/deployment supply chains can drift or be compromised.
 
-## Threats, controls and tests
+#### Threats, controls and tests
 
 | Threat | Primary controls | Executable evidence |
 |---|---|---|
@@ -36,7 +36,7 @@ The design assumes an untrusted caller may control indicator text and request ti
 | Actions supply-chain compromise | GitHub Actions pinned to immutable SHAs; dependency-free runtime core; repository invariant checks | `scripts/verify-repo.sh` / Tooling smoke |
 | Deployment/source drift | finalizer requires clean exact main; production acceptance compares deployed source SHA and runs smoke tests | finalizer contract + Task 13 acceptance |
 
-## Residual risk
+#### Residual risk
 
 - Provider APIs can return semantically wrong but syntactically valid data. Provenance and contradiction handling reduce impact but cannot independently prove upstream truth.
 - In-memory cache/circuit state is instance-local and non-durable.
@@ -44,6 +44,6 @@ The design assumes an untrusted caller may control indicator text and request ti
 - A compromised deployment/repository administrator can bypass application controls; branch protection, account security and secret-store controls remain external dependencies.
 - Source coverage changes over time. Absence from a provider is not proof of benignness.
 
-## Out of scope by design
+#### Out of scope by design
 
 Active scanning, malware submission/detonation, remediation, credential testing, arbitrary web fetching, unbounded graph crawling and automated attribution are not gateway capabilities.

@@ -1,8 +1,8 @@
-# Evidence Schema v2
+### Evidence Schema v2
 
 The gateway returns provider evidence without collapsing different source semantics into one score. Current schema version is `2.0`.
 
-## Top-level enrichment envelope
+#### Top-level enrichment envelope
 
 Core fields:
 
@@ -19,7 +19,7 @@ Core fields:
 
 `partial` means useful evidence exists but coverage was incomplete. A provider outage, timeout, rate limit or circuit-open state is not negative threat evidence.
 
-## Evidence item
+#### Evidence item
 
 Each evidence item contains:
 
@@ -33,7 +33,7 @@ Each evidence item contains:
 - `durationMs`
 - `integrity`
 
-### Observation
+##### Observation
 
 `observation.kind` preserves source semantics such as registration, routing, scanner activity, reputation, exploit probability, known-exploited status, sandbox metadata or ATT&CK knowledge.
 
@@ -49,7 +49,7 @@ These claim/report kinds deliberately remain separate from malware-reputation se
 
 Optional fields include `confidence`, `firstSeen`, `lastSeen`, `tags`, `malwareFamily`, `actor` and bounded `attributes`.
 
-### Integrity
+##### Integrity
 
 `integrity` contains:
 
@@ -59,7 +59,7 @@ Optional fields include `confidence`, `firstSeen`, `lastSeen`, `tags`, `malwareF
 
 The fingerprint is a reproducibility/provenance control, not a signature or authenticity proof for the upstream source.
 
-## Relationships
+#### Relationships
 
 Relationships are investigation pivots. They include a target type/value, relation semantics and provider provenance where available. Duplicate relationships are removed and the correlation layer caps output.
 
@@ -67,7 +67,7 @@ Ransomware groups referenced by the claim adapters use the `ransomware_group` ta
 
 Infrastructure proximity, shared ASN, hosting, certificate reuse or common malware does not by itself establish actor attribution. Attribution confidence is emitted only when an explicit actor relationship exists.
 
-## Correlation
+#### Correlation
 
 The correlation object contains separate analytical dimensions:
 
@@ -81,16 +81,16 @@ The correlation object contains separate analytical dimensions:
 
 Scanner/noise, Tor, registration/routing and ATT&CK knowledge classes are excluded from malware-reputation corroboration. Community IOC reports and ransomware claims are separate semantic classes and positive matches are neutral observations, so they cannot become reputation votes merely by being present together.
 
-## Caching semantics
+#### Caching semantics
 
 Only successful provider observations are cached. Successful semantic negatives such as `not_listed`, `not_found`, `no_result` and `no_association` use the adapter's shorter negative TTL. Timeout, HTTP, transport, parsing and provider failures are never cached.
 
 `cacheState` is provenance about retrieval path, not source freshness. Source freshness is calculated separately.
 
-## Batch
+#### Batch
 
 Batch results preserve original input order. Canonically duplicated inputs reuse one enrichment result and contain `duplicateOf`. Invalid items have `status: invalid` independently; they do not reject otherwise valid batch work.
 
-## STIX export
+#### STIX export
 
 STIX export is derived only from a gateway-generated enrichment object. It does not add threat confidence that the evidence did not contain. MITRE source STIX IDs are preserved when available; other object IDs are random valid STIX IDs. Object count is capped at 100.

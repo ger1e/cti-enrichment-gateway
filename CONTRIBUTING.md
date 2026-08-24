@@ -1,8 +1,8 @@
-# Contributing
+### Contributing
 
 This repository is a private personal-research/lab CTI enrichment gateway. Changes should preserve its read-only, bounded, evidence-first design.
 
-## Before changing code
+#### Before changing code
 
 Read `SECURITY.md` and the architecture/provider-boundary sections in `README.md`.
 
@@ -10,7 +10,7 @@ Do not commit or add workflows that expose API keys, tokens, credentials, privat
 
 Do not broaden provider integrations into submission, scanning, detonation, malware/sample download, arbitrary proxying, shell execution, secret retrieval, or other write-capable behavior without an explicit security/design review.
 
-## Development workflow
+#### Development workflow
 
 1. Branch from an up-to-date `main`.
 2. Keep changes narrow and independently reviewable.
@@ -29,7 +29,7 @@ cd maltego && python3 -m unittest discover -s tests -v
 cd .. && python3 -m compileall -q maltego
 ```
 
-## Security review triggers
+#### Security review triggers
 
 Call out a security impact explicitly when a change touches any of the following:
 
@@ -44,7 +44,7 @@ Call out a security impact explicitly when a change touches any of the following
 - Maltego token storage, gateway transport, or graph expansion
 - any new provider capability beyond retrieval/enrichment
 
-## Pull requests
+#### Pull requests
 
 PRs should explain:
 
@@ -56,6 +56,6 @@ PRs should explain:
 
 Prefer small PRs. Avoid drive-by formatting mixed with functional changes.
 
-## Commit messages
+#### Commit messages
 
 Use concise imperative messages. Conventional prefixes such as `feat:`, `fix:`, `chore:`, `docs:`, `test:`, and `refactor:` are preferred when they make history easier to scan.

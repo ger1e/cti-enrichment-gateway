@@ -1,4 +1,4 @@
-# Security controls
+### Security controls
 
 This document maps the repository's principal controls to the risk they reduce. It is descriptive, not a compliance attestation.
 
@@ -22,7 +22,7 @@ This document maps the repository's principal controls to the risk they reduce. 
 | Public release | `npm run audit:public` checks blocked artifacts, common high-confidence secrets and optional forbidden terms | Adds a publication guardrail | It is not a complete secret scanner, DLP system or licensing review |
 | Change control | CODEOWNERS, contribution policy, PR template and issue forms | Makes security boundaries visible in human change paths | Repository settings must still enforce review/rules where supported |
 
-## Controls that require GitHub account/repository settings
+#### Controls that require GitHub account/repository settings
 
 The following cannot be guaranteed by files in the repository alone and should be enabled in GitHub settings when the plan/account supports them:
 
