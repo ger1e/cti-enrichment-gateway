@@ -1,8 +1,8 @@
-# End-to-end enrichment example
+### End-to-end enrichment example
 
 This is a **sanitized structural example**, not captured production telemetry and not a claim about a live IOC. It uses the documentation-only address `203.0.113.10` so the flow can be understood without publishing sensitive or operational data.
 
-## 1. Request
+#### 1. Request
 
 ```bash
 curl --fail-with-body \
@@ -14,7 +14,7 @@ curl --fail-with-body \
 
 The caller supplies only an indicator and a fixed profile. It cannot select an upstream provider, host, method, header or provider credential.
 
-## 2. Classification and routing
+#### 2. Classification and routing
 
 The gateway canonicalizes the input as:
 
@@ -28,7 +28,7 @@ The gateway canonicalizes the input as:
 
 The IP workflow then selects only the statically registered providers allowed by the `standard` profile. Missing credentials reduce coverage explicitly; they do not cause hidden fallback to an unregistered source.
 
-## 3. Fixed-egress provider execution
+#### 3. Fixed-egress provider execution
 
 Each selected adapter executes through the central `safeFetch` boundary. The boundary enforces:
 
@@ -41,7 +41,7 @@ Each selected adapter executes through the central `safeFetch` boundary. The bou
 
 Upstream responses remain untrusted until the provider parser validates and normalizes them.
 
-## 4. Evidence-v2 normalization
+#### 4. Evidence-v2 normalization
 
 A successful response has the Evidence Schema v2 envelope. The trimmed example below is illustrative; provider availability, observations, timings, hashes and counts vary by request.
 
@@ -98,7 +98,7 @@ A successful response has the Evidence Schema v2 envelope. The trimmed example b
 
 The important analytical property is what the gateway **does not** do: routing/registration context, scanner activity, Tor-exit status, reputation, ransomware claims and ATT&CK knowledge are not collapsed into a universal maliciousness score.
 
-## 5. Optional STIX export
+#### 5. Optional STIX export
 
 The same input can be sent to the bounded STIX surface:
 
@@ -112,7 +112,7 @@ curl --fail-with-body \
 
 The gateway enriches first and then maps only defensible evidence into a STIX 2.1 Bundle. Callers cannot inject their own enrichment object into the exporter. The bundle is capped at 100 objects.
 
-## 6. Offline report path
+#### 6. Offline report path
 
 A frozen gateway evidence snapshot can be compiled without any network calls:
 

@@ -1,8 +1,8 @@
-# Providers
+### Providers
 
 The executable provider registry is the source of truth. `release-manifest.json` records every active adapter and parser version; `/api/meta` exposes static capabilities without credential configuration state.
 
-## Registry contract
+#### Registry contract
 
 Every active provider declares and is validated for:
 
@@ -18,11 +18,11 @@ Every active provider declares and is validated for:
 
 A workflow cannot route to an unregistered provider or a provider that does not support that indicator type. Repository tests enforce this invariant.
 
-## Execution tiers
+#### Execution tiers
 
 Tier is execution priority, not analytical authority. Lower tiers are cheap/contextual or core fixed-source lookups. Higher tiers can be quota-heavy, scarce or broad enrichment. Profiles reduce work by declared tier/cost policy; callers cannot select individual providers.
 
-## Source semantics
+#### Source semantics
 
 Provider observations preserve their own meaning. Examples:
 
@@ -53,13 +53,13 @@ ransomware.live uses API-PRO at `api-pro.ransomware.live` with `RANSOMWARE_LIVE_
 
 These classes are not interchangeable. A Tor exit, scanner hit, registration record, community IOC report, ransomware claim, infrastructure exposure record or ATT&CK technique is not a malware-reputation vote.
 
-## Public feed hardening
+#### Public feed hardening
 
 Public feed parsers reject malformed content rather than manufacture `not_listed` results. MISP feed hash-cache hits are verified against exact event attributes. Deleted attributes are excluded. Supported composite attribute types compare only the corresponding component. MISP event fetches are bounded per query.
 
 ATT&CK TAXII uses fixed MITRE collection IDs and server-side type filtering. Relationship expansion remains intentionally omitted where collection-wide retrieval would violate boundedness.
 
-## Network indicator support
+#### Network indicator support
 
 ASN/CIDR support is deliberately narrow and fixed-source:
 
@@ -69,7 +69,7 @@ ASN/CIDR support is deliberately narrow and fixed-source:
 
 No active scanning is performed.
 
-## State model
+#### State model
 
 A provider can be:
 
@@ -80,7 +80,7 @@ A provider can be:
 
 Implemented does not imply configured, and configured does not imply production-verified.
 
-## Intentionally omitted
+#### Intentionally omitted
 
 - SecurityTrails: removed from the active personal gateway configuration rather than retaining stale/paid assumptions.
 - Deprecated SSLBL C2 provider path: excluded.

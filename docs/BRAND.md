@@ -1,11 +1,11 @@
-# PARALLAX Brand System
+### PARALLAX Brand System
 
 > **PARALLAX // CTI Evidence Gateway**  
 > **Observe · Correlate · Preserve Provenance**
 
 PARALLAX is the visual identity for the CTI Enrichment Gateway. The brand layer does **not** rename the repository package, API contracts, environment variables, or the `cti` CLI. Those remain compatibility surfaces.
 
-## Identity
+#### Identity
 
 The system combines three visual ideas:
 
@@ -15,7 +15,7 @@ The system combines three visual ideas:
 
 The result should feel like black-glass intelligence tooling: technical, precise, slightly hostile, but still credible in an enterprise/security context.
 
-## Primary lockup
+#### Primary lockup
 
 - Product name: **PARALLAX**
 - Descriptor: `CTI // EVIDENCE GATEWAY`
@@ -24,7 +24,7 @@ The result should feel like black-glass intelligence tooling: technical, precise
 
 Use [`../assets/brand/parallax-hero.svg`](../assets/brand/parallax-hero.svg) for the repository hero, [`../assets/brand/parallax-lockup.svg`](../assets/brand/parallax-lockup.svg) for horizontal surfaces, and [`../assets/brand/parallax-mark.svg`](../assets/brand/parallax-mark.svg) for compact/icon surfaces.
 
-## Canonical quotation
+#### Canonical quotation
 
 > “You’ve got to follow the evidence… That doesn’t make it fact.”  
 > — **John Kiriakou**
@@ -42,7 +42,7 @@ Usage rules:
 
 Source context: John Kiriakou, *The Joe Rogan Experience* #2392, approximately 01:32:47–01:33:55. The two quoted clauses occur in the same discussion with intervening remarks omitted by the ellipsis.
 
-## Color system
+#### Color system
 
 | Token | Hex | Role |
 | --- | --- | --- |
@@ -56,7 +56,7 @@ Source context: John Kiriakou, *The Joe Rogan Experience* #2392, approximately 0
 | `signal-white` | `#F3F7FA` | primary text |
 | `muted` | `#7D8B95` | secondary copy |
 
-### Color discipline
+##### Color discipline
 
 - Red owns **motion and observation**.
 - Cyan owns **structure and geometry**.
@@ -64,7 +64,7 @@ Source context: John Kiriakou, *The Joe Rogan Experience* #2392, approximately 0
 - Amber owns **uncertainty and partial coverage**.
 - Do not turn all four into equal decorative neon. The hierarchy is the design.
 
-## Scanner motion
+#### Scanner motion
 
 The canonical scanner is a horizontal red LED bar with one bright head and a short luminous tail.
 
@@ -77,7 +77,7 @@ The canonical scanner is a horizontal red LED bar with one bright head and a sho
 
 The repository hero uses declarative SVG animation only; it contains no script or external resources.
 
-## Geometry
+#### Geometry
 
 The PARALLAX mark is two offset angular sight-lines converging on a red observation node.
 
@@ -86,7 +86,7 @@ The PARALLAX mark is two offset angular sight-lines converging on a red observat
 - The center node is red, not green: it represents an **observation**, not a verdict.
 - Never add skulls, crosshairs, shields, locks, or generic “hacker” glyphs to the primary mark.
 
-## Typography
+#### Typography
 
 No bundled/custom font files are required.
 
@@ -98,7 +98,7 @@ ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
 
 Use wide tracking for `PARALLAX` and compact uppercase technical labels for descriptors/status text.
 
-## Voice
+#### Voice
 
 PARALLAX copy should be:
 
@@ -119,7 +119,7 @@ ABSENCE ≠ BENIGN
 IMPLEMENTED ≠ CONFIGURED ≠ PRODUCTION-VERIFIED
 ```
 
-## Do / do not
+#### Do / do not
 
 | Do | Do not |
 | --- | --- |
@@ -130,7 +130,7 @@ IMPLEMENTED ≠ CONFIGURED ≠ PRODUCTION-VERIFIED
 | retain exact technical caveats | brand away uncertainty |
 | keep repository/API compatibility names stable | rename the CLI/package casually |
 
-## Compatibility boundary
+#### Compatibility boundary
 
 PARALLAX is a **product/visual identity layer**. Until a separate versioned migration is explicitly designed:
 

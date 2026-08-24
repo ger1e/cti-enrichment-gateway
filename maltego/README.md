@@ -1,18 +1,18 @@
-# Maltego local transforms for CTI Enrichment Gateway
+### Maltego local transforms for CTI Enrichment Gateway
 
 Maltego Graph Desktop talks only to the private CTI enrichment gateway. Vendor API credentials stay server-side; the workstation stores only `CTI_GATEWAY_TOKEN`.
 
-## Install
+#### Install
 
 From this directory:
 
-### macOS / Linux — zsh or bash
+##### macOS / Linux — zsh or bash
 
 ```sh
 ./install.sh
 ```
 
-### Windows — PowerShell 5.1+
+##### Windows — PowerShell 5.1+
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass -Force
@@ -29,7 +29,7 @@ Credential backends:
 
 Import the resulting `cti-enrichment-gateway-local.mtz` into Maltego Graph Desktop.
 
-## Lifecycle
+#### Lifecycle
 
 macOS/Linux:
 
@@ -55,7 +55,7 @@ Windows equivalents:
 
 For unattended execution, pre-supply `CTI_GATEWAY_TOKEN` to the process and use `--non-interactive` / `-NonInteractive`. Do not put the token in a repository file or shell profile.
 
-## Architecture
+#### Architecture
 
 ```text
 Maltego Graph Desktop
@@ -74,7 +74,7 @@ Gateway provider router / normalized evidence v2
 
 The transform layer never receives provider secrets.
 
-## Transforms
+#### Transforms
 
 The versioned `transform-manifest.json` is the package inventory and is verified during MTZ generation.
 
@@ -93,7 +93,7 @@ Transforms map normalized relationships, malware-family/actor context and grapha
 
 ATT&CK TAXII results are knowledge/mapping context, not IOC reputation or a maliciousness vote. CIDR remains a Phrase because no stable built-in network-prefix entity is assumed. ASN uses the stable AS entity when the mapper can do so without changing the input contract.
 
-## Non-secret configuration
+#### Non-secret configuration
 
 ```text
 CTI_GATEWAY_URL=https://cti-enrichment-gateway.vercel.app
@@ -110,7 +110,7 @@ Secret resolution order:
 
 No provider API secret is stored in this directory or in the generated MTZ.
 
-## Security behavior
+#### Security behavior
 
 - Remote gateway URLs must use HTTPS; HTTP is accepted only for localhost development.
 - Redirects are refused so the bearer token cannot be forwarded to another host.
@@ -121,11 +121,11 @@ No provider API secret is stored in this directory or in the generated MTZ.
 - MTZ validation rejects path traversal, symlinks, duplicate entries, excessive archive sizes, loopback/dev gateway references, missing transform inventory and credential identifiers.
 - Vendor API credentials never cross the gateway boundary.
 
-## Cross-platform CI
+#### Cross-platform CI
 
 `Tooling smoke` runs the Maltego suite on Ubuntu, macOS and Windows. It also validates bash, zsh, ShellCheck and PowerShell syntax and aggregates those platform results into the authoritative `Tooling smoke` commit status.
 
-## Developer commands
+#### Developer commands
 
 Normal users should use the installer. For development/debugging only:
 

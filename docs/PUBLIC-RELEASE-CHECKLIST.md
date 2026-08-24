@@ -1,8 +1,8 @@
-# Public release checklist
+### Public release checklist
 
 This repository is public. Treat every commit, pull request, workflow artifact, issue, and release as a publication event.
 
-## Hard gates
+#### Hard gates
 
 Do not merge or publish a release unless all of the following are true:
 
@@ -16,7 +16,7 @@ Do not merge or publish a release unless all of the following are true:
 
 If a secret was ever committed, revoke or rotate it before history cleanup. Rewriting history does not make a still-valid secret safe.
 
-## Automated guardrail
+#### Automated guardrail
 
 Run:
 
@@ -32,7 +32,7 @@ PUBLIC_RELEASE_FORBIDDEN_TERMS='example-client,internal-domain.example,case-pref
 
 The audit blocks common sensitive artifact types and high-confidence credential patterns. A passing result is a guardrail, not proof that publication is safe.
 
-## History review
+#### History review
 
 For changes touching credentials, deployment, fixtures, examples, imported data, or previously private material, review at minimum:
 
@@ -42,7 +42,7 @@ For changes touching credentials, deployment, fixtures, examples, imported data,
 - old CI logs and artifacts if they could contain sensitive output
 - provider terms where response-derived data or schemas may be redistributed
 
-## Public-source hygiene
+#### Public-source hygiene
 
 Keep the public repository limited to material that is necessary to demonstrate and operate the engineering pattern:
 
@@ -57,7 +57,7 @@ Do not commit production credentials, private deployment identifiers, personal r
 
 When work originates from a private environment or restricted source, prefer a reviewed sanitized export instead of importing private Git history.
 
-## Final review
+#### Final review
 
 Before merge or release, answer these independently:
 

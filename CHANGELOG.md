@@ -1,10 +1,10 @@
-# Changelog
+### Changelog
 
 All notable repository changes should be recorded here. This project uses a lightweight chronological changelog rather than claiming semantic-versioning guarantees for private lab workflows.
 
-## Unreleased
+#### Unreleased
 
-### Added
+##### Added
 
 - Public-release safety audit for blocked artifacts, common high-confidence credential patterns and optional forbidden terms.
 - Public-release checklist for secrets, licensing, restricted data, Git history and sanitized extraction.
@@ -17,14 +17,14 @@ All notable repository changes should be recorded here. This project uses a ligh
 - Read-only GitHub governance verifier for the required `main` branch-protection contract.
 - Branded browser-safe HTTP error pages while preserving JSON error semantics for API, CLI and Maltego callers.
 
-### Changed
+##### Changed
 
 - npm dependency state is now lockfile-backed and CI performs deterministic `npm ci --ignore-scripts` plus `npm audit --omit=dev`.
 - Report generation is offline-only, bounded and deterministic for a frozen evidence snapshot and supplied generation timestamp.
 - Error content negotiation honors media-type quality values and defaults safely to JSON on ties, wildcards and absent `Accept` headers.
 - Unexpected handler failures emit correlation-safe telemetry without reflecting exception text or indicators.
 
-### Security
+##### Security
 
 - Public publication is explicitly treated as a separate review event rather than a repository-visibility change.
 - File-based controls are documented as complementary to GitHub account/repository settings such as rulesets, required checks, secret scanning and signed-commit enforcement.
@@ -34,6 +34,6 @@ All notable repository changes should be recorded here. This project uses a ligh
 - Report quality gates reject orphan material claims, missing provenance, malformed ATT&CK mappings, contextual-as-observed claims, unsupported attribution, unsafe references, duplicate observables, impossible timestamps and stale evidence represented as current without a limitation.
 - Governance verification requires strict `Tooling smoke`, PR-only changes, stale-review dismissal, administrator enforcement, linear history, resolved review conversations and disabled force-push/deletion.
 
-## 1.0.0
+#### 1.0.0
 
 Initial private personal-research implementation of the read-only CTI enrichment gateway, bounded Maltego client, provider normalization layer, CI verification and Vercel bootstrap/deployment workflow.
