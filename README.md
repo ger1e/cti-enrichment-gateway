@@ -1,6 +1,10 @@
 <div align="center">
 
-# CTI ENRICHMENT GATEWAY
+<img src="assets/brand/parallax-hero.svg" alt="PARALLAX — CTI Evidence Gateway" width="100%" />
+
+# PARALLAX
+
+**CTI Evidence Gateway**
 
 ### `BOUNDED · READ-ONLY · PROVENANCE-FIRST`
 
@@ -16,12 +20,15 @@
 
 **Public source · private bearer-protected runtime · fixed egress · no arbitrary provider calls · no synthetic master score**
 
-[Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Providers](docs/PROVIDERS.md) · [Evidence v2](docs/EVIDENCE-SCHEMA.md) · [E2E example](docs/END-TO-END-EXAMPLE.md) · [Operations](docs/OPERATIONS.md) · [Security](SECURITY.md)
+[Brand](docs/BRAND.md) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Providers](docs/PROVIDERS.md) · [Evidence v2](docs/EVIDENCE-SCHEMA.md) · [E2E example](docs/END-TO-END-EXAMPLE.md) · [Operations](docs/OPERATIONS.md) · [Security](SECURITY.md)
 
 </div>
 
 > [!IMPORTANT]
 > Built for **personal research and lab use**. Do not send commercial-client, internal-enterprise, restricted, or otherwise sensitive data unless authorization, licensing, and data-handling requirements are explicitly satisfied.
+
+> [!NOTE]
+> **PARALLAX is the product/visual identity.** Compatibility surfaces remain `cti-enrichment-gateway`, the `cti` CLI, `CTI_GATEWAY_TOKEN`, and the existing `/api/*` contracts. See [`docs/BRAND.md`](docs/BRAND.md).
 
 ## ⚡ One-screen model
 
@@ -351,6 +358,7 @@ python3 -m compileall -q maltego
 
 | Document | Purpose |
 | --- | --- |
+| [`docs/BRAND.md`](docs/BRAND.md) | PARALLAX identity, color, motion, logo, and compatibility rules |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | execution model + trust boundaries |
 | [`docs/END-TO-END-EXAMPLE.md`](docs/END-TO-END-EXAMPLE.md) | IOC → evidence → STIX/report walkthrough |
 | [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md) | Evidence v2 + correlation semantics |
@@ -372,6 +380,8 @@ No TLS/JA3 without a bounded source that passes the source gate. No deprecated S
 ---
 
 <div align="center">
+
+<img src="assets/brand/parallax-mark.svg" alt="PARALLAX mark" width="82" />
 
 ### `OBSERVED ≠ INFERRED ≠ CONTEXTUAL`
 

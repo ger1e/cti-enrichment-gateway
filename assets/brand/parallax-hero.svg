@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">PARALLAX — CTI Evidence Gateway</title>
+  <desc id="desc">Black glass cyberpunk banner with cyan parallax geometry and an oscillating red scanner.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#030405"/>
+      <stop offset=".55" stop-color="#080B0E"/>
+      <stop offset="1" stop-color="#030405"/>
+    </linearGradient>
+    <linearGradient id="scanTail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FF1E2D" stop-opacity="0"/>
+      <stop offset=".45" stop-color="#FF1E2D" stop-opacity=".16"/>
+      <stop offset=".82" stop-color="#FF1E2D" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#FF4050" stop-opacity=".95"/>
+    </linearGradient>
+    <filter id="cyanGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="redGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#00E5FF" stroke-width="1" opacity=".055"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="360" rx="24" fill="url(#bg)"/>
+  <rect width="1200" height="360" rx="24" fill="url(#grid)"/>
+  <rect x="1" y="1" width="1198" height="358" rx="23" fill="none" stroke="#00E5FF" stroke-opacity=".20"/>
+  <g transform="translate(60 50)">
+    <path d="M20 35 L118 130 L20 225" fill="none" stroke="#00E5FF" stroke-width="12" opacity=".92" filter="url(#cyanGlow)"/>
+    <path d="M240 35 L142 130 L240 225" fill="none" stroke="#00E5FF" stroke-width="12" opacity=".42"/>
+    <path d="M55 35 L130 106 L205 35" fill="none" stroke="#E8EEF2" stroke-width="4" opacity=".18"/>
+    <path d="M55 225 L130 154 L205 225" fill="none" stroke="#E8EEF2" stroke-width="4" opacity=".12"/>
+    <circle cx="130" cy="130" r="23" fill="#FF1E2D" opacity=".18" filter="url(#redGlow)"/>
+    <circle cx="130" cy="130" r="9" fill="#FF4050" filter="url(#redGlow)"/>
+    <circle cx="130" cy="130" r="2.5" fill="#FFFFFF"/>
+  </g>
+  <g transform="translate(355 74)">
+    <text x="0" y="72" fill="#F3F7FA" font-size="82" font-weight="800" letter-spacing="13" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">PARALLAX</text>
+    <text x="3" y="116" fill="#00E5FF" font-size="20" font-weight="700" letter-spacing="6" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">CTI // EVIDENCE GATEWAY</text>
+    <text x="3" y="154" fill="#7D8B95" font-size="15" letter-spacing="3" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">OBSERVE · CORRELATE · PRESERVE PROVENANCE</text>
+  </g>
+  <g transform="translate(360 270)">
+    <rect x="0" y="0" width="735" height="22" rx="11" fill="#110306" stroke="#FF1E2D" stroke-opacity=".28"/>
+    <g fill="#FF1E2D">
+      <circle cx="30" cy="11" r="3" opacity=".15"/><circle cx="60" cy="11" r="3" opacity=".18"/>
+      <circle cx="90" cy="11" r="3" opacity=".20"/><circle cx="120" cy="11" r="3" opacity=".22"/>
+      <circle cx="150" cy="11" r="3" opacity=".24"/><circle cx="180" cy="11" r="3" opacity=".26"/>
+      <circle cx="210" cy="11" r="3" opacity=".28"/><circle cx="240" cy="11" r="3" opacity=".30"/>
+      <circle cx="270" cy="11" r="3" opacity=".32"/><circle cx="300" cy="11" r="3" opacity=".34"/>
+      <circle cx="330" cy="11" r="3" opacity=".36"/><circle cx="360" cy="11" r="3" opacity=".38"/>
+      <circle cx="390" cy="11" r="3" opacity=".36"/><circle cx="420" cy="11" r="3" opacity=".34"/>
+      <circle cx="450" cy="11" r="3" opacity=".32"/><circle cx="480" cy="11" r="3" opacity=".30"/>
+      <circle cx="510" cy="11" r="3" opacity=".28"/><circle cx="540" cy="11" r="3" opacity=".26"/>
+      <circle cx="570" cy="11" r="3" opacity=".24"/><circle cx="600" cy="11" r="3" opacity=".22"/>
+      <circle cx="630" cy="11" r="3" opacity=".20"/><circle cx="660" cy="11" r="3" opacity=".18"/>
+      <circle cx="690" cy="11" r="3" opacity=".15"/>
+    </g>
+    <g filter="url(#redGlow)">
+      <rect x="8" y="4" width="120" height="14" rx="7" fill="url(#scanTail)" opacity=".9">
+        <animate attributeName="x" values="8;607;8" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".42 0 .58 1;.42 0 .58 1"/>
+      </rect>
+      <rect x="112" y="3" width="14" height="16" rx="7" fill="#FF4050">
+        <animate attributeName="x" values="112;711;112" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".42 0 .58 1;.42 0 .58 1"/>
+      </rect>
+    </g>
+  </g>
+  <circle cx="1084" cy="55" r="4" fill="#39FF88"/>
+  <text x="1098" y="61" fill="#39FF88" font-size="13" letter-spacing="2" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">EVIDENCE</text>
+</svg>

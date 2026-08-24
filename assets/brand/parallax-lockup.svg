@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 180" role="img" aria-labelledby="title desc">
+  <title id="title">PARALLAX lockup</title>
+  <desc id="desc">PARALLAX wordmark with cyan geometry and red observation node.</desc>
+  <defs>
+    <filter id="g" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="860" height="180" rx="20" fill="#050608"/>
+  <g transform="translate(28 18)">
+    <path d="M8 18 L64 72 L8 126" fill="none" stroke="#00E5FF" stroke-width="8" filter="url(#g)"/>
+    <path d="M120 18 L64 72 L120 126" fill="none" stroke="#00E5FF" stroke-width="8" opacity=".45"/>
+    <circle cx="64" cy="72" r="7" fill="#FF4050" filter="url(#g)"/>
+  </g>
+  <text x="190" y="87" fill="#F3F7FA" font-size="64" font-weight="800" letter-spacing="10"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">PARALLAX</text>
+  <text x="194" y="125" fill="#00E5FF" font-size="17" font-weight="700" letter-spacing="5"
+        font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">CTI // EVIDENCE GATEWAY</text>
+</svg>
