@@ -80,33 +80,25 @@ class FakeAudioContext { constructor() { this.currentTime = 1; this.destination 
 test('audio is user-enabled and token typing is silent', async () => {
   let clock = 1000;
   const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext, now: () => clock });
-  assert.equal(audio.state().enabled, false);
-  await audio.enable();
-  const before = audio.state().emitted;
-  audio.typing('token');
-  assert.equal(audio.state().emitted, before);
-  audio.typing('pivot');
-  const once = audio.state().emitted;
-  audio.typing('pivot');
-  assert.equal(audio.state().emitted, once);
-  clock += 60;
-  audio.typing('pivot');
-  assert.ok(audio.state().emitted > once);
+  assert.equal(audio.state().enabled, false); await audio.enable();
+  const before = audio.state().emitted; audio.typing('token'); assert.equal(audio.state().emitted, before);
+  audio.typing('pivot'); const once = audio.state().emitted; audio.typing('pivot'); assert.equal(audio.state().emitted, once);
+  clock += 60; audio.typing('pivot'); assert.ok(audio.state().emitted > once);
 });
 
 test('mute and volume are bounded', async () => {
-  const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext });
-  await audio.enable();
-  audio.setVolume(5); assert.equal(audio.state().volume, 1);
-  audio.setVolume(-1); assert.equal(audio.state().volume, 0);
-  audio.setVolume(.35); audio.mute(true);
-  const before = audio.state().emitted;
-  audio.play('scan');
-  assert.equal(audio.state().emitted, before);
+  const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext }); await audio.enable();
+  audio.setVolume(5); assert.equal(audio.state().volume, 1); audio.setVolume(-1); assert.equal(audio.state().volume, 0);
+  audio.setVolume(.35); audio.mute(true); const before = audio.state().emitted; audio.play('scan'); assert.equal(audio.state().emitted, before);
 });
 
 test('unknown cues are rejected', async () => {
-  const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext });
-  await audio.enable();
+  const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext }); await audio.enable();
   assert.throws(() => audio.play('ioc-derived-frequency'), /unknown cue/i);
+});
+
+test('JSON serialization is exact', async () => {
+  const { serializeJson } = await import('../app/app.js');
+  const value = { status: 'partial', evidence: [{ provider: 'x' }] };
+  assert.deepEqual(JSON.parse(serializeJson(value)), value);
 });
