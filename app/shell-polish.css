@@ -29,13 +29,12 @@
   .boot-brand-meta{font-size:8px;letter-spacing:.08em}
   .shell-logo{width:124px}
   .shell-status{min-height:38px!important;padding:4px 0!important;gap:6px!important}
-  .shell-brand-label{font-size:8px;letter-spacing:0}
+  .shell-brand-label{display:none}
   .shell-session-state{font-size:8px;line-height:1.1}
   .shell-scrollback{max-height:calc(100dvh - 104px);padding-top:8px!important;padding-bottom:6px!important}
   .shell-prompt{min-height:48px!important;padding-top:3px!important;padding-bottom:calc(3px + env(safe-area-inset-bottom))!important}
 }
 
 @media(max-width:370px){
-  .shell-brand-label{display:none}
   .shell-session-state{font-size:7.5px}
 }
