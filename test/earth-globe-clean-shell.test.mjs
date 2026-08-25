@@ -31,7 +31,7 @@ test('Earth layer rotates longitudinally inside the globe instead of spinning li
   assert.match(renderer, /boot-earth-copy/);
   assert.match(css, /\.boot-earth-window\{/);
   assert.match(css, /\.boot-earth-track\{[^}]*animation:\s*earth-longitude\s+36s\s+linear\s+infinite/);
-  assert.match(css, /@keyframes earth-longitude\{[^}]*translateX\(-50%\)/);
+  assert.match(css, /@keyframes earth-longitude\{[\s\S]*?translateX\(-50%\)[\s\S]*?\}/);
   assert.match(css, /\.boot-globe\{[^}]*animation:\s*none!important/);
 });
 
