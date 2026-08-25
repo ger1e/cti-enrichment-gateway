@@ -63,9 +63,7 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
       }
     }
 
-    if (!response.ok) {
-      throw new GatewayHttpError(response.status, payload?.error, payload?.requestId);
-    }
+    if (!response.ok) throw new GatewayHttpError(response.status, payload?.error, payload?.requestId);
     if (!isJson) throw new GatewayHttpError(502, 'unexpected_response');
     if (validate && !validate(payload)) {
       throw new GatewayHttpError(502, path === '/api/stix' ? 'invalid_stix_bundle' : 'invalid_envelope');
@@ -80,13 +78,13 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
 
   return Object.freeze({
     health: (signal) => request('/api/health', { signal }),
-    enrich: (indicator, profile, signal) => request('/api/enrich', {
+    enrich: async (indicator, profile, signal) => request('/api/enrich', {
       method: 'POST',
       body: requestPayload(indicator, profile),
       signal,
       validate: validEnvelope,
     }),
-    stix: (indicator, profile, signal) => request('/api/stix', {
+    stix: async (indicator, profile, signal) => request('/api/stix', {
       method: 'POST',
       body: requestPayload(indicator, profile),
       signal,
