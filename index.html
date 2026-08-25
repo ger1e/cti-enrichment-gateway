@@ -28,6 +28,7 @@
     .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.card{padding:13px;border:1px solid #1f2b31;border-radius:10px;background:var(--panel)}.card b{display:block;margin-bottom:5px;color:var(--white);font-size:.8rem}.card p{margin:0;color:#9ca8af;font-size:.72rem}.card code{color:var(--green)}
     .api{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.api a,.api span{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid #1d292f;border-radius:8px;background:#090d10;font-size:.7rem}.api i{color:var(--muted);font-style:normal}
     .notice{margin:14px 0;padding:12px 14px;border-left:3px solid var(--amber);background:#151208;color:#d1c9a6;font-size:.72rem}.footer{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:14px;border-top:1px solid #19242a;color:var(--muted);font-size:.68rem}.footer strong{color:var(--green)}
+    .enter-app{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border:1px solid var(--cyan);border-radius:6px;background:linear-gradient(90deg,rgba(0,229,255,.05),rgba(255,30,45,.05));box-shadow:inset 0 0 24px rgba(0,229,255,.04),0 0 18px rgba(0,229,255,.08);font-size:.68rem;font-weight:800;letter-spacing:.09em}
     @media(max-width:720px){.shell{width:min(100% - 20px,680px);padding-top:10px}.navlinks{gap:8px}.hero{margin-top:12px;padding:24px 18px 20px;border-radius:14px}.eyebrow{font-size:.62rem}.wordmark{font-size:clamp(2rem,10.5vw,3.5rem)}.tagline{font-size:.78rem}.metrics{grid-template-columns:repeat(2,1fr)}.flow{grid-template-columns:1fr}.step{min-height:0}.cards{grid-template-columns:1fr}.api{grid-template-columns:1fr}.section{padding:13px}.rain{font-size:.58rem;line-height:.78rem}}
     @media(max-width:380px){.brand-mini{font-size:.68rem}.navlinks{font-size:.64rem}.metrics{grid-template-columns:1fr 1fr}.metric{padding:9px}.wordmark{font-size:2rem}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rain,.scanner i{animation:none}.matrix-rain{opacity:.24}.scanner i{width:100%;background:linear-gradient(90deg,transparent,var(--red),transparent)}}
@@ -40,7 +41,7 @@
   <div class="shell">
     <nav aria-label="Primary">
       <a class="brand-mini" href="/"><span>PARA</span><span class="eleven">11</span><span>AX</span></a>
-      <div class="navlinks"><a href="https://github.com/ger1e/cti-enrichment-gateway">GITHUB</a><a href="https://github.com/ger1e/cti-enrichment-gateway/blob/main/docs/API.md">API</a><a href="/api/meta">META</a></div>
+      <div class="navlinks"><a class="enter-app" href="/app">ENTER PARA11AX</a><a href="https://github.com/ger1e/cti-enrichment-gateway">GITHUB</a><a href="https://github.com/ger1e/cti-enrichment-gateway/blob/main/docs/API.md">API</a><a href="/api/meta">META</a></div>
     </nav>
 
     <main>
@@ -75,7 +76,7 @@
         <p class="label">02 // Semantic firewall</p>
         <div class="cards">
           <div class="card"><b>Context ≠ reputation</b><p>Routing, registration, Tor, scanners, ATT&amp;CK and infrastructure stay contextual.</p></div>
-          <div class="card"><b>Claims ≠ proof</b><p>Community and ransomware reporting remains claim/report evidence until independently supported.</p></div>
+          <div class="card"><b>Claims ≠ proof</b><p>Community and ransomware reporting remains claim/report evidence until independently confirmed.</p></div>
           <div class="card"><b>Risk axes stay separate</b><p><code>KEV</code> exploitation status, <code>EPSS</code> probability and <code>CVSS</code> severity never collapse into one score.</p></div>
         </div>
       </section>

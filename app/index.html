@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050608">
+  <meta name="robots" content="noindex,nofollow">
+  <title>PARA11AX // Analyst Terminal</title>
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+  <div class="matrix matrix-far" aria-hidden="true">
+    <span class="rain-col">11A0X101PARA110011AX10</span><span class="rain-col">010011AX1100PARA1011</span><span class="rain-col">EVIDENCE1100101AX11</span><span class="rain-col">0011011PARA11001010</span><span class="rain-col">STIX2110011AX01011</span><span class="rain-col">101100PARA11X00101</span><span class="rain-col">FIXEDEGRESS11001011</span><span class="rain-col">01101AX1100PARA1100</span>
+  </div>
+  <div class="matrix matrix-mid" aria-hidden="true">
+    <span class="rain-col">PROVENANCE00110111</span><span class="rain-col">110010PARA11AX0011</span><span class="rain-col">READONLY1100110011</span><span class="rain-col">0110011AXPARA110101</span><span class="rain-col">CORRELATE11001011</span><span class="rain-col">1001PARA11AX110010</span><span class="rain-col">CONTEXT0011011011</span><span class="rain-col">1100AX11PARA010011</span><span class="rain-col">HUNTABILITY1011011</span><span class="rain-col">011PARA11AX100110</span><span class="rain-col">BOUNDED1100101011</span><span class="rain-col">11001AXPARA1100101</span>
+  </div>
+  <div class="matrix matrix-front" aria-hidden="true">
+    <span class="rain-col">OBSERVE110011</span><span class="rain-col">VERIFY110011</span><span class="rain-col">PARA11AX0011</span><span class="rain-col">EVIDENCE1100</span>
+  </div>
+  <div class="geometry" aria-hidden="true"></div>
+  <div class="crt" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <section id="boot-panel" class="boot-panel" aria-labelledby="boot-title">
+      <div class="boot-standby"><span class="boot-led" aria-hidden="true"></span><span>PARA11AX // COLD START</span></div>
+      <h1 id="boot-title" class="boot-title">INITIALIZE ANALYST TERMINAL</h1>
+      <div class="boot-screen">
+        <div id="boot-status" class="boot-status">STANDBY // USER INPUT REQUIRED</div>
+        <div id="boot-log" class="boot-log" aria-live="polite"></div>
+        <pre id="pepe-ascii" class="boot-pepe" aria-label="Pepe terminal art" hidden>⠀⠀⠀⠀⠀⢀⣠⡶⠶⠿⠛⠛⠛⠛⠛⠻⠷⠶⢶⣤⣀⠀⠀⠀⠀⠀⠀⣠⣴⠶⠶⠶⠶⠶⢶⣦⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣠⡾⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢳⣆⠀⢀⣴⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠙⠛⢷⣤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⢀⡾⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⡛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⢠⡞⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠀⠀⠀⠀⠀⠘⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠞⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣴⠶⠶⠿⠛⠛⠛⠛⠛⠛⠿⠶⠶⠿⣦⣀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⣀⠀⠀⠀⠀⠹⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⢀⣴⠞⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢷⣦⣴⠾⠟⠛⠛⠋⠉⠉⠙⠛⠛⠳⢶⣤⣜⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠘⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢻⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⢷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣶⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⡀⠘⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢻⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣠⣴⠾⠛⠛⠉⠙⠛⢛⣛⣋⣭⣍⣍⡙⠛⠻⢿⣭⣍⠉⠉⠛⢷⣜⣷⠀⠀⠀⠀⠀⠀⢀⣤⠾⢛⣛⣛⣛⡛⡛⠛⠛⢷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣠⣾⠟⢁⣤⡴⠶⠛⠛⠛⠛⠉⠉⠉⠉⠉⠛⠻⢦⣤⡀⠉⠻⣦⡀⠀⠙⢿⣄⠀⠀⠀⠀⢀⣬⡾⠿⠛⣛⣛⣛⣛⣛⣛⡛⠻⠾⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣼⡟⢁⡶⠛⠁⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⣀⣀⠀⢀⣙⣻⣶⣤⣌⠻⣶⣀⠀⢹⣧⠀⠀⣴⠟⠉⣠⣶⠟⠋⠉⠉⠉⠉⠙⠻⢷⣄⢹⡟⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠿⠷⠿⣧⣤⡶⠶⠶⠛⠛⢛⣿⡿⢿⣿⣿⣿⣿⣿⣿⣏⠉⠉⠉⠙⠻⣎⠻⣶⡠⣿⡆⠀⠀⣠⣾⣿⣿⣿⣿⣿⣾⣷⠶⣦⣄⡈⠻⣾⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣛⠻⠶⣤⣠⣿⣿⣷⣴⣿⣿⡟⠋⠙⣿⣿⠀⠀⠀⠀⠀⠙⣧⠈⢿⡟⠀⢠⡾⣻⣿⣏⣸⣿⣿⠟⠻⣿⣧⠀⠉⠛⠷⣾⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣶⣀⠈⠻⢿⣿⣿⣤⣿⣿⣷⣤⣴⣿⣿⠀⠀⠀⠀⠀⠀⠹⣧⠸⣇⢰⡟⠀⣿⣿⡟⢻⣿⣿⣄⣠⣿⣿⠀⠀⢀⣴⢿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢷⣄⠀⠈⠉⠛⠻⠿⣿⣿⣿⣿⣋⠀⠀⠀⣀⣠⣴⠶⠿⣶⡀⠸⢷⣦⣿⣿⣿⣿⣿⣿⣿⣿⣿⣁⣤⡶⠟⢁⣾⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠳⢶⣤⣤⣤⣤⣄⣈⣉⣉⠉⠛⠛⠛⠋⠉⠀⣠⣴⠟⠁⠀⢸⣆⣀⠉⠉⠉⠉⠉⠉⠉⢉⣉⣀⣀⣴⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠙⠛⠛⠛⠛⠛⣿⠿⠋⠀⠀⠀⠀⠀⠉⠛⠿⣷⠲⠶⠞⠃⠀⣈⣛⣿⣿⠟⢷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢠⣶⠶⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⡾⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣄⠀⠀⠀⠛⠛⠋⠁⠀⠈⢿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢀⣀⣠⣤⣤⣤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣤⡶⠟⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⢠⣶⢟⣭⣭⣭⣥⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⣴⡶⠟⠛⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠁⠀⠀⠀⠀⠀⠀⠀⣸⡟⠹⣧⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠘⠁⣾⡇⠀⢠⣌⡉⠛⠻⠷⣦⣤⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⠟⠐⣰⡟⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠙⣿⣄⡀⠙⠻⣦⣤⣀⣀⠀⠉⠉⠛⠛⠛⠷⠶⠦⣤⣤⣀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡾⠋⢀⣾⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠙⠿⢶⣄⡀⠈⠉⠙⠻⠶⢶⣄⣀⣀⠀⠀⠀⠀⠈⠉⠉⠉⠉⠛⠛⠻⠶⠶⠶⠶⠶⠶⠶⠶⠶⣦⣤⣤⣴⣶⣶⠶⠶⠾⠟⠉⢀⣴⣿⡁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠳⣦⣄⠀⠀⠀⠉⠉⠙⠛⠓⠒⠒⠚⠒⠒⠶⢶⣦⣤⣤⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⡴⠛⠁⣸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠷⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠙⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠉⠀⠀⣸⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠷⢦⣄⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣼⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠙⠛⠛⠿⠶⠶⠶⠶⠶⠶⣦⣤⣤⣤⣤⣤⣶⠶⠶⠶⠶⠶⠶⢶⣶⠶⠟⠉⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣴⣤⣀⠀⠀⢠⡾⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣴⠟⠛⠁⠀⠈⠻⣷⣴⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡾⠋⠁⠀⠀⠀⠀⠀⠀⠈⠻⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣤⣄⡀⣀⣴⣾⣏⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⢈⡙⠻⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡟⠁⠀⠉⢻⡏⠀⠀⢹⣷⠀⢀⣴⡿⠋⣿⠟⢻⡶⢠⣼⠗⠀⠀⠉⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣷⡀⠀⠀⠘⢷⣤⣾⣟⣥⡶⠛⠁⣠⡾⠃⣤⣿⡾⠋⠁⠀⠀⠀⠀⠀⠈⢻⣄⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠿⣦⠀⠀⠀⠀⠉⣿⠀⠀⣠⠞⣩⣴⠾⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣷⣀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣷⡀⠀⠀⠀⢿⣶⠞⢁⣾⠋⠀⠀⠀⠀⠀⢀⣤⡾⠃⠀⠀⠀⠀⠀⠀⠈⢻⣄⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⡇⠀⠀⠀⠈⠻⣧⣾⡃⠀⠀⠀⠀⠀⣰⡿⠋⠀⠀⠀⠀⢀⣤⠀⠀⠀⠈⢿⣄⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡇⠀⠀⠀⠀⠀⠈⠛⢷⣄⠀⠀⠀⣴⡟⠀⠀⠀⠀⠀⣰⡿⠋⠀⠀⣠⠀⠀⢻⣆⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡾⣷⡀⠀⠀⠀⠀⠀⠀⠀⣙⡻⠷⠾⣿⠀⠀⠀⢀⣤⡿⡋⠀⠀⢠⡾⠋⠀⠀⠀⢹⣄</pre>
+        <div class="boot-wordmark" aria-hidden="true">PARA<span>11</span>AX</div>
+        <div class="boot-scan" aria-hidden="true"></div>
+      </div>
+      <div class="boot-controls">
+        <button id="boot-initialize" type="button">INITIALIZE</button>
+        <button id="boot-skip" type="button">SKIP</button>
+      </div>
+      <p class="boot-note">AUDIO UNLOCKS ON USER GESTURE · BOOT STATE IS NOT PERSISTED</p>
+    </section>
+
+    <section id="access-panel" class="access" aria-labelledby="access-title" hidden>
+      <p class="micro">PARA11AX // ANALYST ACCESS</p>
+      <h1 id="access-title">Establish session</h1>
+      <form id="access-form" autocomplete="off">
+        <label for="token">Gateway bearer</label>
+        <input id="token" type="password" autocomplete="off" spellcheck="false" required>
+        <button type="submit">ESTABLISH SESSION</button>
+      </form>
+      <p class="memory-note">TOKEN HELD IN MEMORY ONLY · NOT SAVED · NOT LOGGED · CLEARED ON REFRESH</p>
+    </section>
+
+    <section id="workspace" class="workspace" hidden>
+      <header class="topbar">
+        <a class="mark" href="/">PARA<span>11</span>AX</a>
+        <span id="connection-state" class="connection">CONNECTED</span>
+        <div class="semantic-legend" aria-label="Color semantics">
+          <span class="legend-cyan">CYAN CONTEXT</span>
+          <span class="legend-green">GREEN CORROBORATED</span>
+          <span class="legend-amber">AMBER UNCERTAIN / PARTIAL</span>
+          <span class="legend-red">RED FAILURE / CONTRADICTION</span>
+        </div>
+        <button id="sound-toggle" type="button" aria-pressed="true">SOUND ON</button>
+        <label for="volume">VOL</label>
+        <input id="volume" type="range" min="0" max="1" step="0.05" value="0.35">
+        <button id="disconnect" type="button">DISCONNECT</button>
+      </header>
+
+      <form id="pivot-form" class="pivot-console">
+        <label for="indicator">Observable</label>
+        <input id="indicator" autocomplete="off" spellcheck="false" required>
+        <label for="profile">Profile</label>
+        <select id="profile">
+          <option value="fast">FAST</option>
+          <option value="standard" selected>STANDARD</option>
+          <option value="full">FULL</option>
+        </select>
+        <button id="enrich" type="submit">ENRICH</button>
+      </form>
+
+      <div class="scanner-track" aria-hidden="true"><i></i></div>
+      <section id="result-status" class="hud" hidden></section>
+      <nav id="tabs" class="tabs" aria-label="Analysis views" hidden></nav>
+      <label id="raw-search-label" class="raw-search-label" for="raw-search" hidden>FILTER RAW JSON</label>
+      <input id="raw-search" class="raw-search" type="search" autocomplete="off" hidden>
+      <div id="result-actions" class="result-actions" hidden>
+        <button id="copy-ioc" type="button">COPY IOC</button>
+        <button id="copy-json" type="button">COPY JSON</button>
+        <button id="download-json" type="button">DOWNLOAD JSON</button>
+        <button id="download-stix" type="button">PACKAGE STIX 2.1</button>
+        <button id="reset" type="button">RESET</button>
+      </div>
+      <section id="view" class="view" aria-label="Analysis output"></section>
+    </section>
+
+    <div id="live-status" class="sr-only" aria-live="polite"></div>
+  </main>
+  <script type="module" src="/app/app.js"></script>
+</body>
+</html>
