@@ -11,20 +11,69 @@
 .boot-globe-landmass{fill:rgba(0,229,255,.48);stroke:rgba(243,247,250,.95);stroke-width:.9;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .boot-globe-scanner{fill:none;stroke:var(--px-red);stroke-opacity:1;stroke-width:1.8;stroke-dasharray:10 6;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 4px rgba(255,30,45,.95));animation:globe-red-scan 4.8s linear infinite}
 @keyframes globe-red-scan{0%{stroke-dashoffset:0;opacity:.72}50%{opacity:1}100%{stroke-dashoffset:-64;opacity:.72}}
-
-/* One lifecycle state keeps the globe present for the complete initialized boot. */
 .boot-running .boot-globe{opacity:.28!important}
 
-/* Operational shell follows its transcript instead of manufacturing a dead viewport. */
-.unix-shell{justify-content:flex-start!important}
-.shell-scrollback{flex:0 1 auto!important;max-height:calc(100dvh - 108px);min-height:0;overflow:auto}
-.shell-prompt{position:sticky!important;bottom:0;margin-top:0}
+/* Operational Gateway Terminal chrome. */
+.unix-shell{justify-content:flex-start!important;--prompt-accent:var(--px-red)}
+.shell-status{display:grid!important;grid-template-columns:minmax(180px,auto) minmax(0,1fr) auto;align-items:center;column-gap:14px;min-height:44px!important;padding:4px 0!important;background:rgba(5,6,8,.98)!important;border-bottom:1px solid rgba(0,229,255,.18)!important}
+.shell-brand{justify-self:start}
+.shell-session-state{justify-self:center;color:var(--px-muted);font-size:10px;letter-spacing:.035em;white-space:nowrap}
+.shell-session-state.is-authenticated{color:var(--px-green);text-shadow:0 0 7px rgba(57,255,136,.22)}
+.shell-clock{display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;align-items:baseline;justify-items:end;justify-self:end;min-width:92px;color:var(--px-green);font-variant-numeric:tabular-nums;line-height:1;text-shadow:0 0 7px rgba(57,255,136,.24)}
+.shell-clock-hm{font-size:15px;letter-spacing:.04em}
+.shell-clock-seconds{font-size:11px;color:rgba(57,255,136,.72);letter-spacing:.02em}
+.shell-clock-meta{grid-column:1/-1;margin-top:3px;color:var(--px-muted);font-size:8px;letter-spacing:.08em;white-space:nowrap;text-shadow:none}
+.shell-scanner-track{position:sticky;top:44px;z-index:13;width:100%;height:1px;flex:0 0 1px;background:#1f080b;overflow:hidden}
+.shell-scanner-track i{display:block;width:15%;height:100%;background:linear-gradient(90deg,transparent,var(--px-red),#fff,var(--px-red),transparent);filter:drop-shadow(0 0 5px var(--px-red));animation:scanner 1.8s ease-in-out infinite alternate}
+.shell-scrollback{flex:0 1 auto!important;max-height:calc(100dvh - 142px);min-height:0;overflow:auto;padding-bottom:8px!important}
+.shell-prompt{position:sticky!important;bottom:25px;margin-top:0;border-top:1px solid rgba(0,229,255,.13)!important;background:rgba(5,6,8,.985)!important;z-index:12}
+.shell-prompt-label{color:var(--prompt-accent)!important}
+.shell-input{caret-color:var(--prompt-accent)!important}
+.secret-mode{--prompt-accent:var(--px-amber)}
+
+.shell-footer{position:sticky;bottom:0;z-index:14;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:12px;min-height:25px;padding:3px 0;background:rgba(5,6,8,.99);border-top:1px solid rgba(0,229,255,.16);color:var(--px-muted);font-size:8px;letter-spacing:.06em;white-space:nowrap}
+.shell-footer-desktop{color:var(--px-cyan)}
+.shell-footer-center{justify-self:center;overflow:hidden;text-overflow:ellipsis}
+.shell-footer-leds{display:inline-flex;align-items:center;gap:8px}
+.shell-footer-led{display:inline-flex;align-items:center;gap:4px;color:var(--px-muted)}
+.shell-footer-led i{display:inline-block;width:5px;height:5px;border-radius:50%;background:#354047;box-shadow:none}
+.shell-footer-led[data-state="context"] i,.shell-footer-led[data-state="active"] i{background:var(--px-cyan);box-shadow:0 0 6px rgba(0,229,255,.7)}
+.shell-footer-led[data-state="ok"] i{background:var(--px-green);box-shadow:0 0 6px rgba(57,255,136,.72)}
+.shell-footer-led[data-state="partial"] i{background:var(--px-amber);box-shadow:0 0 6px rgba(246,201,69,.68)}
+.shell-footer-led[data-state="error"] i,.shell-footer-led[data-state="down"] i{background:var(--px-red);box-shadow:0 0 5px rgba(255,30,45,.56)}
+.shell-footer-build{color:var(--px-white)}
+.shell-footer-mobile{display:none;color:var(--px-cyan)}
+
+/* Event-driven visual cues. None of these loops. */
+.cue-auth-up .shell-session-state{animation:px-green-lock .42s ease-out 1}
+.cue-auth-down .shell-session-state{animation:px-red-lock .34s ease-out 1}
+.cue-busy .shell-scanner-track{height:2px;filter:brightness(1.55)}
+.cue-success .shell-footer{animation:px-green-lock .38s ease-out 1}
+.cue-partial .shell-footer{animation:px-amber-lock .46s steps(2,end) 1}
+.cue-error .shell-footer{animation:px-red-tear .28s steps(3,end) 1}
+.cue-contradiction .shell-status{animation:px-channel-split .34s steps(3,end) 1}
+.cue-export .shell-footer-center{animation:px-cyan-sweep .42s ease-out 1}
+.cue-complete .shell-clock{animation:px-green-lock .32s ease-out 1}
+.cue-history .shell-prompt{animation:px-cyan-tick .16s ease-out 1}
+@keyframes px-green-lock{0%{box-shadow:inset 0 0 0 rgba(57,255,136,0);filter:brightness(1)}45%{box-shadow:inset 0 0 18px rgba(57,255,136,.18);filter:brightness(1.42)}100%{box-shadow:inset 0 0 0 rgba(57,255,136,0);filter:brightness(1)}}
+@keyframes px-red-lock{0%{text-shadow:0 0 0 rgba(255,30,45,0)}45%{text-shadow:2px 0 7px rgba(255,30,45,.75)}100%{text-shadow:none}}
+@keyframes px-amber-lock{0%,100%{border-color:rgba(0,229,255,.16)}50%{border-color:var(--px-amber);box-shadow:inset 0 0 12px rgba(246,201,69,.12)}}
+@keyframes px-red-tear{0%,100%{transform:none;filter:none}33%{transform:translateX(-1px);filter:drop-shadow(2px 0 var(--px-red))}66%{transform:translateX(1px);filter:drop-shadow(-2px 0 var(--px-cyan))}}
+@keyframes px-channel-split{0%,100%{text-shadow:none}35%{text-shadow:2px 0 var(--px-red),-2px 0 var(--px-cyan)}65%{text-shadow:-1px 0 var(--px-red),1px 0 var(--px-cyan)}}
+@keyframes px-cyan-sweep{0%{color:var(--px-muted);text-shadow:none}48%{color:var(--px-cyan);text-shadow:0 0 8px rgba(0,229,255,.7)}100%{color:var(--px-muted);text-shadow:none}}
+@keyframes px-cyan-tick{0%,100%{border-top-color:rgba(0,229,255,.13)}50%{border-top-color:var(--px-cyan);box-shadow:inset 0 2px 7px rgba(0,229,255,.08)}}
 
 @media(max-width:720px){
-  .shell-status{min-height:38px!important;gap:8px!important}
+  .shell-status{grid-template-columns:minmax(130px,auto) minmax(0,1fr) auto;min-height:42px!important;gap:8px!important}
   .shell-brand{max-width:none!important;overflow:visible!important;text-overflow:clip!important}
-  .shell-session-state{font-size:9px;letter-spacing:0;max-width:none!important;overflow:visible!important;text-overflow:clip!important}
-  .shell-scrollback{max-height:calc(100dvh - 106px);padding-bottom:8px!important}
+  .shell-session-state{font-size:8.5px;letter-spacing:0;max-width:none!important;overflow:visible!important;text-overflow:clip!important}
+  .shell-clock{min-width:78px}
+  .shell-clock-hm{font-size:14px}
+  .shell-clock-seconds{font-size:10px}
+  .shell-scanner-track{top:42px}
+  .shell-scrollback{max-height:calc(100dvh - 138px);padding-bottom:8px!important}
+  .shell-footer{gap:8px;font-size:7.5px}
+  .shell-footer-leds{gap:6px}
   .boot-running .boot-globe{opacity:.32!important;width:min(88vw,500px)!important;left:50%!important;top:52%!important}
 }
 
@@ -33,18 +82,40 @@
   .boot-brand-lockup{gap:7px}
   .boot-brand-lockup .para11ax-logo{width:126px}
   .boot-brand-meta{font-size:8px;letter-spacing:.08em}
-  .shell-logo{width:124px}
-  .shell-status{min-height:38px!important;padding:4px 0!important;gap:6px!important}
+  .shell-logo{width:116px}
+  .shell-status{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"brand clock" "state state";row-gap:2px;min-height:50px!important;padding:4px 0!important;column-gap:6px!important}
+  .shell-brand{grid-area:brand;min-width:0}
   .shell-brand-label{display:none}
-  .shell-session-state{font-size:8px;line-height:1.1}
-  .shell-scrollback{max-height:calc(100dvh - 104px);padding-top:8px!important;padding-bottom:6px!important}
-  .shell-prompt{min-height:48px!important;padding-top:3px!important;padding-bottom:calc(3px + env(safe-area-inset-bottom))!important}
+  .shell-session-state{grid-area:state;justify-self:start;font-size:8px;line-height:1.1;min-width:0;overflow:hidden!important;text-overflow:ellipsis!important}
+  .shell-clock{grid-area:clock;grid-template-columns:auto;grid-template-rows:auto;min-width:54px}
+  .shell-clock-hm{font-size:13px}
+  .shell-clock-seconds{display:none}
+  .shell-clock-meta{display:none}
+  .shell-scanner-track{top:50px}
+  .shell-scrollback{max-height:calc(100dvh - 150px);padding-top:8px!important;padding-bottom:6px!important}
+  .shell-prompt{bottom:27px;min-height:48px!important;padding-top:3px!important;padding-bottom:3px!important}
+  .shell-footer{grid-template-columns:minmax(0,1fr) auto;min-height:27px;padding-bottom:calc(3px + env(safe-area-inset-bottom));font-size:7.5px;letter-spacing:.035em}
+  .shell-footer-center{display:none}
+  .shell-footer-desktop{display:none}
+  .shell-footer-leds{justify-self:end;gap:5px}
+  .shell-footer-led{font-size:0;gap:0}
+  .shell-footer-led i{width:5px;height:5px}
+  .shell-footer-build{display:none}
+  .shell-footer-mobile{display:inline;overflow:hidden;text-overflow:ellipsis}
 }
 
 @media(max-width:370px){
+  .shell-logo{width:108px}
   .shell-session-state{font-size:7.5px}
+  .shell-clock-hm{font-size:12px}
+  .shell-footer-mobile{font-size:7px}
 }
 
 @media(prefers-reduced-motion:reduce){
   .boot-globe{animation:globe-spin 36s linear infinite!important;transform:translate(-50%,-50%) rotate(0deg)}
+  .cue-auth-up .shell-session-state,.cue-auth-down .shell-session-state,.cue-success .shell-footer,.cue-partial .shell-footer,.cue-error .shell-footer,.cue-contradiction .shell-status,.cue-export .shell-footer-center,.cue-complete .shell-clock,.cue-history .shell-prompt{animation:none!important}
+  .cue-auth-up .shell-session-state,.cue-success .shell-footer,.cue-complete .shell-clock{color:var(--px-green)!important}
+  .cue-partial .shell-footer{border-color:var(--px-amber)!important}
+  .cue-error .shell-footer,.cue-auth-down .shell-session-state{border-color:var(--px-red)!important;color:var(--px-red)!important}
+  .cue-contradiction .shell-status{border-bottom-color:var(--px-red)!important}
 }
