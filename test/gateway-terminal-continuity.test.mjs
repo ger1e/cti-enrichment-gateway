@@ -79,7 +79,8 @@ test('mobile shell uses one coherent operational type scale and compact help lay
   assert.match(css, /--terminal-font\s*:\s*14px/);
   assert.match(css, /--terminal-input\s*:\s*16px/);
   assert.doesNotMatch(css, /@media\(max-width:430px\)[\s\S]*\.shell-pre\{[^}]*font-size:\s*11px/);
-  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-pre[^}]*white-space:\s*pre-line/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-help[^}]*white-space:\s*pre-line/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-pre[^}]*white-space:\s*pre-wrap/);
 });
 
 test('active boot and shell branding is Gateway Terminal', async () => {
