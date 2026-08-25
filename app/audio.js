@@ -44,19 +44,29 @@ export function createAudioEngine({
   let context = null;
   let enabled = false;
   let muted = false;
-  let volume = .35;
+  let volume = .6;
   let emitted = 0;
   let lastCue = null;
   let lastTyping = -Infinity;
+  let fault = null;
   const activeNodes = new Set();
 
-  const state = () => Object.freeze({ enabled, muted, volume, emitted, lastCue, active: activeNodes.size, supported: Boolean(AudioContextCtor) });
+  const state = () => Object.freeze({ enabled, muted, volume, emitted, lastCue, active: activeNodes.size, supported: Boolean(AudioContextCtor), fault });
 
   async function enable() {
-    if (!AudioContextCtor) return state();
-    context ||= new AudioContextCtor();
-    if (context.state === 'suspended') await context.resume();
-    enabled = true;
+    if (!AudioContextCtor) {
+      fault = 'unsupported';
+      return state();
+    }
+    try {
+      context ||= new AudioContextCtor();
+      if (context.state === 'suspended') await context.resume();
+      enabled = context.state === 'running' || context.state == null;
+      fault = enabled ? null : 'blocked';
+    } catch {
+      enabled = false;
+      fault = 'blocked';
+    }
     return state();
   }
 
@@ -69,8 +79,9 @@ export function createAudioEngine({
     if (Number.isFinite(endFrequency) && endFrequency > 0 && endFrequency !== frequency) {
       oscillator.frequency.linearRampToValueAtTime(endFrequency, start + duration);
     }
+    const audibleScale = Math.min(.32, gainScale * 1.8);
     gain.gain.setValueAtTime(.0001, start);
-    gain.gain.linearRampToValueAtTime(Math.max(.0001, volume * gainScale), start + Math.min(.008, duration / 3));
+    gain.gain.linearRampToValueAtTime(Math.max(.0001, volume * audibleScale), start + Math.min(.008, duration / 3));
     gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
     oscillator.connect(gain).connect(context.destination);
     oscillator.onended = () => activeNodes.delete(oscillator);
@@ -85,14 +96,20 @@ export function createAudioEngine({
     if (!enabled || muted || volume <= 0 || !context) return;
     let offset = 0;
     const keyVariation = name === 'key' ? ((emitted % 3) - 1) * 28 : 0;
-    for (const [frequency, duration, type = 'square', endFrequency = null, gainScale = .09] of recipe) {
-      const startFrequency = Math.max(40, frequency + keyVariation);
-      const end = endFrequency == null ? null : Math.max(40, endFrequency + keyVariation);
-      tone(startFrequency, Math.min(duration, .45), offset, type, end, gainScale);
-      offset += duration * .72;
+    try {
+      for (const [frequency, duration, type = 'square', endFrequency = null, gainScale = .09] of recipe) {
+        const startFrequency = Math.max(40, frequency + keyVariation);
+        const end = endFrequency == null ? null : Math.max(40, endFrequency + keyVariation);
+        tone(startFrequency, Math.min(duration, .45), offset, type, end, gainScale);
+        offset += duration * .72;
+      }
+      emitted += 1;
+      lastCue = name;
+      fault = null;
+    } catch {
+      fault = 'playback';
+      stopAll();
     }
-    emitted += 1;
-    lastCue = name;
   }
 
   function stopAll() {
