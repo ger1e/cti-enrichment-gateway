@@ -34,7 +34,7 @@ let shell = null;
 let shellObserver = null;
 let bootLineStarted = false;
 let bootLineCount = 0;
-let bootTranscript = [];
+let pepeSignature = '';
 let glitchTimer = null;
 
 accessPanel.hidden = true;
@@ -136,7 +136,7 @@ function resetBootSurface() {
   workspace.hidden = true;
   bootStatus.textContent = 'STANDBY // USER INPUT REQUIRED';
   bootLog.replaceChildren();
-  bootTranscript = [];
+  pepeSignature = '';
   pepe.hidden = true;
   bootInitialize.disabled = false;
   bootSkip.disabled = false;
@@ -144,17 +144,12 @@ function resetBootSurface() {
   bootLineCount = 0;
 }
 
-function remember(entry) {
-  bootTranscript.push(Object.freeze({ ...entry }));
-}
-
-function appendLine(text, className = 'unix-boot-line', tone = '') {
+function appendLine(text, className = 'unix-boot-line') {
   const value = String(text);
   const line = document.createElement('div');
   line.className = className;
   line.textContent = value;
   bootLog.append(line);
-  remember({ kind: 'line', text: value, tone });
   bootLog.scrollTop = bootLog.scrollHeight;
 }
 
@@ -169,27 +164,16 @@ function appendTarget(text) {
   content.textContent = value;
   line.append(led, content);
   bootLog.append(line);
-  remember({ kind: 'line', text: value, tone: 'green' });
   bootLog.scrollTop = bootLog.scrollHeight;
 }
 
-function restoreBootTranscript() {
+function restorePepeSignature() {
   const scrollback = workspace.querySelector('.shell-scrollback');
-  if (!scrollback || !bootTranscript.length) return;
-  const fragment = document.createDocumentFragment();
-  for (const entry of bootTranscript) {
-    const node = document.createElement(entry.kind === 'pre' ? 'pre' : 'div');
-    node.className = entry.kind === 'pre'
-      ? `shell-pre ${entry.className || ''}${entry.tone ? ` shell-${entry.tone}` : ''}`.trim()
-      : `shell-line shell-boot-line${entry.tone ? ` shell-${entry.tone}` : ''}`;
-    node.textContent = entry.text;
-    fragment.append(node);
-  }
-  const separator = document.createElement('div');
-  separator.className = 'shell-line shell-muted shell-boot-separator';
-  separator.textContent = '── boot transcript retained ──';
-  fragment.append(separator);
-  scrollback.prepend(fragment);
+  if (!scrollback || !pepeSignature) return;
+  const node = document.createElement('pre');
+  node.className = 'shell-pre shell-cyan shell-boot-pepe';
+  node.textContent = pepeSignature;
+  scrollback.prepend(node);
   scrollback.scrollTop = scrollback.scrollHeight;
 }
 
@@ -258,7 +242,7 @@ function renderBootStage(stage, payload) {
     document.body.classList.add('boot-pepe-visible', 'boot-glitch');
     bootStatus.textContent = 'firmware0: signature verified';
     pepe.hidden = false;
-    remember({ kind: 'pre', text: pepe.textContent, tone: 'cyan', className: 'shell-boot-pepe' });
+    pepeSignature = pepe.textContent;
     triggerGlitch(bootPanel, 'glitch-pepe', 820);
     return;
   }
@@ -287,7 +271,7 @@ function renderBootStage(stage, payload) {
       version: '2.0.0',
       onReboot: replayBoot,
     });
-    restoreBootTranscript();
+    restorePepeSignature();
     wireMobileEraseCue();
     shellObserver?.disconnect();
     shellObserver = wireHelpFormatting();

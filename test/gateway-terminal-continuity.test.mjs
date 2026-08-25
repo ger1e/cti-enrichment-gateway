@@ -26,14 +26,16 @@ test('PARA11AX service OK wall completes before Pepe and gateway readiness', asy
   assert.ok(pepeIndex < stages.findIndex(([name]) => name === 'target'), 'Pepe must precede final gateway readiness');
 });
 
-test('terminal runtime restores the complete boot transcript and Pepe into shell scrollback', async () => {
+test('terminal runtime keeps Pepe but does not restore the boot wall into shell scrollback', async () => {
   const entry = await read('app/terminal-entry.js');
-  assert.match(entry, /bootTranscript/);
+  assert.doesNotMatch(entry, /bootTranscript/);
+  assert.doesNotMatch(entry, /restoreBootTranscript/);
+  assert.doesNotMatch(entry, /boot transcript retained/);
   assert.match(entry, /pepe\.textContent/);
-  assert.match(entry, /restoreBootTranscript/);
+  assert.match(entry, /restorePepeSignature/);
   assert.match(entry, /shell-scrollback/);
   assert.match(entry, /shell-boot-pepe/);
-  assert.doesNotMatch(entry, /bootLog\.replaceChildren\(\)[\s\S]{0,400}stage === ['"]boot-line['"]/, 'boot lines must not be discarded during the sequence');
+  assert.doesNotMatch(entry, /bootLog\.replaceChildren\(\)[\s\S]{0,400}stage === ['"]boot-line['"]/, 'boot lines must remain visible during the boot sequence itself');
 });
 
 test('backspace cue is not suppressed by character typing throttle', async () => {
@@ -110,11 +112,12 @@ test('mobile prompt is a terminal line, not a legacy cyan focus rectangle', asyn
   assert.match(css, /\.shell-input:focus-visible\{[^}]*outline-offset:\s*0/);
 });
 
-test('restored boot transcript uses a compact dedicated scale instead of command-line sizing', async () => {
+test('Pepe signature uses a dedicated preformatted shell surface without boot-line retention', async () => {
   const entry = await read('app/terminal-entry.js');
-  const css = await read('app/shell.css');
-  assert.match(entry, /shell-boot-line/);
-  assert.match(css, /\.shell-boot-line\{[^}]*font-size:\s*12px/);
+  assert.match(entry, /shell-boot-pepe/);
+  assert.match(entry, /document\.createElement\(['"]pre['"]\)/);
+  assert.doesNotMatch(entry, /shell-boot-line/);
+  assert.doesNotMatch(entry, /bootTranscript/);
 });
 
 test('active boot and shell branding is Gateway Terminal', async () => {
