@@ -4,11 +4,15 @@ import test from 'node:test';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('browser entrypoint cuts over from legacy dashboard controller to Unix terminal runtime', async () => {
+test('browser cuts legacy app asset over to Unix terminal entrypoint before filesystem resolution', async () => {
   const html = await read('app/index.html');
-  assert.match(html, /<link\s+rel="stylesheet"\s+href="\/app\/shell\.css"/);
-  assert.match(html, /<script\s+type="module"\s+src="\/app\/terminal-entry\.js"/);
-  assert.doesNotMatch(html, /<script\s+type="module"\s+src="\/app\/app\.js"/);
+  const vercel = JSON.parse(await read('vercel.json'));
+  const entry = await read('app/terminal-entry.js');
+  assert.match(html, /<script\s+type="module"\s+src="\/app\/app\.js"/);
+  const rewriteIndex = vercel.routes.findIndex(route => route.src === '/app/app.js' && route.dest === '/app/terminal-entry.js');
+  const filesystemIndex = vercel.routes.findIndex(route => route.handle === 'filesystem');
+  assert.ok(rewriteIndex >= 0 && rewriteIndex < filesystemIndex, 'terminal asset rewrite must run before filesystem');
+  assert.match(entry, /\/app\/shell\.css/);
 });
 
 test('Unix boot source contains kernel timestamps, service startup, target readiness and 56k stage', async () => {
