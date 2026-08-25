@@ -58,5 +58,5 @@ test('README avoids renderer-fragile mobile typography and Mermaid source fallba
 test('architecture document uses a responsive static diagram instead of Mermaid', () => {
   const markdown = read('docs/ARCHITECTURE.md');
   assert.doesNotMatch(markdown, /```mermaid/i);
-  assert.match(markdown, /assets\/diagrams\/architecture-flow\.svg/);
+  assert.match(markdown, /assets\/brand\/para11ax-architecture\.svg/);
 });
