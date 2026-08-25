@@ -32,10 +32,12 @@ test('boot uses PARA11AX-native services, kernel timestamps, target readiness an
   assert.doesNotMatch(source, /if\s*\(reducedMotion\)\s*\{[^}]*return\s+true[^}]*\}/);
 });
 
-test('interactive shell exposes a real sticky prompt with secret auth mode and command scrollback', async () => {
+test('interactive shell exposes the gateway prompt, secret auth mode and command scrollback', async () => {
   const source = await read('app/shell-ui.js');
   const css = await read('app/shell.css');
-  assert.match(source, /para11ax@terminal:~\$/);
+  assert.match(source, /para11ax@gateway:~\$/);
+  assert.doesNotMatch(source, /para11ax@terminal:~\$/);
+  assert.match(source, /hostname['"]\) appendLine\(['"]gateway['"]\)/);
   assert.match(source, /type\s*=\s*['"]password['"]/);
   assert.match(source, /shell-scrollback/);
   assert.match(source, /shell-prompt/);
