@@ -26,14 +26,13 @@ test('PARA11AX service OK wall completes before Pepe and gateway readiness', asy
   assert.ok(pepeIndex < stages.findIndex(([name]) => name === 'target'), 'Pepe must precede final gateway readiness');
 });
 
-test('terminal runtime preserves boot transcript and Pepe in shell scrollback', async () => {
+test('terminal runtime restores the complete boot transcript and Pepe into shell scrollback', async () => {
   const entry = await read('app/terminal-entry.js');
-  const shell = await read('app/shell-ui.js');
   assert.match(entry, /bootTranscript/);
   assert.match(entry, /pepe\.textContent/);
-  assert.match(entry, /initialTranscript\s*:\s*bootTranscript/);
-  assert.match(shell, /initialTranscript/);
-  assert.match(shell, /shell-boot-pepe/);
+  assert.match(entry, /restoreBootTranscript/);
+  assert.match(entry, /shell-scrollback/);
+  assert.match(entry, /shell-boot-pepe/);
   assert.doesNotMatch(entry, /bootLog\.replaceChildren\(\)[\s\S]{0,400}stage === ['"]boot-line['"]/, 'boot lines must not be discarded during the sequence');
 });
 
@@ -48,6 +47,13 @@ test('backspace cue is not suppressed by character typing throttle', async () =>
   assert.equal(audio.state().lastCue, 'key-backspace');
 });
 
+test('mobile virtual-keyboard deletion has a beforeinput backspace cue path', async () => {
+  const entry = await read('app/terminal-entry.js');
+  assert.match(entry, /beforeinput/);
+  assert.match(entry, /deleteContentBackward|deleteContentForward/);
+  assert.match(entry, /typing\(['"]backspace['"]\)/);
+});
+
 test('56k handshake includes synthesized carrier noise rather than tones only', async () => {
   const source = await read('app/audio.js');
   assert.match(source, /createBufferSource|modemNoise|noiseBurst/);
@@ -57,11 +63,10 @@ test('56k handshake includes synthesized carrier noise rather than tones only', 
 
 test('mobile shell uses one coherent operational type scale and compact help layout', async () => {
   const css = await read('app/shell.css');
-  const shell = await read('app/shell-ui.js');
   assert.match(css, /--terminal-font\s*:\s*14px/);
   assert.match(css, /--terminal-input\s*:\s*16px/);
   assert.doesNotMatch(css, /@media\(max-width:430px\)[\s\S]*\.shell-pre\{[^}]*font-size:\s*11px/);
-  assert.doesNotMatch(shell, /padEnd\(46\)/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-pre[^}]*white-space:\s*pre-line/);
 });
 
 test('active boot and shell branding is Gateway Terminal', async () => {
@@ -83,5 +88,4 @@ test('boot has a slow non-interactive wireframe globe that becomes static under 
   assert.match(css, /\.boot-globe[^}]*pointer-events:\s*none/);
   assert.match(css, /globe-spin\s+2[4-9]s\s+linear\s+infinite/);
   assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.boot-globe[^}]*animation:\s*none/);
-}
-);
+});
