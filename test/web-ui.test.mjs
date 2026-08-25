@@ -42,3 +42,11 @@ test('mobile and reduced-motion contracts exist', () => {
   assert.match(css, /@media\s*\(max-width:\s*720px\)/i);
   assert.match(css, /prefers-reduced-motion:\s*reduce/i);
 });
+
+test('renderer uses safe DOM APIs only', () => {
+  const source = read('app/renderers.js');
+  assert.doesNotMatch(source, /innerHTML|outerHTML|insertAdjacentHTML/);
+  assert.match(source, /createElement/);
+  assert.match(source, /textContent/);
+  assert.match(source, /query/i);
+});
