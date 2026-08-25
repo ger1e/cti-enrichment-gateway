@@ -56,3 +56,20 @@ test('audio engine contains no network/media loading or persistence', () => {
   assert.doesNotMatch(source, /fetch\s*\(|XMLHttpRequest|new\s+Audio\s*\(|\.mp3|\.wav|\.ogg/i);
   assert.doesNotMatch(source, /localStorage|sessionStorage|indexedDB|document\.cookie/i);
 });
+
+test('controller exposes approved views, raw filter, and no provider override', () => {
+  const source = read('app/app.js');
+  for (const view of ['overview', 'evidence', 'correlation', 'relationships', 'coverage', 'raw']) {
+    assert.match(source, new RegExp(`['"]${view}['"]`));
+  }
+  assert.match(source, /raw-search/);
+  assert.doesNotMatch(source, /providerOverride|providers\s*:/i);
+  assert.doesNotMatch(source, /token[^\n]{0,120}typing\s*\(/i);
+});
+
+test('maximum design contains semantic palette and three rain depths', () => {
+  const css = read('app/app.css').toLowerCase();
+  for (const token of ['#050608', '#0b0f12', '#00e5ff', '#ff1e2d', '#39ff88', '#f6c945', 'matrix-far', 'matrix-mid', 'matrix-front', 'semantic-context', 'semantic-claim', 'tone-amber', 'coverage-failure', 'code-line']) {
+    assert.match(css, new RegExp(token));
+  }
+});
