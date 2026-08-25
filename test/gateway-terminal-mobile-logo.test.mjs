@@ -51,11 +51,12 @@ test('mobile shell prompt follows content instead of reserving a full-screen emp
   assert.match(css, /\.shell-prompt\{[^}]*position:\s*sticky/);
 });
 
-test('mobile header keeps the PARA11AX lockup readable without truncating the brand', async () => {
+test('mobile header keeps the PARA11AX lockup readable while reserving space for the clock', async () => {
   const css = await read('app/shell-polish.css');
   assert.match(css, /\.shell-brand\{[^}]*max-width:\s*none/);
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.para11ax-logo\{[^}]*width:\s*12[0-9]px/);
-  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-status\{[^}]*min-height:\s*38px/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-status\{[^}]*grid-template-areas:[^}]*brand clock[^}]*state state/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-status\{[^}]*min-height:\s*50px/);
 });
 
 test('Vercel cuts the legacy app script over to terminal main wrapper before filesystem resolution', async () => {
