@@ -151,6 +151,37 @@ function appendTarget(text) {
   bootLog.scrollTop = bootLog.scrollHeight;
 }
 
+function restoreBootTranscript() {
+  const scrollback = workspace.querySelector('.shell-scrollback');
+  if (!scrollback || !bootTranscript.length) return;
+  const fragment = document.createDocumentFragment();
+  for (const entry of bootTranscript) {
+    const node = document.createElement(entry.kind === 'pre' ? 'pre' : 'div');
+    node.className = entry.kind === 'pre'
+      ? `shell-pre ${entry.className || ''}${entry.tone ? ` shell-${entry.tone}` : ''}`.trim()
+      : `shell-line${entry.tone ? ` shell-${entry.tone}` : ''}`;
+    node.textContent = entry.text;
+    fragment.append(node);
+  }
+  const separator = document.createElement('div');
+  separator.className = 'shell-line shell-muted shell-boot-separator';
+  separator.textContent = '── boot transcript retained ──';
+  fragment.append(separator);
+  scrollback.prepend(fragment);
+  scrollback.scrollTop = scrollback.scrollHeight;
+}
+
+function wireMobileEraseCue() {
+  const commandInput = workspace.querySelector('#para11ax-command-input');
+  if (!commandInput) return;
+  commandInput.addEventListener('beforeinput', event => {
+    if (commandInput.type === 'password') return;
+    if (event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward') {
+      audio.typing('backspace');
+    }
+  });
+}
+
 function renderBootStage(stage, payload) {
   if (stage === 'reduced') {
     document.body.classList.add('reduced-terminal-motion');
@@ -210,9 +241,10 @@ function renderBootStage(stage, payload) {
       session,
       audio,
       version: '2.0.0',
-      initialTranscript: bootTranscript,
       onReboot: replayBoot,
     });
+    restoreBootTranscript();
+    wireMobileEraseCue();
   }
 }
 
