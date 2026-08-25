@@ -25,6 +25,7 @@
 .shell-scrollback::-webkit-scrollbar{width:6px;height:6px}.shell-scrollback::-webkit-scrollbar-track{background:#000}.shell-scrollback::-webkit-scrollbar-thumb{background:#24414c;border:1px solid #000}.shell-scrollback::-webkit-scrollbar-thumb:hover{background:var(--cyan)}
 .shell-line{min-height:20px;white-space:pre-wrap;overflow-wrap:anywhere;color:#d6dee1}
 .shell-pre{margin:6px 0 12px;max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:#bdc9ce;font:inherit;font-size:var(--terminal-font);line-height:1.45}
+.shell-help{white-space:pre-wrap}
 .shell-boot-pepe{font-size:clamp(3px,.72vw,7px);line-height:1;white-space:pre;overflow:auto;max-width:100%;margin:12px 0;color:#bffaff;opacity:.78;text-shadow:0 0 4px rgba(0,229,255,.25)}
 .shell-boot-separator{margin:8px 0 12px;border-bottom:1px solid #162329;padding-bottom:6px}
 .shell-muted{color:#66767d}.shell-cyan{color:var(--cyan)}.shell-green{color:var(--green)}.shell-amber{color:var(--amber)}.shell-red{color:var(--red)}
@@ -56,7 +57,8 @@
   .shell-scrollback{font-size:var(--terminal-font);line-height:1.45;scrollbar-width:none;padding:9px 0 14px}
   .shell-scrollback::-webkit-scrollbar,.shell-result::-webkit-scrollbar,.shell-pre::-webkit-scrollbar{display:none}
   .shell-line{min-height:20px}
-  .shell-pre{font-size:var(--terminal-font);line-height:1.45;white-space:pre-line}
+  .shell-pre{font-size:var(--terminal-font);line-height:1.45;white-space:pre-wrap}
+  .shell-help{white-space:pre-line}
   .shell-boot-pepe{font-size:clamp(3px,1.02vw,5px);line-height:1;white-space:pre;overflow:auto}
   .shell-prompt{position:sticky;bottom:0;grid-template-columns:max-content minmax(0,1fr);gap:7px;min-height:56px;padding:5px 0 calc(5px + env(safe-area-inset-bottom));background:#000}
   .shell-prompt-label{font-size:var(--terminal-font);line-height:20px}
