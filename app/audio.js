@@ -48,6 +48,7 @@ export function createAudioEngine({
   let emitted = 0;
   let lastCue = null;
   let lastTyping = -Infinity;
+  let lastErase = -Infinity;
   let fault = null;
   const activeNodes = new Set();
 
@@ -156,10 +157,14 @@ export function createAudioEngine({
 
   function typing(kind) {
     if (kind === 'token') return;
-    if (kind === 'backspace' || kind === 'delete') return play('key-backspace');
+    const time = now();
+    if (kind === 'backspace' || kind === 'delete') {
+      if (time - lastErase < 12) return;
+      lastErase = time;
+      return play('key-backspace');
+    }
     if (kind === 'enter') return play('key-enter');
     if (kind === 'paste') return play('paste');
-    const time = now();
     if (time - lastTyping < 45) return;
     lastTyping = time;
     play('key');
