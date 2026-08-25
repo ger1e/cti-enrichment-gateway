@@ -162,6 +162,43 @@ test('boot skip unlocks audio and finishes immediately without modem wait', asyn
   assert.deepEqual(boot.state(), { started: true, done: true, skipped: true });
 });
 
+test('skip during active modem cuts scheduled audio and advances directly to ready', async () => {
+  const { createBootSequence } = await import('../app/app.js');
+  const stages = [];
+  const cues = [];
+  let stopCalls = 0;
+  let releaseModem;
+  const boot = createBootSequence({
+    audio: {
+      enable: async () => {},
+      play: (name) => cues.push(name),
+      stopAll: () => { stopCalls += 1; },
+    },
+    sleep: async (ms) => {
+      if (ms >= 2500) await new Promise((resolve) => { releaseModem = resolve; });
+    },
+    onStage: (name) => stages.push(name),
+  });
+  const starting = boot.start();
+  while (!stages.includes('modem')) await Promise.resolve();
+  assert.equal(await boot.skip(), true);
+  assert.equal(stopCalls, 1);
+  assert.deepEqual(cues, ['boot-power', 'modem-56k', 'boot-ready']);
+  assert.equal(stages.at(-1), 'ready');
+  releaseModem();
+  await starting;
+  assert.deepEqual(boot.state(), { started: true, done: true, skipped: true });
+});
+
+test('audio stopAll cancels scheduled modem tones', async () => {
+  const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext });
+  await audio.enable();
+  audio.play('modem-56k');
+  assert.ok(audio.state().active > 0);
+  audio.stopAll();
+  assert.equal(audio.state().active, 0);
+});
+
 test('reduced-motion boot keeps a short static initialization and ready cue', async () => {
   const { createBootSequence } = await import('../app/app.js');
   const stages = [];
