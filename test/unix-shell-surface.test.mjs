@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('browser cuts legacy app asset over to Unix terminal entrypoint before filesystem resolution', async () => {
+test('browser cuts legacy app asset over to PARA11AX terminal entrypoint before filesystem resolution', async () => {
   const html = await read('app/index.html');
   const vercel = JSON.parse(await read('vercel.json'));
   const entry = await read('app/terminal-entry.js');
@@ -15,16 +15,19 @@ test('browser cuts legacy app asset over to Unix terminal entrypoint before file
   assert.match(entry, /\/app\/shell\.css/);
 });
 
-test('Unix boot source contains kernel timestamps, service startup, target readiness and 56k stage', async () => {
+test('boot uses PARA11AX-native services, kernel timestamps, target readiness and 56k stage', async () => {
   const source = await read('app/boot.js');
+  const entry = await read('app/terminal-entry.js');
   assert.match(source, /PARA11AX kernel 2\.0\.0 booting/);
   assert.match(source, /\[\s*0\.\d+\]/);
-  assert.match(source, /evidence-v2/);
-  assert.match(source, /semantic-firewall/);
-  assert.match(source, /provider-registry/);
-  assert.match(source, /para11ax\.service/);
-  assert.match(source, /Reached target PARA11AX Analyst Terminal/);
+  assert.match(source, /pxsvc\[evidence-v2\]/);
+  assert.match(source, /pxsvc\[semantic-firewall\]/);
+  assert.match(source, /pxsvc\[provider-registry\]/);
+  assert.match(source, /pxsvc\[terminal\]/);
+  assert.match(source, /PARA11AX services online/);
   assert.match(source, /modem-56k/);
+  assert.match(entry, /pxsvcd:/);
+  assert.doesNotMatch(`${source}\n${entry}`, /systemd|para11ax\.service/i);
   assert.match(source, /if\s*\(reducedMotion\)\s*onStage\(['"]reduced['"]\)/);
   assert.doesNotMatch(source, /if\s*\(reducedMotion\)\s*\{[^}]*return\s+true[^}]*\}/);
 });
