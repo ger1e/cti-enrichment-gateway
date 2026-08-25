@@ -47,6 +47,19 @@ test('backspace cue is not suppressed by character typing throttle', async () =>
   assert.equal(audio.state().lastCue, 'key-backspace');
 });
 
+test('duplicate erase reports collapse to one clack without throttling real erases', async () => {
+  let clock = 1000;
+  const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext, now: () => clock });
+  await audio.enable();
+  audio.typing('backspace');
+  const once = audio.state().emitted;
+  audio.typing('backspace');
+  assert.equal(audio.state().emitted, once, 'keydown + beforeinput for one erase must not double-fire');
+  clock += 20;
+  audio.typing('backspace');
+  assert.equal(audio.state().emitted, once + 1, 'a later erase must remain audible');
+});
+
 test('mobile virtual-keyboard deletion has a beforeinput backspace cue path', async () => {
   const entry = await read('app/terminal-entry.js');
   assert.match(entry, /beforeinput/);
