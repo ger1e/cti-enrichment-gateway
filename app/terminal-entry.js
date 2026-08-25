@@ -33,13 +33,28 @@ let boot = null;
 let shell = null;
 let shellObserver = null;
 let bootLineStarted = false;
+let bootLineCount = 0;
 let bootTranscript = [];
+let glitchTimer = null;
 
 accessPanel.hidden = true;
 workspace.hidden = true;
 document.title = 'PARA11AX // Gateway Terminal';
 if (bootTitle) bootTitle.textContent = 'GATEWAY TERMINAL';
 if (bootStandby) bootStandby.textContent = 'PARA11AX GATEWAY // COLD START';
+
+function triggerGlitch(target, className, duration = 280) {
+  if (!target) return;
+  if (glitchTimer) clearTimeout(glitchTimer);
+  target.classList.remove(className);
+  void target.offsetWidth;
+  target.classList.add(className);
+  try { audio.play('glitch'); } catch {}
+  glitchTimer = setTimeout(() => {
+    target.classList.remove(className);
+    glitchTimer = null;
+  }, duration);
+}
 
 function createBootGlobe() {
   const ns = 'http://www.w3.org/2000/svg';
@@ -106,6 +121,11 @@ function clearBootClasses() {
     'boot-powering', 'boot-modem', 'boot-pepe-visible', 'boot-glitch',
     'boot-posting', 'boot-scanning', 'boot-ready', 'boot-complete', 'unix-booting',
   );
+  bootPanel.classList.remove('glitch-boot', 'glitch-pepe', 'glitch-lock');
+  if (glitchTimer) {
+    clearTimeout(glitchTimer);
+    glitchTimer = null;
+  }
 }
 
 function resetBootSurface() {
@@ -121,6 +141,7 @@ function resetBootSurface() {
   bootInitialize.disabled = false;
   bootSkip.disabled = false;
   bootLineStarted = false;
+  bootLineCount = 0;
 }
 
 function remember(entry) {
@@ -160,7 +181,7 @@ function restoreBootTranscript() {
     const node = document.createElement(entry.kind === 'pre' ? 'pre' : 'div');
     node.className = entry.kind === 'pre'
       ? `shell-pre ${entry.className || ''}${entry.tone ? ` shell-${entry.tone}` : ''}`.trim()
-      : `shell-line${entry.tone ? ` shell-${entry.tone}` : ''}`;
+      : `shell-line shell-boot-line${entry.tone ? ` shell-${entry.tone}` : ''}`;
     node.textContent = entry.text;
     fragment.append(node);
   }
@@ -209,6 +230,7 @@ function renderBootStage(stage, payload) {
     document.body.classList.add('boot-powering');
     bootStatus.textContent = 'kernel: booting PARA11AX Gateway Terminal';
     appendLine('[    0.000000] power0: CRT terminal bus online');
+    triggerGlitch(bootPanel, 'glitch-boot', 360);
     return;
   }
   if (stage === 'modem') {
@@ -226,7 +248,9 @@ function renderBootStage(stage, payload) {
       bootLineStarted = true;
       document.body.classList.add('boot-posting');
     }
+    bootLineCount += 1;
     appendLine(payload);
+    if ([9, 21, 32].includes(bootLineCount)) triggerGlitch(bootPanel, 'glitch-boot', 120);
     return;
   }
   if (stage === 'pepe') {
@@ -235,6 +259,7 @@ function renderBootStage(stage, payload) {
     bootStatus.textContent = 'firmware0: signature verified';
     pepe.hidden = false;
     remember({ kind: 'pre', text: pepe.textContent, tone: 'cyan', className: 'shell-boot-pepe' });
+    triggerGlitch(bootPanel, 'glitch-pepe', 820);
     return;
   }
   if (stage === 'target') {
@@ -243,6 +268,7 @@ function renderBootStage(stage, payload) {
     pepe.hidden = true;
     bootStatus.textContent = 'pxsvcd: gateway.target reached';
     appendTarget(payload);
+    triggerGlitch(bootPanel, 'glitch-lock', 420);
     return;
   }
   if (stage === 'ready') {
