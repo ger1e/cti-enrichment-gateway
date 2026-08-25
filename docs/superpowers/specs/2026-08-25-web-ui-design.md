@@ -28,7 +28,7 @@ The token exists only in JavaScript memory for the active page session. It must 
 
 Token validation uses `GET /api/health` with `Authorization: Bearer <token>`. On `200`, the workspace unlocks. On `401`, the UI reports an invalid or unauthorized token without echoing it. Refreshing or closing the page clears the token because it is not persisted.
 
-A user can explicitly disconnect, which zeroes the in-memory token and returns to the access screen.
+A user can explicitly disconnect. The UI clears all application-held token references and the visible token field, clears the current result state, and returns to the access screen. The design does not claim secure memory zeroization of immutable JavaScript string values.
 
 #### Application structure
 
@@ -74,7 +74,7 @@ Mobile is a first-class layout. No horizontal page overflow is permitted. Wide e
 8. Response is rendered into semantic sections.
 9. User may switch among semantic views or inspect raw JSON.
 10. User may export the exact response JSON or request STIX 2.1 through `POST /api/stix`.
-11. User may disconnect, which clears the in-memory token and current sensitive UI state.
+11. User may disconnect, which clears application-held token references, the visible token field, and current result state.
 
 #### Workspace composition
 
@@ -250,7 +250,7 @@ Behavioral browser-logic tests should cover:
 - provider failures render outside evidence verdicts.
 - JSON export matches the response object.
 - STIX export uses the `/api/stix` response rather than local generation.
-- reset/disconnect clears sensitive in-memory state.
+- reset/disconnect clears application-held token references, visible token input, and result state.
 
 Existing Node, Maltego, repository-invariant, Tooling smoke, and CodeQL gates must remain green.
 
