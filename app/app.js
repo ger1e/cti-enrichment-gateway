@@ -71,11 +71,20 @@ export function createBootSequence({
     await sleep(ms);
     return !done;
   };
+  const safeEnable = async () => {
+    try { await audio?.enable?.(); } catch {}
+  };
+  const safePlay = (name) => {
+    try { audio?.play?.(name); } catch {}
+  };
+  const safeStop = () => {
+    try { audio?.stopAll?.(); } catch {}
+  };
 
   const ready = () => {
     if (done) return;
     onStage('ready');
-    audio?.play?.('boot-ready');
+    safePlay('boot-ready');
     done = true;
   };
 
@@ -83,7 +92,7 @@ export function createBootSequence({
     async start() {
       if (started || done) return false;
       started = true;
-      await audio?.enable?.();
+      await safeEnable();
 
       if (reducedMotion) {
         onStage('reduced');
@@ -93,15 +102,15 @@ export function createBootSequence({
       }
 
       onStage('power');
-      audio?.play?.('boot-power');
+      safePlay('boot-power');
       if (!await wait(320)) return true;
 
       onStage('modem');
-      audio?.play?.('modem-56k');
+      safePlay('modem-56k');
       if (!await wait(3200)) return true;
 
       onStage('pepe');
-      audio?.play?.('boot-lock');
+      safePlay('boot-lock');
       if (!await wait(650)) return true;
 
       for (let index = 0; index < POST_LINES.length; index += 1) {
@@ -119,9 +128,9 @@ export function createBootSequence({
       if (done) return false;
       if (!started) {
         started = true;
-        await audio?.enable?.();
+        await safeEnable();
       }
-      audio?.stopAll?.();
+      safeStop();
       skipped = true;
       ready();
       return true;
@@ -217,7 +226,27 @@ function bootstrap() {
   function appendBootLine(text, className = 'boot-line') {
     const line = document.createElement('div');
     line.className = className;
-    line.textContent = text;
+    if (className.includes('boot-post-line')) {
+      const match = String(text).match(/^(.*?)(\s+\[\s*([A-Z-]+)\s*\])$/);
+      if (match) {
+        const label = document.createElement('span');
+        label.className = 'boot-post-label';
+        label.textContent = match[1].trimEnd();
+        const status = document.createElement('span');
+        status.className = 'boot-post-status';
+        const led = document.createElement('span');
+        led.className = `post-led ${match[3].toLowerCase()}`;
+        led.setAttribute('aria-hidden', 'true');
+        const statusText = document.createElement('span');
+        statusText.textContent = match[2].trim();
+        status.append(led, statusText);
+        line.append(label, status);
+      } else {
+        line.textContent = text;
+      }
+    } else {
+      line.textContent = text;
+    }
     bootLog.append(line);
     bootLog.scrollTop = bootLog.scrollHeight;
   }

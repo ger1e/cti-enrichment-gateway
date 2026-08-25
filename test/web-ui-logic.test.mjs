@@ -223,3 +223,27 @@ test('boot and terminal audio cues are fixed synthesized recipes', async () => {
   for (const cue of ['boot-power', 'modem-56k', 'boot-lock', 'boot-ready', 'key', 'key-backspace', 'key-enter', 'paste']) audio.play(cue);
   assert.equal(audio.state().emitted, before + 8);
 });
+
+test('visual boot survives audio enable and cue failures instead of freezing at Pepe', async () => {
+  const { createBootSequence, POST_LINES } = await import('../app/app.js');
+  const stages = [];
+  const boot = createBootSequence({
+    audio: {
+      enable: async () => { throw new Error('audio blocked'); },
+      play: () => { throw new Error('audio scheduling failed'); },
+      stopAll: () => {},
+    },
+    sleep: async () => {},
+    onStage: (name, payload) => stages.push([name, payload]),
+  });
+  assert.equal(await boot.start(), true);
+  assert.equal(stages.filter(([name]) => name === 'post-line').length, POST_LINES.length);
+  assert.equal(stages.at(-1)[0], 'ready');
+  assert.deepEqual(boot.state(), { started: true, done: true, skipped: false });
+});
+
+test('default synthesized output level is phone-audible', async () => {
+  const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext });
+  await audio.enable();
+  assert.ok(audio.state().volume >= .5, 'default output should not be near-silent on phone speakers');
+});
