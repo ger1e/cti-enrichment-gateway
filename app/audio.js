@@ -1,28 +1,28 @@
 const CUES = Object.freeze({
   'boot-power': [[52, .16, 'sine', 38, .12], [78, .12, 'square', 104, .08], [156, .08, 'square', 620, .07]],
   'modem-56k': [
-    [350, .24, 'sine', 350, .11], [440, .24, 'sine', 440, .11],
-    [697, .08, 'sine', 697, .10], [1209, .08, 'sine', 1209, .10],
-    [770, .08, 'sine', 770, .10], [1336, .08, 'sine', 1336, .10],
-    [852, .08, 'sine', 852, .10], [1477, .08, 'sine', 1477, .10],
-    [941, .08, 'sine', 941, .10], [1209, .08, 'sine', 1209, .10],
-    [1180, .24, 'sawtooth', 2250, .12], [2250, .22, 'square', 980, .12],
-    [980, .18, 'sawtooth', 2920, .13], [2920, .20, 'square', 1650, .12],
-    [1650, .18, 'triangle', 2450, .12], [2450, .16, 'square', 760, .12],
-    [760, .15, 'sawtooth', 3250, .13], [3250, .16, 'square', 1420, .12],
-    [1420, .13, 'triangle', 2780, .11], [2780, .14, 'square', 1040, .11],
-    [1040, .13, 'sawtooth', 3380, .12], [3380, .14, 'square', 1810, .11],
-    [1810, .12, 'triangle', 2510, .10], [2510, .12, 'square', 1260, .10],
-    [1260, .11, 'sawtooth', 3060, .11], [3060, .12, 'square', 1530, .10],
-    [1530, .11, 'triangle', 2290, .09], [2290, .12, 'square', 880, .09],
-    [880, .13, 'sawtooth', 2710, .10], [2710, .15, 'square', 1200, .09],
+    [350, .34, 'sine', 350, .13], [440, .34, 'sine', 440, .13],
+    [697, .09, 'sine', 697, .12], [1209, .09, 'sine', 1209, .12],
+    [770, .09, 'sine', 770, .12], [1336, .09, 'sine', 1336, .12],
+    [852, .09, 'sine', 852, .12], [1477, .09, 'sine', 1477, .12],
+    [941, .09, 'sine', 941, .12], [1209, .09, 'sine', 1209, .12],
+    [1180, .28, 'sawtooth', 2480, .15], [2480, .24, 'square', 920, .14],
+    [920, .20, 'sawtooth', 3180, .16], [3180, .22, 'square', 1580, .15],
+    [1580, .20, 'triangle', 2650, .14], [2650, .18, 'square', 720, .14],
+    [720, .17, 'sawtooth', 3450, .16], [3450, .18, 'square', 1360, .14],
+    [1360, .15, 'triangle', 2940, .13], [2940, .16, 'square', 1010, .13],
+    [1010, .15, 'sawtooth', 3540, .14], [3540, .16, 'square', 1770, .13],
+    [1770, .14, 'triangle', 2730, .12], [2730, .14, 'square', 1220, .12],
+    [1220, .13, 'sawtooth', 3260, .13], [3260, .14, 'square', 1490, .12],
+    [1490, .13, 'triangle', 2410, .11], [2410, .14, 'square', 820, .11],
+    [820, .15, 'sawtooth', 2860, .12], [2860, .18, 'square', 1160, .11],
   ],
   'boot-lock': [[180, .06, 'square', 180, .08], [360, .07, 'square', 520, .08], [720, .09, 'square', 1040, .07]],
   'boot-ready': [[110, .045, 'square', 88, .09], [494, .07, 'triangle', 494, .08], [740, .10, 'triangle', 740, .08]],
   'access-ok': [[120, .05, 'square', 90, .08], [330, .07, 'triangle', 330, .08], [660, .10, 'triangle', 660, .08]],
   'access-denied': [[190, .12, 'square', 140, .10], [120, .15, 'square', 82, .11]],
   key: [[1880, .022, 'square', 1460, .065]],
-  'key-backspace': [[720, .026, 'square', 410, .08]],
+  'key-backspace': [[690, .032, 'square', 360, .11], [210, .018, 'square', 150, .07]],
   'key-enter': [[190, .045, 'square', 95, .10], [620, .035, 'square', 620, .06]],
   paste: [[480, .035, 'square', 980, .07], [980, .035, 'square', 1560, .07], [1560, .045, 'square', 620, .06]],
   tab: [[720, .035, 'square', 880, .06]],
@@ -79,7 +79,7 @@ export function createAudioEngine({
     if (Number.isFinite(endFrequency) && endFrequency > 0 && endFrequency !== frequency) {
       oscillator.frequency.linearRampToValueAtTime(endFrequency, start + duration);
     }
-    const audibleScale = Math.min(.32, gainScale * 1.8);
+    const audibleScale = Math.min(.34, gainScale * 1.9);
     gain.gain.setValueAtTime(.0001, start);
     gain.gain.linearRampToValueAtTime(Math.max(.0001, volume * audibleScale), start + Math.min(.008, duration / 3));
     gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
@@ -88,6 +88,39 @@ export function createAudioEngine({
     activeNodes.add(oscillator);
     oscillator.start(start);
     oscillator.stop(start + duration + .01);
+  }
+
+  function noiseBurst(duration, offset, gainScale = .07, seed = 1) {
+    if (typeof context.createBuffer !== 'function' || typeof context.createBufferSource !== 'function') return;
+    const sampleRate = Number(context.sampleRate) || 44100;
+    const frameCount = Math.max(1, Math.floor(sampleRate * duration));
+    const buffer = context.createBuffer(1, frameCount, sampleRate);
+    const channel = buffer.getChannelData(0);
+    let stateSeed = (seed >>> 0) || 1;
+    for (let index = 0; index < channel.length; index += 1) {
+      stateSeed = (1664525 * stateSeed + 1013904223) >>> 0;
+      channel[index] = ((stateSeed / 0xffffffff) * 2 - 1) * .72;
+    }
+    const source = context.createBufferSource();
+    const gain = context.createGain();
+    const start = context.currentTime + offset;
+    source.buffer = buffer;
+    gain.gain.setValueAtTime(.0001, start);
+    gain.gain.linearRampToValueAtTime(Math.max(.0001, volume * Math.min(.18, gainScale)), start + .012);
+    gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+    source.connect(gain).connect(context.destination);
+    source.onended = () => activeNodes.delete(source);
+    activeNodes.add(source);
+    source.start(start);
+    source.stop(start + duration + .01);
+  }
+
+  function modemNoise() {
+    noiseBurst(.28, .58, .07, 0x11a0);
+    noiseBurst(.36, 1.06, .09, 0x56c0);
+    noiseBurst(.46, 1.58, .11, 0x90aa);
+    noiseBurst(.52, 2.18, .10, 0x11aa);
+    noiseBurst(.62, 2.78, .08, 0x5600);
   }
 
   function play(name) {
@@ -103,6 +136,7 @@ export function createAudioEngine({
         tone(startFrequency, Math.min(duration, .45), offset, type, end, gainScale);
         offset += duration * .72;
       }
+      if (name === 'modem-56k') modemNoise();
       emitted += 1;
       lastCue = name;
       fault = null;
@@ -114,20 +148,20 @@ export function createAudioEngine({
 
   function stopAll() {
     if (!context) return;
-    for (const oscillator of activeNodes) {
-      try { oscillator.stop(context.currentTime); } catch {}
+    for (const node of activeNodes) {
+      try { node.stop(context.currentTime); } catch {}
     }
     activeNodes.clear();
   }
 
   function typing(kind) {
     if (kind === 'token') return;
-    const time = now();
-    if (time - lastTyping < 45) return;
-    lastTyping = time;
     if (kind === 'backspace' || kind === 'delete') return play('key-backspace');
     if (kind === 'enter') return play('key-enter');
     if (kind === 'paste') return play('paste');
+    const time = now();
+    if (time - lastTyping < 45) return;
+    lastTyping = time;
     play('key');
   }
 
