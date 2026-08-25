@@ -1,6 +1,6 @@
 import { createGatewayClient } from './api-client.js';
 import { createAudioEngine } from './audio.js';
-import { createUnixBootSequence } from './boot.js';
+import { createPara11axBootSequence } from './boot.js';
 import { createSession } from './session.js';
 import { mountAnalystShell } from './shell-ui.js';
 
@@ -117,14 +117,14 @@ function renderBootStage(stage, payload) {
   if (stage === 'target') {
     document.body.classList.remove('boot-posting');
     document.body.classList.add('boot-scanning');
-    bootStatus.textContent = 'systemd: analyst.target reached';
+    bootStatus.textContent = 'pxsvcd: para11ax.target reached';
     appendTarget(payload);
     return;
   }
   if (stage === 'ready') {
     document.body.classList.remove('boot-scanning');
     document.body.classList.add('boot-ready');
-    bootStatus.textContent = 'para11ax.service: active (running)';
+    bootStatus.textContent = 'pxsvcd: terminal active';
     bootInitialize.disabled = true;
     bootSkip.disabled = true;
     bootPanel.hidden = true;
@@ -141,7 +141,7 @@ function renderBootStage(stage, payload) {
 }
 
 function makeBoot() {
-  return createUnixBootSequence({ audio, reducedMotion, onStage: renderBootStage });
+  return createPara11axBootSequence({ audio, reducedMotion, onStage: renderBootStage });
 }
 
 async function startBoot() {
