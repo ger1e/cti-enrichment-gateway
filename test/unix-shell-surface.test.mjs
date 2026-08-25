@@ -38,6 +38,7 @@ test('interactive shell exposes the gateway prompt, secret auth mode and command
   assert.match(source, /para11ax@gateway:~\$/);
   assert.doesNotMatch(source, /para11ax@terminal:~\$/);
   assert.match(source, /hostname['"]\) appendLine\(['"]gateway['"]\)/);
+  assert.match(source, /runEnrichmentOperation/);
   assert.match(source, /type\s*=\s*['"]password['"]/);
   assert.match(source, /shell-scrollback/);
   assert.match(source, /shell-prompt/);
