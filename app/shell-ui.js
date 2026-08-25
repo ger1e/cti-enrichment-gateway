@@ -107,7 +107,7 @@ export function mountAnalystShell({
   status.className = 'shell-status';
   const brand = document.createElement('span');
   brand.className = 'shell-brand';
-  brand.textContent = `PARA11AX GNU/Terminal ${version}`;
+  brand.textContent = `PARA11AX Gateway Terminal ${version}`;
   const sessionState = document.createElement('span');
   sessionState.className = 'shell-session-state';
   status.append(brand, sessionState);
@@ -149,7 +149,7 @@ export function mountAnalystShell({
       input.type = 'password';
       input.setAttribute('aria-label', 'Gateway bearer secret');
     } else {
-      promptLabel.textContent = 'para11ax@terminal:~$';
+      promptLabel.textContent = 'para11ax@gateway:~$';
       input.type = 'text';
       input.setAttribute('aria-label', 'PARA11AX command line');
     }
@@ -373,10 +373,10 @@ export function mountAnalystShell({
     if (action.action === 'local') {
       if (action.name === 'whoami') appendLine(authenticated() ? 'analyst // authenticated volatile session' : 'analyst // unauthenticated');
       else if (action.name === 'uptime') appendLine(formatDuration(monotonicNow() - mountedAt));
-      else if (action.name === 'version') appendLine(`PARA11AX GNU/Terminal ${version}\nEvidence Gateway client v2`);
+      else if (action.name === 'version') appendLine(`PARA11AX Gateway Terminal ${version}\nEvidence Gateway client v2`);
       else if (action.name === 'theme') appendPre(PALETTE_TEXT);
       else if (action.name === 'pwd') appendLine('/home/analyst');
-      else if (action.name === 'hostname') appendLine('para11ax');
+      else if (action.name === 'hostname') appendLine('gateway');
       else if (action.name === 'date') appendLine(now().toString());
       else if (action.name === 'echo') appendLine(action.value || '');
       return;
@@ -415,7 +415,7 @@ export function mountAnalystShell({
     input.value = '';
     const action = interpretCommand(line, { authenticated: authenticated(), profile });
     if (action.historySafe !== false) history.push(line);
-    if (line.trim()) appendLine(`para11ax@terminal:~$ ${line}`);
+    if (line.trim()) appendLine(`para11ax@gateway:~$ ${line}`);
     try { await executeAction(action); }
     catch (error) {
       if (error?.name === 'AbortError') appendLine('^C', 'amber');
@@ -456,7 +456,7 @@ export function mountAnalystShell({
     if (event.key === 'Escape') { event.preventDefault(); input.value = ''; }
   });
 
-  appendLine(`PARA11AX GNU/Terminal ${version}`);
+  appendLine(`PARA11AX Gateway Terminal ${version}`);
   appendLine('Evidence Gateway // session unauthenticated', 'muted');
   appendLine("type 'help' for commands; run 'login' to authenticate", 'cyan');
   updatePrompt();
