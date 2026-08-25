@@ -1,80 +1,179 @@
-:root{--terminal-font:14px;--terminal-input:16px;--terminal-meta:11px}
-.unix-booting .boot-screen{background:#000;border-color:#0e1a20}
-.unix-booting .boot-status{font-size:var(--terminal-meta);color:#8fa0a7;border-left-color:#53636a;text-transform:none;letter-spacing:.04em}
-.unix-booting .boot-log{font-size:var(--terminal-font);line-height:1.42;color:#b7c4c9;padding-right:10px}
-.unix-boot-line{min-height:20px;white-space:pre-wrap;overflow-wrap:anywhere;font-variant-ligatures:none}
-.unix-boot-line:nth-child(6n+1){color:#d1dadd}
-.unix-target-line{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--green);font-weight:600}
-.reduced-terminal-motion .boot-pepe,.reduced-terminal-motion .boot-scan,.reduced-terminal-motion .boot-screen::before{animation:none!important}
+:root{
+  --px-void:#050608;
+  --px-panel:#0b0f12;
+  --px-red:#ff1e2d;
+  --px-hot:#ff4050;
+  --px-cyan:#00e5ff;
+  --px-green:#39ff88;
+  --px-amber:#f6c945;
+  --px-white:#f3f7fa;
+  --px-muted:#7d8b95;
+  --terminal-font:14px;
+  --terminal-input:16px;
+  --terminal-meta:11px;
+  --void:var(--px-void);
+  --panel:var(--px-panel);
+  --red:var(--px-red);
+  --hot:var(--px-hot);
+  --cyan:var(--px-cyan);
+  --green:var(--px-green);
+  --amber:var(--px-amber);
+  --white:var(--px-white);
+  --muted:var(--px-muted);
+}
 
-.boot-globe{position:absolute;z-index:1;left:65%;top:52%;width:min(54vw,540px);height:auto;opacity:.055;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 10px rgba(0,229,255,.16));transform-origin:center;animation:globe-spin 28s linear infinite}
-.boot-globe-grid{fill:none;stroke:rgba(194,244,250,.86);stroke-width:.75;vector-effect:non-scaling-stroke}
-.boot-globe-rim{fill:none;stroke:rgba(224,253,255,.95);stroke-width:1.1;vector-effect:non-scaling-stroke}
-.boot-globe-line{fill:none;stroke:rgba(0,229,255,.72);stroke-width:.65;vector-effect:non-scaling-stroke}
-.boot-globe-meridian{fill:none;stroke:rgba(255,30,45,.92);stroke-width:1.05;stroke-dasharray:5 7;vector-effect:non-scaling-stroke}
+html,body{height:100dvh;min-height:0;overflow:hidden;background:var(--px-void);color:var(--px-white)}
+body{overscroll-behavior:none}
+.app-shell{width:min(1280px,calc(100% - 22px));height:100dvh;min-height:0;margin:0 auto;padding:8px 0 0;overflow:hidden}
+
+/* Boot owns the viewport. The transcript scrolls; the document never does. */
+.boot-panel{height:calc(100dvh - 8px);min-height:0;padding:0;display:flex;flex-direction:column;overflow:hidden;background:var(--px-void)}
+.boot-standby{flex:0 0 auto;color:var(--px-muted);border-color:rgba(0,229,255,.12)}
+.boot-title{flex:0 0 auto;color:var(--px-white)}
+.boot-screen{flex:1 1 auto;height:auto;min-height:0;background:var(--px-void);border-color:rgba(0,229,255,.14);overflow:hidden}
+.unix-booting .boot-screen{background:var(--px-void);border-color:rgba(0,229,255,.14)}
+.unix-booting .boot-status{font-size:var(--terminal-meta);color:var(--px-muted);border-left-color:var(--px-red);text-transform:none;letter-spacing:.04em}
+.unix-booting .boot-log{font-size:12px;line-height:1.36;color:var(--px-white);padding-right:8px;scrollbar-color:rgba(255,30,45,.55) var(--px-void)}
+.unix-boot-line{min-height:17px;white-space:pre-wrap;overflow-wrap:anywhere;font-variant-ligatures:none}
+.unix-boot-line:nth-child(6n+1){color:var(--px-white)}
+.unix-target-line{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--px-green);font-weight:600}
+.boot-controls{flex:0 0 auto;border-color:rgba(0,229,255,.12)}
+.boot-controls button{color:var(--px-cyan)}
+.boot-controls #boot-skip,.boot-note{color:var(--px-muted)}
+.boot-modem .boot-status{color:var(--px-cyan);border-color:var(--px-cyan)}
+.boot-ready .boot-status{color:var(--px-green);border-color:var(--px-green)}
+.post-led{background:var(--px-cyan)}
+.post-led.ok,.post-led.pass,.post-led.ready{background:var(--px-green)}
+.post-led.off,.post-led.disabled,.post-led.none{background:var(--px-amber)}
+
+.boot-globe{position:absolute;z-index:1;left:65%;top:52%;width:min(54vw,540px);height:auto;opacity:0;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 10px rgba(0,229,255,.18));transform-origin:center;transform:translate(-50%,-50%) rotate(0deg);animation:globe-spin 28s linear infinite;transition:opacity .22s linear}
+.boot-powering .boot-globe{opacity:.06}
+.boot-modem .boot-globe{opacity:.06}
+.boot-posting .boot-globe{opacity:.06}
+.boot-pepe-visible .boot-globe{opacity:.06}
+.boot-scanning .boot-globe{opacity:.06}
+.boot-globe-grid{fill:none;stroke:rgba(243,247,250,.78);stroke-width:.75;vector-effect:non-scaling-stroke}
+.boot-globe-rim{fill:none;stroke:var(--px-white);stroke-width:1.05;vector-effect:non-scaling-stroke}
+.boot-globe-line{fill:none;stroke:var(--px-cyan);stroke-opacity:.62;stroke-width:.65;vector-effect:non-scaling-stroke}
+.boot-globe-meridian{fill:none;stroke:var(--px-red);stroke-opacity:.9;stroke-width:1.05;stroke-dasharray:5 7;vector-effect:non-scaling-stroke}
 @keyframes globe-spin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
 
-.app-shell{width:min(1280px,calc(100% - 22px));padding-top:8px}
-.terminal-stage{min-height:calc(100svh - 16px);padding:0;background:#000}
-.unix-shell{display:flex;flex-direction:column;min-height:calc(100svh - 16px);height:calc(100svh - 16px);background:#000;color:var(--white);overflow:hidden;font-size:var(--terminal-font);line-height:1.45}
-.shell-status{position:sticky;top:0;z-index:8;display:flex;align-items:center;gap:12px;min-height:36px;padding:4px 0;border-bottom:1px solid #162329;background:#000;font-size:var(--terminal-meta);letter-spacing:.04em}
-.shell-brand{color:var(--white);font-weight:700;white-space:nowrap}
-.shell-session-state{margin-left:auto;color:var(--muted);white-space:nowrap}
-.shell-session-state.is-authenticated{color:var(--green)}
-.shell-scrollback{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:10px 0 18px;scrollbar-width:thin;scrollbar-color:#24414c #000;overflow-wrap:anywhere;font-size:var(--terminal-font);line-height:1.45}
-.shell-scrollback::-webkit-scrollbar{width:6px;height:6px}.shell-scrollback::-webkit-scrollbar-track{background:#000}.shell-scrollback::-webkit-scrollbar-thumb{background:#24414c;border:1px solid #000}.shell-scrollback::-webkit-scrollbar-thumb:hover{background:var(--cyan)}
-.shell-line{min-height:20px;white-space:pre-wrap;overflow-wrap:anywhere;color:#d6dee1}
-.shell-pre{margin:6px 0 12px;max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:#bdc9ce;font:inherit;font-size:var(--terminal-font);line-height:1.45}
+/* One semantic palette for every active terminal surface. */
+.terminal-stage{position:relative;height:calc(100dvh - 8px);min-height:0;padding:0;overflow:hidden;background:var(--px-void)}
+.unix-shell{display:flex;flex-direction:column;width:100%;height:100%;min-height:0;overflow:hidden;background:var(--px-void);color:var(--px-white);font-size:var(--terminal-font);line-height:1.45}
+.shell-status{position:relative;z-index:8;display:flex;align-items:center;gap:12px;flex:0 0 auto;min-height:36px;padding:4px 0;border-bottom:1px solid rgba(0,229,255,.16);background:var(--px-void);font-size:var(--terminal-meta);letter-spacing:.04em;color:var(--px-muted)}
+.shell-brand{color:var(--px-white);font-weight:700;white-space:nowrap}
+.shell-session-state{margin-left:auto;color:var(--px-muted);white-space:nowrap}
+.shell-session-state.is-authenticated{color:var(--px-green)}
+.shell-scrollback{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:10px 0 18px;scrollbar-width:thin;scrollbar-color:rgba(0,229,255,.36) var(--px-void);overflow-wrap:anywhere;font-size:var(--terminal-font);line-height:1.45;background:var(--px-void)}
+.shell-scrollback::-webkit-scrollbar{width:5px;height:5px}.shell-scrollback::-webkit-scrollbar-track{background:var(--px-void)}.shell-scrollback::-webkit-scrollbar-thumb{background:rgba(0,229,255,.36);border:1px solid var(--px-void)}.shell-scrollback::-webkit-scrollbar-thumb:hover{background:var(--px-cyan)}
+.shell-line{min-height:20px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--px-white)}
+.shell-pre{margin:6px 0 12px;max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--px-white);font:inherit;font-size:var(--terminal-font);line-height:1.45}
 .shell-help{white-space:pre-wrap}
-.shell-boot-pepe{font-size:clamp(3px,.72vw,7px);line-height:1;white-space:pre;overflow:auto;max-width:100%;margin:12px 0;color:#bffaff;opacity:.78;text-shadow:0 0 4px rgba(0,229,255,.25)}
-.shell-boot-separator{margin:8px 0 12px;border-bottom:1px solid #162329;padding-bottom:6px}
-.shell-muted{color:#66767d}.shell-cyan{color:var(--cyan)}.shell-green{color:var(--green)}.shell-amber{color:var(--amber)}.shell-red{color:var(--red)}
-.shell-result{margin:7px 0 15px;padding:7px 0 4px;border-top:1px dotted #1b292f;border-bottom:1px dotted #1b292f;max-width:100%;overflow-x:auto}
+.shell-boot-line{min-height:16px;font-size:12px;line-height:1.34;color:var(--px-muted)}
+.shell-boot-pepe{font-size:clamp(3px,.72vw,7px);line-height:1;white-space:pre;overflow:auto;max-width:100%;margin:12px 0;color:var(--px-cyan);opacity:.78;text-shadow:0 0 4px rgba(0,229,255,.28)}
+.shell-boot-separator{margin:8px 0 12px;border-bottom:1px solid rgba(0,229,255,.14);padding-bottom:6px}
+.shell-muted{color:var(--px-muted)}.shell-cyan{color:var(--px-cyan)}.shell-green{color:var(--px-green)}.shell-amber{color:var(--px-amber)}.shell-red{color:var(--px-red)}
+.shell-result{margin:7px 0 15px;padding:7px 0 4px;border-top:1px dotted rgba(0,229,255,.18);border-bottom:1px dotted rgba(0,229,255,.18);max-width:100%;overflow-x:auto;color:var(--px-white)}
 .shell-result .overview{grid-template-columns:repeat(2,minmax(0,1fr))}
 .shell-result .raw-console{min-width:max-content}
-.shell-prompt{position:sticky;bottom:0;z-index:12;display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:8px;min-height:50px;padding:5px 0 calc(5px + env(safe-area-inset-bottom));background:#000;border-top:1px solid #31434b;box-shadow:0 -12px 28px rgba(0,0,0,.88)}
-.shell-prompt-label{color:var(--green);white-space:nowrap;font-weight:600;font-size:var(--terminal-font)}
-.shell-input{width:100%;min-width:0;height:42px;padding:3px 2px;border:0;border-bottom:1px solid #28434e;background:#000;color:var(--white);caret-color:var(--red);outline:0;font:inherit;font-size:var(--terminal-input)}
-.shell-input:focus{border-bottom-color:var(--cyan);box-shadow:0 1px 0 rgba(0,229,255,.2)}
-.shell-input[type=password]{color:var(--cyan);letter-spacing:.11em}
+.shell-result .hud-cell,.shell-result .signal,.shell-result .relationship,.shell-result .corroboration,.shell-result .contradiction,.shell-result .coverage-failure{border-color:rgba(0,229,255,.16);background:transparent}
+.shell-result .hud-label,.shell-result .signal-kind,.shell-result .signal-meta,.shell-result .semantic-note,.shell-result .empty-state{color:var(--px-muted)}
+.shell-result .semantic-context{border-left-color:var(--px-cyan)}
+.shell-result .semantic-claim{border-left-color:var(--px-amber)}
+.shell-result .tone-green,.shell-result .corroboration{color:var(--px-green)}
+.shell-result .tone-amber,.shell-result .semantic-claim{color:var(--px-amber)}
+.shell-result .tone-red,.shell-result .contradiction,.shell-result .coverage-failure{color:var(--px-red)}
+
+.shell-prompt{position:sticky;bottom:0;z-index:12;display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:8px;flex:0 0 auto;min-height:50px;padding:5px 0 calc(5px + env(safe-area-inset-bottom));background:var(--px-void);border-top:1px solid rgba(0,229,255,.22);box-shadow:0 -12px 28px rgba(0,0,0,.88)}
+.shell-prompt-label{color:var(--px-green);white-space:nowrap;font-weight:600;font-size:var(--terminal-font)}
+.shell-input{width:100%;min-width:0;height:42px;padding:3px 2px;border:0;border-bottom:1px solid rgba(0,229,255,.38);background:var(--px-void);color:var(--px-white);caret-color:var(--px-red);outline:none;font:inherit;font-size:var(--terminal-input);box-shadow:none}
+.shell-input:focus{border-bottom-color:var(--px-cyan);box-shadow:0 1px 0 rgba(0,229,255,.18);outline:none}
+.shell-input:focus-visible{outline:none;outline-offset:0;box-shadow:0 1px 0 rgba(0,229,255,.18)}
+.shell-input[type=password]{color:var(--px-cyan);letter-spacing:.11em}
+
+/* Glitches are short state transitions, never a permanent shell animation. */
+@keyframes px-glitch-tear{
+  0%{clip-path:inset(0 0 84% 0);transform:translateX(-3px)}
+  24%{clip-path:inset(28% 0 52% 0);transform:translateX(4px)}
+  49%{clip-path:inset(62% 0 18% 0);transform:translateX(-2px)}
+  74%{clip-path:inset(16% 0 66% 0);transform:translateX(3px)}
+  100%{clip-path:inset(0);transform:none}
+}
+@keyframes px-glitch-chroma{
+  0%,100%{text-shadow:none;filter:none}
+  20%{text-shadow:3px 0 var(--px-red),-3px 0 var(--px-cyan);filter:contrast(1.35)}
+  44%{text-shadow:-4px 0 var(--px-red),4px 0 var(--px-cyan);filter:brightness(1.45)}
+  68%{text-shadow:2px 0 var(--px-red),-2px 0 var(--px-cyan);filter:contrast(1.55)}
+}
+@keyframes px-glitch-lock{
+  0%{filter:brightness(2.2) contrast(1.8);clip-path:inset(48% 0 48% 0)}
+  45%{filter:brightness(.1);clip-path:inset(0 0 0 0)}
+  70%{filter:brightness(1.8);clip-path:inset(42% 0 42% 0)}
+  100%{filter:none;clip-path:inset(0)}
+}
+@keyframes px-glitch-tear-mobile{
+  0%{clip-path:inset(0 0 82% 0);transform:translateX(-2px)}
+  35%{clip-path:inset(36% 0 44% 0);transform:translateX(2px)}
+  68%{clip-path:inset(70% 0 10% 0);transform:translateX(-1px)}
+  100%{clip-path:inset(0);transform:none}
+}
+.glitch-boot .boot-log{animation:px-glitch-tear .10s steps(2,end) 2,px-glitch-chroma .18s steps(3,end) 1}
+.glitch-boot .boot-globe-meridian{stroke-width:2;stroke-dashoffset:13;filter:drop-shadow(3px 0 2px var(--px-red))}
+.glitch-pepe .boot-pepe{animation:px-glitch-tear .095s steps(2,end) 7,px-glitch-chroma .16s steps(3,end) 5!important}
+.glitch-pepe .boot-globe{filter:drop-shadow(4px 0 2px var(--px-red)) drop-shadow(-4px 0 2px var(--px-cyan))}
+.glitch-lock .boot-screen{animation:px-glitch-lock .40s steps(5,end) 1}
+.glitch-scan .shell-scrollback{animation:px-glitch-tear .09s steps(2,end) 2,px-glitch-chroma .16s steps(3,end) 1}
+.glitch-error .shell-scrollback{animation:px-glitch-tear .08s steps(2,end) 3,px-glitch-chroma .13s steps(3,end) 2;color:var(--px-red)}
+.glitch-result .shell-status{animation:px-glitch-chroma .14s steps(3,end) 2;color:var(--px-green)}
+.glitch-disconnect{animation:px-glitch-lock .34s steps(5,end) 1}
 
 @media(max-width:720px){
-  .app-shell{width:calc(100% - 16px);padding-top:4px}
-  .unix-shell{height:calc(100svh - 8px);min-height:calc(100svh - 8px)}
+  .app-shell{width:calc(100% - 16px);height:100dvh;padding:4px 0 0}
+  .boot-panel{height:calc(100dvh - 4px)}
+  .terminal-stage{height:calc(100dvh - 4px)}
   .shell-status{min-height:34px;font-size:10px;gap:7px}
   .shell-brand{max-width:55%;overflow:hidden;text-overflow:ellipsis}
   .shell-scrollback{padding-top:9px}
   .shell-result .overview{grid-template-columns:1fr}
-  .shell-prompt{min-height:54px}
-  .shell-input{min-height:44px;font-size:var(--terminal-input)}
-  .boot-globe{left:50%;top:50%;width:min(76vw,430px);opacity:.05}
+  .shell-prompt{min-height:52px}
+  .shell-input{min-height:42px;font-size:var(--terminal-input)}
+  .boot-globe{left:50%;top:50%;width:min(76vw,430px)}
 }
 
 @media(max-width:430px){
   .app-shell{width:calc(100% - 16px)}
-  .shell-status{font-size:10px;letter-spacing:.01em;min-height:34px}
+  .boot-standby{font-size:10px;letter-spacing:.08em}
+  .boot-title{font-size:12px}
+  .unix-booting .boot-log{font-size:11px;line-height:1.34}
+  .unix-boot-line{min-height:16px}
+  .shell-status{font-size:10px;letter-spacing:.01em;min-height:32px}
   .shell-session-state{max-width:49%;overflow:hidden;text-overflow:ellipsis}
-  .shell-scrollback{font-size:var(--terminal-font);line-height:1.45;scrollbar-width:none;padding:9px 0 14px}
+  .shell-scrollback{font-size:var(--terminal-font);line-height:1.42;scrollbar-width:none;padding:8px 0 12px}
   .shell-scrollback::-webkit-scrollbar,.shell-result::-webkit-scrollbar,.shell-pre::-webkit-scrollbar{display:none}
-  .shell-line{min-height:20px}
-  .shell-pre{font-size:var(--terminal-font);line-height:1.45;white-space:pre-wrap}
+  .shell-line{min-height:19px}
+  .shell-boot-line{font-size:12px;line-height:1.32;min-height:16px}
+  .shell-pre{font-size:var(--terminal-font);line-height:1.42;white-space:pre-wrap}
   .shell-help{white-space:pre-line}
   .shell-boot-pepe{font-size:clamp(3px,1.02vw,5px);line-height:1;white-space:pre;overflow:auto}
-  .shell-prompt{position:sticky;bottom:0;grid-template-columns:max-content minmax(0,1fr);gap:7px;min-height:56px;padding:5px 0 calc(5px + env(safe-area-inset-bottom));background:#000}
+  .shell-prompt{grid-template-columns:max-content minmax(0,1fr);gap:7px;min-height:52px;padding:4px 0 calc(4px + env(safe-area-inset-bottom))}
   .shell-prompt-label{font-size:var(--terminal-font);line-height:20px}
-  .shell-input{height:44px;min-height:44px;font-size:var(--terminal-input)}
-  .unix-booting .boot-log{font-size:12px;line-height:1.42}
-  .unix-boot-line{min-height:18px}
-  .boot-globe{left:50%;top:51%;width:88vw;opacity:.045}
+  .shell-input{height:42px;min-height:42px;font-size:var(--terminal-input)}
+  .boot-globe{left:50%;top:51%;width:88vw}
+  .glitch-boot .boot-log,.glitch-pepe .boot-pepe,.glitch-scan .shell-scrollback,.glitch-error .shell-scrollback{animation:px-glitch-tear-mobile .09s steps(2,end) 3,px-glitch-chroma .16s steps(3,end) 1}
+  .glitch-result .shell-status{animation:px-glitch-chroma .14s steps(3,end) 1}
+  .glitch-disconnect{animation:px-glitch-lock .30s steps(4,end) 1}
 }
 
 @media(max-width:360px){
   .shell-status{font-size:9.5px}
   .shell-prompt-label{font-size:13px}
+  .shell-input{font-size:15px}
 }
 
 @media(orientation:landscape) and (min-width:740px) and (max-height:600px){
-  .unix-shell{height:calc(100vh - 8px);min-height:calc(100vh - 8px)}
+  .app-shell{height:100dvh;padding-top:4px}
+  .boot-panel,.terminal-stage{height:calc(100dvh - 4px)}
   .shell-scrollback{font-size:13px;padding-top:5px}
   .shell-prompt{min-height:44px}
   .boot-globe{width:min(42vw,360px)}
@@ -82,5 +181,6 @@
 
 @media(prefers-reduced-motion:reduce){
   .shell-prompt,.shell-input,.shell-scrollback{scroll-behavior:auto!important;transition:none!important}
-  .boot-globe{animation:none!important}
+  .boot-globe{animation:none!important;transform:translate(-50%,-50%) rotate(0deg)}
+  .glitch-boot .boot-log,.glitch-pepe .boot-pepe,.glitch-lock .boot-screen,.glitch-scan .shell-scrollback,.glitch-error .shell-scrollback,.glitch-result .shell-status,.glitch-disconnect{animation:none!important;text-shadow:2px 0 var(--px-red),-2px 0 var(--px-cyan)}
 }

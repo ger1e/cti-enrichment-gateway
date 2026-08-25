@@ -28,6 +28,7 @@ const PALETTE_TEXT = [
   'amber      #F6C945  uncertainty / partial coverage',
   'red        #FF1E2D  failure / contradiction / scanner',
   'white      #F3F7FA  primary terminal text',
+  'muted      #7D8B95  secondary terminal text',
 ].join('\n');
 
 function formatDuration(ms) {
@@ -99,6 +100,7 @@ export function mountAnalystShell({
   let activeController = null;
   let secretMode = false;
   let busy = false;
+  let glitchTimer = null;
 
   const root = document.createElement('section');
   root.className = 'unix-shell';
@@ -138,6 +140,19 @@ export function mountAnalystShell({
   root.append(status, scrollback, prompt);
   container.replaceChildren(root);
   container.hidden = false;
+
+  const focusInput = () => input.focus({ preventScroll: true });
+  const triggerGlitch = (className, duration = 220) => {
+    if (glitchTimer) clearTimeout(glitchTimer);
+    root.classList.remove(className);
+    void root.offsetWidth;
+    root.classList.add(className);
+    try { audio.play('glitch'); } catch {}
+    glitchTimer = setTimeout(() => {
+      root.classList.remove(className);
+      glitchTimer = null;
+    }, duration);
+  };
 
   const authenticated = () => ['ready', 'result', 'running'].includes(session.snapshot().mode) && session.snapshot().hasToken;
   const updateStatus = () => {
@@ -260,6 +275,7 @@ export function mountAnalystShell({
       const controller = beginOperation(false);
       appendLine(`enrich: ${action.indicator} [profile=${action.profile}]`, 'cyan');
       audio.play('scan');
+      triggerGlitch('glitch-scan', 260);
       try {
         const result = await runEnrichmentOperation({
           session,
@@ -270,7 +286,13 @@ export function mountAnalystShell({
         });
         currentResult = result;
         profile = action.profile;
+        const contradictions = result.correlation?.contradictions?.length || 0;
         audio.play(result.status === 'ok' ? 'result-ok' : result.status === 'partial' ? 'result-partial' : 'result-error');
+        if (contradictions) {
+          try { audio.play('contradiction'); } catch {}
+          triggerGlitch('glitch-error', 260);
+        } else if (result.status === 'error') triggerGlitch('glitch-error', 260);
+        else triggerGlitch('glitch-result', 240);
         appendLine(`[ ${String(result.status).toUpperCase()} ] ${result.indicator} · ${result.type} · ${result.durationMs ?? '?'}ms`, result.status === 'ok' ? 'green' : result.status === 'partial' ? 'amber' : 'red');
         renderResultView('overview');
       } finally { endOperation(); }
@@ -280,6 +302,7 @@ export function mountAnalystShell({
       const controller = beginOperation(false);
       appendLine(`batch: ${action.indicators.length} observables [profile=${action.profile}]`, 'cyan');
       audio.play('scan');
+      triggerGlitch('glitch-scan', 240);
       try {
         const batch = await client.batch(action.indicators, action.profile, controller.signal);
         profile = action.profile;
@@ -287,6 +310,7 @@ export function mountAnalystShell({
         for (const item of batch.results || []) {
           appendLine(`${String(item.index).padStart(2, '0')}  ${String(item.status).padEnd(8)}  ${item.canonical || item.input || ''}${item.duplicateOf !== undefined ? `  duplicate-of=${item.duplicateOf}` : ''}`, item.status === 'error' || item.status === 'invalid' ? 'red' : item.status === 'skipped' ? 'amber' : '');
         }
+        triggerGlitch('glitch-result', 220);
       } finally { endOperation(); }
       return;
     }
@@ -299,6 +323,7 @@ export function mountAnalystShell({
         downloadText(JSON.stringify(bundle, null, 2), 'application/stix+json', safeFilename(currentResult.indicator, 'stix.json'));
         audio.play('stix-ok');
         appendLine(`[ OK ] STIX 2.1 bundle exported · ${bundle.objects?.length ?? 0} objects`, 'green');
+        triggerGlitch('glitch-result', 180);
       } finally { endOperation(); }
     }
   }
@@ -309,6 +334,7 @@ export function mountAnalystShell({
       appendLine(action.message, action.action === 'auth-required' ? 'amber' : 'red');
       if (action.action === 'unknown') appendLine("type 'help' for available commands", 'muted');
       audio.play('result-error');
+      triggerGlitch('glitch-error', 190);
       return;
     }
     if (action.action === 'help') { appendPre(action.topic ? commandHelp(action.topic) : groupHelp()); return; }
@@ -338,6 +364,7 @@ export function mountAnalystShell({
       session.disconnect();
       currentResult = null;
       audio.play('disconnect');
+      triggerGlitch('glitch-disconnect', 360);
       appendLine('Connection to gateway closed.', 'amber');
       updateStatus();
       return;
@@ -347,6 +374,7 @@ export function mountAnalystShell({
       session.disconnect();
       currentResult = null;
       history.clear();
+      triggerGlitch('glitch-disconnect', 360);
       appendLine('Broadcast message from para11ax: system reboot requested.', 'amber');
       await Promise.resolve(onReboot());
       return;
@@ -366,7 +394,7 @@ export function mountAnalystShell({
       if (!currentResult) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
       const value = action.target === 'observable' ? currentResult.indicator : action.target === 'request-id' ? currentResult.requestId : JSON.stringify(currentResult, null, 2);
       try { await navigator.clipboard.writeText(String(value)); audio.play('copy'); appendLine(`[ OK ] copied ${action.target}`, 'green'); }
-      catch { appendLine('clipboard unavailable', 'red'); }
+      catch { appendLine('clipboard unavailable', 'red'); triggerGlitch('glitch-error', 180); }
       return;
     }
     if (action.action === 'sound') {
@@ -393,7 +421,7 @@ export function mountAnalystShell({
   async function submitSecret() {
     const secret = input.value;
     input.value = '';
-    if (!secret.trim()) { appendLine('empty bearer rejected', 'red'); return; }
+    if (!secret.trim()) { appendLine('empty bearer rejected', 'red'); triggerGlitch('glitch-error', 180); return; }
     try { await audio.enable(); } catch {}
     session.setToken(secret);
     try {
@@ -402,14 +430,16 @@ export function mountAnalystShell({
       secretMode = false;
       audio.play('access-ok');
       appendLine(`[  OK  ] Authentication accepted. Gateway ${health?.version || 'online'}.`, 'green');
+      triggerGlitch('glitch-result', 180);
     } catch (error) {
       session.disconnect();
       secretMode = false;
       audio.play('access-denied');
+      triggerGlitch('glitch-error', 260);
       appendLine(error instanceof GatewayHttpError && error.status === 401 ? '[FAILED] Authentication rejected.' : '[FAILED] Gateway unavailable.', 'red');
     } finally {
       updatePrompt();
-      input.focus();
+      focusInput();
     }
   }
 
@@ -427,10 +457,11 @@ export function mountAnalystShell({
       if (error?.name === 'AbortError') appendLine('^C', 'amber');
       else if (error instanceof GatewayHttpError) appendLine(`gateway: ${error.code}${error.requestId ? ` [${error.requestId}]` : ''}`, 'red');
       else appendLine('terminal: command failed', 'red');
+      triggerGlitch('glitch-error', 240);
       if (busy) abortOperation();
     }
     updatePrompt();
-    input.focus();
+    focusInput();
   });
 
   input.addEventListener('beforeinput', event => {
@@ -466,12 +497,15 @@ export function mountAnalystShell({
   appendLine('Evidence Gateway // session unauthenticated', 'muted');
   appendLine("type 'help' for commands; run 'login' to authenticate", 'cyan');
   updatePrompt();
-  input.focus();
+  focusInput();
 
   return Object.freeze({
-    focus: () => input.focus(),
+    focus: focusInput,
     clear: clearScrollback,
-    abort: abortOperation,
+    abort: () => {
+      if (glitchTimer) clearTimeout(glitchTimer);
+      abortOperation();
+    },
     state: () => Object.freeze({ authenticated: authenticated(), profile, hasResult: Boolean(currentResult), busy, secretMode }),
   });
 }

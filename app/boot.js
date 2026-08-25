@@ -1,3 +1,5 @@
+import { MODEM_HANDSHAKE_MS } from './audio.js';
+
 export const PARA11AX_BOOT_LINES = Object.freeze([
   '[    0.000000] PARA11AX kernel 2.0.0 booting',
   '[    0.018442] random: entropy pool initialized [ OK ]',
@@ -71,7 +73,7 @@ export function createPara11axBootSequence({
 
       onStage('modem');
       safePlay('modem-56k');
-      if (!await wait(3600)) return true;
+      if (!await wait(MODEM_HANDSHAKE_MS)) return true;
 
       for (let index = 0; index < PARA11AX_BOOT_LINES.length; index += 1) {
         onStage('boot-line', PARA11AX_BOOT_LINES[index]);
@@ -81,10 +83,10 @@ export function createPara11axBootSequence({
 
       onStage('pepe');
       safePlay('boot-lock');
-      if (!await wait(720)) return true;
+      if (!await wait(820)) return true;
 
       onStage('target', '[  OK  ] PARA11AX services online // Gateway Terminal ready.');
-      if (!await wait(320)) return true;
+      if (!await wait(420)) return true;
       ready();
       return true;
     },
