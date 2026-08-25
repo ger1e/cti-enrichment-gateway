@@ -31,6 +31,7 @@ const reducedMotion = Boolean(globalThis.matchMedia?.('(prefers-reduced-motion: 
 
 let boot = null;
 let shell = null;
+let shellObserver = null;
 let bootLineStarted = false;
 let bootTranscript = [];
 
@@ -182,6 +183,23 @@ function wireMobileEraseCue() {
   });
 }
 
+function wireHelpFormatting() {
+  const scrollback = workspace.querySelector('.shell-scrollback');
+  if (!scrollback) return null;
+  const classify = node => {
+    if (node?.nodeType === 1 && node.matches?.('.shell-pre') && node.textContent.startsWith('PARA11AX COMMAND INDEX')) {
+      node.classList.add('shell-help');
+    }
+  };
+  for (const node of scrollback.children) classify(node);
+  if (typeof globalThis.MutationObserver !== 'function') return null;
+  const observer = new MutationObserver(records => {
+    for (const record of records) for (const node of record.addedNodes) classify(node);
+  });
+  observer.observe(scrollback, { childList: true });
+  return observer;
+}
+
 function renderBootStage(stage, payload) {
   if (stage === 'reduced') {
     document.body.classList.add('reduced-terminal-motion');
@@ -245,6 +263,8 @@ function renderBootStage(stage, payload) {
     });
     restoreBootTranscript();
     wireMobileEraseCue();
+    shellObserver?.disconnect();
+    shellObserver = wireHelpFormatting();
   }
 }
 
@@ -266,6 +286,8 @@ async function skipBoot() {
 }
 
 async function replayBoot() {
+  shellObserver?.disconnect();
+  shellObserver = null;
   shell?.abort?.();
   shell = null;
   session.disconnect();
