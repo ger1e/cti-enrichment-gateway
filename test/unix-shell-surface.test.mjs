@@ -15,7 +15,7 @@ test('browser cuts legacy app asset over to PARA11AX terminal entrypoint before 
   assert.match(entry, /\/app\/shell\.css/);
 });
 
-test('boot uses PARA11AX-native services, kernel timestamps, target readiness and 56k stage', async () => {
+test('boot uses PARA11AX-native services, dense OK statuses, kernel timestamps, target readiness and 56k stage', async () => {
   const source = await read('app/boot.js');
   const entry = await read('app/terminal-entry.js');
   assert.match(source, /PARA11AX kernel 2\.0\.0 booting/);
@@ -25,6 +25,7 @@ test('boot uses PARA11AX-native services, kernel timestamps, target readiness an
   assert.match(source, /pxsvc\[provider-registry\]/);
   assert.match(source, /pxsvc\[terminal\]/);
   assert.match(source, /PARA11AX services online/);
+  assert.ok((source.match(/\[ OK \]/g) || []).length >= 20, 'boot should present many successful PARA11AX service statuses');
   assert.match(source, /modem-56k/);
   assert.match(entry, /pxsvcd:/);
   assert.doesNotMatch(`${source}\n${entry}`, /systemd|para11ax\.service/i);
