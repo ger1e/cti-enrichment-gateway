@@ -1,0 +1,13 @@
+/* Final-loaded Earth renderer: keep the globe frame fixed while real land moves longitudinally. */
+.boot-globe{animation:none!important;transform:translate(-50%,-50%) rotate(0deg)!important}
+.boot-earth-window{pointer-events:none}
+.boot-earth-stage{opacity:.96}
+.boot-earth-track{transform-box:fill-box;transform-origin:0 0;animation:earth-longitude 36s linear infinite}
+.boot-earth-land{fill:rgba(0,229,255,.24);stroke:rgba(243,247,250,.92);stroke-width:1.15;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 1.5px rgba(0,229,255,.42))}
+@keyframes earth-longitude{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* Preserve deliberate ambient Earth motion even when aggressive terminal motion is reduced. */
+@media(prefers-reduced-motion:reduce){
+  .boot-globe{animation:none!important;transform:translate(-50%,-50%) rotate(0deg)!important}
+  .boot-earth-track{animation:earth-longitude 36s linear infinite!important}
+}
