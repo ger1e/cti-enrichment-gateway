@@ -153,3 +153,13 @@ test('mobile terminal uses operational text and zero SaaS card language', () => 
   assert.match(html, /:COR/i);
   assert.match(html, /:RAW/i);
 });
+
+test('scrollbars use terminal chrome on desktop and disappear on touch widths without disabling scroll', () => {
+  const css = read('app/app.css');
+  assert.match(css, /scrollbar-color:\s*#[0-9a-f]{6}\s+#000/i);
+  assert.match(css, /\.boot-log::\-webkit-scrollbar|\.raw-terminal::\-webkit-scrollbar/i);
+  assert.match(css, /\.boot-log::\-webkit-scrollbar-thumb|\.raw-terminal::\-webkit-scrollbar-thumb/i);
+  assert.match(css, /@media\s*\(max-width:\s*430px\)[\s\S]*scrollbar-width:\s*none/is);
+  assert.match(css, /@media\s*\(max-width:\s*430px\)[\s\S]*::\-webkit-scrollbar[^}]*display:\s*none/is);
+  assert.match(css, /\.raw-terminal[^}]*overflow-x:\s*auto/is);
+});
