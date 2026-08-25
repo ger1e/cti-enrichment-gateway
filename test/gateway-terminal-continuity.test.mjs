@@ -138,3 +138,46 @@ test('boot globe remains centered when reduced motion disables rotation', async 
   assert.match(css, /globe-spin\s+2[4-9]s\s+linear\s+infinite/);
   assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.boot-globe[^}]*animation:\s*none/);
 });
+
+test('PARA11AX semantic color scheme is universal across boot shell and result surfaces', async () => {
+  const css = await read('app/shell.css');
+  assert.match(css, /--px-void\s*:\s*#050608/i);
+  assert.match(css, /--px-cyan\s*:\s*#00e5ff/i);
+  assert.match(css, /--px-red\s*:\s*#ff1e2d/i);
+  assert.match(css, /--px-green\s*:\s*#39ff88/i);
+  assert.match(css, /--px-amber\s*:\s*#f6c945/i);
+  assert.match(css, /--px-white\s*:\s*#f3f7fa/i);
+  assert.match(css, /--px-muted\s*:\s*#7d8b95/i);
+  assert.match(css, /\.shell-cyan\{[^}]*var\(--px-cyan\)/);
+  assert.match(css, /\.shell-green\{[^}]*var\(--px-green\)/);
+  assert.match(css, /\.shell-amber\{[^}]*var\(--px-amber\)/);
+  assert.match(css, /\.shell-red\{[^}]*var\(--px-red\)/);
+  assert.doesNotMatch(css, /#28434e|#31434b|#24414c/, 'legacy one-off cyan/gray chrome should be removed from active shell CSS');
+});
+
+test('glitch system is event-driven and bounded to boot and meaningful terminal events', async () => {
+  const entry = await read('app/terminal-entry.js');
+  const shell = await read('app/shell-ui.js');
+  const css = await read('app/shell.css');
+  assert.match(entry, /triggerGlitch/);
+  assert.match(entry, /glitch-pepe|glitch-boot|glitch-lock/);
+  assert.match(shell, /glitch-scan|glitch-error|glitch-result|glitch-disconnect/);
+  assert.match(css, /@keyframes\s+px-glitch-tear/);
+  assert.match(css, /@keyframes\s+px-glitch-chroma/);
+  assert.match(css, /\.glitch-pepe[^}]*animation/);
+  assert.match(css, /\.glitch-scan[^}]*animation/);
+  assert.doesNotMatch(css, /\.unix-shell\s*\{[^}]*animation:\s*[^;]*infinite/, 'active shell must not constantly glitch');
+});
+
+test('mobile glitch effects never widen the viewport', async () => {
+  const css = await read('app/shell.css');
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.glitch-/);
+  assert.doesNotMatch(css, /@media\(max-width:430px\)[\s\S]*\.glitch-[^{]+\{[^}]*scale\(/, 'mobile glitches must avoid scale-based overflow');
+  assert.doesNotMatch(css, /@media\(max-width:430px\)[\s\S]*\.glitch-[^{]+\{[^}]*translateX\([^)]*(?:1[0-9]|[2-9]\d)px/, 'mobile glitch displacement must remain tiny');
+});
+
+test('reduced motion keeps semantic glitch feedback without animated tearing', async () => {
+  const css = await read('app/shell.css');
+  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.glitch-[^{]+\{[^}]*animation:\s*none/);
+  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*text-shadow:[^;}]*var\(--px-red\)[^;}]*var\(--px-cyan\)/);
+});
