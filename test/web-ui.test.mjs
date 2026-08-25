@@ -163,3 +163,13 @@ test('scrollbars use terminal chrome on desktop and disappear on touch widths wi
   assert.match(css, /@media\s*\(max-width:\s*430px\)[\s\S]*::\-webkit-scrollbar[^}]*display:\s*none/is);
   assert.match(css, /\.raw-terminal[^}]*overflow-x:\s*auto/is);
 });
+
+test('POST rows render real status LEDs instead of text-only OK markers', () => {
+  const source = read('app/app.js');
+  const css = read('app/app.css');
+  assert.match(source, /post-led/);
+  assert.match(source, /boot-post-status/);
+  assert.match(css, /\.post-led/);
+  assert.match(css, /\.post-led[^}]*box-shadow/is);
+  assert.match(css, /\.post-led\.ok|\.post-led\.ready|\.post-led\.pass/is);
+});
