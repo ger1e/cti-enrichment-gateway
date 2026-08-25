@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 56" role="img" aria-labelledby="title desc">
+  <title id="title">PARA11AX</title>
+  <desc id="desc">PARA11AX angular observation mark and wordmark</desc>
+  <g fill="none" stroke="#00E5FF" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M4 28 18 10h26l10 10"/>
+    <path d="M4 28 18 46h26l10-10"/>
+    <path d="M14 28h34" opacity=".55"/>
+    <path d="M28 16 40 28 28 40" opacity=".72"/>
+    <path d="M48 20 62 28 48 36"/>
+  </g>
+  <circle cx="62" cy="28" r="4.5" fill="#FF1E2D"/>
+  <path d="M69 28h15" stroke="#FF1E2D" stroke-width="2"/>
+  <text x="94" y="36" fill="#F3F7FA" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="25" font-weight="700" letter-spacing="3.4">PARA11AX</text>
+  <path d="M94 44h209" stroke="#00E5FF" stroke-width="1" opacity=".45"/>
+  <circle cx="306" cy="44" r="2" fill="#FF1E2D"/>
+</svg>
