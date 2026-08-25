@@ -73,3 +73,31 @@ test('maximum design contains semantic palette and three rain depths', () => {
     assert.match(css, new RegExp(token));
   }
 });
+
+test('boot terminal contains explicit initialize, skip, diagnostics, and Unicode Pepe', () => {
+  const html = read('app/index.html');
+  assert.match(html, /id="boot-panel"/i);
+  assert.match(html, /id="boot-initialize"[^>]*>\s*INITIALIZE\s*</i);
+  assert.match(html, /id="boot-skip"[^>]*>\s*SKIP\s*</i);
+  assert.match(html, /id="boot-log"/i);
+  assert.match(html, /id="pepe-ascii"/i);
+  assert.match(html, /⢀⣠⡶⠶⠿⠛⠛⠛⠛⠛⠻⠷⠶⢶⣤⣀/);
+  assert.match(html, /⣙⡻⠷⠾⣿/);
+  assert.match(html, /id="access-panel"[^>]*hidden/i);
+});
+
+test('boot presentation is viewport-safe and reduced-motion aware', () => {
+  const css = read('app/app.css');
+  assert.match(css, /\.boot-panel/);
+  assert.match(css, /\.boot-pepe/);
+  assert.match(css, /\.boot-log/);
+  assert.match(css, /\.boot-glitch/);
+  assert.match(css, /\.boot-pepe[^}]*overflow:\s*auto/is);
+  assert.match(css, /prefers-reduced-motion:\s*reduce[\s\S]*boot/is);
+});
+
+test('boot implementation never persists completion state', () => {
+  const source = read('app/app.js');
+  assert.doesNotMatch(source, forbiddenStorage);
+  assert.doesNotMatch(source, /boot[^\n]{0,100}(cookie|storage)/i);
+});
