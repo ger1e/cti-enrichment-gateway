@@ -2,13 +2,17 @@
 
 #### Status
 
-Approved architecture direction. This document defines a user-facing analyst UI for the existing bearer-protected CTI Evidence Gateway without changing the gateway's upstream credential model or fixed-egress security boundary.
+Approved architecture and approved maximum visual/audio direction. This document defines a user-facing analyst UI for the existing bearer-protected CTI Evidence Gateway without changing the gateway's upstream credential model, fixed-egress security boundary, or Evidence v2 semantics.
 
 #### Goal
 
-Add a public `/app` analyst workspace so a non-owner user can operate PARA11AX through the browser when they possess a valid gateway access token. The UI must make the existing Evidence v2 model understandable without flattening semantics into a synthetic maliciousness score.
+Add a public `/app` analyst workspace so a trusted non-owner user can operate PARA11AX through the browser when they possess a valid gateway access token. The UI must feel like a purpose-built cyberpunk intelligence terminal while making Evidence v2 easier to understand without flattening unlike evidence into a synthetic maliciousness score.
 
-The public `/` landing page remains marketing/documentation. `/app` becomes the operational client.
+The public `/` landing page remains cinematic marketing/documentation. `/app` becomes the operational analyst client.
+
+#### Trust model
+
+Phase 1 is for trusted external users, not anonymous public self-service. Anyone who receives the current shared gateway bearer has the same API privilege until that bearer is rotated. The UI must not imply per-user isolation, quotas, or revocation that do not exist yet.
 
 #### Non-goals
 
@@ -18,17 +22,20 @@ The public `/` landing page remains marketing/documentation. `/app` becomes the 
 - No browser exposure of provider credentials.
 - No arbitrary provider selection, arbitrary egress, active scanning, detonation, submission, remediation, or sample download.
 - No new global risk or maliciousness score.
+- No fabricated provider progress, attribution, or graph relationships.
 - No changes to the current `/api/*` request contracts unless a browser-security requirement forces a minimal compatibility change.
 
 #### Authentication model
 
-The user enters a gateway bearer token on `/app`.
+The user enters a gateway bearer token on `/app` through an integrated `PARA11AX // ANALYST ACCESS` terminal.
 
 The token exists only in JavaScript memory for the active page session. It must not be written to `localStorage`, `sessionStorage`, cookies, IndexedDB, the URL, DOM attributes, analytics, console output, error pages, or telemetry.
 
-Token validation uses `GET /api/health` with `Authorization: Bearer <token>`. On `200`, the workspace unlocks. On `401`, the UI reports an invalid or unauthorized token without echoing it. Refreshing or closing the page clears the token because it is not persisted.
+Token validation uses `GET /api/health` with `Authorization: Bearer <token>`. On `200`, the workspace unlocks and the access terminal collapses into the connection-state indicator. On `401`, the UI reports an invalid or unauthorized token without echoing it. Refreshing or closing the page clears the token because it is not persisted.
 
-A user can explicitly disconnect. The UI clears all application-held token references and the visible token field, clears the current result state, and returns to the access screen. The design does not claim secure memory zeroization of immutable JavaScript string values.
+A user can explicitly disconnect. The UI clears all application-held token references and the visible token field, clears the current result state, aborts any active browser request, and returns to the access screen. The design does not claim secure memory zeroization of immutable JavaScript string values.
+
+The access terminal must visibly state: `TOKEN HELD IN MEMORY ONLY · NOT SAVED · NOT LOGGED · CLEARED ON REFRESH`.
 
 #### Application structure
 
@@ -37,80 +44,98 @@ The application stays dependency-light and within the current repository/Vercel 
 Recommended files:
 
 - `app/index.html` — application shell and accessible markup.
-- `app/app.css` — PARA11AX analyst UI styles.
-- `app/app.js` — browser controller, API client, state transitions, renderers, and safe exports.
-- `test/web-ui.test.mjs` — structural/security tests for the browser surface.
+- `app/app.css` — maximum PARA11AX terminal/HUD styling and responsive layout.
+- `app/api-client.js` — same-origin authenticated gateway client.
+- `app/renderers.js` — safe Evidence v2 semantic renderers using DOM APIs/textContent only.
+- `app/audio.js` — synthesized Web Audio cue engine.
+- `app/app.js` — state machine/controller, event wiring, exports, and orchestration.
+- `test/web-ui.test.mjs` — structural/security/browser-logic tests.
 - `vercel.json` — route `/app` and `/app/` to the application shell without changing `/api/*` routing.
-- `index.html` — add a clear `OPEN ANALYST UI` link to `/app`.
+- `index.html` — add a clear `ENTER PARA11AX` action to `/app`.
 
-No frontend framework is required for the first version. The UI can be implemented with standards-based HTML, CSS, and JavaScript because the interaction surface is bounded and the repository currently avoids frontend runtime dependencies.
+No frontend framework or third-party runtime dependency is required for v1. Standards-based HTML, CSS, JavaScript, Web Audio, Blob, Clipboard, AbortController, and DOM APIs are sufficient.
 
-#### Visual design
+#### Maximum visual direction
 
-Use the existing PARA11AX black-glass system, but the analyst UI is denser and calmer than the landing page.
+The active UI must look like a high-density intelligence command deck, not a SaaS dashboard.
 
-- `#050608` void background.
-- `#0B0F12` panels.
-- cyan for structure/navigation.
-- red for scanner/active observation and destructive disconnect action.
-- green for verified/successful evidence state.
-- amber for uncertainty, partial coverage, aging/stale evidence, and warnings.
-- compact system monospace typography.
-- no oversized marketing wordmark inside the active workspace.
-- red Matrix rain is allowed only as a restrained background layer and must not compete with evidence text.
-- `prefers-reduced-motion` disables rain/scanner animations.
+Base system:
 
-Mobile is a first-class layout. No horizontal page overflow is permitted. Wide evidence tables should become stacked cards or horizontally contained code/data regions rather than forcing the entire viewport wider.
+- void `#050608`.
+- panel `#0B0F12`.
+- scanner red `#FF1E2D`.
+- hot red `#FF4050`.
+- parallax cyan `#00E5FF`.
+- evidence green `#39FF88`.
+- caution amber `#F6C945`.
+- signal white `#F3F7FA`.
+- muted `#7D8B95`.
+- system monospace only; no remote fonts.
 
-#### Primary user flow
+Color semantics are fixed:
 
-1. User opens `/app`.
-2. Access panel asks for a gateway token.
-3. UI validates with `/api/health`.
-4. Workspace unlocks.
-5. User enters one pivot.
-6. UI submits to `POST /api/enrich` using the selected fixed profile: `fast`, `standard`, or `full`.
-7. While running, the UI shows a bounded request state, not fabricated provider progress.
-8. Response is rendered into semantic sections.
-9. User may switch among semantic views or inspect raw JSON.
-10. User may export the exact response JSON or request STIX 2.1 through `POST /api/stix`.
-11. User may disconnect, which clears application-held token references, the visible token field, and current result state.
+- cyan = structure, context, navigation, neutral relationship geometry.
+- green = successful/verified/corroborated evidence state where the gateway model supports it.
+- amber = uncertainty, partial coverage, stale/aging state, warnings.
+- red = scanner/active observation, provider failure, contradiction, destructive disconnect; red is never a generic maliciousness score.
 
-#### Workspace composition
+A compact permanent legend must reinforce these semantics.
 
-The top control band contains:
+##### Scene and motion layers
 
-- compact PARA11AX mark and connection state.
-- indicator input.
-- automatic indicator type display after response/classification; do not invent a browser-side classification result that conflicts with the gateway.
-- fixed profile selector: `fast`, `standard`, `full`.
-- `ENRICH` action.
-- clear/reset action.
-- disconnect action.
+Use three restrained red code-rain depth layers behind the workspace:
 
-The result workspace contains these views:
+- far layer: slow, faint, sparse.
+- middle layer: denser and faster.
+- transient foreground layer: appears only during enrichment/transition moments and never overpowers text.
 
-##### Overview
+Cyan angular parallax/sight geometry sits above rain but below evidence panels and converges toward the active pivot. The red scanner is the primary motion signature.
 
-Shows only facts contained in the envelope:
+Add very low-opacity CSS CRT scanlines, vignette, and transient chromatic edge offsets during state changes. No permanent blur, text distortion, or readability loss.
 
-- canonical indicator and type.
-- request ID.
-- profile.
-- status: `ok`, `partial`, or `error`.
-- duration.
-- budget usage.
-- provider summary: ok / failed / skipped / cached.
-- freshness.
-- huntability and its existing rationale when present.
+`prefers-reduced-motion: reduce` disables rain movement, scanner animation, glitch/scan-in transitions, connector motion, and transition chromatic effects while preserving static semantic styling.
 
-`partial` must be visually prominent and amber. It must never be styled as a weaker version of `ok` or interpreted as benign.
+##### Desktop composition
 
-##### Evidence
+Desktop uses three zones:
 
-Render each `evidence[]` item as a provider card rather than as one merged reputation table.
+`CONTROL RAIL | ACTIVE ANALYSIS | EVIDENCE INSPECTOR`
 
-Each card may show:
+The narrow control rail contains the compact PARA11AX mark, connection state, profile selector/navigation, semantic legend, mute/volume controls, clear/reset, and disconnect.
+
+The center begins with the pivot console:
+
+`[ DOMAIN / IP / HASH / CVE / URL / ATT&CK / ASN / CIDR ]`
+
+`> enter observable________________________________ [ ENRICH ]`
+
+While typing, show a faint cyan trace. Browser-side type detection may be used only as an input hint; the authoritative type shown after enrichment is the gateway-returned canonical type.
+
+On submit, cyan geometry contracts toward the active pivot, one stronger scanner sweep runs, and the observation node pulses red. While the request is running, the pivot node may pulse slowly, but the UI must not fabricate provider-level completion progress.
+
+When results arrive, reorganize the workspace into a compact intelligence strip plus semantic views rather than appending a long document.
+
+##### Intelligence strip
+
+The top result strip may show only gateway-returned facts, for example:
+
+`STATUS PARTIAL · DOMAIN example.org · PROFILE STANDARD · 7.4s · 19 OK / 3 FAILED / 4 CACHED · FRESHNESS CURRENT · HUNTABILITY HIGH`
+
+These are compact HUD readouts, not giant cards.
+
+##### Views
+
+Primary views:
+
+`OVERVIEW · EVIDENCE · CORRELATION · RELATIONSHIPS · COVERAGE · RAW`
+
+On mobile the tab bar is sticky and horizontally scrollable without causing document-width overflow.
+
+##### Evidence signals
+
+Each `evidence[]` item renders as an independent provider signal panel, never as one merged reputation table.
+
+A signal may display:
 
 - provider.
 - observation kind.
@@ -118,39 +143,135 @@ Each card may show:
 - confidence when present.
 - first/last seen when present.
 - selected bounded attributes.
-- tags/malware family/actor only when present in the gateway evidence.
+- tags, malware family, actor only when present.
 - cache state and retrieval time.
 - provenance references.
-- integrity fingerprint in a secondary details region.
+- parser version and integrity fingerprint inside secondary technical details.
 
-Observation kinds remain visually distinct. Registration/routing/context cannot be styled as malicious reputation. Community and ransomware claim kinds must explicitly retain claim/report wording.
+Signal panels use semantic edge treatment rather than generic severity coloring. Registration/routing/context stays cyan/neutral. Community and ransomware claim kinds explicitly retain claim/report wording. Provider failures do not appear inside evidence verdict styling.
 
-##### Correlation
+Signals scan into view with a short vertical reveal after a result arrives. No animation may obscure or delay access to text.
 
-Render separate blocks for:
+##### Correlation and contradiction treatment
 
-- corroboration.
-- contradictions.
-- freshness.
-- huntability.
-- CVE `riskAxes` where applicable.
-- attribution confidence only when the gateway emits it.
+Correlation renders only relationships and analytical dimensions actually emitted by the gateway.
 
-The UI must not calculate its own cross-provider maliciousness score.
+The active pivot can be represented as a red observation node with structured lanes around it. Cyan connectors represent contextual/neutral relationships. Green can represent explicit supported corroboration. Amber represents uncertainty. Red connector collision is reserved for contradictions.
 
-##### Relationships
+No force-directed graph, random node placement, or inferred significance is permitted.
 
-Render deduplicated pivots with relation, target type/value, and provenance where available. Relationship values may be copyable but are not automatically enriched in this phase.
+Contradictions receive a dedicated split treatment, for example:
 
-##### Coverage / Failures
+`SOURCE A ──────────╳────────── SOURCE B`
 
-Show provider failures, skipped coverage, timeouts, rate limits, parser failures, and other explicit coverage states separately from threat evidence.
+with opposing evidence summaries and a single short collision animation.
 
-The visual rule is mandatory: failure or missing coverage is never rendered as negative evidence.
+##### CVE risk axes
 
-##### Raw
+KEV, EPSS, and CVSS must remain separate horizontal tactical readouts, never combined:
 
-Pretty-print the exact returned JSON in a bounded scrollable region with a copy action. No syntax highlighter dependency is required.
+`KEV   EXPLOITED`
+
+`EPSS  0.94`
+
+`CVSS  9.8`
+
+Bars may visualize values only when values are present and the label remains explicit.
+
+##### Huntability
+
+Huntability is an operational panel, not a risk dial. Show only gateway-provided level/rationale and emitted operational details. Do not manufacture counts or endpoint/network/identity relevance not present in the response.
+
+##### Coverage / failures
+
+Coverage gets its own matrix/list so collection failure can never be confused with negative threat evidence. Display explicit states such as timeout, rate limit, parser failure, skipped, circuit-open, or other gateway-returned failures.
+
+##### Raw JSON
+
+Raw mode is a bounded terminal pane with line-number gutter generated from the serialized JSON text, internal scrolling, copy, search/filter within the text, and download. No heavyweight syntax-highlighting dependency.
+
+##### Persistent action bar
+
+Result actions:
+
+`COPY IOC · COPY JSON · DOWNLOAD JSON · PACKAGE STIX 2.1 · RESET`
+
+`PACKAGE STIX 2.1` calls `/api/stix`; a short scanner cue may animate across the action during the request and it turns successful only after a valid bundle response.
+
+#### Mobile-native composition
+
+At narrow Android widths, the UI does not merely scale desktop down.
+
+- compact sticky PARA11AX header.
+- pivot input immediately below.
+- profile control becomes a compact `F / S / FULL` segmented control while retaining accessible full labels.
+- result HUD becomes a compact grid/stack.
+- evidence becomes one-column signals.
+- relationship visualization becomes a vertical pivot chain/structured list instead of a wide graph.
+- sticky semantic tabs below the pivot console.
+- touch targets remain usable.
+- raw JSON scrolls inside its own container.
+- no table or panel can force document-width overflow.
+- background rain density is reduced roughly 30% relative to desktop.
+- cyan geometry is simplified behind text.
+
+#### Sound cue system
+
+Sound is a first-class PARA11AX interaction layer, but it must remain user-controlled, synthesized, bounded, and non-sensitive.
+
+Use Web Audio API only. Do not load MP3/WAV/remote audio assets. No audio data may be derived from the token, IOC value, provider response strings, or other potentially sensitive content.
+
+Browser autoplay rules are respected. The first explicit user gesture on `ESTABLISH SESSION` or a dedicated `ENABLE AUDIO` control creates/resumes the `AudioContext`. No attempt is made to bypass autoplay restrictions.
+
+Audio controls:
+
+- persistent `SOUND` mute/unmute control.
+- compact volume control with a bounded range; default approximately 35% after audio is enabled.
+- audio preference may live only in current page memory in v1; no localStorage is required.
+- all sound controls are keyboard accessible and have textual labels.
+- muting stops future cues immediately; no long-running loop is required.
+
+Cue palette, all short and synthesized:
+
+- `access-ok` — tight low-to-high two-tone confirmation after `/api/health` succeeds.
+- `access-denied` — short low descending pulse on `401`.
+- `key` — very quiet high-frequency terminal tick on pivot typing, rate-limited/debounced so key repeat cannot create a wall of sound; disabled for token-field typing to avoid any side-channel-like correlation with credential entry.
+- `tab` — subtle cyan-feeling blip when switching semantic views.
+- `scan` — brief broadband/filtered sweep synchronized with the red scanner on enrichment submit.
+- `result-ok` — short resolved chord/pulse when an `ok` envelope arrives.
+- `result-partial` — amber-coded two-step unresolved interval; one-shot only.
+- `result-error` — short low pulse for top-level application/request failure; provider failures inside a usable envelope do not spam this cue.
+- `contradiction` — one short collision/noise transient when contradictions first become visible.
+- `copy` — quiet click for successful copy action.
+- `stix-start` — short scanner sweep when packaging STIX.
+- `stix-ok` — compact confirmation when a valid bundle is returned and download begins.
+- `disconnect` — short descending power-down cue synchronized with the UI collapse.
+
+Sound design constraints:
+
+- no cue longer than about 450 ms except the scanner sweep, which may run up to about 700 ms.
+- no continuous background drone/music.
+- no cue fires repeatedly during render loops.
+- result cues fire once per completed request.
+- contradiction cue fires once per result when contradictions exist, not once per contradiction item.
+- typing cue rate is capped so rapid typing remains subtle.
+- no sound on password/token-field keystrokes.
+- audio engine failure is non-fatal; the UI must remain fully functional without Web Audio.
+- reduced-motion does not automatically imply muted audio, but audio controls remain explicit and independent.
+
+#### Primary user flow
+
+1. User opens `/app`.
+2. Access terminal asks for a gateway token.
+3. User gesture unlocks optional Web Audio and UI validates with `/api/health`.
+4. Workspace unlocks on success.
+5. User enters one pivot and chooses `fast`, `standard`, or `full`.
+6. UI submits to `POST /api/enrich`.
+7. Submit triggers one scanner visual/audio cue; running state shows no fabricated provider progress.
+8. Response is rendered into semantic views.
+9. A single result cue reflects `ok`, `partial`, or top-level request error.
+10. User may inspect/copy/export exact JSON or request STIX 2.1 through `POST /api/stix`.
+11. User may disconnect, clearing application-held token/result state and returning to access mode.
 
 #### Export behavior
 
@@ -158,118 +279,137 @@ Pretty-print the exact returned JSON in a bounded scrollable region with a copy 
 
 `DOWNLOAD STIX 2.1` calls `POST /api/stix` with the same canonical indicator/profile request contract, then downloads the returned bundle. The UI does not fabricate STIX locally.
 
-No token, Authorization header, or credential-bearing state may appear in filenames or exported content.
+No token, Authorization header, credential-bearing state, or audio state may appear in filenames or exported content.
 
 #### Browser API client
 
-A small API client module owns all authenticated fetches.
+A small API client owns all authenticated fetches.
 
 Requirements:
 
 - same-origin relative `/api/*` paths only.
-- `Authorization: Bearer <token>` only when a token is required.
+- `Authorization: Bearer <token>` only when required.
 - `Content-Type: application/json` for POST bodies.
-- no retries beyond what the gateway itself defines; the browser should not multiply provider work.
+- no browser retries beyond what the gateway itself defines.
 - parse structured gateway errors when possible.
 - treat non-JSON transport/platform failures separately from gateway evidence responses.
 - never log token-bearing request objects.
-- use `AbortController` for user-initiated cancellation/reset if implemented; cancellation must not be represented as a successful enrichment.
+- use `AbortController` for reset/disconnect/cancellation.
+- cancellation is never represented as successful enrichment.
 
 #### State model
 
-The browser UI has four coarse states:
+Coarse application states:
 
 - `locked` — no validated token.
 - `ready` — token validated; no active request.
-- `running` — one enrichment request in progress.
+- `running` — one enrichment request active.
 - `result` — response rendered, including `ok`, `partial`, or `error` envelope state.
 
-Only one active enrichment request is allowed from the first UI version. This prevents accidental duplicate quota consumption and simplifies mobile behavior.
+Only one enrichment request may be active. Batch UI is deferred.
 
-Batch UI is intentionally deferred. The API remains available for programmatic batch clients.
+Independent audio state tracks `unsupported`, `locked`, `enabled`, or `muted` without changing analytical state.
 
 #### Error handling
 
-- `401`: lock the workspace and ask for a valid token. Never echo the supplied token.
-- `400/413/415`: display the structured gateway error and keep the input editable.
+- `401`: clear/lock authenticated workspace state and ask for a valid token; never echo the supplied token.
+- `400/413/415`: display structured gateway error and keep input editable.
 - `405`: report method mismatch as an application/configuration fault.
-- provider-level failures inside a successful enrichment envelope remain under Coverage / Failures rather than becoming top-level browser errors.
-- network/platform failure: show a neutral request failure message with retry action; do not imply provider health or threat state.
-- malformed/unexpected JSON: fail closed in the renderer, provide a raw diagnostic message without exposing secrets, and do not invent analytical output.
+- provider failures inside a usable enrichment envelope remain under Coverage / Failures.
+- network/platform failure: neutral request failure message; do not imply provider health or threat state.
+- malformed/unexpected JSON: fail closed in analytical renderers and show a bounded diagnostic without secrets.
+- Web Audio unavailable/suspended/error: silently degrade to visual-only operation plus a small non-blocking sound-state label if needed.
 
 #### Security requirements
 
 - token in memory only.
 - no storage APIs for auth state.
 - no token in URL/query/hash.
-- no third-party JavaScript or CSS.
+- no third-party JavaScript/CSS/audio.
 - no analytics or trackers.
 - no remote fonts.
 - no `eval`, dynamic code generation, or user-controlled HTML injection.
-- all untrusted returned strings rendered with text nodes / `textContent`, not `innerHTML`.
-- exports built from parsed response objects, never DOM scraping.
-- API requests same-origin only.
-- existing gateway bearer authentication and fixed-egress boundaries stay unchanged.
-- existing unknown `/api/*` structured JSON behavior must remain intact.
+- all untrusted returned strings use text nodes / `textContent`, never `innerHTML`.
+- exports are built from parsed response objects, never DOM scraping.
+- API requests use same-origin relative paths only.
+- sound frequencies/timing are fixed cue definitions and never derived from token/IOC/provider content.
+- token input never emits typing sounds.
+- existing bearer authentication and fixed-egress boundaries stay unchanged.
+- existing unknown `/api/*` structured JSON behavior remains intact.
 
 #### Accessibility
 
 - keyboard-complete controls.
 - visible focus states.
-- explicit labels for token, pivot, profile, and actions.
-- semantic status text in addition to color.
+- explicit labels for token, pivot, profile, tabs, sound, volume, and actions.
+- semantic status text in addition to color/sound.
+- audio is supplemental only; no information is conveyed solely by sound.
 - live region for request state/result completion.
-- sufficient contrast in black-glass theme.
+- sufficient contrast.
 - reduced-motion support.
-- responsive layout at narrow Android widths without horizontal document overflow.
+- responsive narrow Android layout without document overflow.
+- mute control remains reachable at all times after workspace unlock.
 
 #### Testing strategy
 
 Add deterministic tests before implementation changes.
 
-Structural tests:
+Structural/security tests:
 
 - `/app` assets exist.
 - viewport meta exists.
 - reduced-motion CSS exists.
-- no third-party JS/CSS.
-- no `localStorage`, `sessionStorage`, cookies, IndexedDB, analytics, or remote fonts.
-- no use of `innerHTML` for evidence rendering.
-- same-origin `/api/health`, `/api/enrich`, `/api/stix` usage is present.
-- only fixed profile values appear in the UI.
+- no third-party JS/CSS/audio or remote fonts.
+- no `localStorage`, `sessionStorage`, cookies, IndexedDB, analytics.
+- no `innerHTML` evidence rendering.
+- same-origin `/api/health`, `/api/enrich`, `/api/stix` usage.
+- only fixed profile values in UI.
 - landing page links to `/app`.
-- Vercel routing preserves `/api/*` before human-facing fallbacks.
+- Vercel routing preserves `/api/*` before human fallbacks.
+- Web Audio cue engine contains no remote asset loading.
+- token field cannot trigger typing cue.
+- sound cue definitions are fixed and not based on IOC/token values.
 
-Behavioral browser-logic tests should cover:
+Behavioral logic tests:
 
 - invalid token returns to locked state.
 - validated token unlocks workspace.
 - token is not included in persisted/exported state.
+- only one active enrichment request is permitted.
 - `partial` renders as incomplete coverage.
 - evidence kinds retain semantic labels.
 - provider failures render outside evidence verdicts.
+- contradictions render separately and trigger at most one contradiction cue per result.
 - JSON export matches the response object.
-- STIX export uses the `/api/stix` response rather than local generation.
-- reset/disconnect clears application-held token references, visible token input, and result state.
+- STIX export uses `/api/stix` response rather than local generation.
+- reset/disconnect clears application-held token references, visible token input, result state, and active controller.
+- audio-disabled/unsupported state does not block any workflow.
+- result sounds fire once per request, not per provider card.
+- no typing sound is emitted for the token field.
 
 Existing Node, Maltego, repository-invariant, Tooling smoke, and CodeQL gates must remain green.
 
 #### Deployment and acceptance
 
-Implementation will use a feature branch and PR. Vercel preview remains disabled for non-main Git branches by existing policy, so production acceptance occurs only after protected-main merge and exact-SHA deployment.
+Implementation uses a feature branch and PR. Vercel preview remains disabled for non-main Git branches, so production acceptance occurs only after protected-main merge and exact-SHA deployment.
 
 Acceptance requires:
 
 1. Tooling smoke passes.
 2. CodeQL passes.
-3. `/` remains healthy and links to `/app`.
-4. `/app` returns the new UI on the exact deployed main SHA.
+3. `/` remains healthy and exposes `ENTER PARA11AX`.
+4. `/app` returns the analyst UI on the exact deployed main SHA.
 5. `/api/meta` remains public JSON.
 6. `/api/health` remains bearer-protected.
 7. unknown `/api/*` remains structured JSON 404.
 8. human-facing `403`, `404`, and `500` routes remain branded HTML with correct status codes.
-9. a real authorized enrichment can be completed through `/app` without the token appearing in storage, URL, exported JSON, or visible diagnostics.
+9. a real authorized enrichment completes through `/app` without the token appearing in storage, URL, exported JSON, visible diagnostics, or audio behavior.
+10. JSON and STIX export work from the UI.
+11. mobile layout has no horizontal document overflow at narrow Android width.
+12. audio can be enabled by user gesture, muted, volume-adjusted, and fully ignored without affecting functionality.
+13. token-field typing produces no sound.
+14. semantic status remains understandable with sound muted and motion reduced.
 
 #### Deferred evolution
 
-If external use grows, the next architectural step is per-user issued gateway tokens with independent revocation, quotas, and audit metadata. The `/app` UX should be designed so that this future change replaces the token-issuance/auth layer without requiring a result-rendering redesign.
+If external use grows, the next architectural step is per-user issued gateway tokens with independent revocation, quotas, and audit metadata. `/app` should be designed so that future auth/token issuance can replace the shared-bearer access layer without requiring evidence-rendering, visual-system, or sound-system redesign.
