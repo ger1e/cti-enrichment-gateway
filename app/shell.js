@@ -6,7 +6,7 @@ export const COMMANDS = Object.freeze([
   { name: 'man', category: 'core', usage: 'man <command>', summary: 'show detailed command help' },
   { name: 'clear', aliases: ['cls'], category: 'core', usage: 'clear', summary: 'clear terminal scrollback' },
   { name: 'history', category: 'core', usage: 'history', summary: 'show non-secret command history' },
-  { name: 'reboot', category: 'core', usage: 'reboot', summary: 'replay the Unix boot sequence' },
+  { name: 'reboot', category: 'core', usage: 'reboot', summary: 'replay the PARA11AX Gateway boot sequence' },
   { name: 'disconnect', aliases: ['exit', 'logout'], category: 'core', usage: 'disconnect', summary: 'destroy bearer and lock the session' },
   { name: 'whoami', category: 'core', usage: 'whoami', summary: 'show local session identity/state' },
   { name: 'uptime', category: 'core', usage: 'uptime', summary: 'show frontend terminal uptime' },
