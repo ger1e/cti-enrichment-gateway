@@ -67,11 +67,19 @@ test('mobile virtual-keyboard deletion has a beforeinput backspace cue path', as
   assert.match(entry, /typing\(['"]backspace['"]\)/);
 });
 
-test('56k handshake includes synthesized carrier noise rather than tones only', async () => {
+test('56k boot cue uses a dedicated long-form PCM handshake instead of the generic tone recipe', async () => {
   const source = await read('app/audio.js');
-  assert.match(source, /createBufferSource|modemNoise|noiseBurst/);
-  assert.match(source, /modem-56k/);
-  assert.match(source, /350[\s\S]{0,120}440/, 'dial tone pair should remain present');
+  assert.match(source, /MODEM_HANDSHAKE_MS\s*=\s*1[01]\d{3}/, 'handshake should run roughly 10-12 seconds');
+  assert.match(source, /renderModemHandshake/);
+  assert.match(source, /createBuffer\s*\(\s*1\s*,/);
+  assert.match(source, /phase reversal|answer carrier|training noise|V\.8/i);
+  assert.doesNotMatch(source, /['"]modem-56k['"]\s*:\s*\[/, 'modem must not remain a generic CUES recipe');
+});
+
+test('boot waits for the full modem handshake before PARA11AX service initialization', async () => {
+  const source = await read('app/boot.js');
+  assert.match(source, /MODEM_HANDSHAKE_MS/);
+  assert.match(source, /wait\(MODEM_HANDSHAKE_MS\)/);
 });
 
 test('mobile shell uses one coherent operational type scale and compact help layout', async () => {
@@ -86,6 +94,29 @@ test('mobile shell uses one coherent operational type scale and compact help lay
   assert.match(entry, /classList\.add\(['"]shell-help['"]\)/);
 });
 
+test('mobile viewport has no legacy outer-page overflow or focus-scroll jump', async () => {
+  const css = await read('app/shell.css');
+  const shell = await read('app/shell-ui.js');
+  assert.match(css, /\.app-shell\{[^}]*padding:\s*8px\s+0\s+0/);
+  assert.match(css, /100dvh/);
+  assert.match(css, /@media\(max-width:720px\)[\s\S]*\.app-shell\{[^}]*padding:\s*4px\s+0\s+0/);
+  assert.match(shell, /focus\(\{\s*preventScroll:\s*true\s*\}\)/);
+  assert.doesNotMatch(shell, /\binput\.focus\(\);/);
+});
+
+test('mobile prompt is a terminal line, not a legacy cyan focus rectangle', async () => {
+  const css = await read('app/shell.css');
+  assert.match(css, /\.shell-input:focus-visible\{[^}]*outline:\s*(?:0|none)/);
+  assert.match(css, /\.shell-input:focus-visible\{[^}]*outline-offset:\s*0/);
+});
+
+test('restored boot transcript uses a compact dedicated scale instead of command-line sizing', async () => {
+  const entry = await read('app/terminal-entry.js');
+  const css = await read('app/shell.css');
+  assert.match(entry, /shell-boot-line/);
+  assert.match(css, /\.shell-boot-line\{[^}]*font-size:\s*12px/);
+});
+
 test('active boot and shell branding is Gateway Terminal', async () => {
   const boot = await read('app/boot.js');
   const entry = await read('app/terminal-entry.js');
@@ -97,12 +128,13 @@ test('active boot and shell branding is Gateway Terminal', async () => {
   assert.doesNotMatch(active, /replay the Unix boot sequence|EVIDENCE TERMINAL/);
 });
 
-test('boot has a slow non-interactive wireframe globe that becomes static under reduced motion', async () => {
+test('boot globe remains centered when reduced motion disables rotation', async () => {
   const entry = await read('app/terminal-entry.js');
   const css = await read('app/shell.css');
   assert.match(entry, /boot-globe/);
   assert.match(entry, /createElementNS/);
   assert.match(css, /\.boot-globe[^}]*pointer-events:\s*none/);
+  assert.match(css, /\.boot-globe[^}]*transform:\s*translate\(-50%,-50%\)\s*rotate\(0deg\)/);
   assert.match(css, /globe-spin\s+2[4-9]s\s+linear\s+infinite/);
   assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.boot-globe[^}]*animation:\s*none/);
 });
