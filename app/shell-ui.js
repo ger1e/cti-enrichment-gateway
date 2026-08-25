@@ -1,4 +1,5 @@
 import { GatewayHttpError } from './api-client.js';
+import { runEnrichmentOperation } from './shell-runtime.js';
 import { COMMANDS, completeCommand, createHistory, interpretCommand } from './shell.js';
 import {
   buildOverview,
@@ -256,14 +257,19 @@ export function mountAnalystShell({
       return;
     }
     if (action.action === 'enrich') {
-      const controller = beginOperation(true);
+      const controller = beginOperation(false);
       appendLine(`enrich: ${action.indicator} [profile=${action.profile}]`, 'cyan');
       audio.play('scan');
       try {
-        const result = await client.enrich(action.indicator, action.profile, controller.signal);
+        const result = await runEnrichmentOperation({
+          session,
+          client,
+          controller,
+          indicator: action.indicator,
+          profile: action.profile,
+        });
         currentResult = result;
         profile = action.profile;
-        session.finishRequest(result);
         audio.play(result.status === 'ok' ? 'result-ok' : result.status === 'partial' ? 'result-partial' : 'result-error');
         appendLine(`[ ${String(result.status).toUpperCase()} ] ${result.indicator} · ${result.type} · ${result.durationMs ?? '?'}ms`, result.status === 'ok' ? 'green' : result.status === 'partial' ? 'amber' : 'red');
         renderResultView('overview');
@@ -388,7 +394,7 @@ export function mountAnalystShell({
     const secret = input.value;
     input.value = '';
     if (!secret.trim()) { appendLine('empty bearer rejected', 'red'); return; }
-    await audio.enable();
+    try { await audio.enable(); } catch {}
     session.setToken(secret);
     try {
       const health = await client.health();
