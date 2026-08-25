@@ -76,11 +76,14 @@ test('56k handshake includes synthesized carrier noise rather than tones only', 
 
 test('mobile shell uses one coherent operational type scale and compact help layout', async () => {
   const css = await read('app/shell.css');
+  const entry = await read('app/terminal-entry.js');
   assert.match(css, /--terminal-font\s*:\s*14px/);
   assert.match(css, /--terminal-input\s*:\s*16px/);
   assert.doesNotMatch(css, /@media\(max-width:430px\)[\s\S]*\.shell-pre\{[^}]*font-size:\s*11px/);
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-help[^}]*white-space:\s*pre-line/);
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-pre[^}]*white-space:\s*pre-wrap/);
+  assert.match(entry, /PARA11AX COMMAND INDEX/);
+  assert.match(entry, /classList\.add\(['"]shell-help['"]\)/);
 });
 
 test('active boot and shell branding is Gateway Terminal', async () => {
