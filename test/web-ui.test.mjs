@@ -50,3 +50,9 @@ test('renderer uses safe DOM APIs only', () => {
   assert.match(source, /textContent/);
   assert.match(source, /query/i);
 });
+
+test('audio engine contains no network/media loading or persistence', () => {
+  const source = read('app/audio.js');
+  assert.doesNotMatch(source, /fetch\s*\(|XMLHttpRequest|new\s+Audio\s*\(|\.mp3|\.wav|\.ogg/i);
+  assert.doesNotMatch(source, /localStorage|sessionStorage|indexedDB|document\.cookie/i);
+});
