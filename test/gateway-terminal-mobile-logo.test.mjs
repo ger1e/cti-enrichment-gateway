@@ -35,7 +35,12 @@ test('wireframe globe remains continuously visible from initialize until gateway
   const [polish, css] = await Promise.all([read('app/terminal-polish.js'), read('app/shell-polish.css')]);
   assert.match(polish, /classList\.add\(['"]boot-running['"]\)/);
   assert.match(polish, /classList\.remove\(['"]boot-running['"]\)/);
-  assert.match(css, /\.boot-running \.boot-globe\{[^}]*opacity:\s*\.1/);
+  const runningRule = css.match(/\.boot-running \.boot-globe\{([^}]*)\}/)?.[1] || '';
+  const runningOpacity = Number(runningRule.match(/opacity:\s*([0-9.]+)/)?.[1]);
+  assert.ok(runningOpacity >= 0.24, 'initialized globe must stay clearly visible');
+  const mobileRule = css.match(/@media\(max-width:720px\)\{[\s\S]*?\.boot-running \.boot-globe\{([^}]*)\}/)?.[1] || '';
+  const mobileOpacity = Number(mobileRule.match(/opacity:\s*([0-9.]+)/)?.[1]);
+  assert.ok(mobileOpacity >= 0.30, 'mobile initialized globe must remain clearly visible');
 });
 
 test('mobile shell prompt follows content instead of reserving a full-screen empty scrollback', async () => {

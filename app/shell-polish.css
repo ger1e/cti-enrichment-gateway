@@ -6,8 +6,14 @@
 .shell-brand{display:flex!important;align-items:center;gap:8px;max-width:none!important;overflow:visible!important;text-overflow:clip!important;min-width:0}
 .shell-brand-label{color:var(--px-white);font-size:10px;letter-spacing:.05em;white-space:nowrap}
 
+/* The polish layer owns the final globe behavior on production. */
+.boot-globe{opacity:.22!important;animation:globe-spin 36s linear infinite!important;will-change:transform;filter:drop-shadow(0 0 14px rgba(0,229,255,.28))!important}
+.boot-globe-landmass{fill:rgba(0,229,255,.48);stroke:rgba(243,247,250,.95);stroke-width:.9;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.boot-globe-scanner{fill:none;stroke:var(--px-red);stroke-opacity:1;stroke-width:1.8;stroke-dasharray:10 6;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 4px rgba(255,30,45,.95));animation:globe-red-scan 4.8s linear infinite}
+@keyframes globe-red-scan{0%{stroke-dashoffset:0;opacity:.72}50%{opacity:1}100%{stroke-dashoffset:-64;opacity:.72}}
+
 /* One lifecycle state keeps the globe present for the complete initialized boot. */
-.boot-running .boot-globe{opacity:.1!important}
+.boot-running .boot-globe{opacity:.28!important}
 
 /* Operational shell follows its transcript instead of manufacturing a dead viewport. */
 .unix-shell{justify-content:flex-start!important}
@@ -19,7 +25,7 @@
   .shell-brand{max-width:none!important;overflow:visible!important;text-overflow:clip!important}
   .shell-session-state{font-size:9px;letter-spacing:0;max-width:none!important;overflow:visible!important;text-overflow:clip!important}
   .shell-scrollback{max-height:calc(100dvh - 106px);padding-bottom:8px!important}
-  .boot-running .boot-globe{opacity:.12!important;width:min(88vw,500px)!important;left:50%!important;top:52%!important}
+  .boot-running .boot-globe{opacity:.32!important;width:min(88vw,500px)!important;left:50%!important;top:52%!important}
 }
 
 @media(max-width:430px){
@@ -37,4 +43,8 @@
 
 @media(max-width:370px){
   .shell-session-state{font-size:7.5px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .boot-globe{animation:globe-spin 36s linear infinite!important;transform:translate(-50%,-50%) rotate(0deg)}
 }
