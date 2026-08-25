@@ -1,0 +1,40 @@
+.para11ax-logo{display:block;width:154px;height:auto;max-width:100%;flex:0 0 auto}
+.boot-brand-lockup{display:flex;align-items:center;gap:10px;min-width:0}
+.boot-brand-lockup .para11ax-logo{width:148px}
+.boot-brand-meta{color:var(--px-muted);font-size:10px;letter-spacing:.13em;white-space:nowrap}
+.shell-logo{width:150px}
+.shell-brand{display:flex!important;align-items:center;gap:8px;max-width:none!important;overflow:visible!important;text-overflow:clip!important;min-width:0}
+.shell-brand-label{color:var(--px-white);font-size:10px;letter-spacing:.05em;white-space:nowrap}
+
+/* One lifecycle state keeps the globe present for the complete initialized boot. */
+.boot-running .boot-globe{opacity:.1!important}
+
+/* Operational shell follows its transcript instead of manufacturing a dead viewport. */
+.unix-shell{justify-content:flex-start!important}
+.shell-scrollback{flex:0 1 auto!important;max-height:calc(100dvh - 108px);min-height:0;overflow:auto}
+.shell-prompt{position:sticky!important;bottom:0;margin-top:0}
+
+@media(max-width:720px){
+  .shell-status{min-height:38px!important;gap:8px!important}
+  .shell-brand{max-width:none!important;overflow:visible!important;text-overflow:clip!important}
+  .shell-session-state{font-size:9px;letter-spacing:0;max-width:none!important;overflow:visible!important;text-overflow:clip!important}
+  .shell-scrollback{max-height:calc(100dvh - 106px);padding-bottom:8px!important}
+  .boot-running .boot-globe{opacity:.12!important;width:min(88vw,500px)!important;left:50%!important;top:52%!important}
+}
+
+@media(max-width:430px){
+  .para11ax-logo{width:124px}
+  .boot-brand-lockup{gap:7px}
+  .boot-brand-lockup .para11ax-logo{width:126px}
+  .boot-brand-meta{font-size:8px;letter-spacing:.08em}
+  .shell-logo{width:124px}
+  .shell-status{min-height:38px!important;padding:4px 0!important;gap:6px!important}
+  .shell-brand-label{display:none}
+  .shell-session-state{font-size:8px;line-height:1.1}
+  .shell-scrollback{max-height:calc(100dvh - 104px);padding-top:8px!important;padding-bottom:6px!important}
+  .shell-prompt{min-height:48px!important;padding-top:3px!important;padding-bottom:calc(3px + env(safe-area-inset-bottom))!important}
+}
+
+@media(max-width:370px){
+  .shell-session-state{font-size:7.5px}
+}
