@@ -34,16 +34,23 @@ test('human-facing custom error pages are branded, static, and mobile-safe', () 
   }
 });
 
+test('static error pages do not expose unsubstituted platform placeholders', () => {
+  assert.doesNotMatch(read('500.html'), /::vercel:/i);
+});
+
 test('Vercel preserves API routing while mapping branded browser error surfaces', () => {
   const config = JSON.parse(read('vercel.json'));
   assert.equal(config.git?.deploymentEnabled?.['**'], false);
   assert.equal(config.git?.deploymentEnabled?.main, true);
   assert.ok(Array.isArray(config.routes), 'routes must be explicit so the browser catch-all cannot swallow /api/*');
   const filesystemIndex = config.routes.findIndex((route) => route.handle === 'filesystem');
+  const apiFallbackIndex = config.routes.findIndex((route) => route.src === '/api/(.*)' && route.dest === '/api/[...path].js');
   const forbiddenIndex = config.routes.findIndex((route) => route.src === '/403' && route.dest === '/403.html' && route.status === 403);
   const failureIndex = config.routes.findIndex((route) => route.src === '/500' && route.dest === '/500.html' && route.status === 500);
   const notFoundIndex = config.routes.findIndex((route) => route.dest === '/404.html' && route.status === 404);
   assert.ok(filesystemIndex >= 0, 'filesystem routing must run before browser fallback');
+  assert.ok(apiFallbackIndex > filesystemIndex, 'unknown API routes must reach the API catch-all after named functions');
+  assert.ok(apiFallbackIndex < notFoundIndex, 'API catch-all must run before the human-facing 404 fallback');
   assert.ok(forbiddenIndex > filesystemIndex, '/403 must map after filesystem handling');
   assert.ok(failureIndex > filesystemIndex, '/500 must map after filesystem handling');
   assert.ok(notFoundIndex > filesystemIndex, '404 catch-all must run after filesystem/API handling');
