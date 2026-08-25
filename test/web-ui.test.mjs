@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
@@ -84,6 +85,15 @@ test('boot terminal contains explicit initialize, skip, diagnostics, and Unicode
   assert.match(html, /⢀⣠⡶⠶⠿⠛⠛⠛⠛⠛⠻⠷⠶⢶⣤⣀/);
   assert.match(html, /⣙⡻⠷⠾⣿/);
   assert.match(html, /id="access-panel"[^>]*hidden/i);
+});
+
+test('boot uses the exact user-supplied 39-line Pepe payload', () => {
+  const html = read('app/index.html');
+  const match = html.match(/<pre id="pepe-ascii"[^>]*>([\s\S]*?)<\/pre>/i);
+  assert.ok(match, 'Pepe pre block must exist');
+  assert.equal(match[1].split('\n').length, 39);
+  const digest = createHash('sha256').update(match[1], 'utf8').digest('hex');
+  assert.equal(digest, 'c5bfc1050351ec985e48aa49008fe395d31ebf0dd76da148322add68028a1288');
 });
 
 test('boot presentation is viewport-safe and reduced-motion aware', () => {
