@@ -9,7 +9,7 @@
   "routes": [
     {
       "src": "/app/app.js",
-      "dest": "/app/terminal-entry.js"
+      "dest": "/app/terminal-main.js"
     },
     {
       "handle": "filesystem"
