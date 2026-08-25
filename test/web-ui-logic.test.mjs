@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGatewayClient, GatewayHttpError } from '../app/api-client.js';
 import { createSession } from '../app/session.js';
+import { buildOverview, buildEvidence, buildCorrelation, buildCoverage, jsonLines } from '../app/view-model.js';
 
 const jsonResponse = (status, body) => new Response(JSON.stringify(body), {
   status,
@@ -30,15 +31,8 @@ test('enrich sends only indicator and fixed profile', async () => {
     fetchImpl: async (_url, init) => {
       sent = JSON.parse(init.body);
       return jsonResponse(200, {
-        requestId: 'r',
-        indicator: 'example.org',
-        type: 'domain',
-        profile: 'standard',
-        status: 'ok',
-        evidence: [],
-        failures: [],
-        relationships: [],
-        correlation: {},
+        requestId: 'r', indicator: 'example.org', type: 'domain', profile: 'standard', status: 'ok',
+        evidence: [], failures: [], relationships: [], correlation: {},
       });
     },
   });
@@ -48,36 +42,18 @@ test('enrich sends only indicator and fixed profile', async () => {
 });
 
 test('malformed enrichment payload fails closed', async () => {
-  const client = createGatewayClient({
-    getToken: () => 't',
-    fetchImpl: async () => jsonResponse(200, { status: 'ok' }),
-  });
-  await assert.rejects(
-    () => client.enrich('example.org', 'fast'),
-    (e) => e instanceof GatewayHttpError && e.code === 'invalid_envelope',
-  );
+  const client = createGatewayClient({ getToken: () => 't', fetchImpl: async () => jsonResponse(200, { status: 'ok' }) });
+  await assert.rejects(() => client.enrich('example.org', 'fast'), (e) => e instanceof GatewayHttpError && e.code === 'invalid_envelope');
 });
 
 test('invalid STIX bundle fails closed', async () => {
-  const client = createGatewayClient({
-    getToken: () => 't',
-    fetchImpl: async () => jsonResponse(200, { objects: [] }),
-  });
-  await assert.rejects(
-    () => client.stix('example.org', 'fast'),
-    (e) => e instanceof GatewayHttpError && e.code === 'invalid_stix_bundle',
-  );
+  const client = createGatewayClient({ getToken: () => 't', fetchImpl: async () => jsonResponse(200, { objects: [] }) });
+  await assert.rejects(() => client.stix('example.org', 'fast'), (e) => e instanceof GatewayHttpError && e.code === 'invalid_stix_bundle');
 });
 
 test('structured errors never include bearer text', async () => {
-  const client = createGatewayClient({
-    getToken: () => 'never-echo-me',
-    fetchImpl: async () => jsonResponse(401, { error: 'unauthorized', requestId: 'r1' }),
-  });
-  await assert.rejects(
-    () => client.health(),
-    (e) => e instanceof GatewayHttpError && e.status === 401 && e.code === 'unauthorized' && !String(e).includes('never-echo-me'),
-  );
+  const client = createGatewayClient({ getToken: () => 'never-echo-me', fetchImpl: async () => jsonResponse(401, { error: 'unauthorized', requestId: 'r1' }) });
+  await assert.rejects(() => client.health(), (e) => e instanceof GatewayHttpError && e.status === 401 && e.code === 'unauthorized' && !String(e).includes('never-echo-me'));
 });
 
 test('session snapshot never exposes token and only one request is active', () => {
@@ -100,4 +76,48 @@ test('disconnect aborts work and clears auth/result state', () => {
   assert.equal(controller.signal.aborted, true);
   assert.equal(session.getToken(), null);
   assert.deepEqual(session.snapshot(), { mode: 'locked', result: null, hasToken: false, requestActive: false });
+});
+
+const sampleEnvelope = {
+  requestId: 'req-1', indicator: 'evil.example', type: 'domain', profile: 'standard', durationMs: 420, status: 'partial',
+  providerSummary: { ok: 2, failed: 1, skipped: 0, cached: 1 },
+  evidence: [
+    { provider: 'rdap', observation: { kind: 'registration', verdict: 'observed' }, references: [] },
+    { provider: 'ransomware-live', observation: { kind: 'ransomware_victim_claim', verdict: 'observed' }, references: [] },
+  ],
+  failures: [{ provider: 'censys', error: 'rate_limited' }],
+  relationships: [],
+  correlation: {
+    corroboration: [], contradictions: [{ kind: 'reputation', providers: ['a', 'b'] }], freshness: 'current',
+    huntability: { level: 'high', rationale: 'actionable pivots' },
+    riskAxes: { kev: { listed: true }, epss: { score: .94 }, cvss: { score: 9.8 } },
+  },
+};
+
+test('partial stays incomplete coverage', () => {
+  const model = buildOverview(sampleEnvelope);
+  assert.equal(model.status, 'partial');
+  assert.equal(model.tone, 'amber');
+});
+
+test('context and claims remain distinct', () => {
+  const cards = buildEvidence(sampleEnvelope);
+  assert.equal(cards[0].semanticClass, 'context');
+  assert.equal(cards[1].semanticClass, 'claim');
+  assert.match(cards[1].semanticNote, /claim|report/i);
+});
+
+test('CVE axes stay separate', () => {
+  const model = buildCorrelation(sampleEnvelope);
+  assert.deepEqual(Object.keys(model.riskAxes).sort(), ['cvss', 'epss', 'kev']);
+  assert.equal(model.combinedScore, undefined);
+});
+
+test('failures stay outside evidence', () => {
+  assert.equal(buildEvidence(sampleEnvelope).some((x) => x.provider === 'censys'), false);
+  assert.equal(buildCoverage(sampleEnvelope).failures[0].provider, 'censys');
+});
+
+test('raw lines reconstruct exact object', () => {
+  assert.deepEqual(JSON.parse(jsonLines(sampleEnvelope).map((x) => x.text).join('\n')), sampleEnvelope);
 });
