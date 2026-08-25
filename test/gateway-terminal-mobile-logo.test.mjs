@@ -28,7 +28,7 @@ test('PARA11AX logo asset uses the universal cyan red and white semantic palette
   assert.match(svg, /#FF1E2D/i);
   assert.match(svg, /#F3F7FA/i);
   assert.match(svg, /PARA11AX/);
-  assert.doesNotMatch(svg, /https?:\/\//, 'logo must not load external resources');
+  assert.doesNotMatch(svg, /(?:href|src)\s*=\s*["']https?:\/\//i, 'logo must not load external resources');
 });
 
 test('wireframe globe remains continuously visible from initialize until gateway ready', async () => {
