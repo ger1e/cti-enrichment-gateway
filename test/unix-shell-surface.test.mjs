@@ -25,7 +25,8 @@ test('Unix boot source contains kernel timestamps, service startup, target readi
   assert.match(source, /para11ax\.service/);
   assert.match(source, /Reached target PARA11AX Analyst Terminal/);
   assert.match(source, /modem-56k/);
-  assert.doesNotMatch(source, /if\s*\(reducedMotion\)[\s\S]{0,250}return\s+true/);
+  assert.match(source, /if\s*\(reducedMotion\)\s*onStage\(['"]reduced['"]\)/);
+  assert.doesNotMatch(source, /if\s*\(reducedMotion\)\s*\{[^}]*return\s+true[^}]*\}/);
 });
 
 test('interactive shell exposes a real sticky prompt with secret auth mode and command scrollback', async () => {
