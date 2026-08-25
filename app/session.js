@@ -22,8 +22,8 @@ export function createSession() {
       mode = 'ready';
     },
     startRequest(controller) {
-      if (!['ready', 'result'].includes(mode)) throw new Error('session not ready');
       if (activeController) throw new Error('request already active');
+      if (!['ready', 'result'].includes(mode)) throw new Error('session not ready');
       if (!controller || !controller.signal || typeof controller.abort !== 'function') throw new TypeError('AbortController required');
       activeController = controller;
       mode = 'running';
