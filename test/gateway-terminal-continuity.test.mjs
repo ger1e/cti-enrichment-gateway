@@ -139,6 +139,13 @@ test('boot globe remains centered when reduced motion disables rotation', async 
   assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.boot-globe[^}]*animation:\s*none/);
 });
 
+test('wireframe globe is visible only after the boot sequence is initialized', async () => {
+  const css = await read('app/shell.css');
+  assert.match(css, /\.boot-globe\{[^}]*opacity:\s*0/);
+  assert.match(css, /\.boot-powering \.boot-globe[^}]*opacity:/);
+  assert.match(css, /\.boot-modem \.boot-globe[^}]*opacity:/);
+});
+
 test('PARA11AX semantic color scheme is universal across boot shell and result surfaces', async () => {
   const css = await read('app/shell.css');
   assert.match(css, /--px-void\s*:\s*#050608/i);
