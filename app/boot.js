@@ -32,8 +32,8 @@ export const PARA11AX_BOOT_LINES = Object.freeze([
   '[    0.639872] pxsvc[shell]: history secret filter active [ OK ]',
   '[    0.667004] pxsvc[shell]: completion index built [ OK ]',
   '[    0.694771] pxsvc[field-ui]: mobile terminal layout ready [ OK ]',
-  '[    0.724219] pxsvc[terminal]: starting PARA11AX analyst terminal [ OK ]',
-  '[    0.751662] pxsvc[terminal]: active [ OK ]',
+  '[    0.724219] pxsvc[gateway]: analyst shell bound [ OK ]',
+  '[    0.751662] pxsvc[gateway]: Gateway Terminal active [ OK ]',
 ]);
 
 export function createPara11axBootSequence({
@@ -71,20 +71,20 @@ export function createPara11axBootSequence({
 
       onStage('modem');
       safePlay('modem-56k');
-      if (!await wait(3200)) return true;
-
-      onStage('pepe');
-      safePlay('boot-lock');
-      if (!await wait(620)) return true;
+      if (!await wait(3600)) return true;
 
       for (let index = 0; index < PARA11AX_BOOT_LINES.length; index += 1) {
         onStage('boot-line', PARA11AX_BOOT_LINES[index]);
-        const pause = [4, 9, 15, 24, 29].includes(index) ? 95 : 26;
+        const pause = [4, 9, 15, 24, 29].includes(index) ? 110 : 34;
         if (!await wait(pause)) return true;
       }
 
-      onStage('target', '[  OK  ] PARA11AX services online // Analyst Terminal ready.');
-      if (!await wait(260)) return true;
+      onStage('pepe');
+      safePlay('boot-lock');
+      if (!await wait(720)) return true;
+
+      onStage('target', '[  OK  ] PARA11AX services online // Gateway Terminal ready.');
+      if (!await wait(320)) return true;
       ready();
       return true;
     },

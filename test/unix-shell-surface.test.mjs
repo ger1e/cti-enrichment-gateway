@@ -23,7 +23,7 @@ test('boot uses PARA11AX-native services, dense OK statuses, kernel timestamps, 
   assert.match(source, /pxsvc\[evidence-v2\]/);
   assert.match(source, /pxsvc\[semantic-firewall\]/);
   assert.match(source, /pxsvc\[provider-registry\]/);
-  assert.match(source, /pxsvc\[terminal\]/);
+  assert.match(source, /pxsvc\[gateway\]/);
   assert.match(source, /PARA11AX services online/);
   assert.ok((source.match(/\[ OK \]/g) || []).length >= 20, 'boot should present many successful PARA11AX service statuses');
   assert.match(source, /modem-56k/);
