@@ -102,3 +102,73 @@ test('JSON serialization is exact', async () => {
   const value = { status: 'partial', evidence: [{ provider: 'x' }] };
   assert.deepEqual(JSON.parse(serializeJson(value)), value);
 });
+
+test('boot sequence is deterministic and runs once per page lifetime', async () => {
+  const { createBootSequence, BOOT_LINES } = await import('../app/app.js');
+  assert.equal(Array.isArray(BOOT_LINES), true);
+  assert.equal(BOOT_LINES.length, 6);
+  const stages = [];
+  const cues = [];
+  const sleeps = [];
+  let enables = 0;
+  const boot = createBootSequence({
+    audio: { enable: async () => { enables += 1; }, play: (name) => cues.push(name) },
+    sleep: async (ms) => { sleeps.push(ms); },
+    onStage: (name, payload) => stages.push([name, payload]),
+  });
+  assert.equal(await boot.start(), true);
+  assert.equal(await boot.start(), false);
+  assert.equal(enables, 1);
+  assert.deepEqual(cues, ['boot-power', 'boot-lock', 'boot-ready']);
+  assert.equal(stages[0][0], 'power');
+  assert.equal(stages.filter(([name]) => name === 'line').length, BOOT_LINES.length);
+  assert.ok(stages.some(([name]) => name === 'pepe'));
+  assert.equal(stages.at(-1)[0], 'ready');
+  assert.ok(sleeps.reduce((sum, value) => sum + value, 0) >= 2200);
+  assert.deepEqual(boot.state(), { started: true, done: true, skipped: false });
+});
+
+test('boot skip is an audio-unlocking user gesture and finishes immediately', async () => {
+  const { createBootSequence } = await import('../app/app.js');
+  const stages = [];
+  const cues = [];
+  let enables = 0;
+  const boot = createBootSequence({
+    audio: { enable: async () => { enables += 1; }, play: (name) => cues.push(name) },
+    sleep: async () => { throw new Error('skip must not wait'); },
+    onStage: (name) => stages.push(name),
+  });
+  assert.equal(await boot.skip(), true);
+  assert.equal(await boot.skip(), false);
+  assert.equal(enables, 1);
+  assert.deepEqual(cues, ['boot-ready']);
+  assert.deepEqual(stages, ['ready']);
+  assert.deepEqual(boot.state(), { started: true, done: true, skipped: true });
+});
+
+test('reduced-motion boot uses a short static initialization', async () => {
+  const { createBootSequence } = await import('../app/app.js');
+  const stages = [];
+  const sleeps = [];
+  const cues = [];
+  const boot = createBootSequence({
+    reducedMotion: true,
+    audio: { enable: async () => {}, play: (name) => cues.push(name) },
+    sleep: async (ms) => sleeps.push(ms),
+    onStage: (name) => stages.push(name),
+  });
+  assert.equal(await boot.start(), true);
+  assert.deepEqual(sleeps, [300]);
+  assert.deepEqual(stages, ['reduced', 'ready']);
+  assert.deepEqual(cues, ['boot-ready']);
+});
+
+test('boot audio cues are fixed synthesized recipes', async () => {
+  const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext });
+  await audio.enable();
+  const before = audio.state().emitted;
+  audio.play('boot-power');
+  audio.play('boot-lock');
+  audio.play('boot-ready');
+  assert.equal(audio.state().emitted, before + 3);
+});
