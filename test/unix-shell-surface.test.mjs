@@ -6,6 +6,7 @@ const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('browser entrypoint cuts over from legacy dashboard controller to Unix terminal runtime', async () => {
   const html = await read('app/index.html');
+  assert.match(html, /<link\s+rel="stylesheet"\s+href="\/app\/shell\.css"/);
   assert.match(html, /<script\s+type="module"\s+src="\/app\/terminal-entry\.js"/);
   assert.doesNotMatch(html, /<script\s+type="module"\s+src="\/app\/app\.js"/);
 });
@@ -25,7 +26,7 @@ test('Unix boot source contains kernel timestamps, service startup, target readi
 
 test('interactive shell exposes a real sticky prompt with secret auth mode and command scrollback', async () => {
   const source = await read('app/shell-ui.js');
-  const css = await read('app/app.css');
+  const css = await read('app/shell.css');
   assert.match(source, /para11ax@terminal:~\$/);
   assert.match(source, /type\s*=\s*['"]password['"]/);
   assert.match(source, /shell-scrollback/);
