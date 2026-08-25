@@ -48,8 +48,9 @@ export function createAudioEngine({
   let emitted = 0;
   let lastCue = null;
   let lastTyping = -Infinity;
+  const activeNodes = new Set();
 
-  const state = () => Object.freeze({ enabled, muted, volume, emitted, lastCue, supported: Boolean(AudioContextCtor) });
+  const state = () => Object.freeze({ enabled, muted, volume, emitted, lastCue, active: activeNodes.size, supported: Boolean(AudioContextCtor) });
 
   async function enable() {
     if (!AudioContextCtor) return state();
@@ -72,6 +73,8 @@ export function createAudioEngine({
     gain.gain.linearRampToValueAtTime(Math.max(.0001, volume * gainScale), start + Math.min(.008, duration / 3));
     gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
     oscillator.connect(gain).connect(context.destination);
+    oscillator.onended = () => activeNodes.delete(oscillator);
+    activeNodes.add(oscillator);
     oscillator.start(start);
     oscillator.stop(start + duration + .01);
   }
@@ -92,6 +95,14 @@ export function createAudioEngine({
     lastCue = name;
   }
 
+  function stopAll() {
+    if (!context) return;
+    for (const oscillator of activeNodes) {
+      try { oscillator.stop(context.currentTime); } catch {}
+    }
+    activeNodes.clear();
+  }
+
   function typing(kind) {
     if (kind === 'token') return;
     const time = now();
@@ -106,6 +117,7 @@ export function createAudioEngine({
   return Object.freeze({
     enable,
     play,
+    stopAll,
     typing,
     mute(value) { muted = Boolean(value); },
     setVolume(value) { volume = Math.min(1, Math.max(0, Number(value) || 0)); },
