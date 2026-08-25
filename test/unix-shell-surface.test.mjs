@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
+
+test('browser entrypoint cuts over from legacy dashboard controller to Unix terminal runtime', async () => {
+  const html = await read('app/index.html');
+  assert.match(html, /<script\s+type="module"\s+src="\/app\/terminal-entry\.js"/);
+  assert.doesNotMatch(html, /<script\s+type="module"\s+src="\/app\/app\.js"/);
+});
+
+test('Unix boot source contains kernel timestamps, service startup, target readiness and 56k stage', async () => {
+  const source = await read('app/boot.js');
+  assert.match(source, /PARA11AX kernel 2\.0\.0 booting/);
+  assert.match(source, /\[\s*0\.\d+\]/);
+  assert.match(source, /evidence-v2/);
+  assert.match(source, /semantic-firewall/);
+  assert.match(source, /provider-registry/);
+  assert.match(source, /para11ax\.service/);
+  assert.match(source, /Reached target PARA11AX Analyst Terminal/);
+  assert.match(source, /modem-56k/);
+  assert.doesNotMatch(source, /if\s*\(reducedMotion\)[\s\S]{0,250}return\s+true/);
+});
+
+test('interactive shell exposes a real sticky prompt with secret auth mode and command scrollback', async () => {
+  const source = await read('app/shell-ui.js');
+  const css = await read('app/app.css');
+  assert.match(source, /para11ax@terminal:~\$/);
+  assert.match(source, /type\s*=\s*['"]password['"]/);
+  assert.match(source, /shell-scrollback/);
+  assert.match(source, /shell-prompt/);
+  assert.match(css, /\.shell-scrollback/);
+  assert.match(css, /\.shell-prompt[^}]*position:sticky/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-prompt/);
+});
+
+test('shell keyboard maxxing includes history autocomplete cancellation and line editing controls', async () => {
+  const source = await read('app/shell-ui.js');
+  for (const token of ['ArrowUp','ArrowDown','Tab','Ctrl+L','Ctrl+C','Ctrl+U','Ctrl+W','Home','End','Escape']) {
+    assert.ok(source.includes(token), `missing terminal control ${token}`);
+  }
+});
+
+test('new terminal runtime keeps auth volatile and forbids dynamic execution/storage', async () => {
+  const source = `${await read('app/terminal-entry.js')}\n${await read('app/shell-ui.js')}\n${await read('app/shell.js')}`;
+  assert.doesNotMatch(source, /localStorage|sessionStorage|indexedDB/i);
+  assert.doesNotMatch(source, /\beval\s*\(|new\s+Function\s*\(/);
+  assert.doesNotMatch(source, /fetch\s*\(\s*[^'"`]/, 'arbitrary dynamic fetch must not appear in shell runtime');
+});
