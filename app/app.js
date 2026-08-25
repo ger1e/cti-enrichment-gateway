@@ -20,13 +20,40 @@ import {
 } from './renderers.js';
 
 export const VIEWS = Object.freeze(['overview', 'evidence', 'correlation', 'relationships', 'coverage', 'raw']);
-export const BOOT_LINES = Object.freeze([
-  'BOOTSTRAP CORE',
-  'EVIDENCE MODEL v2',
-  'FIXED EGRESS // LOCKED',
-  '37 SOURCES // REGISTERED',
-  'SEMANTIC FIREWALL // ACTIVE',
-  'STIX 2.1 // READY',
+export const POST_LINES = Object.freeze([
+  'MEMORY BUS........................................ [ OK ]',
+  'DISPLAY PIPELINE................................. [ OK ]',
+  'AUDIO SYNTH...................................... [ OK ]',
+  'INPUT CONTROLLER................................. [ OK ]',
+  'TERMINAL RENDERER................................ [ OK ]',
+  'EVIDENCE MODEL v2................................ [ OK ]',
+  'SEMANTIC FIREWALL................................ [ OK ]',
+  'CORRELATION ENGINE............................... [ OK ]',
+  'RELATIONSHIP INDEX............................... [ OK ]',
+  'PROVENANCE TRACKER............................... [ OK ]',
+  'INTEGRITY FINGERPRINTS........................... [ OK ]',
+  'CACHE STATE PARSER............................... [ OK ]',
+  'FAILURE ISOLATION................................ [ OK ]',
+  'CONTRADICTION ENGINE............................. [ OK ]',
+  'HUNTABILITY MODEL................................ [ OK ]',
+  'RAW JSON VIEW.................................... [ OK ]',
+  'STIX 2.1 SERIALIZER.............................. [ OK ]',
+  'EXPORT CONTROLLER................................ [ OK ]',
+  'CLIPBOARD INTERFACE.............................. [ OK ]',
+  'SESSION MEMORY................................... [ OK ]',
+  'BEARER STORAGE................................... [ VOLATILE ]',
+  'PERSISTENT AUTH STORAGE.......................... [ OFF ]',
+  'THIRD-PARTY RUNTIME.............................. [ NONE ]',
+  'FIXED PROFILE TABLE.............................. [ OK ]',
+  'FIXED EGRESS POLICY.............................. [ LOADED ]',
+  'PROVIDER OVERRIDE................................ [ DISABLED ]',
+  'ACTIVE SCANNING.................................. [ DISABLED ]',
+  'TELEMETRY LEAKAGE GUARD.......................... [ OK ]',
+  'REDUCED MOTION................................... [ READY ]',
+  'MOBILE TERMINAL.................................. [ OK ]',
+  'AUDIO CHANNEL.................................... [ ARMED ]',
+  'LOCAL MODULE SELF-TEST........................... [ PASS ]',
+  'PARA11AX TERMINAL................................ [ READY ]',
 ]);
 export const serializeJson = (value) => JSON.stringify(value, null, 2);
 
@@ -69,20 +96,23 @@ export function createBootSequence({
       audio?.play?.('boot-power');
       if (!await wait(320)) return true;
 
-      for (const line of BOOT_LINES) {
-        onStage('line', line);
-        if (!await wait(135)) return true;
-      }
+      onStage('modem');
+      audio?.play?.('modem-56k');
+      if (!await wait(3200)) return true;
 
       onStage('pepe');
       audio?.play?.('boot-lock');
-      if (!await wait(760)) return true;
-      onStage('lock');
-      if (!await wait(220)) return true;
-      onStage('brand');
-      if (!await wait(240)) return true;
+      if (!await wait(650)) return true;
+
+      for (let index = 0; index < POST_LINES.length; index += 1) {
+        onStage('post-line', POST_LINES[index]);
+        const groupPause = index === 4 || index === 9 || index === 15 || index === 23 || index === 29;
+        if (!await wait(groupPause ? 115 : 32)) return true;
+      }
+
+      onStage('scanner');
+      if (!await wait(360)) return true;
       ready();
-      await sleep(260);
       return true;
     },
     async skip() {
@@ -91,6 +121,7 @@ export function createBootSequence({
         started = true;
         await audio?.enable?.();
       }
+      audio?.stopAll?.();
       skipped = true;
       ready();
       return true;
@@ -144,7 +175,7 @@ function bootstrap() {
   const accessForm = byId('access-form');
   const tokenInput = byId('token');
   const workspace = byId('workspace');
-  const pivotForm = byId('pivot-form');
+  const pivotForm = byId('terminal-input-line');
   const indicatorInput = byId('indicator');
   const profile = byId('profile');
   const enrichButton = byId('enrich');
@@ -175,45 +206,63 @@ function bootstrap() {
   function revealAccess() {
     if (accessRevealed) return;
     accessRevealed = true;
-    bootPanel.hidden = true;
     accessPanel.hidden = false;
-    document.body.classList.remove('boot-active', 'boot-powering', 'boot-streaming', 'boot-pepe-visible', 'boot-glitch', 'boot-brand-lock');
+    document.body.classList.remove('boot-powering', 'boot-modem', 'boot-pepe-visible', 'boot-glitch', 'boot-posting', 'boot-scanning');
     document.body.classList.add('boot-complete');
     tokenInput.focus();
-    announce('PARA11AX boot complete. Analyst access ready.');
+    accessPanel.scrollIntoView?.({ block: 'end' });
+    announce('PARA11AX terminal ready. Analyst access waiting.');
+  }
+
+  function appendBootLine(text, className = 'boot-line') {
+    const line = document.createElement('div');
+    line.className = className;
+    line.textContent = text;
+    bootLog.append(line);
+    bootLog.scrollTop = bootLog.scrollHeight;
   }
 
   function renderBootStage(stage, payload) {
     document.body.classList.add('boot-active');
     if (stage === 'power') {
       document.body.classList.add('boot-powering');
-      bootStatus.textContent = 'POWER BUS // ONLINE';
+      bootStatus.textContent = 'CRT POWER // BUS ONLINE';
       bootLog.replaceChildren();
+      appendBootLine('PARA11AX BIOS 2.0.0');
+      appendBootLine('COPYRIGHT 2026 // EVIDENCE TERMINAL');
       return;
     }
-    if (stage === 'line') {
-      document.body.classList.add('boot-streaming');
-      const line = document.createElement('div');
-      line.className = 'boot-line';
-      line.textContent = `> ${payload}`;
-      bootLog.append(line);
-      bootLog.scrollTop = bootLog.scrollHeight;
+    if (stage === 'modem') {
+      document.body.classList.remove('boot-powering');
+      document.body.classList.add('boot-modem');
+      bootStatus.textContent = 'DATA LINK // NEGOTIATING 56K';
+      appendBootLine('ATZ');
+      appendBootLine('OK');
+      appendBootLine('ATDT PARA11AX-UPLINK');
+      appendBootLine('CONNECT 56000/V90');
       return;
     }
     if (stage === 'pepe') {
+      document.body.classList.remove('boot-modem');
       document.body.classList.add('boot-pepe-visible', 'boot-glitch');
       pepeAscii.hidden = false;
-      bootStatus.textContent = 'VISUAL COPROCESSOR // LOCKING';
+      bootStatus.textContent = 'FIRMWARE SIGNATURE // VERIFIED';
       return;
     }
-    if (stage === 'lock') {
-      document.body.classList.remove('boot-glitch');
-      document.body.classList.add('boot-brand-lock');
-      bootStatus.textContent = 'OBSERVATION NODE // LOCKED';
+    if (stage === 'post-line') {
+      if (!document.body.classList.contains('boot-posting')) {
+        document.body.classList.remove('boot-pepe-visible', 'boot-glitch');
+        document.body.classList.add('boot-posting');
+        pepeAscii.hidden = true;
+        bootLog.replaceChildren();
+      }
+      appendBootLine(payload, 'boot-line boot-post-line');
       return;
     }
-    if (stage === 'brand') {
-      bootStatus.textContent = 'PARA11AX // STABILIZED';
+    if (stage === 'scanner') {
+      document.body.classList.remove('boot-posting');
+      document.body.classList.add('boot-scanning');
+      bootStatus.textContent = 'LOCAL MODULE SELF-TEST // PASS';
       return;
     }
     if (stage === 'reduced') {
@@ -223,7 +272,8 @@ function bootstrap() {
       return;
     }
     if (stage === 'ready') {
-      bootStatus.textContent = 'SYSTEM READY';
+      bootStatus.textContent = 'PARA11AX TERMINAL // READY';
+      document.body.classList.remove('boot-scanning');
       document.body.classList.add('boot-ready');
     }
   }
@@ -233,9 +283,14 @@ function bootstrap() {
 
   bootInitialize.addEventListener('click', () => {
     bootInitialize.disabled = true;
-    void boot.start().then((ran) => { if (ran) revealAccess(); });
+    void boot.start().then((ran) => {
+      bootSkip.disabled = true;
+      if (ran) revealAccess();
+    });
   });
   bootSkip.addEventListener('click', () => {
+    bootInitialize.disabled = true;
+    bootSkip.disabled = true;
     void boot.skip().then((ran) => { if (ran) revealAccess(); });
   });
 
@@ -259,7 +314,6 @@ function bootstrap() {
     contradictionCueRequestId = null;
     activeView = 'overview';
     clear(hud);
-    clear(tabs);
     clear(view);
     hud.hidden = true;
     tabs.hidden = true;
@@ -267,6 +321,7 @@ function bootstrap() {
     rawSearch.hidden = true;
     rawSearchLabel.hidden = true;
     rawSearch.value = '';
+    updateViewCommands();
   }
 
   function lockSession(message) {
@@ -276,6 +331,7 @@ function bootstrap() {
     clearResult();
     indicatorInput.value = '';
     tokenInput.value = '';
+    bootPanel.hidden = true;
     setLocked(true);
     announce(message);
   }
@@ -285,47 +341,57 @@ function bootstrap() {
     await audio.enable();
     session.setToken(tokenInput.value);
     try {
-      await client.health();
+      const health = await client.health();
       session.unlock();
       audio.play('access-ok');
+      bootPanel.hidden = true;
       setLocked(false);
       tokenInput.value = '';
       indicatorInput.focus();
-      announce('Session established.');
+      announce(`Authentication OK. Gateway health OK${health?.version ? `, API ${health.version}` : ''}. Session established.`);
     } catch (error) {
       audio.play('access-denied');
       lockSession(error instanceof GatewayHttpError && error.status === 401 ? 'Unauthorized token.' : 'Gateway unavailable.');
     }
   });
 
-  indicatorInput.addEventListener('input', () => audio.typing('pivot'));
+  indicatorInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Backspace' || event.key === 'Delete') audio.typing('backspace');
+    else if (event.key === 'Enter') audio.typing('enter');
+  });
+  indicatorInput.addEventListener('beforeinput', (event) => {
+    if (event.inputType === 'insertText' && event.data) audio.typing('character');
+  });
+  indicatorInput.addEventListener('paste', () => audio.typing('paste'));
 
   byId('sound-toggle').addEventListener('click', () => {
     const muted = !audio.state().muted;
     audio.mute(muted);
     byId('sound-toggle').setAttribute('aria-pressed', String(!muted));
-    byId('sound-toggle').textContent = muted ? 'SOUND OFF' : 'SOUND ON';
+    byId('sound-toggle').textContent = muted ? 'SND:OFF' : 'SND:ON';
   });
 
   byId('volume').addEventListener('input', (event) => audio.setVolume(event.currentTarget.value));
 
-  function renderTabs() {
-    clear(tabs);
-    for (const name of VIEWS) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = name.toUpperCase();
-      button.dataset.view = name;
-      button.setAttribute('aria-pressed', String(name === activeView));
-      button.addEventListener('click', () => {
-        activeView = name;
-        audio.play('tab');
-        renderTabs();
-        renderActiveView();
-      });
-      tabs.append(button);
+  function updateViewCommands() {
+    for (const button of tabs.querySelectorAll('[data-view]')) {
+      const selected = button.dataset.view === activeView;
+      button.setAttribute('aria-pressed', String(selected));
+      button.classList.toggle('is-active', selected);
+      button.disabled = !currentResult;
     }
   }
+
+  for (const button of tabs.querySelectorAll('[data-view]')) {
+    button.addEventListener('click', () => {
+      if (!currentResult) return;
+      activeView = button.dataset.view;
+      audio.play('tab');
+      updateViewCommands();
+      renderActiveView();
+    });
+  }
+  updateViewCommands();
 
   function renderActiveView() {
     if (!currentResult) return;
@@ -358,7 +424,7 @@ function bootstrap() {
     hud.hidden = false;
     tabs.hidden = false;
     actions.hidden = false;
-    renderTabs();
+    updateViewCommands();
     renderActiveView();
   }
 

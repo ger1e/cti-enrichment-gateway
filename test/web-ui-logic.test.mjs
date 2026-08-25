@@ -77,13 +77,27 @@ class FakeParam { setValueAtTime() {} linearRampToValueAtTime() {} exponentialRa
 class FakeNode { constructor() { this.frequency = new FakeParam(); this.gain = new FakeParam(); } connect() { return this; } start() {} stop() {} }
 class FakeAudioContext { constructor() { this.currentTime = 1; this.destination = {}; this.state = 'running'; } createOscillator() { return new FakeNode(); } createGain() { return new FakeNode(); } resume() { return Promise.resolve(); } }
 
-test('audio is user-enabled and token typing is silent', async () => {
+test('typing, erase, enter and paste cues are distinct while bearer typing stays silent', async () => {
   let clock = 1000;
   const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext, now: () => clock });
-  assert.equal(audio.state().enabled, false); await audio.enable();
-  const before = audio.state().emitted; audio.typing('token'); assert.equal(audio.state().emitted, before);
-  audio.typing('pivot'); const once = audio.state().emitted; audio.typing('pivot'); assert.equal(audio.state().emitted, once);
-  clock += 60; audio.typing('pivot'); assert.ok(audio.state().emitted > once);
+  await audio.enable();
+  const start = audio.state().emitted;
+  audio.typing('token');
+  assert.equal(audio.state().emitted, start);
+  audio.typing('character');
+  assert.equal(audio.state().lastCue, 'key');
+  const afterCharacter = audio.state().emitted;
+  audio.typing('character');
+  assert.equal(audio.state().emitted, afterCharacter, 'held/repeated typing is throttled');
+  clock += 60;
+  audio.typing('backspace');
+  assert.equal(audio.state().lastCue, 'key-backspace');
+  clock += 60;
+  audio.typing('enter');
+  assert.equal(audio.state().lastCue, 'key-enter');
+  clock += 60;
+  audio.typing('paste');
+  assert.equal(audio.state().lastCue, 'paste');
 });
 
 test('mute and volume are bounded', async () => {
@@ -103,10 +117,12 @@ test('JSON serialization is exact', async () => {
   assert.deepEqual(JSON.parse(serializeJson(value)), value);
 });
 
-test('boot sequence is deterministic and runs once per page lifetime', async () => {
-  const { createBootSequence, BOOT_LINES } = await import('../app/app.js');
-  assert.equal(Array.isArray(BOOT_LINES), true);
-  assert.equal(BOOT_LINES.length, 6);
+test('hostile terminal boot runs modem then Pepe then dense POST and ready cue once', async () => {
+  const { createBootSequence, POST_LINES } = await import('../app/app.js');
+  assert.ok(Array.isArray(POST_LINES));
+  assert.ok(POST_LINES.length >= 30, 'POST should feel like a real module wall');
+  assert.match(POST_LINES.at(-2), /LOCAL MODULE SELF-TEST.*\[ PASS \]/);
+  assert.match(POST_LINES.at(-1), /PARA11AX TERMINAL.*\[ READY \]/);
   const stages = [];
   const cues = [];
   const sleeps = [];
@@ -119,16 +135,16 @@ test('boot sequence is deterministic and runs once per page lifetime', async () 
   assert.equal(await boot.start(), true);
   assert.equal(await boot.start(), false);
   assert.equal(enables, 1);
-  assert.deepEqual(cues, ['boot-power', 'boot-lock', 'boot-ready']);
-  assert.equal(stages[0][0], 'power');
-  assert.equal(stages.filter(([name]) => name === 'line').length, BOOT_LINES.length);
-  assert.ok(stages.some(([name]) => name === 'pepe'));
+  assert.deepEqual(cues, ['boot-power', 'modem-56k', 'boot-lock', 'boot-ready']);
+  assert.deepEqual(stages.slice(0, 3).map(([name]) => name), ['power', 'modem', 'pepe']);
+  assert.equal(stages.filter(([name]) => name === 'post-line').length, POST_LINES.length);
   assert.equal(stages.at(-1)[0], 'ready');
-  assert.ok(sleeps.reduce((sum, value) => sum + value, 0) >= 2200);
+  assert.ok(sleeps.some((ms) => ms >= 2500), '56k handshake must occupy a real boot beat');
+  assert.ok(sleeps.some((ms) => ms >= 500 && ms <= 900), 'Pepe gets a brief firmware Easter-egg beat');
   assert.deepEqual(boot.state(), { started: true, done: true, skipped: false });
 });
 
-test('boot skip is an audio-unlocking user gesture and finishes immediately', async () => {
+test('boot skip unlocks audio and finishes immediately without modem wait', async () => {
   const { createBootSequence } = await import('../app/app.js');
   const stages = [];
   const cues = [];
@@ -146,7 +162,44 @@ test('boot skip is an audio-unlocking user gesture and finishes immediately', as
   assert.deepEqual(boot.state(), { started: true, done: true, skipped: true });
 });
 
-test('reduced-motion boot uses a short static initialization', async () => {
+test('skip during active modem cuts scheduled audio and advances directly to ready', async () => {
+  const { createBootSequence } = await import('../app/app.js');
+  const stages = [];
+  const cues = [];
+  let stopCalls = 0;
+  let releaseModem;
+  const boot = createBootSequence({
+    audio: {
+      enable: async () => {},
+      play: (name) => cues.push(name),
+      stopAll: () => { stopCalls += 1; },
+    },
+    sleep: async (ms) => {
+      if (ms >= 2500) await new Promise((resolve) => { releaseModem = resolve; });
+    },
+    onStage: (name) => stages.push(name),
+  });
+  const starting = boot.start();
+  while (!stages.includes('modem')) await Promise.resolve();
+  assert.equal(await boot.skip(), true);
+  assert.equal(stopCalls, 1);
+  assert.deepEqual(cues, ['boot-power', 'modem-56k', 'boot-ready']);
+  assert.equal(stages.at(-1), 'ready');
+  releaseModem();
+  await starting;
+  assert.deepEqual(boot.state(), { started: true, done: true, skipped: true });
+});
+
+test('audio stopAll cancels scheduled modem tones', async () => {
+  const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext });
+  await audio.enable();
+  audio.play('modem-56k');
+  assert.ok(audio.state().active > 0);
+  audio.stopAll();
+  assert.equal(audio.state().active, 0);
+});
+
+test('reduced-motion boot keeps a short static initialization and ready cue', async () => {
   const { createBootSequence } = await import('../app/app.js');
   const stages = [];
   const sleeps = [];
@@ -163,12 +216,10 @@ test('reduced-motion boot uses a short static initialization', async () => {
   assert.deepEqual(cues, ['boot-ready']);
 });
 
-test('boot audio cues are fixed synthesized recipes', async () => {
+test('boot and terminal audio cues are fixed synthesized recipes', async () => {
   const audio = createAudioEngine({ AudioContextCtor: FakeAudioContext });
   await audio.enable();
   const before = audio.state().emitted;
-  audio.play('boot-power');
-  audio.play('boot-lock');
-  audio.play('boot-ready');
-  assert.equal(audio.state().emitted, before + 3);
+  for (const cue of ['boot-power', 'modem-56k', 'boot-lock', 'boot-ready', 'key', 'key-backspace', 'key-enter', 'paste']) audio.play(cue);
+  assert.equal(audio.state().emitted, before + 8);
 });

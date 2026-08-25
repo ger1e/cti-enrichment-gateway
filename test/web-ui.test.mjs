@@ -111,3 +111,55 @@ test('boot implementation never persists completion state', () => {
   assert.doesNotMatch(source, forbiddenStorage);
   assert.doesNotMatch(source, /boot[^\n]{0,100}(cookie|storage)/i);
 });
+
+test('hostile terminal replaces the dashboard/card composition', () => {
+  const html = read('app/index.html');
+  const css = read('app/app.css');
+  assert.match(html, /id="terminal-output"/i);
+  assert.match(html, /id="terminal-command-bar"/i);
+  assert.match(html, /id="terminal-status-line"/i);
+  assert.match(html, /id="terminal-input-line"/i);
+  assert.doesNotMatch(css, /grid-template-columns:\s*minmax\(210px,250px\).*minmax\(220px,290px\)/is);
+  assert.doesNotMatch(css, /border-radius:\s*(?:1[0-9]|[2-9][0-9])px/i);
+});
+
+test('mobile terminal has dedicated 360-430px field layout and thumb command bar', () => {
+  const css = read('app/app.css');
+  for (const width of [360, 390, 412, 430]) assert.match(css, new RegExp(`--mobile-${width}\\s*:`), `mobile ${width}px contract token missing`);
+  assert.match(css, /@media\s*\(max-width:\s*430px\)/i);
+  assert.match(css, /\.terminal-command-bar[^}]*position:\s*sticky/is);
+  assert.match(css, /\.terminal-command-bar[^}]*bottom:\s*0/is);
+  assert.match(css, /\.terminal-command-bar[^}]*min-height:\s*44px/is);
+  assert.match(css, /\.terminal-output[^}]*overflow-wrap:\s*anywhere/is);
+  assert.match(css, /\.raw-terminal[^}]*overflow-x:\s*auto/is);
+  assert.match(css, /\.terminal-input-line[^}]*min-height:\s*44px/is);
+});
+
+test('mobile rain is edge-only and active terminal text stays clear', () => {
+  const css = read('app/app.css');
+  assert.match(css, /\.matrix-left/);
+  assert.match(css, /\.matrix-right/);
+  assert.match(css, /\.terminal-stage[^}]*background:\s*(?:#000|#000000|var\(--void\))/is);
+  assert.doesNotMatch(css, /\.terminal-output[^}]*background[^}]*matrix/is);
+});
+
+test('mobile terminal uses operational text and zero SaaS card language', () => {
+  const html = read('app/index.html');
+  const css = read('app/app.css');
+  assert.match(css, /@media\s*\(max-width:\s*430px\)[\s\S]*font-size:\s*(?:13|14|15)px/i);
+  assert.doesNotMatch(html, /class="[^"]*(?:card|hud-cell|semantic-legend)[^"]*"/i);
+  assert.match(html, /:OVR/i);
+  assert.match(html, /:EVD/i);
+  assert.match(html, /:COR/i);
+  assert.match(html, /:RAW/i);
+});
+
+test('scrollbars use terminal chrome on desktop and disappear on touch widths without disabling scroll', () => {
+  const css = read('app/app.css');
+  assert.match(css, /scrollbar-color:\s*#[0-9a-f]{6}\s+#000/i);
+  assert.match(css, /\.boot-log::\-webkit-scrollbar|\.raw-terminal::\-webkit-scrollbar/i);
+  assert.match(css, /\.boot-log::\-webkit-scrollbar-thumb|\.raw-terminal::\-webkit-scrollbar-thumb/i);
+  assert.match(css, /@media\s*\(max-width:\s*430px\)[\s\S]*scrollbar-width:\s*none/is);
+  assert.match(css, /@media\s*\(max-width:\s*430px\)[\s\S]*::\-webkit-scrollbar[^}]*display:\s*none/is);
+  assert.match(css, /\.raw-terminal[^}]*overflow-x:\s*auto/is);
+});
