@@ -121,6 +121,7 @@ export function createBootSequence({
         started = true;
         await audio?.enable?.();
       }
+      audio?.stopAll?.();
       skipped = true;
       ready();
       return true;
@@ -282,8 +283,10 @@ function bootstrap() {
 
   bootInitialize.addEventListener('click', () => {
     bootInitialize.disabled = true;
-    bootSkip.disabled = true;
-    void boot.start().then((ran) => { if (ran) revealAccess(); });
+    void boot.start().then((ran) => {
+      bootSkip.disabled = true;
+      if (ran) revealAccess();
+    });
   });
   bootSkip.addEventListener('click', () => {
     bootInitialize.disabled = true;
