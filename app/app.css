@@ -1,6 +1,8 @@
 :root{color-scheme:dark;--void:#050608;--panel:#0b0f12;--line:#1c282e;--cyan:#00e5ff;--red:#ff1e2d;--hot:#ff4050;--green:#39ff88;--amber:#f6c945;--white:#f3f7fa;--muted:#7d8b95;--mobile-360:360px;--mobile-390:390px;--mobile-412:412px;--mobile-430:430px}
 *{box-sizing:border-box;max-width:100%}
 html,body{margin:0;min-height:100%;background:var(--void);color:var(--white);overflow-x:hidden}
+html{scrollbar-width:thin;scrollbar-color:#24353d #000}
+html::-webkit-scrollbar{width:6px;height:6px}html::-webkit-scrollbar-track{background:#000}html::-webkit-scrollbar-thumb{background:#24353d;border:1px solid #000}html::-webkit-scrollbar-thumb:hover{background:#00e5ff}
 body{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:14px;line-height:1.45;background:#000;letter-spacing:.01em}
 button,input,select{font:inherit;color:inherit;background:transparent;border:0;border-radius:0;min-width:0}
 button{cursor:pointer;min-height:36px;padding:5px 7px;color:var(--muted)}
@@ -37,14 +39,15 @@ a{color:inherit;text-decoration:none}
 .boot-powering .boot-screen::before{animation:crt-ignite .32s ease-out 1}
 @keyframes crt-ignite{0%{opacity:0;transform:scaleY(.004)}15%{opacity:.94;transform:scaleY(.008)}31%{opacity:.58;transform:scaleY(.03)}50%{opacity:.24;transform:scaleY(1)}100%{opacity:0;transform:scaleY(1)}}
 .boot-status{position:absolute;z-index:6;top:9px;left:0;padding-left:9px;border-left:2px solid var(--red);color:var(--red);font-size:10px;letter-spacing:.1em}
-.boot-log{position:absolute;z-index:4;top:38px;right:0;bottom:10px;left:0;overflow:auto;padding:4px 8px 20px 0;color:#c7d3d8;font-size:11px;line-height:1.42;scrollbar-width:thin;scrollbar-color:#24353d #000}
+.boot-log{position:absolute;z-index:4;top:38px;right:0;bottom:10px;left:0;overflow:auto;padding:4px 8px 20px 0;color:#c7d3d8;font-size:11px;line-height:1.42;scrollbar-width:thin;scrollbar-color:#5b2027 #000}
+.boot-log::-webkit-scrollbar,.boot-pepe::-webkit-scrollbar,.raw-terminal::-webkit-scrollbar{width:5px;height:5px}.boot-log::-webkit-scrollbar-track,.boot-pepe::-webkit-scrollbar-track,.raw-terminal::-webkit-scrollbar-track{background:#000}.boot-log::-webkit-scrollbar-thumb{background:#5b2027;border:1px solid #000}.boot-pepe::-webkit-scrollbar-thumb,.raw-terminal::-webkit-scrollbar-thumb{background:#24353d;border:1px solid #000}.boot-log::-webkit-scrollbar-thumb:hover{background:#ff1e2d}.boot-pepe::-webkit-scrollbar-thumb:hover,.raw-terminal::-webkit-scrollbar-thumb:hover{background:#00e5ff}
 .boot-line{white-space:pre;min-height:16px}
 .boot-line:nth-child(5n+1){color:#9fb0b7}
 .boot-post-line{color:#c8d1d5}
 .boot-post-line:last-child,.boot-ready .boot-post-line:last-child{color:var(--green)}
 .boot-modem .boot-status{color:var(--cyan);border-color:var(--cyan);animation:modem-jitter .08s steps(2,end) infinite}
 @keyframes modem-jitter{50%{transform:translateX(1px)}}
-.boot-pepe{position:absolute;z-index:5;inset:35px 0 8px;margin:auto;display:block;width:max-content;max-width:100%;height:max-content;max-height:calc(100% - 43px);overflow:auto;white-space:pre;color:#c9fbff;font-size:clamp(3px,.47vw,7px);line-height:1;text-shadow:0 0 5px rgba(0,229,255,.42);transform-origin:center}
+.boot-pepe{position:absolute;z-index:5;inset:35px 0 8px;margin:auto;display:block;width:max-content;max-width:100%;height:max-content;max-height:calc(100% - 43px);overflow:auto;white-space:pre;color:#c9fbff;font-size:clamp(3px,.47vw,7px);line-height:1;text-shadow:0 0 5px rgba(0,229,255,.42);transform-origin:center;scrollbar-width:thin;scrollbar-color:#24353d #000}
 .boot-pepe-visible .boot-log{opacity:.04}
 .boot-pepe-visible .boot-pepe{animation:pepe-resolve .5s steps(7,end) both}
 .boot-glitch .boot-pepe{animation:pepe-resolve .42s steps(7,end) both,pepe-glitch .085s steps(2,end) 3 .38s}
@@ -109,6 +112,8 @@ a{color:inherit;text-decoration:none}
 
 @media(max-width:430px){
   body{font-size:14px}
+  html,.boot-log,.boot-pepe,.raw-terminal,.command-views,.command-actions{scrollbar-width:none}
+  html::-webkit-scrollbar,.boot-log::-webkit-scrollbar,.boot-pepe::-webkit-scrollbar,.raw-terminal::-webkit-scrollbar,.command-views::-webkit-scrollbar,.command-actions::-webkit-scrollbar{display:none}
   .app-shell{width:calc(100% - 16px);padding-top:6px}
   .matrix{width:13%;min-width:34px}.matrix-far{opacity:.1}.matrix-mid{opacity:.16}.matrix-front{opacity:.13}.rain-col{font-size:.46rem;line-height:.63rem}
   .boot-panel{min-height:calc(100svh - 12px)}.boot-standby{font-size:9px}.boot-title{font-size:11px}.boot-screen{height:64svh;min-height:350px}.boot-status{font-size:9px}.boot-log{top:34px;font-size:9px;line-height:1.38}.boot-line{min-height:13px}.boot-pepe{inset:34px 0 4px;font-size:3px;line-height:.96}.boot-controls{min-height:44px}.boot-controls button{min-height:44px}.boot-note{font-size:8px}
