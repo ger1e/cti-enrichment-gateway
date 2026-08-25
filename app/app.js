@@ -20,7 +20,86 @@ import {
 } from './renderers.js';
 
 export const VIEWS = Object.freeze(['overview', 'evidence', 'correlation', 'relationships', 'coverage', 'raw']);
+export const BOOT_LINES = Object.freeze([
+  'BOOTSTRAP CORE',
+  'EVIDENCE MODEL v2',
+  'FIXED EGRESS // LOCKED',
+  '37 SOURCES // REGISTERED',
+  'SEMANTIC FIREWALL // ACTIVE',
+  'STIX 2.1 // READY',
+]);
 export const serializeJson = (value) => JSON.stringify(value, null, 2);
+
+export function createBootSequence({
+  audio,
+  reducedMotion = false,
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  onStage = () => {},
+} = {}) {
+  let started = false;
+  let done = false;
+  let skipped = false;
+
+  const wait = async (ms) => {
+    await sleep(ms);
+    return !done;
+  };
+
+  const ready = () => {
+    if (done) return;
+    onStage('ready');
+    audio?.play?.('boot-ready');
+    done = true;
+  };
+
+  return Object.freeze({
+    async start() {
+      if (started || done) return false;
+      started = true;
+      await audio?.enable?.();
+
+      if (reducedMotion) {
+        onStage('reduced');
+        await sleep(300);
+        ready();
+        return true;
+      }
+
+      onStage('power');
+      audio?.play?.('boot-power');
+      if (!await wait(320)) return true;
+
+      for (const line of BOOT_LINES) {
+        onStage('line', line);
+        if (!await wait(135)) return true;
+      }
+
+      onStage('pepe');
+      audio?.play?.('boot-lock');
+      if (!await wait(760)) return true;
+      onStage('lock');
+      if (!await wait(220)) return true;
+      onStage('brand');
+      if (!await wait(240)) return true;
+      ready();
+      await sleep(260);
+      return true;
+    },
+    async skip() {
+      if (done) return false;
+      if (!started) {
+        started = true;
+        await audio?.enable?.();
+      }
+      skipped = true;
+      ready();
+      return true;
+    },
+    state() {
+      return Object.freeze({ started, done, skipped });
+    },
+  });
+}
 
 function safeFilename(indicator, suffix) {
   const stem = String(indicator || 'indicator')
@@ -55,6 +134,12 @@ function bootstrap() {
   const client = createGatewayClient({ getToken: session.getToken });
   const byId = (id) => document.getElementById(id);
 
+  const bootPanel = byId('boot-panel');
+  const bootInitialize = byId('boot-initialize');
+  const bootSkip = byId('boot-skip');
+  const bootLog = byId('boot-log');
+  const pepeAscii = byId('pepe-ascii');
+  const bootStatus = byId('boot-status');
   const accessPanel = byId('access-panel');
   const accessForm = byId('access-form');
   const tokenInput = byId('token');
@@ -79,12 +164,80 @@ function bootstrap() {
   let contradictionCueRequestId = null;
   let operationController = null;
   let busy = false;
+  let accessRevealed = false;
 
   const announce = (text) => { live.textContent = text; };
   const setLocked = (locked) => {
     accessPanel.hidden = !locked;
     workspace.hidden = locked;
   };
+
+  function revealAccess() {
+    if (accessRevealed) return;
+    accessRevealed = true;
+    bootPanel.hidden = true;
+    accessPanel.hidden = false;
+    document.body.classList.remove('boot-active', 'boot-powering', 'boot-streaming', 'boot-pepe-visible', 'boot-glitch', 'boot-brand-lock');
+    document.body.classList.add('boot-complete');
+    tokenInput.focus();
+    announce('PARA11AX boot complete. Analyst access ready.');
+  }
+
+  function renderBootStage(stage, payload) {
+    document.body.classList.add('boot-active');
+    if (stage === 'power') {
+      document.body.classList.add('boot-powering');
+      bootStatus.textContent = 'POWER BUS // ONLINE';
+      bootLog.replaceChildren();
+      return;
+    }
+    if (stage === 'line') {
+      document.body.classList.add('boot-streaming');
+      const line = document.createElement('div');
+      line.className = 'boot-line';
+      line.textContent = `> ${payload}`;
+      bootLog.append(line);
+      bootLog.scrollTop = bootLog.scrollHeight;
+      return;
+    }
+    if (stage === 'pepe') {
+      document.body.classList.add('boot-pepe-visible', 'boot-glitch');
+      pepeAscii.hidden = false;
+      bootStatus.textContent = 'VISUAL COPROCESSOR // LOCKING';
+      return;
+    }
+    if (stage === 'lock') {
+      document.body.classList.remove('boot-glitch');
+      document.body.classList.add('boot-brand-lock');
+      bootStatus.textContent = 'OBSERVATION NODE // LOCKED';
+      return;
+    }
+    if (stage === 'brand') {
+      bootStatus.textContent = 'PARA11AX // STABILIZED';
+      return;
+    }
+    if (stage === 'reduced') {
+      pepeAscii.hidden = false;
+      document.body.classList.add('boot-pepe-visible');
+      bootStatus.textContent = 'PARA11AX // STATIC INITIALIZATION';
+      return;
+    }
+    if (stage === 'ready') {
+      bootStatus.textContent = 'SYSTEM READY';
+      document.body.classList.add('boot-ready');
+    }
+  }
+
+  const reducedMotion = Boolean(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const boot = createBootSequence({ audio, reducedMotion, onStage: renderBootStage });
+
+  bootInitialize.addEventListener('click', () => {
+    bootInitialize.disabled = true;
+    void boot.start().then((ran) => { if (ran) revealAccess(); });
+  });
+  bootSkip.addEventListener('click', () => {
+    void boot.skip().then((ran) => { if (ran) revealAccess(); });
+  });
 
   function setBusy(value) {
     busy = Boolean(value);
