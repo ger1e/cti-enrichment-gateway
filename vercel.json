@@ -11,6 +11,10 @@
       "handle": "filesystem"
     },
     {
+      "src": "/api/(.*)",
+      "dest": "/api/[...path].js"
+    },
+    {
       "src": "/403",
       "dest": "/403.html",
       "status": 403
