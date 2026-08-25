@@ -46,7 +46,7 @@ body{overscroll-behavior:none}
 .post-led.ok,.post-led.pass,.post-led.ready{background:var(--px-green)}
 .post-led.off,.post-led.disabled,.post-led.none{background:var(--px-amber)}
 
-.boot-globe{position:absolute;z-index:1;left:65%;top:52%;width:min(54vw,540px);height:auto;opacity:0;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 10px rgba(0,229,255,.18));transform-origin:center;transform:translate(-50%,-50%) rotate(0deg);animation:globe-spin 28s linear infinite;transition:opacity .22s linear}
+.boot-globe{position:absolute;z-index:1;left:65%;top:52%;width:min(54vw,540px);height:auto;opacity:.06;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 10px rgba(0,229,255,.18));transform-origin:center;transform:translate(-50%,-50%) rotate(0deg);animation:globe-spin 28s linear infinite;transition:opacity .22s linear}
 .boot-powering .boot-globe{opacity:.06}
 .boot-modem .boot-globe{opacity:.06}
 .boot-posting .boot-globe{opacity:.06}

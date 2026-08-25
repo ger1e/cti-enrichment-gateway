@@ -139,9 +139,11 @@ test('boot globe remains centered when reduced motion disables rotation', async 
   assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.boot-globe[^}]*animation:\s*none/);
 });
 
-test('wireframe globe is visible only after the boot sequence is initialized', async () => {
+test('wireframe globe is visible in standby and stays visible through boot', async () => {
   const css = await read('app/shell.css');
-  assert.match(css, /\.boot-globe\{[^}]*opacity:\s*0/);
+  const baseRule = css.match(/\.boot-globe\{([^}]*)\}/)?.[1] || '';
+  const baseOpacity = Number(baseRule.match(/opacity:\s*([0-9.]+)/)?.[1]);
+  assert.ok(baseOpacity > 0, 'standby globe must be visible before INITIALIZE');
   assert.match(css, /\.boot-powering \.boot-globe[^}]*opacity:/);
   assert.match(css, /\.boot-modem \.boot-globe[^}]*opacity:/);
 });
