@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050608">
+  <meta name="description" content="PARA11AX — bounded, read-only, provenance-first CTI Evidence Gateway.">
+  <link rel="canonical" href="https://cti-enrichment-gateway.vercel.app/">
+  <title>PARA11AX // CTI Evidence Gateway</title>
+  <style>
+    :root{color-scheme:dark;--void:#050608;--panel:#0b0f12;--line:#202a31;--cyan:#00e5ff;--red:#ff1e2d;--hot:#ff4050;--green:#39ff88;--amber:#f6c945;--white:#f3f7fa;--muted:#7d8b95}
+    *{box-sizing:border-box}html{background:var(--void);scroll-behavior:smooth}body{margin:0;min-height:100vh;overflow-x:hidden;background:radial-gradient(circle at 50% -10%,#0b2028 0,transparent 40%),var(--void);color:var(--white);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;line-height:1.55}
+    a{color:var(--cyan);text-decoration:none}a:hover,a:focus-visible{color:var(--white);text-decoration:underline;text-underline-offset:4px}a:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}
+    .matrix-rain{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;opacity:.48;mask-image:linear-gradient(to bottom,#000 0,#000 58%,transparent 100%)}
+    .rain{position:absolute;top:-115%;width:1.1rem;color:var(--red);font-size:.68rem;line-height:.9rem;letter-spacing:0;text-shadow:0 0 7px #ff1e2d;white-space:normal;word-break:break-all;opacity:.42;animation:fall var(--d,1s) linear infinite;animation-delay:var(--delay,0s)}
+    .rain:nth-child(2n){opacity:.28;color:var(--hot)}.rain:nth-child(3n){font-size:.58rem}.rain:nth-child(5n){opacity:.55}
+    @keyframes fall{from{transform:translateY(-8vh)}to{transform:translateY(225vh)}}
+    .shell{position:relative;z-index:1;width:min(1080px,calc(100% - 28px));margin:0 auto;padding:18px 0 42px}
+    nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 16px;border-bottom:1px solid #152129}.brand-mini{font-size:.78rem;font-weight:800;letter-spacing:.12em}.brand-mini .eleven{color:var(--cyan)}.navlinks{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;font-size:.72rem}
+    .hero{position:relative;overflow:hidden;margin:18px 0 14px;padding:clamp(24px,6vw,56px);border:1px solid #20333b;border-radius:18px;background:linear-gradient(145deg,rgba(11,15,18,.94),rgba(5,6,8,.88));box-shadow:0 18px 70px rgba(0,0,0,.42)}
+    .geometry{position:absolute;inset:0;pointer-events:none;opacity:.72}.geometry:before,.geometry:after{content:"";position:absolute;left:50%;top:8%;width:1px;height:84%;background:linear-gradient(transparent,var(--cyan),transparent);transform-origin:center}.geometry:before{transform:rotate(52deg)}.geometry:after{transform:rotate(-52deg)}.node{position:absolute;left:50%;top:45%;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 18px var(--red);transform:translate(-50%,-50%)}
+    .eyebrow{position:relative;margin:0 0 9px;color:var(--muted);font-size:.7rem;letter-spacing:.14em}.wordmark{position:relative;margin:0;font-size:clamp(2.15rem,9vw,5.4rem);line-height:.9;letter-spacing:-.055em;font-weight:900}.wordmark .eleven{color:var(--cyan);text-shadow:0 0 16px rgba(0,229,255,.35)}
+    .tagline{position:relative;margin:14px 0 0;max-width:690px;color:#c4cdd3;font-size:clamp(.82rem,2.6vw,1rem)}
+    .scanner{position:relative;margin:22px 0 16px;height:3px;overflow:hidden;background:#240a0e}.scanner i{display:block;width:18%;height:100%;background:linear-gradient(90deg,transparent,var(--red),#fff,var(--red),transparent);filter:drop-shadow(0 0 6px var(--red));animation:sweep 1.8s ease-in-out infinite alternate}@keyframes sweep{from{transform:translateX(-30%)}to{transform:translateX(480%)}}
+    blockquote{position:relative;margin:16px 0 0;padding:10px 0 0;border-top:1px solid #253038;color:#b8c2c9;font-size:.78rem}blockquote strong{color:var(--white)}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 20px}.metric{padding:12px;border:1px solid #1f2b31;border-radius:10px;background:rgba(11,15,18,.86)}.metric b{display:block;color:var(--green);font-size:1rem}.metric span{display:block;margin-top:2px;color:var(--muted);font-size:.66rem;text-transform:uppercase;letter-spacing:.08em}
+    .section{margin:14px 0;padding:16px;border:1px solid #1b272d;border-radius:14px;background:rgba(7,10,12,.9)}.label{margin:0 0 12px;color:var(--cyan);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.step{min-height:76px;padding:10px;border:1px solid #24343c;border-radius:9px;background:var(--panel);font-size:.72rem}.step b{display:block;margin-bottom:4px;color:var(--white)}.step em{color:var(--muted);font-style:normal;font-size:.66rem}.step.boundary{border-color:var(--cyan);box-shadow:inset 0 0 20px rgba(0,229,255,.04)}.step.source{border-color:#66551a}.step.evidence{border-color:#176b3c}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.card{padding:13px;border:1px solid #1f2b31;border-radius:10px;background:var(--panel)}.card b{display:block;margin-bottom:5px;color:var(--white);font-size:.8rem}.card p{margin:0;color:#9ca8af;font-size:.72rem}.card code{color:var(--green)}
+    .api{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.api a,.api span{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid #1d292f;border-radius:8px;background:#090d10;font-size:.7rem}.api i{color:var(--muted);font-style:normal}
+    .notice{margin:14px 0;padding:12px 14px;border-left:3px solid var(--amber);background:#151208;color:#d1c9a6;font-size:.72rem}.footer{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:14px;border-top:1px solid #19242a;color:var(--muted);font-size:.68rem}.footer strong{color:var(--green)}
+    @media(max-width:720px){.shell{width:min(100% - 20px,680px);padding-top:10px}.navlinks{gap:8px}.hero{margin-top:12px;padding:24px 18px 20px;border-radius:14px}.eyebrow{font-size:.62rem}.wordmark{font-size:clamp(2rem,10.5vw,3.5rem)}.tagline{font-size:.78rem}.metrics{grid-template-columns:repeat(2,1fr)}.flow{grid-template-columns:1fr}.step{min-height:0}.cards{grid-template-columns:1fr}.api{grid-template-columns:1fr}.section{padding:13px}.rain{font-size:.58rem;line-height:.78rem}}
+    @media(max-width:380px){.brand-mini{font-size:.68rem}.navlinks{font-size:.64rem}.metrics{grid-template-columns:1fr 1fr}.metric{padding:9px}.wordmark{font-size:2rem}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rain,.scanner i{animation:none}.matrix-rain{opacity:.24}.scanner i{width:100%;background:linear-gradient(90deg,transparent,var(--red),transparent)}}
+  </style>
+</head>
+<body>
+  <div class="matrix-rain" aria-hidden="true">
+    <span class="rain" style="left:2%;--d:.82s;--delay:-.3s">11A0X101PARA110011AX10</span><span class="rain" style="left:7%;--d:1.06s;--delay:-.8s">010011AX1100PARA1011</span><span class="rain" style="left:12%;--d:.91s;--delay:-.2s">EVIDENCE1100101AX11</span><span class="rain" style="left:17%;--d:1.18s;--delay:-.7s">0011011PARA11001010</span><span class="rain" style="left:22%;--d:.76s;--delay:-.4s">STIX2110011AX01011</span><span class="rain" style="left:27%;--d:1.11s;--delay:-.9s">101100PARA11X00101</span><span class="rain" style="left:32%;--d:.88s;--delay:-.1s">FIXEDEGRESS11001011</span><span class="rain" style="left:37%;--d:1.23s;--delay:-.6s">01101AX1100PARA1100</span><span class="rain" style="left:42%;--d:.79s;--delay:-.5s">PROVENANCE00110111</span><span class="rain" style="left:47%;--d:1.02s;--delay:-.2s">110010PARA11AX0011</span><span class="rain" style="left:52%;--d:.93s;--delay:-.8s">READONLY1100110011</span><span class="rain" style="left:57%;--d:1.16s;--delay:-.4s">0110011AXPARA110101</span><span class="rain" style="left:62%;--d:.74s;--delay:-.6s">CORRELATE11001011</span><span class="rain" style="left:67%;--d:1.08s;--delay:-.1s">1001PARA11AX110010</span><span class="rain" style="left:72%;--d:.86s;--delay:-.7s">CONTEXT0011011011</span><span class="rain" style="left:77%;--d:1.21s;--delay:-.3s">1100AX11PARA010011</span><span class="rain" style="left:82%;--d:.81s;--delay:-.9s">HUNTABILITY1011011</span><span class="rain" style="left:87%;--d:1.04s;--delay:-.5s">011PARA11AX100110</span><span class="rain" style="left:92%;--d:.9s;--delay:-.2s">BOUNDED1100101011</span><span class="rain" style="left:97%;--d:1.14s;--delay:-.8s">11001AXPARA1100101</span>
+  </div>
+  <div class="shell">
+    <nav aria-label="Primary">
+      <a class="brand-mini" href="/"><span>PARA</span><span class="eleven">11</span><span>AX</span></a>
+      <div class="navlinks"><a href="https://github.com/ger1e/cti-enrichment-gateway">GITHUB</a><a href="https://github.com/ger1e/cti-enrichment-gateway/blob/main/docs/API.md">API</a><a href="/api/meta">META</a></div>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div class="geometry"><span class="node"></span></div>
+        <p class="eyebrow">CTI // EVIDENCE GATEWAY</p>
+        <h1 class="wordmark">PARA<span class="eleven">11</span>AX</h1>
+        <p class="tagline">Bounded, read-only, provenance-first intelligence enrichment. Fixed workflows. Fixed egress. Evidence stays evidence.</p>
+        <div class="scanner" aria-hidden="true"><i></i></div>
+        <blockquote>“You’ve got to follow the evidence… <strong>That doesn’t make it fact.</strong>” — John Kiriakou</blockquote>
+      </section>
+
+      <div class="metrics" aria-label="Gateway facts">
+        <div class="metric"><b>37</b><span>fixed sources</span></div>
+        <div class="metric"><b>v2</b><span>evidence model</span></div>
+        <div class="metric"><b>2.1</b><span>STIX export</span></div>
+        <div class="metric"><b>READ</b><span>only mode</span></div>
+      </div>
+
+      <section class="section">
+        <p class="label">01 // Request path</p>
+        <div class="flow">
+          <div class="step"><b>INPUT</b><em>IP · domain · URL · hash · CVE · ATT&amp;CK · ASN · CIDR</em></div>
+          <div class="step"><b>CLASSIFY</b><em>canonical type + fixed fast / standard / full profile</em></div>
+          <div class="step boundary"><b>safeFetch</b><em>declared HTTPS destinations · max 4 providers</em></div>
+          <div class="step source"><b>37 SOURCES</b><em>provider-native parsers + bounded cache</em></div>
+          <div class="step evidence"><b>EVIDENCE v2</b><em>typed correlation · JSON · batch · STIX 2.1</em></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="label">02 // Semantic firewall</p>
+        <div class="cards">
+          <div class="card"><b>Context ≠ reputation</b><p>Routing, registration, Tor, scanners, ATT&amp;CK and infrastructure stay contextual.</p></div>
+          <div class="card"><b>Claims ≠ proof</b><p>Community and ransomware reporting remains claim/report evidence until independently supported.</p></div>
+          <div class="card"><b>Risk axes stay separate</b><p><code>KEV</code> exploitation status, <code>EPSS</code> probability and <code>CVSS</code> severity never collapse into one score.</p></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="label">03 // Public API surface</p>
+        <div class="api">
+          <a href="/api/meta"><span>GET /api/meta</span><i>public capabilities</i></a>
+          <span><span>GET /api/health</span><i>bearer</i></span>
+          <span><span>GET /api/status</span><i>bearer</i></span>
+          <span><span>POST /api/enrich</span><i>bearer</i></span>
+          <span><span>POST /api/batch</span><i>bearer</i></span>
+          <span><span>POST /api/stix</span><i>bearer</i></span>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="label">04 // Hard boundaries</p>
+        <div class="cards">
+          <div class="card"><b>No arbitrary upstreams</b><p>Callers cannot choose provider hosts, protocols, methods, redirects, credentials, or custom egress.</p></div>
+          <div class="card"><b>No active operations</b><p>No scanning, detonation, sample submission/download, takedown, remediation, or arbitrary proxying.</p></div>
+          <div class="card"><b>No synthetic master score</b><p>Absence, context, claims, failures and unlike evidence keep their original semantics.</p></div>
+        </div>
+      </section>
+
+      <div class="notice"><strong>Personal research / lab surface.</strong> Do not send commercial-client, internal-enterprise, restricted, or otherwise sensitive data without explicit authorization and data-handling approval.</div>
+    </main>
+
+    <footer class="footer">
+      <span><strong>OBSERVED ≠ INFERRED ≠ CONTEXTUAL</strong></span>
+      <span><a href="https://github.com/ger1e/cti-enrichment-gateway/blob/main/docs/ARCHITECTURE.md">ARCHITECTURE</a> · <a href="https://github.com/ger1e/cti-enrichment-gateway/blob/main/docs/PROVIDERS.md">PROVIDERS</a> · <a href="https://github.com/ger1e/cti-enrichment-gateway/blob/main/SECURITY.md">SECURITY</a></span>
+    </footer>
+  </div>
+</body>
+</html>

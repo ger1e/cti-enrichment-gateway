@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 410" role="img" aria-labelledby="title desc">
+<title id="title">PARA11AX request path</title>
+<desc id="desc">Mobile-safe architecture diagram from client through fixed egress and fixed sources to evidence and STIX output.</desc>
+<rect width="720" height="410" rx="18" fill="#050608"/>
+<rect x="1" y="1" width="718" height="408" rx="17" fill="none" stroke="#00e5ff" stroke-opacity=".28" stroke-width="2"/>
+<text x="28" y="38" fill="#f3f7fa" font-size="24" font-weight="700" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" letter-spacing="2">PARA11AX // REQUEST PATH</text>
+<text x="692" y="38" fill="#ff1e2d" font-size="14" text-anchor="end" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">FIXED EGRESS</text>
+<g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="18">
+  <rect x="28" y="60" width="664" height="48" rx="8" fill="#0b0f12" stroke="#26323a"/>
+  <text x="48" y="90" fill="#f3f7fa">CLIENT / CLI / MALTEGO</text>
+  <text x="666" y="90" fill="#7d8b95" text-anchor="end">caller</text>
+  <path d="M360 108v18" stroke="#00e5ff" stroke-width="2"/><path d="M354 120l6 7 6-7" fill="none" stroke="#00e5ff" stroke-width="2"/>
+
+  <rect x="28" y="130" width="664" height="48" rx="8" fill="#0b0f12" stroke="#26323a"/>
+  <text x="48" y="160" fill="#f3f7fa">BEARER AUTH → CLASSIFIER → FAST / STANDARD / FULL</text>
+  <path d="M360 178v18" stroke="#00e5ff" stroke-width="2"/><path d="M354 190l6 7 6-7" fill="none" stroke="#00e5ff" stroke-width="2"/>
+
+  <rect x="28" y="200" width="664" height="48" rx="8" fill="#082b2f" stroke="#00e5ff" stroke-width="2"/>
+  <text x="48" y="230" fill="#f3f7fa">TIERED SCHEDULER → </text>
+  <text x="310" y="230" fill="#00e5ff" font-weight="700">safeFetch FIXED EGRESS</text>
+  <text x="666" y="230" fill="#7d8b95" text-anchor="end">max 4</text>
+  <path d="M360 248v18" stroke="#ff1e2d" stroke-width="2"/><path d="M354 260l6 7 6-7" fill="none" stroke="#ff1e2d" stroke-width="2"/>
+
+  <rect x="28" y="270" width="664" height="48" rx="8" fill="#12100b" stroke="#f6c945" stroke-width="2"/>
+  <text x="48" y="300" fill="#f6c945">37 FIXED SOURCES</text>
+  <text x="666" y="300" fill="#f3f7fa" text-anchor="end">→ PARSERS → BOUNDED CACHE</text>
+  <path d="M360 318v18" stroke="#39ff88" stroke-width="2"/><path d="M354 330l6 7 6-7" fill="none" stroke="#39ff88" stroke-width="2"/>
+
+  <rect x="28" y="340" width="664" height="48" rx="8" fill="#0b2d20" stroke="#39ff88" stroke-width="2"/>
+  <text x="48" y="370" fill="#39ff88" font-weight="700">EVIDENCE V2</text>
+  <text x="190" y="370" fill="#f3f7fa">→ CORRELATION → JSON / BATCH / STIX 2.1</text>
+</g>
+</svg>
