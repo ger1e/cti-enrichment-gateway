@@ -4,7 +4,7 @@
 
 The gateway is a private, read-only CTI enrichment service. It accepts one bounded indicator or a bounded batch, selects a fixed workflow, queries only predeclared provider destinations, normalizes evidence, correlates compatible observations, and returns provenance-preserving JSON or STIX 2.1.
 
-It is not a scanner, detonation service, arbitrary HTTP proxy, submission service, takedown system, secret broker or autonomous remediation system.
+It is not a scanner, detonation service, arbitrary HTTP proxy, submission service, takedown system, secret broker, autonomous remediation system or automatic blocking engine.
 
 #### Architecture at a glance
 
@@ -25,8 +25,9 @@ Client / Maltego
   -> provider parser
   -> bounded cache
   -> evidence-v2 normalization + integrity fingerprint
-  -> typed correlation / freshness / huntability
-  -> JSON, bounded batch result, or STIX 2.1 bundle
+  -> typed correlation / freshness / evidence quality / huntability
+  -> deterministic decision support / telemetry readiness / bounded hunt plan
+  -> JSON, bounded batch result, report bundle, or STIX 2.1 bundle
 ```
 
 Batch enrichment reuses the same classifier, profile selector and single-indicator orchestrator. It adds canonical de-duplication, max-three indicator concurrency, one shared deadline and a global provider-call reservation. There is no second provider-routing implementation.
@@ -49,6 +50,8 @@ Every upstream response is untrusted. Parsers fail closed on malformed structure
 
 Normalization preserves provider, parser version, retrieval time, cache state, duration and a canonical integrity fingerprint. Correlation is typed: scanner activity, Tor-exit status, registration/routing context and ATT&CK knowledge cannot become malware-reputation votes.
 
+Decision support consumes only normalized evidence, typed correlation, coverage state and explicit relationships. It emits an explainable operational disposition, confidence tier, reasons, telemetry requirements, temporal context, ATT&CK mappings, an entity graph and bounded hunt templates. It does not add evidence, infer actor attribution from infrastructure proximity, or execute hunts/remediation.
+
 ##### Gateway -> telemetry/status
 
 Operational telemetry is allowlisted and excludes raw indicators by default. Authenticated status is count-only and `Cache-Control: no-store`; it exposes configuration booleans rather than credential values.
@@ -63,12 +66,18 @@ Operational telemetry is allowlisted and excludes raw indicators by default. Aut
 - Cache: bounded LRU/TTL, namespaces and in-flight de-duplication. Only successful observations are cached. Successful semantic negatives use the shorter negative TTL; transport/provider failures are never cached.
 - Batch: max 20 inputs, max 3 active indicators and max 200 provider calls globally.
 - STIX: max 100 generated objects.
+- Decision graph: max 100 nodes and 100 edges.
+- Generated hunt plan: max 8 entries.
 
 #### Analytical model
 
 There is deliberately no universal maliciousness score. Evidence stays in semantic classes. Corroboration requires compatible independent observations; contradictions stay explicit.
 
 For CVEs, KEV, EPSS and CVSS remain separate axes. Huntability is an operational mapping, not a threat-confidence or attribution score. Actor attribution is emitted only from explicit supporting evidence/relationships.
+
+The decision-support layer is an operational synthesis, not a new evidence source. `hunt_now` means the existing evidence is sufficiently supported/current and directly huntable under the deterministic rules; it does not mean compromise is confirmed. Contradiction, staleness and material coverage loss downgrade confidence. Infrastructure-only observations remain context rather than threat confirmation.
+
+Telemetry readiness is schema-level only. Generated KQL identifies the expected Microsoft Defender XDR/Sentinel tables, but the gateway does not validate tenant ingestion, retention, table availability or client-specific field customization; `environmentValidated` therefore remains false until checked externally.
 
 #### Indicator types
 
