@@ -1,6 +1,7 @@
 import { runProvider } from './provider-runner.js';
 import { normalizeEvidence } from './normalize.js';
 import { correlateEvidence } from './correlate.js';
+import { buildDecisionSupport } from './decision-engine.js';
 import { runScheduledProviders } from './scheduler.js';
 import { semanticClass } from './semantics.js';
 import { EVIDENCE_SCHEMA_VERSION } from './version.js';
@@ -108,13 +109,16 @@ export async function enrich({
   if (!Array.isArray(providerNames) || providerNames.length === 0) {
     const queriedAt = now();
     const durationMs = Math.max(0, nowMs() - started);
-    const correlation = correlateEvidence({ indicator, type, evidence: [], relationships: [], now: queriedAt });
+    const rawCorrelation = correlateEvidence({ indicator, type, evidence: [], relationships: [], now: queriedAt });
     const coverage = { selected: 0, executed: 0, succeeded: 0, failed: 0, skipped: 0, materialLoss: false };
+    const limitations = rawCorrelation.limitations ?? [];
+    const decision = buildDecisionSupport({ indicator, type, evidence: [], relationships: [], correlation: rawCorrelation, coverage, limitations, now: queriedAt });
+    const correlation = { ...rawCorrelation, assessment: decision.assessment };
     telemetry?.emit?.({ event: 'budget', requestId, type, status: 'error', providerCalls: 0, providerCallLimit: callLimit, deadlineMs });
     telemetry?.emit?.({ event: 'request_complete', requestId, type, profile, status: 'error', durationMs, indicator });
     return {
       ...baseEnvelope({ requestId, indicator, type, queriedAt, gatewayVersion, profile, durationMs, budget, summary }),
-      status: 'error', evidence: [], relationships: [], correlation, coverage, limitations: correlation.limitations ?? [],
+      status: 'error', evidence: [], relationships: [], correlation, decision, coverage, limitations,
       failures: [{ provider: 'gateway', reason: 'no_configured_providers' }],
       huntContext: emptyHuntContext(indicator, type),
       meta: { gatewayVersion, cache: {}, providerHealth: {} },
@@ -216,13 +220,15 @@ export async function enrich({
   const rawCorrelation = correlateEvidence({ indicator, type, evidence, relationships, now: queriedAt });
   const coverage = buildCoverage(providerNames, registry, type, records, summary, executedProviders);
   const limitations = mergeLimitations(rawCorrelation, coverage);
-  const correlation = { ...rawCorrelation, limitations };
+  const baseCorrelation = { ...rawCorrelation, limitations };
+  const decision = buildDecisionSupport({ indicator, type, evidence, relationships: baseCorrelation.relationships, correlation: baseCorrelation, coverage, limitations, now: queriedAt });
+  const correlation = { ...baseCorrelation, assessment: decision.assessment };
   const durationMs = Math.max(0, nowMs() - started);
   telemetry?.emit?.({ event: 'request_complete', requestId, type, profile, status, durationMs, indicator });
 
   return {
     ...baseEnvelope({ requestId, indicator, type, queriedAt, gatewayVersion, profile, durationMs, budget, summary }),
-    status, evidence, relationships: correlation.relationships, correlation, coverage, limitations, failures,
+    status, evidence, relationships: correlation.relationships, correlation, decision, coverage, limitations, failures,
     huntContext: {
       indicator, type,
       firstSeen: evidence.map(x => x.observation.firstSeen).filter(Boolean).sort()[0] ?? null,
