@@ -43,7 +43,8 @@ test('orchestrator emits decision support and mirrors its compact assessment int
 
   assert.equal(result.status, 'ok');
   assert.equal(result.decision.disposition, 'hunt_now');
-  assert.equal(result.decision.confidence, 'high');
+  assert.equal(result.correlation.evidenceQuality.level, 'medium');
+  assert.equal(result.decision.confidence, 'medium');
   assert.deepEqual(result.correlation.assessment, result.decision.assessment);
   assert.ok(result.decision.huntPlan.some(item => item.kql.includes('DeviceNetworkEvents')));
   assert.equal('score' in result.decision, false);
