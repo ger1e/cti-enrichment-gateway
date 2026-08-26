@@ -172,11 +172,12 @@ function tuningFor(type) {
   if (type === 'ip') return { falsePositives: ['shared_hosting', 'cdn_or_proxy_egress', 'security_scanner_traffic'], tuning: ['separate_inbound_from_outbound', 'correlate_with_process_and_identity_context', 'exclude_known_internal_testing_infrastructure'] };
   if (type === 'domain' || type === 'url') return { falsePositives: ['security_tool_reputation_checks', 'email_rewriting_or_sandbox_access', 'shared_or_compromised_hosting'], tuning: ['separate_user_clicks_from_scanner_fetches', 'correlate_with_process_and_signin_context', 'preserve_exact_url_and_parent_domain_distinction'] };
   if (type === 'hash') return { falsePositives: ['dual_use_tooling', 'signed_but_abused_binaries', 'lab_or_ir_collections'], tuning: ['validate_signature_and_prevalence', 'correlate_with_parent_process_and_path', 'exclude_authorized_red_team_or_lab_assets'] };
-  if (type === 'cve') return { falsePositives: ['inventory_without_reachable_exposure', 'patched_or_mitigated_assets', 'non_exploitable_product_configuration'], tuning: ['validate_product_and_version_overlap', 'confirm_exposure_and_attack_path', 'correlate_with exploitation_behavior_telemetry'] };
+  if (type === 'cve') return { falsePositives: ['inventory_without_reachable_exposure', 'patched_or_mitigated_assets', 'non_exploitable_product_configuration'], tuning: ['validate_product_and_version_overlap', 'confirm_exposure_and_attack_path', 'correlate_with_exploitation_behavior_telemetry'] };
   return { falsePositives: [], tuning: [] };
 }
 
 function huntPlan(type, indicator, evidence, relationships, disposition) {
+  if (!evidence.length || disposition === 'insufficient') return [];
   const output = [];
   const add = (huntType, value, basis, provider = null) => {
     if (output.length >= MAX_HUNTS) return;
