@@ -122,3 +122,27 @@ test('ATT&CK mappings and temporal summary come only from explicit subject or ev
   assert.ok(out.entityGraph.nodes.some(node => node.type === 'actor' && node.value === 'Example Actor'));
   assert.ok(out.entityGraph.nodes.some(node => node.type === 'malware' && node.value === 'ExampleRAT'));
 });
+
+test('insufficient decisions with no evidence do not manufacture a hunt plan', () => {
+  const out = buildDecisionSupport({
+    indicator: 'unobserved.example',
+    type: 'domain',
+    evidence: [],
+    relationships: [],
+    correlation: {
+      evidenceQuality: { level: 'none', evidenceCount: 0, providerCount: 0, currentCount: 0, agingCount: 0, staleCount: 0, unknownFreshnessCount: 0, contradictionCount: 0 },
+      threatAssessment: { state: 'insufficient', assessmentBasis: { providers: [], semanticClasses: [] } },
+      freshness: { overall: 'unknown', items: [] },
+      huntability: { level: 'medium', reason: 'contextual_network_search' },
+      contradictions: [],
+      limitations: [],
+    },
+    coverage: { materialLoss: false },
+    limitations: [],
+    now: '2026-08-26T18:00:00Z',
+  });
+
+  assert.equal(out.disposition, 'insufficient');
+  assert.deepEqual(out.huntPlan, []);
+  assert.equal(out.telemetry.environmentValidated, false);
+});
