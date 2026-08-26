@@ -14,6 +14,7 @@ Core fields:
 - `status`: `ok`, `partial` or `error`
 - `evidence[]`, `relationships[]`, `failures[]`
 - `correlation`
+- `decision`: bounded explainable analyst decision support derived from the evidence and correlation objects
 - `huntContext`
 - `meta`: count/status-oriented cache and provider-health state for the request
 
@@ -74,12 +75,35 @@ The correlation object contains separate analytical dimensions:
 - `corroboration[]`: compatible same-class observations from at least two providers
 - `contradictions[]`: opposing observations in the same semantic class
 - `freshness`: `current`, `aging`, `stale` or `unknown`
+- `evidenceQuality`: support quality based on provider diversity, freshness and contradictions; it is not maliciousness
+- `threatAssessment`: typed support state for applicable reputation evidence
 - `huntability`: bounded operational level and rationale
+- `assessment`: compact mirror of the generated decision-support assessment for report compatibility
 - de-duplicated `relationships`
 - for CVEs, `riskAxes.kev`, `riskAxes.epss`, `riskAxes.cvss`
 - optional `attributionConfidence` from explicit relationships
 
 Scanner/noise, Tor, registration/routing and ATT&CK knowledge classes are excluded from malware-reputation corroboration. Community IOC reports and ransomware claims are separate semantic classes and positive matches are neutral observations, so they cannot become reputation votes merely by being present together.
+
+#### Decision support
+
+`decision` is deterministic analyst decision support derived only from the normalized evidence, typed correlation, coverage state and explicit relationships. It does not perform blocking, remediation or source submission and it does not introduce a universal threat score.
+
+Core fields:
+
+- `version`
+- `disposition`: one of the bounded operational outcomes such as `hunt_now`, `investigate`, `monitor`, `context_only` or `insufficient`
+- `confidence`: `high`, `medium` or `low`, based on evidence quality and downgraded by contradiction, staleness or material coverage loss
+- `reasons[]`: explicit machine-readable reasons and limitations supporting the disposition
+- `assessment`: compact disposition/confidence/freshness/huntability/coverage summary
+- `telemetry`: required Microsoft hunting tables, readiness status, and `environmentValidated: false` until the analyst verifies table availability and retention
+- `temporal`: evidence-derived first/last-seen and bounded age/span context
+- `attackMappings[]`: ATT&CK IDs only when explicitly present in the subject or evidence fields
+- `entityGraph`: bounded nodes and provider-provenanced relationship edges for investigation pivots
+- `huntPlan[]`: bounded schema-level KQL templates with telemetry, evidence fingerprints, false-positive notes and tuning guidance
+- for CVEs only, the existing separate `riskAxes` are copied without combining KEV, EPSS and CVSS into a single value
+
+Generated KQL is a starting hypothesis, not proof of compromise. `telemetry.environmentValidated` remains false because the gateway does not query the client SIEM schema, retention or ingestion health. Reports consume generated `decision.huntPlan` entries when no explicit `reportContext.huntOpportunities` override is supplied.
 
 #### Caching semantics
 
