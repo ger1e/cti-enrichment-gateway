@@ -1,12 +1,13 @@
 const STYLE_HREF = '/app/analyst-deck.css';
+const CURSOR_HREF = '/site-cursor.css';
 const PROMPT_TEXT = 'analyst@para11ax:~$';
 const LEGACY_PROMPTS = ['para11ax@gateway:~$', 'user@para11ax: ~', 'user@para11ax:~$'];
 
-function ensureStylesheet() {
-  if (document.querySelector(`link[href="${STYLE_HREF}"]`)) return;
+function ensureStylesheet(href = STYLE_HREF) {
+  if (document.querySelector(`link[href="${href}"]`)) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = STYLE_HREF;
+  link.href = href;
   document.head.append(link);
 }
 
@@ -81,6 +82,7 @@ function observeTerminal() {
 }
 
 ensureStylesheet();
+ensureStylesheet(CURSOR_HREF);
 document.documentElement.dataset.terminalFirst = 'v7';
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observeTerminal, { once: true });
 else observeTerminal();
