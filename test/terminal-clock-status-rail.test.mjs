@@ -61,8 +61,11 @@ test('active Gateway Terminal retains the red back-and-forth PARA11AX scanner', 
 test('mobile header collapses secondary clock metadata before brand or prompt overflow', async () => {
   const css = await read('app/shell-polish.css');
   const finalCss = await read('app/analyst-deck.css');
+  const phone = finalCss.slice(finalCss.indexOf('@media(max-width:430px)'), finalCss.indexOf('@media(prefers-reduced-motion:reduce)'));
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-status[^}]*grid-template-columns:/);
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-clock-seconds[^}]*display:\s*none/);
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-clock-meta[^}]*display:\s*none/);
-  assert.match(finalCss, /@media\(max-width:430px\)[\s\S]*\.shell-prompt[^}]*grid-template-columns:\s*1fr/);
+  assert.match(phone, /\.shell-status[^}]*grid-template-areas:\s*"brand clock"\s*"state state"/);
+  assert.match(phone, /\.shell-session-state[^}]*position:\s*relative!important/);
+  assert.match(phone, /\.shell-prompt[^}]*grid-template-columns:\s*max-content\s+minmax\(0,1fr\)/);
 });
