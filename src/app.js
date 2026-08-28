@@ -7,12 +7,15 @@ import { TtlCache } from './core/cache.js';
 import { CircuitBreaker } from './core/circuit-breaker.js';
 import { createTelemetry } from './core/telemetry.js';
 import { createProviderRegistry } from './core/provider-registry.js';
+import { validateProviderSet } from './core/provider-contract.js';
+import { OBSERVABLE_MANIFEST } from './core/observable-registry.js';
 import { enrich } from './core/orchestrator.js';
 import { runBatch } from './core/batch.js';
 import { toStixBundle } from './export/stix.js';
 import { GATEWAY_VERSION, EVIDENCE_SCHEMA_VERSION } from './core/version.js';
 import { PROVIDER_CONCURRENCY_MAX, REQUEST_DEADLINE_MS } from './core/execution-policy.js';
 import { ALL_PROVIDERS } from './providers/index.js';
+import { PROVIDER_MANIFEST } from './providers/manifest.js';
 import { PROFILE_NAMES, selectProviders } from './profiles.js';
 import { WORKFLOWS, WORKFLOW_CALL_LIMITS } from './workflows.js';
 
@@ -94,6 +97,13 @@ export function createApp({
 } = {}) {
   const startedAtMs = nowMs();
   const registry = createProviderRegistry(adapters);
+  if (adapters === ALL_PROVIDERS) {
+    validateProviderSet({
+      adapters: registry.values(),
+      manifest: PROVIDER_MANIFEST,
+      observableRegistry: OBSERVABLE_MANIFEST,
+    });
+  }
   const breaker = circuitBreaker ?? new CircuitBreaker({ maxProviders: Math.max(1, registry.names().length), now: nowMs });
   const events = telemetry ?? createTelemetry();
   const configured = name => {
