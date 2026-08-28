@@ -1,25 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-  <title id="title">PARA11AX mark</title>
-  <desc id="desc">Offset cyan sight lines and twin observation rails converge on a red evidence-observation node.</desc>
+  <title id="title">PARA11AX sentinel mark</title>
+  <desc id="desc">Gunmetal PARA11AX sentinel helmet with a phosphor-green visor and a restrained red anomaly signal.</desc>
   <defs>
-    <filter id="cyanGlow" x="-70%" y="-70%" width="240%" height="240%">
-      <feGaussianBlur stdDeviation="4" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#313A33"/><stop offset=".48" stop-color="#111713"/><stop offset="1" stop-color="#050806"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#202922"/><stop offset="1" stop-color="#080C09"/>
+    </linearGradient>
+    <filter id="visorGlow" x="-80%" y="-120%" width="260%" height="340%">
+      <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="redGlow" x="-110%" y="-110%" width="320%" height="320%">
-      <feGaussianBlur stdDeviation="7" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="redGlow" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  <rect width="256" height="256" rx="30" fill="#050608"/>
-  <rect x="1.5" y="1.5" width="253" height="253" rx="28.5" fill="none" stroke="#00E5FF" stroke-opacity=".16" stroke-width="3"/>
-  <path d="M38 58 L108 128 L38 198" fill="none" stroke="#00E5FF" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter" opacity=".96" filter="url(#cyanGlow)"/>
-  <path d="M218 58 L148 128 L218 198" fill="none" stroke="#00E5FF" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter" opacity=".40"/>
-  <path d="M66 58 L128 117 L190 58" fill="none" stroke="#F3F7FA" stroke-width="4" opacity=".18"/>
-  <path d="M66 198 L128 139 L190 198" fill="none" stroke="#F3F7FA" stroke-width="4" opacity=".11"/>
-  <rect x="118" y="74" width="6" height="108" rx="3" fill="#00E5FF" opacity=".28"/>
-  <rect x="132" y="74" width="6" height="108" rx="3" fill="#00E5FF" opacity=".18"/>
-  <circle cx="128" cy="128" r="21" fill="#FF1E2D" opacity=".16" filter="url(#redGlow)"/>
-  <circle cx="128" cy="128" r="8" fill="#FF4050" filter="url(#redGlow)"/>
-  <circle cx="128" cy="128" r="2.5" fill="#FFFFFF"/>
+  <rect width="256" height="256" rx="30" fill="#020403"/>
+  <path d="M128 16 218 61v108l-90 71-90-71V61z" fill="#061008" stroke="#39FF14" stroke-opacity=".48" stroke-width="3"/>
+  <path d="M128 29 204 67v94l-76 61-76-61V67z" fill="none" stroke="#8CA08F" stroke-opacity=".22" stroke-width="2"/>
+  <path d="M128 16v24M38 61l22 12M218 61l-22 12M38 169l23-11M218 169l-23-11M128 240v-22" stroke="#39FF14" stroke-width="3" stroke-opacity=".72"/>
+  <g id="sentinel-helmet">
+    <path d="M128 43 179 64l18 50-17 65-52 38-52-38-17-65 18-50z" fill="url(#armor)" stroke="#F7FFF6" stroke-opacity=".36" stroke-width="2"/>
+    <path d="M128 50v156M83 72l45 20 45-20M70 111l58 28 58-28M80 178l48-24 48 24" fill="none" stroke="#F7FFF6" stroke-opacity=".16" stroke-width="2"/>
+    <path d="M82 88 128 104l46-16 10 27-25 60-31 26-31-26-25-60z" fill="url(#face)" stroke="#5D6A60" stroke-opacity=".55" stroke-width="2"/>
+    <path id="visor" d="M82 113 111 122l17 16 17-16 29-9-13 25-24 19h-18l-24-19z" fill="#39FF14" filter="url(#visorGlow)"/>
+    <path d="M98 139l21 18h18l21-18-17 31-13 10-13-10z" fill="#0A0F0B" stroke="#39FF14" stroke-opacity=".38"/>
+    <path d="M101 83 128 70l27 13-27 10z" fill="#F7FFF6" fill-opacity=".08"/>
+  </g>
+  <circle cx="204" cy="52" r="4" fill="#FF2438" filter="url(#redGlow)"/>
+  <path d="M184 52h13" stroke="#FF2438" stroke-width="2" stroke-opacity=".62"/>
 </svg>

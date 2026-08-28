@@ -1,16 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 56" role="img" aria-labelledby="title desc">
   <title id="title">PARA11AX</title>
-  <desc id="desc">PARA11AX angular observation mark and wordmark</desc>
-  <g fill="none" stroke="#00E5FF" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
-    <path d="M4 28 18 10h26l10 10"/>
-    <path d="M4 28 18 46h26l10-10"/>
-    <path d="M14 28h34" opacity=".55"/>
-    <path d="M28 16 40 28 28 40" opacity=".72"/>
-    <path d="M48 20 62 28 48 36"/>
+  <desc id="desc">Compact PARA11AX analyst header logo with a gunmetal sentinel helmet and phosphor visor.</desc>
+  <defs>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#303A32"/><stop offset=".5" stop-color="#111713"/><stop offset="1" stop-color="#050806"/></linearGradient>
+    <filter id="visorGlow" x="-100%" y="-160%" width="300%" height="420%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <g id="sentinel-helmet" transform="translate(2 2)">
+    <path d="M26 1 49 12v28L26 53 3 40V12z" fill="#061008" stroke="#39FF14" stroke-opacity=".7" stroke-width="1.4"/>
+    <path d="M26 7 40 13l5 14-5 16-14 8-14-8-5-16 5-14z" fill="url(#armor)" stroke="#F7FFF6" stroke-opacity=".35"/>
+    <path d="M26 8v39M14 17l12 6 12-6" stroke="#F7FFF6" stroke-opacity=".13" fill="none"/>
+    <path id="visor" d="M12 25 21 28l5 5 5-5 9-3-4 7-8 6h-4l-8-6z" fill="#39FF14" filter="url(#visorGlow)"/>
+    <circle cx="45" cy="9" r="1.8" fill="#FF2438"/>
   </g>
-  <circle cx="62" cy="28" r="4.5" fill="#FF1E2D"/>
-  <path d="M69 28h15" stroke="#FF1E2D" stroke-width="2"/>
-  <text x="94" y="36" fill="#F3F7FA" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="25" font-weight="700" letter-spacing="3.4">PARA11AX</text>
-  <path d="M94 44h209" stroke="#00E5FF" stroke-width="1" opacity=".45"/>
-  <circle cx="306" cy="44" r="2" fill="#FF1E2D"/>
+  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-weight="900" letter-spacing="2.2">
+    <text x="64" y="36" font-size="25"><tspan fill="#F7FFF6">PARA</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">AX</tspan></text>
+  </g>
+  <path d="M65 44h222" stroke="#39FF14" stroke-opacity=".34"/>
+  <path d="M287 44h17" stroke="#FF2438" stroke-width="1.5" stroke-opacity=".7"/>
+  <circle cx="308" cy="44" r="2" fill="#FF2438"/>
 </svg>

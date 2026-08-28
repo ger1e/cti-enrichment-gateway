@@ -1,27 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" role="img" aria-labelledby="title desc">
-<title id="title">PARA11AX — compact mobile CTI Evidence Gateway identity</title>
-<desc id="desc">Compact PARA11AX mobile banner with persistent and animated red code rain, cyan observation geometry, red scanner, and the John Kiriakou evidence quotation.</desc>
+<title id="title">PARA11AX — CTI Evidence Gateway</title>
+<desc id="desc">Mobile PARA11AX tactical hero with phosphor Matrix rain, compact sentinel helmet and visor, and high-contrast analyst branding.</desc>
 <defs>
-<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#020305"/><stop offset=".55" stop-color="#080D11"/><stop offset="1" stop-color="#020305"/></linearGradient>
-<linearGradient id="tail"><stop stop-color="#FF1E2D" stop-opacity="0"/><stop offset=".68" stop-color="#FF1E2D" stop-opacity=".65"/><stop offset="1" stop-color="#FF4050"/></linearGradient>
-<pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#00E5FF" opacity=".035"/></pattern>
-<filter id="cg" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-<filter id="rg" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-<clipPath id="clip"><rect x="2" y="2" width="716" height="356" rx="24"/></clipPath>
-<g id="r1" fill="#FF1E2D" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" font-weight="800"><text y="0">7</text><text y="15">0</text><text y="30">A</text><text y="45">1</text><text y="60">X</text><text y="75">9</text><text y="90">3</text><text y="105">F</text><text y="120">0</text><text y="135">1</text><text y="150">D</text><text y="165">8</text><text y="180">K</text><text y="195">2</text><text y="210">5</text><text y="225">E</text></g>
-<g id="r2" fill="#FF4050" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11" font-weight="700"><text y="0">1</text><text y="14">B</text><text y="28">4</text><text y="42">0</text><text y="56">9</text><text y="70">Z</text><text y="84">6</text><text y="98">2</text><text y="112">Q</text><text y="126">8</text><text y="140">1</text><text y="154">0</text><text y="168">V</text><text y="182">3</text><text y="196">7</text><text y="210">A</text></g>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#010302"/><stop offset=".55" stop-color="#061008"/><stop offset="1" stop-color="#020403"/></linearGradient>
+  <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#343E36"/><stop offset=".48" stop-color="#111713"/><stop offset="1" stop-color="#050806"/></linearGradient>
+  <filter id="greenGlow" x="-120%" y="-160%" width="340%" height="420%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <g id="gcol" fill="#39FF14" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" font-weight="700"><text y="0">P</text><text y="13">A</text><text y="26">R</text><text y="39">A</text><text y="52">1</text><text y="65">1</text><text y="78">A</text><text y="91">X</text><text y="104">E</text><text y="117">V</text><text y="130">2</text><text y="143">0</text><text y="156">1</text><text y="169">S</text><text y="182">T</text><text y="195">I</text><text y="208">X</text></g>
+  <g id="rcol" fill="#FF2438" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" font-weight="800"><text y="0">A</text><text y="13">N</text><text y="26">O</text><text y="39">M</text><text y="52">A</text><text y="65">L</text><text y="78">Y</text><text y="91">1</text><text y="104">1</text></g>
 </defs>
-<rect width="720" height="360" rx="26" fill="url(#bg)"/><rect width="720" height="360" rx="26" fill="url(#grid)"/>
-<g clip-path="url(#clip)">
-<g opacity=".20"><use href="#r1" x="14" y="20"/><use href="#r2" x="54" y="-20"/><use href="#r1" x="94" y="35"/><use href="#r2" x="134" y="5"/><use href="#r1" x="174" y="-30"/><use href="#r2" x="214" y="25"/><use href="#r1" x="254" y="0"/><use href="#r2" x="294" y="40"/><use href="#r1" x="334" y="-15"/><use href="#r2" x="374" y="10"/><use href="#r1" x="414" y="30"/><use href="#r2" x="454" y="-25"/><use href="#r1" x="494" y="15"/><use href="#r2" x="534" y="45"/><use href="#r1" x="574" y="-5"/><use href="#r2" x="614" y="20"/><use href="#r1" x="654" y="-35"/><use href="#r2" x="694" y="30"/></g>
-<g opacity=".34"><use href="#r1" x="34"><animateTransform attributeName="transform" type="translate" values="0 -250;0 390" dur=".78s" begin="-.4s" repeatCount="indefinite"/></use><use href="#r2" x="114"><animateTransform attributeName="transform" type="translate" values="0 -240;0 390" dur="1.02s" begin="-.8s" repeatCount="indefinite"/></use><use href="#r1" x="194"><animateTransform attributeName="transform" type="translate" values="0 -260;0 390" dur=".86s" begin="-.2s" repeatCount="indefinite"/></use><use href="#r2" x="274"><animateTransform attributeName="transform" type="translate" values="0 -245;0 390" dur="1.10s" begin="-.6s" repeatCount="indefinite"/></use><use href="#r1" x="354"><animateTransform attributeName="transform" type="translate" values="0 -255;0 390" dur=".82s" begin="-.1s" repeatCount="indefinite"/></use><use href="#r2" x="434"><animateTransform attributeName="transform" type="translate" values="0 -250;0 390" dur=".98s" begin="-.7s" repeatCount="indefinite"/></use><use href="#r1" x="514"><animateTransform attributeName="transform" type="translate" values="0 -260;0 390" dur=".74s" begin="-.3s" repeatCount="indefinite"/></use><use href="#r2" x="594"><animateTransform attributeName="transform" type="translate" values="0 -245;0 390" dur="1.06s" begin="-.9s" repeatCount="indefinite"/></use><use href="#r1" x="674"><animateTransform attributeName="transform" type="translate" values="0 -255;0 390" dur=".90s" begin="-.5s" repeatCount="indefinite"/></use></g>
+<rect width="720" height="360" rx="22" fill="url(#bg)"/>
+<g opacity=".20"><use href="#gcol" x="14" y="30"/><use href="#gcol" x="48" y="-66"/><use href="#gcol" x="82" y="54"/><use href="#gcol" x="116" y="-24"/><use href="#rcol" x="150" y="32" opacity=".48"/><use href="#gcol" x="184" y="-78"/><use href="#gcol" x="218" y="44"/><use href="#gcol" x="252" y="-12"/><use href="#gcol" x="286" y="66"/><use href="#rcol" x="320" y="-18" opacity=".38"/><use href="#gcol" x="354" y="30"/><use href="#gcol" x="388" y="-72"/><use href="#gcol" x="422" y="58"/><use href="#gcol" x="456" y="-20"/><use href="#rcol" x="490" y="38" opacity=".38"/><use href="#gcol" x="524" y="-84"/><use href="#gcol" x="558" y="48"/><use href="#gcol" x="592" y="-16"/><use href="#gcol" x="626" y="62"/><use href="#rcol" x="660" y="-12" opacity=".42"/><use href="#gcol" x="694" y="34"/></g>
+<rect x="1.5" y="1.5" width="717" height="357" rx="20.5" fill="none" stroke="#39FF14" stroke-opacity=".25" stroke-width="3"/>
+<g transform="translate(25 29)">
+  <circle cx="112" cy="119" r="106" fill="none" stroke="#39FF14" stroke-opacity=".18" stroke-dasharray="6 10"/>
+  <path d="M112 7v28M112 203v28M0 119h28M196 119h28" stroke="#39FF14" stroke-opacity=".42" stroke-width="2"/>
+  <g id="sentinel-helmet" transform="translate(54 25)">
+    <path d="M58 0 108 24v77l-50 58-50-58V24z" fill="#061008" stroke="#39FF14" stroke-opacity=".62" stroke-width="2.5"/>
+    <path d="M58 13 91 27l12 39-12 55-33 29-33-29-12-55 12-39z" fill="url(#armor)" stroke="#F7FFF6" stroke-opacity=".34" stroke-width="1.7"/>
+    <path d="M58 15v128M29 35l29 15 29-15M21 63l37 19 37-19" fill="none" stroke="#F7FFF6" stroke-opacity=".12"/>
+    <path id="visor" d="M25 66 45 73l13 12 13-12 20-7-9 18-17 14H51L34 84z" fill="#39FF14" filter="url(#greenGlow)"/>
+    <path d="M39 86l12 12h14l12-12-10 24-9 8-9-8z" fill="#080D09" stroke="#39FF14" stroke-opacity=".4"/>
+    <circle cx="98" cy="15" r="3" fill="#FF2438"/>
+  </g>
 </g>
-<rect x="2" y="2" width="716" height="356" rx="24" fill="none" stroke="#00E5FF" stroke-opacity=".24" stroke-width="3"/>
-<g transform="translate(24 18)"><path d="M8 8 55 55 8 102M102 8 55 55 102 102" fill="none" stroke="#00E5FF" stroke-width="7" filter="url(#cg)"/><circle cx="55" cy="55" r="16" fill="#FF1E2D" opacity=".17" filter="url(#rg)"/><circle cx="55" cy="55" r="7" fill="#FF4050" filter="url(#rg)"/><circle cx="55" cy="55" r="2" fill="#fff"/></g>
-<g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
-<text x="150" y="65" font-size="54" font-weight="900" letter-spacing="2"><tspan fill="#F3F7FA">PARA</tspan><tspan fill="#00E5FF">11</tspan><tspan fill="#F3F7FA">AX</tspan></text>
-<text x="152" y="94" fill="#00E5FF" font-size="13" font-weight="800" letter-spacing="3">CTI // EVIDENCE GATEWAY</text><text x="152" y="116" fill="#A2ADB5" font-size="9.5" font-weight="700" letter-spacing="1.6">BOUNDED · READ-ONLY · PROVENANCE-FIRST</text>
-<g transform="translate(42 143)"><rect width="636" height="25" rx="12.5" fill="#100205" stroke="#FF1E2D" stroke-opacity=".46"/><rect x="14" y="10" width="608" height="5" rx="2.5" fill="#39080D"/><g filter="url(#rg)"><rect x="14" y="5" width="110" height="15" rx="7.5" fill="url(#tail)"><animate attributeName="x" values="14;494;14" dur="1.8s" repeatCount="indefinite"/></rect><rect x="108" y="4" width="17" height="17" rx="8.5" fill="#FF4050"><animate attributeName="x" values="108;588;108" dur="1.8s" repeatCount="indefinite"/></rect></g><text x="318" y="42" text-anchor="middle" fill="#9AA6AE" font-size="9" letter-spacing="1.8">ACTIVE OBSERVATION // SCANNER SWEEP</text></g>
-<g transform="translate(46 216)"><rect width="628" height="1" fill="#00E5FF" opacity=".25"/><circle cx="7" cy="24" r="4" fill="#39FF88"/><text x="23" y="28" fill="#39FF88" font-size="10.5" font-weight="800" letter-spacing="1.8">EVIDENCE STATE // VERIFIED</text><text x="0" y="58" fill="#C0C8CE" font-size="13.5">“You’ve got to follow the <tspan fill="#00E5FF" font-weight="800">evidence…</tspan> That doesn’t make it <tspan fill="#F3F7FA" font-weight="800">fact.</tspan>”</text><text x="0" y="81" fill="#A2ADB5" font-size="10" letter-spacing="1.8">— JOHN KIRIAKOU</text></g>
-<g transform="translate(46 338)" font-size="9" font-weight="700" letter-spacing="1.6"><text fill="#00E5FF">37 SOURCES</text><text x="214" fill="#39FF88">EVIDENCE V2</text><text x="438" fill="#A2ADB5">STIX 2.1</text></g>
-</g></svg>
+<g transform="translate(268 62)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
+  <text x="0" y="66" font-size="58" font-weight="900" letter-spacing="2"><tspan fill="#F7FFF6">PARA</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">AX</tspan></text>
+  <text x="3" y="101" fill="#39FF14" font-size="14" font-weight="800" letter-spacing="3">CTI // EVIDENCE GATEWAY</text>
+  <text x="3" y="130" fill="#A6B5A9" font-size="11" font-weight="700" letter-spacing="1.8">INTELLIGENCE. ENRICHED. OPERATIONAL.</text>
+  <path d="M3 151h392" stroke="#39FF14" stroke-opacity=".25"/>
+  <text x="3" y="182" fill="#39FF14" font-size="10" font-weight="800" letter-spacing="1.5">37 FIXED SOURCES · EVIDENCE V2</text>
+  <text x="3" y="205" fill="#F7FFF6" font-size="10" font-weight="700" letter-spacing="1.5">READ-ONLY · FIXED EGRESS · STIX 2.1</text>
+  <text x="3" y="248" fill="#8CA08F" font-size="9" letter-spacing="1.2">OBSERVED ≠ INFERRED ≠ CONTEXTUAL</text>
+</g>
+<circle cx="686" cy="25" r="3" fill="#FF2438"/>
+</svg>
