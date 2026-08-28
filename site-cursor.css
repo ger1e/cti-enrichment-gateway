@@ -1,5 +1,6 @@
 :root{
-  --para11ax-cursor:url('/assets/brand/para11ax-cursor.svg') 3 3;
+  --para11ax-cursor:url('/assets/brand/para11ax-cursor.svg') 1 1;
+  --para11ax-cursor-target:url('/assets/brand/para11ax-cursor-target.svg') 14 14;
   --para11ax-phosphor:#39ff14;
 }
 
@@ -10,7 +11,7 @@ body *{
 
 a[href],button,[role="button"],summary,label[for],
 input[type="button"],input[type="submit"],input[type="reset"]{
-  cursor:var(--para11ax-cursor),pointer;
+  cursor:var(--para11ax-cursor-target),pointer;
 }
 
 input[type="text"],input[type="password"],input[type="search"],textarea,
