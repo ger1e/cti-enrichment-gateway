@@ -42,10 +42,10 @@ test('terminal-first presentation assets load after terminal polish without repl
   assert.doesNotMatch(source, /innerHTML|outerHTML|insertAdjacentHTML/);
 });
 
-test('terminal-first shell uses one canonical prompt and keeps scrollback as the dominant viewport', () => {
+test('terminal-first shell uses one canonical analyst prompt and keeps scrollback as the dominant viewport', () => {
   const [source, css] = [read('app/analyst-deck.js'), read('app/analyst-deck.css')];
-  assert.match(source, /user@para11ax: ~/);
-  assert.match(source, /dataset\.terminalFirst\s*=\s*['"]v6['"]/);
+  assert.match(source, /PROMPT_TEXT\s*=\s*['"]analyst@para11ax:~\$['"]/);
+  assert.match(source, /dataset\.terminalFirst\s*=\s*['"]v7['"]/);
   assert.match(css, /\.unix-shell[^}]*display:\s*grid/is);
   assert.match(css, /grid-template-rows:\s*auto\s+minmax\(0,1fr\)\s+auto/is);
   assert.match(css, /\.shell-scrollback[^}]*min-height:\s*0/is);
