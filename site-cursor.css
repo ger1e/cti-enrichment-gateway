@@ -1,0 +1,39 @@
+:root{
+  --para11ax-cursor:url('/assets/brand/para11ax-cursor.svg') 3 3;
+  --para11ax-phosphor:#39ff14;
+}
+
+html,body,
+body *{
+  cursor:var(--para11ax-cursor),default;
+}
+
+a[href],button,[role="button"],summary,label[for],
+input[type="button"],input[type="submit"],input[type="reset"]{
+  cursor:var(--para11ax-cursor),pointer;
+}
+
+input[type="text"],input[type="password"],input[type="search"],textarea,
+[contenteditable="true"],pre,code,kbd,samp,.shell-scrollback,.shell-input,.boot-log{
+  cursor:text;
+}
+
+.shell-input{
+  caret-color:var(--terminal-phosphor,var(--para11ax-phosphor));
+}
+
+@keyframes terminal-caret-blink{
+  0%,48%{caret-color:var(--terminal-phosphor,var(--para11ax-phosphor))}
+  49%,100%{caret-color:transparent}
+}
+
+.shell-input:focus{
+  animation:terminal-caret-blink .92s steps(1,end) infinite;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .shell-input:focus{
+    animation:none!important;
+    caret-color:var(--terminal-phosphor,var(--para11ax-phosphor));
+  }
+}
