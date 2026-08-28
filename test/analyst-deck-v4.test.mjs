@@ -33,9 +33,10 @@ test('terminal-first presentation assets load after terminal polish without repl
   assert.ok(main.indexOf('./analyst-deck.js') > main.indexOf('./terminal-polish.js'));
 
   const source = read('app/analyst-deck.js');
-  for (const selector of ['.unix-shell', '.shell-scrollback', '.shell-prompt']) {
+  for (const selector of ['.unix-shell', '.shell-prompt']) {
     assert.match(source, new RegExp(selector.replace('.', '\\.')));
   }
+  assert.match(read('app/analyst-deck.css'), /\.shell-scrollback/);
   assert.doesNotMatch(source, /replaceChildren|analyst-header|analyst-workspace|analyst-identity|analyst-telemetry-strip|investigation-launcher/);
   assert.doesNotMatch(source, /createGatewayClient|api-client\.js|session\.js|fetch\s*\(/);
   assert.doesNotMatch(source, forbiddenPersistence);
