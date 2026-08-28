@@ -165,7 +165,7 @@ export function mountAnalystShell({
       input.type = 'password';
       input.setAttribute('aria-label', 'Gateway bearer secret');
     } else {
-      promptLabel.textContent = 'para11ax@gateway:~$';
+      promptLabel.textContent = 'analyst@para11ax:~$';
       input.type = 'text';
       input.setAttribute('aria-label', 'PARA11AX command line');
     }
@@ -451,7 +451,7 @@ export function mountAnalystShell({
     input.value = '';
     const action = interpretCommand(line, { authenticated: authenticated(), profile });
     if (action.historySafe !== false) history.push(line);
-    if (line.trim()) appendLine(`para11ax@gateway:~$ ${line}`);
+    if (line.trim()) appendLine(`analyst@para11ax:~$ ${line}`);
     try { await executeAction(action); }
     catch (error) {
       if (error?.name === 'AbortError') appendLine('^C', 'amber');
