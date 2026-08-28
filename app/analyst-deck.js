@@ -111,18 +111,18 @@ function buildRail(root, commands, className, label) {
   return nav;
 }
 
+function setPill(pill, state, text) {
+  if (!pill) return;
+  if (pill.dataset.state !== state) pill.dataset.state = state;
+  if (pill.textContent !== text) pill.textContent = text;
+}
+
 function updateLiveState(root, statusRail) {
   const text = root.querySelector('.shell-session-state')?.textContent || '';
   const authenticated = text.includes('AUTH:UP');
   const busy = text.includes('BUSY');
-  if (statusRail._authPill) {
-    statusRail._authPill.dataset.state = authenticated ? 'ok' : 'down';
-    statusRail._authPill.textContent = authenticated ? 'AUTH UP' : 'AUTH DOWN';
-  }
-  if (statusRail._runtimePill) {
-    statusRail._runtimePill.dataset.state = busy ? 'active' : 'ready';
-    statusRail._runtimePill.textContent = busy ? 'ENRICHING' : 'READY';
-  }
+  setPill(statusRail._authPill, authenticated ? 'ok' : 'down', authenticated ? 'AUTH UP' : 'AUTH DOWN');
+  setPill(statusRail._runtimePill, busy ? 'active' : 'ready', busy ? 'ENRICHING' : 'READY');
 }
 
 function syncLegacyChrome(root, commandDeck, statusRail) {
