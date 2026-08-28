@@ -22,6 +22,27 @@ test('landing page is mobile-first, self-contained, and reduced-motion safe', ()
   assert.doesNotMatch(html, /https?:\/\/[^"']+\.(?:js|css)(?:[?"'])/i, 'landing page must not load remote JS/CSS');
 });
 
+test('landing page implements the approved tactical hero identity', () => {
+  const html = read('index.html');
+  assert.match(html, /--phosphor:\s*#39ff14/i);
+  assert.match(html, /class="hero-grid"/i);
+  assert.match(html, /class="knight-stage"/i);
+  assert.match(html, /class="knight"/i);
+  assert.match(html, /INTELLIGENCE\.\s*ENRICHED\.\s*<strong>OPERATIONAL\.<\/strong>/i);
+  assert.match(html, /ACCESS TERMINAL/i);
+  assert.match(html, /@keyframes\s+hud-spin/i);
+  assert.match(html, /@keyframes\s+visor-pulse/i);
+});
+
+test('landing page has an explicit phone composition instead of desktop shrinkage', () => {
+  const html = read('index.html');
+  assert.match(html, /@media\s*\(max-width:\s*720px\)/i);
+  assert.match(html, /\.hero-grid\s*\{[^}]*grid-template-columns:\s*1fr/i);
+  assert.match(html, /\.cta\s*\{[^}]*min-height:\s*44px/i);
+  assert.match(html, /\.knight-stage\s*\{[^}]*min-height:\s*clamp\(/i);
+  assert.match(html, /\.mobile-signal-bar/i);
+});
+
 test('human-facing custom error pages are branded, static, and mobile-safe', () => {
   for (const status of ['403', '404', '500']) {
     const path = `${status}.html`;
