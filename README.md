@@ -8,30 +8,70 @@
 [![Tooling smoke](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml)
 [![CodeQL](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml)
 
-**37 fixed sources · Evidence v2 · STIX 2.1 · Node.js 24.x**
+**INTELLIGENCE. ENRICHED. OPERATIONAL.**
 
-[Landing page](https://para11ax.vercel.app/) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Providers](docs/PROVIDERS.md) · [Evidence](docs/EVIDENCE-SCHEMA.md) · [Security](SECURITY.md)
+`37 FIXED SOURCES` · `EVIDENCE V2` · `STIX 2.1` · `READ-ONLY` · `FIXED EGRESS` · `NODE 24.x`
+
+[**ENTER ANALYST UI**](https://para11ax.vercel.app/app/) · [Landing](https://para11ax.vercel.app/) · [API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md) · [Providers](docs/PROVIDERS.md) · [Security](SECURITY.md)
 
 </div>
 
 > [!IMPORTANT]
 > Personal research / lab surface. Do not send commercial-client, internal-enterprise, restricted, or otherwise sensitive data without explicit authorization and suitable data handling.
 
-**ONE-SCREEN MODEL**
+## OPERATIONAL CORE
 
-- **Input:** IP · domain · URL · hash · CVE · ATT&CK ID · ASN · CIDR.
-- **Profiles:** `fast` · `standard` · `full`; callers cannot choose arbitrary providers.
-- **Boundary:** `safeFetch` fixed egress + provider-specific parsing.
-- **Output:** Evidence v2 · typed correlation · JSON · batch · STIX 2.1 · deterministic offline reports.
-- **Identity:** every public and operator surface uses PARA11AX: repository/package `para11ax`, CLI `para11ax`, bearer `PARA11AX_TOKEN`, and API base `/api/para11ax/*`.
+PARA11AX is a bounded CTI evidence gateway for hunters and defenders. It takes one supported observable, routes it through a fixed provider workflow, preserves provider-native semantics, and returns provenance-rich evidence without pretending every signal is a verdict.
+
+- **Inputs:** IP · domain · URL · hash · CVE · ATT&CK ID · ASN · CIDR.
+- **Profiles:** `fast` · `standard` · `full`; callers cannot select arbitrary providers.
+- **Trust boundary:** `safeFetch` allows only declared HTTPS hosts, methods, protocols, body ceilings, and redirect behavior.
+- **Execution:** tiered provider scheduling, bounded concurrency, bounded cache, explicit timeout/circuit states.
+- **Outputs:** Evidence v2 · typed correlation · JSON · batch · STIX 2.1 · deterministic offline reports.
+- **Identity:** repository/package `para11ax`, CLI `para11ax`, bearer `PARA11AX_TOKEN`, API base `/api/para11ax/*`.
 
 ![PARA11AX request path](assets/brand/para11ax-architecture.svg)
 
-`safeFetch` is the trust boundary: callers cannot choose arbitrary destinations, protocols, methods, headers, redirects, provider credentials, or custom egress. Upstream responses remain untrusted until a provider parser validates and normalizes them.
+`safeFetch` is the hard egress boundary. Callers cannot choose arbitrary destinations, protocols, methods, headers, redirects, provider credentials, or custom proxy routes. Upstream responses remain untrusted until a provider parser validates and normalizes them.
 
-**Read-only:** no scanning, detonation, submission, sample download, takedown, remediation, or arbitrary proxy routes.
+**Read-only means read-only:** no scanning, detonation, submission, sample download, takedown, remediation, or arbitrary proxying.
 
-**SEMANTIC FIREWALL**
+## ANALYST SURFACE
+
+The production analyst terminal is at **https://para11ax.vercel.app/app/**. It keeps the gateway bearer in volatile memory only, exposes bounded shell commands and evidence views, and preserves the same semantic model as the API.
+
+### API
+
+- `GET /api/para11ax/meta` — public static capabilities and hard limits.
+- `GET /api/para11ax/health` — bearer-protected readiness.
+- `GET /api/para11ax/status` — bearer-protected aggregate runtime state.
+- `POST /api/para11ax/enrich` — one indicator, fixed workflow/profile only.
+- `POST /api/para11ax/batch` — 1–20 indicators; max 3 active indicators / 200 calls.
+- `POST /api/para11ax/stix` — enrich then export STIX 2.1; max 100 objects.
+- Unknown `/api/para11ax/*` — controlled fail-closed API 404; browser content negotiation never changes API status semantics.
+
+```json
+{"indicator":"203.0.113.10","profile":"standard"}
+```
+
+Complete contract: [`docs/API.md`](docs/API.md).
+
+### Operator CLI
+
+```text
+para11ax doctor
+para11ax providers list
+para11ax providers env-template
+para11ax providers probe --all
+para11ax maltego check
+para11ax release verify
+para11ax report compile <snapshot.json> --out <dir> [--preset <name>]
+para11ax report diff <before.json> <after.json>
+```
+
+The browser terminal and CLI are control surfaces over bounded gateway behavior; neither is a general-purpose shell or arbitrary network client.
+
+## SEMANTIC FIREWALL
 
 ![PARA11AX semantic firewall](assets/brand/para11ax-semantic-firewall.svg)
 
@@ -43,24 +83,6 @@
 - **Failure ≠ negative evidence:** timeout, 429, 5xx, parser failure, and circuit-open states remain explicit coverage failures.
 
 Full semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
-
-**API SURFACE**
-
-- `GET /api/para11ax/meta` — public static capabilities and hard limits.
-- `GET /api/para11ax/health` — bearer-protected readiness.
-- `GET /api/para11ax/status` — bearer-protected aggregate runtime state.
-- `POST /api/para11ax/enrich` — one indicator, fixed workflow/profile only.
-- `POST /api/para11ax/batch` — 1–20 indicators; max 3 active indicators / 200 calls.
-- `POST /api/para11ax/stix` — enrich then export STIX 2.1; max 100 objects.
-- Unknown `/api/para11ax/*` — controlled fail-closed API 404; browser content negotiation never changes API status semantics.
-
-Example:
-
-```json
-{"indicator":"203.0.113.10","profile":"standard"}
-```
-
-Complete contract: [`docs/API.md`](docs/API.md).
 
 <details>
 <summary><strong>37 upstream APIs and feeds</strong></summary>
@@ -100,18 +122,7 @@ Security detail: [`docs/SECURITY-CONTROLS.md`](docs/SECURITY-CONTROLS.md) · [`d
 </details>
 
 <details>
-<summary><strong>Operator CLI, Maltego, and deterministic reports</strong></summary>
-
-```text
-para11ax doctor
-para11ax providers list
-para11ax providers env-template
-para11ax providers probe --all
-para11ax maltego check
-para11ax release verify
-para11ax report compile <snapshot.json> --out <dir> [--preset <name>]
-para11ax report diff <before.json> <after.json>
-```
+<summary><strong>Maltego and deterministic reports</strong></summary>
 
 Maltego crosses one credential boundary only: `PARA11AX_TOKEN`. Vendor credentials never enter the MTZ or transform output. See [`maltego/README.md`](maltego/README.md).
 
@@ -132,7 +143,7 @@ Full process: [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Release identity: [`re
 
 </details>
 
-**DEEP DOCS**
+## DEEP DOCS
 
 - [`docs/BRAND.md`](docs/BRAND.md) — PARA11AX identity and canonical surface rules.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — execution model and trust boundaries.
@@ -147,7 +158,7 @@ Full process: [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Release identity: [`re
 - [`docs/PUBLIC-RELEASE-CHECKLIST.md`](docs/PUBLIC-RELEASE-CHECKLIST.md) — public-extraction gate.
 - [`release-manifest.json`](release-manifest.json) — deterministic release identity.
 
-**DELIBERATE GAPS**
+## DELIBERATE GAPS
 
 No TLS/JA3 without a bounded source that passes the source gate. No deprecated SSLBL C2 path. No stale SecurityTrails configuration. No unbounded ATT&CK relationship download. No ransomware-wide enumeration in per-indicator enrichment. No Modat bulk export/broad history path. **No universal maliciousness score.**
 
@@ -155,7 +166,7 @@ No TLS/JA3 without a bounded source that passes the source gate. No deprecated S
 
 <div align="center">
 
-<img src="assets/brand/para11ax-mark.svg" alt="PARA11AX mark" width="52" />
+<img src="assets/brand/para11ax-mark.svg" alt="PARA11AX sentinel mark" width="64" />
 
 **OBSERVED ≠ INFERRED ≠ CONTEXTUAL**
 
