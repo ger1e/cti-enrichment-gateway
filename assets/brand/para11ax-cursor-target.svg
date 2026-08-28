@@ -1,7 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" role="img" aria-label="PARA11AX target cursor">
-  <path d="M7 4H4v5M21 4h3v5M7 24H4v-5M21 24h3v-5" fill="none" stroke="#39FF14" stroke-width="1.7" stroke-linecap="square"/>
-  <path d="m14 9 5 5-5 5-5-5Z" fill="#020403" stroke="#39FF14" stroke-width="1.35"/>
-  <path d="M14 6v4M14 18v4M6 14h4M18 14h4" stroke="#F7FFF6" stroke-width="0.8" opacity="0.72"/>
-  <path d="M14 3v2M14 23v2M3 14h2M23 14h2" stroke="#FF2438" stroke-width="1.2" stroke-linecap="square"/>
-  <path d="M12.8 14h2.4" stroke="#FF2438" stroke-width="1.2" stroke-linecap="square"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" role="img" aria-label="PARA11AX target cursor">
+  <path d="M5.5 3H3v4M16.5 3H19v4M5.5 19H3v-4M16.5 19H19v-4" fill="none" stroke="#39FF14" stroke-width="1.4" stroke-linecap="square"/>
+  <path d="m11 7.2 3.8 3.8-3.8 3.8L7.2 11Z" fill="#020403" stroke="#39FF14" stroke-width="1.1"/>
+  <path d="M11 4.8V8M11 14v3.2M4.8 11H8M14 11h3.2" stroke="#F7FFF6" stroke-width="0.7" opacity="0.72"/>
+  <path d="M10 11h2" stroke="#39FF14" stroke-width="0.9" stroke-linecap="square"/>
 </svg>

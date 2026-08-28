@@ -1,6 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" role="img" aria-label="PARA11AX tactical cursor">
-  <path d="M1.5 1.5 3.1 22.6 8.5 17.2 12.6 26.1 16 24.5 11.8 15.7 21.2 15.5Z" fill="#020403" stroke="#39FF14" stroke-width="1.65" stroke-linejoin="miter"/>
-  <path d="M4.3 5.2 5.1 15.9 8.2 12.8" fill="none" stroke="#F7FFF6" stroke-width="0.85" stroke-linecap="square" stroke-linejoin="miter" opacity="0.72"/>
-  <path d="M17.1 12.1h5.6M20 9.3v5.6" fill="none" stroke="#FF2438" stroke-width="1.15" stroke-linecap="square"/>
-  <path d="M22.8 10.2v3.8" stroke="#39FF14" stroke-width="0.8" opacity="0.72"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" role="img" aria-label="PARA11AX tactical cursor">
+  <path d="M1.2 1.2 2.5 17.8 6.7 13.6 9.9 20.5 12.6 19.2 9.3 12.3 16.7 12.1Z" fill="#020403" stroke="#39FF14" stroke-width="1.35" stroke-linejoin="miter"/>
+  <path d="M3.4 4.1 4 12.5 6.5 10" fill="none" stroke="#F7FFF6" stroke-width="0.72" stroke-linecap="square" stroke-linejoin="miter" opacity="0.72"/>
+  <path d="M13.5 9.5h4.4M15.8 7.3v4.4" fill="none" stroke="#39FF14" stroke-width="0.9" stroke-linecap="square" opacity="0.78"/>
 </svg>
