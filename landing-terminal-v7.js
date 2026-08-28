@@ -1,18 +1,45 @@
 const media = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
 const reduced = Boolean(media?.matches);
 const EXTRA_RAIN_COLUMNS = 16;
+const RADAR_CONTACTS = 4;
 const CURSOR_HREF = '/site-cursor.css';
+const MOTION_HREF = '/landing-radar-motion.css';
 const PROMPT_TEXT = 'analyst@para11ax:~$';
 const LEGACY_PROMPTS = ['user@para11ax:~$', 'user@para11ax: ~', 'para11ax@gateway:~$'];
 
 document.documentElement.dataset.terminalMotion = 'v7';
 
-function ensureCursorStylesheet() {
-  if (document.querySelector(`link[href="${CURSOR_HREF}"]`)) return;
+function ensureStylesheet(href) {
+  if (document.querySelector(`link[href="${href}"]`)) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = CURSOR_HREF;
+  link.href = href;
   document.head.append(link);
+}
+
+function ensureCursorStylesheet() {
+  ensureStylesheet(CURSOR_HREF);
+}
+
+function ensureMotionStylesheet() {
+  ensureStylesheet(MOTION_HREF);
+}
+
+function enhanceRadar() {
+  const radar = document.querySelector('.hero-ghost');
+  if (!radar || radar.querySelector('.radar-sweep')) return;
+
+  for (const className of ['radar-trail', 'radar-sweep', 'radar-pulse']) {
+    const layer = document.createElement('div');
+    layer.className = className;
+    radar.append(layer);
+  }
+
+  for (let index = 0; index < RADAR_CONTACTS; index += 1) {
+    const contact = document.createElement('i');
+    contact.className = `radar-contact radar-contact-${index + 1}`;
+    radar.append(contact);
+  }
 }
 
 function normalizePromptIdentity() {
@@ -43,6 +70,8 @@ function densifyRain() {
 }
 
 ensureCursorStylesheet();
+ensureMotionStylesheet();
+enhanceRadar();
 normalizePromptIdentity();
 densifyRain();
 
@@ -92,4 +121,13 @@ media?.addEventListener?.('change', (event) => {
   else if (!glitchTimer && !resetTimer) scheduleGlitch();
 });
 
-export { EXTRA_RAIN_COLUMNS, clearMotionTimers, densifyRain, ensureCursorStylesheet, normalizePromptIdentity };
+export {
+  EXTRA_RAIN_COLUMNS,
+  RADAR_CONTACTS,
+  clearMotionTimers,
+  densifyRain,
+  enhanceRadar,
+  ensureCursorStylesheet,
+  ensureMotionStylesheet,
+  normalizePromptIdentity,
+};
