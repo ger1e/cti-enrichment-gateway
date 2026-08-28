@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const read = path => readFileSync(path, 'utf8');
 
@@ -19,6 +19,21 @@ test('shared compact logo assets remain compatible secondary marks', () => {
     const svg = read(path);
     assert.match(svg, /#39FF14/i, `${path} missing phosphor`);
     assert.doesNotMatch(svg, /#00E5FF/i, `${path} still contains legacy cyan`);
+  }
+});
+
+test('browser surfaces share one simplified phosphor sentinel favicon', () => {
+  assert.equal(existsSync('favicon.svg'), true, 'root favicon asset must exist');
+  const favicon = read('favicon.svg');
+  assert.match(favicon, /viewBox=["']0 0 64 64["']/i);
+  assert.match(favicon, /#020403/i, 'favicon must use the terminal background');
+  assert.match(favicon, /#39FF14/i, 'favicon must use phosphor green');
+  assert.doesNotMatch(favicon, /#FF2438/i, 'favicon must not carry the red anomaly accent');
+  assert.doesNotMatch(favicon, /<text|<animate|<filter/i, 'favicon must stay simple at tab size');
+
+  for (const path of ['landing-maxx.html', 'app/index.html', '403.html', '404.html', '500.html']) {
+    const html = read(path);
+    assert.match(html, /<link\s+rel=["']icon["']\s+type=["']image\/svg\+xml["']\s+href=["']\/favicon\.svg["']\s*\/?>/i, `${path} must use the shared favicon`);
   }
 });
 
