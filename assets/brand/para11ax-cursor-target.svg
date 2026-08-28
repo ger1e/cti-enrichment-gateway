@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" role="img" aria-label="PARA11AX target cursor">
+  <path d="M7 4H4v5M21 4h3v5M7 24H4v-5M21 24h3v-5" fill="none" stroke="#39FF14" stroke-width="1.7" stroke-linecap="square"/>
+  <path d="m14 9 5 5-5 5-5-5Z" fill="#020403" stroke="#39FF14" stroke-width="1.35"/>
+  <path d="M14 6v4M14 18v4M6 14h4M18 14h4" stroke="#F7FFF6" stroke-width="0.8" opacity="0.72"/>
+  <path d="M14 3v2M14 23v2M3 14h2M23 14h2" stroke="#FF2438" stroke-width="1.2" stroke-linecap="square"/>
+  <path d="M12.8 14h2.4" stroke="#FF2438" stroke-width="1.2" stroke-linecap="square"/>
+</svg>
