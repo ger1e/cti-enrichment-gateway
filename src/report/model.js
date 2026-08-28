@@ -173,7 +173,9 @@ export function buildReportModel(snapshot, options = {}) {
     };
   });
 
-  const huntOpportunities = array(context.huntOpportunities ?? [], 'reportContext.huntOpportunities', 64).map((item, index) => {
+  const generatedHunts = Array.isArray(snapshot.decision?.huntPlan) ? snapshot.decision.huntPlan : [];
+  const huntInput = Object.prototype.hasOwnProperty.call(context, 'huntOpportunities') ? context.huntOpportunities : generatedHunts;
+  const huntOpportunities = array(huntInput ?? [], 'reportContext.huntOpportunities', 64).map((item, index) => {
     object(item, `reportContext.huntOpportunities[${index}]`);
     return {
       id: text(item.id, `reportContext.huntOpportunities[${index}].id`, { max: 128 }),
@@ -232,7 +234,7 @@ export function buildReportModel(snapshot, options = {}) {
       profile: typeof snapshot.profile === 'string' ? snapshot.profile : null,
       status: typeof snapshot.status === 'string' ? snapshot.status : null,
     },
-    executiveAssessment: clone(snapshot.correlation?.assessment ?? null),
+    executiveAssessment: clone(snapshot.correlation?.assessment ?? snapshot.decision?.assessment ?? null),
     keyFindings,
     suspiciousBehavior,
     evidence,
