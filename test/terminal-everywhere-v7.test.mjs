@@ -16,11 +16,12 @@ const activePresentationFiles = [
 
 test('landing is a terminal-first v7 surface with live visual motion hooks', () => {
   const landing = read('landing-maxx.html');
+  const adapter = read('landing-terminal-v7.js');
   assert.match(landing, /class="terminal-hero"/i);
   assert.match(landing, /class="terminal-topline"/i);
   assert.match(landing, /class="terminal-overview"/i);
   assert.match(landing, /class="terminal-integrations"/i);
-  assert.match(landing, /user@para11ax:~\$/i);
+  assert.match(adapter, /PROMPT_TEXT\s*=\s*['"]analyst@para11ax:~\$['"]/i);
   assert.match(landing, /PROVENANCE-FIRST CTI PLATFORM/i);
   assert.match(landing, /EVIDENCE FIRST\./i);
   assert.match(landing, /BOUNDED ALWAYS\./i);
@@ -57,6 +58,8 @@ test('README uses terminal-native desktop and mobile hero assets while preservin
   assert.match(readme, /ENTER ANALYST UI/i);
   assert.equal(existsSync('assets/brand/para11ax-terminal-hero.svg'), true);
   assert.equal(existsSync('assets/brand/para11ax-terminal-hero-mobile.svg'), true);
+  assert.match(read('assets/brand/para11ax-terminal-hero.svg'), /analyst@para11ax:~\$/i);
+  assert.match(read('assets/brand/para11ax-terminal-hero-mobile.svg'), /analyst@para11ax:~\$/i);
 });
 
 test('brand system declares terminal frame primary and no new audio identity', () => {
@@ -65,15 +68,15 @@ test('brand system declares terminal frame primary and no new audio identity', (
   assert.match(brand, /terminal prompt/i);
   assert.match(brand, /primary identity/i);
   assert.match(brand, /no new audio/i);
-  assert.match(brand, /user@para11ax:~\$/i);
+  assert.match(brand, /analyst@para11ax:~\$/i);
   assert.doesNotMatch(brand, /caution-amber\s*\|\s*`?#f6c945/i);
 });
 
-test('authenticated app preserves native shell flow and canonical prompt', () => {
+test('authenticated app preserves native shell flow and canonical analyst prompt', () => {
   const deck = read('app/analyst-deck.js');
   const css = read('app/analyst-deck.css');
-  assert.match(deck, /PROMPT_TEXT\s*=\s*['"]user@para11ax: ~['"]/);
-  assert.match(deck, /dataset\.terminalFirst\s*=\s*['"]v6['"]|dataset\.terminalFirst\s*=\s*['"]v7['"]/);
+  assert.match(deck, /PROMPT_TEXT\s*=\s*['"]analyst@para11ax:~\$['"]/);
+  assert.match(deck, /dataset\.terminalFirst\s*=\s*['"]v7['"]/);
   assert.doesNotMatch(deck, /analyst-view-rail|analyst-action-rail|analyst-status-rail/i);
   assert.doesNotMatch(deck, /fetch\s*\(|api-client|session\.js/i);
   assert.match(css, /\.unix-shell[^}]*grid-template-rows:\s*auto\s+minmax\(0,1fr\)\s+auto/is);
