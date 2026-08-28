@@ -5,17 +5,20 @@ import test from 'node:test';
 const read = path => readFileSync(path, 'utf8');
 
 test('operational and branded terminal identity is analyst@para11ax', () => {
+  const shell = read('app/shell-ui.js');
   const deck = read('app/analyst-deck.js');
   const landing = read('landing-terminal-v7.js');
   const brand = read('docs/BRAND.md');
   const desktopHero = read('assets/brand/para11ax-terminal-hero.svg');
   const mobileHero = read('assets/brand/para11ax-terminal-hero-mobile.svg');
+  assert.match(shell, /promptLabel\.textContent\s*=\s*['"]analyst@para11ax:~\$['"]/);
+  assert.doesNotMatch(shell, /promptLabel\.textContent\s*=\s*['"]para11ax@gateway:~\$['"]/);
   assert.match(deck, /PROMPT_TEXT\s*=\s*['"]analyst@para11ax:~\$['"]/);
   assert.match(landing, /PROMPT_TEXT\s*=\s*['"]analyst@para11ax:~\$['"]/);
   assert.match(brand, /analyst@para11ax:~\$/);
   assert.match(desktopHero, /analyst@para11ax:~\$/);
   assert.match(mobileHero, /analyst@para11ax:~\$/);
-  assert.match(read('app/shell-ui.js'), /BEARER:/, 'password prompt must remain separate');
+  assert.match(shell, /BEARER:/, 'password prompt must remain separate');
 });
 
 test('terminal uses the native caret with an explicit phosphor blink cycle', () => {
