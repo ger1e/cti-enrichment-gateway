@@ -20,6 +20,14 @@ test('classifies MD5 SHA1 and SHA256 hashes', () => {
   assert.deepEqual(classifyIndicator('C'.repeat(64)), { value: 'c'.repeat(64), type: 'hash' });
 });
 
+test('certificate fingerprints require the explicit cert-sha256 prefix and never steal bare file hashes', () => {
+  const fp = 'A'.repeat(64);
+  assert.deepEqual(classifyIndicator(`cert-sha256:${fp}`), { value: `cert-sha256:${'a'.repeat(64)}`, type: 'certificate' });
+  assert.deepEqual(classifyIndicator(fp), { value: 'a'.repeat(64), type: 'hash' });
+  assert.throws(() => classifyIndicator(`cert-sha256:${'a'.repeat(63)}`), /unsupported/i);
+  assert.throws(() => classifyIndicator(`cert-sha256:${'g'.repeat(64)}`), /unsupported/i);
+});
+
 test('rejects malformed hostnames', () => {
   for (const value of ['bad_domain.com', '-bad.example', 'bad-.example', 'no dot', '.example.com', 'example..com']) {
     assert.throws(() => classifyIndicator(value), /unsupported/i);
