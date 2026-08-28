@@ -29,7 +29,8 @@ test('README uses the unified terminal hero and operational hierarchy', () => {
   assert.match(readme, /OPERATIONAL CORE/i);
   assert.match(readme, /SEMANTIC FIREWALL/i);
   assert.match(readme, /ANALYST SURFACE/i);
-  assert.match(readme, /user@para11ax:~\$/i);
+  assert.match(readme, /analyst@para11ax:~\$/i);
+  assert.doesNotMatch(readme, /user@para11ax:~\$/i);
   assert.match(readme, /https:\/\/para11ax\.vercel\.app\/app\//i);
   assert.match(readme, /<details>/i);
 });
@@ -39,7 +40,8 @@ test('README hero assets use the phosphor terminal identity and reject legacy pa
     const svg = read(path);
     assert.match(svg, /#020403/i, `${path} missing terminal background`);
     assert.match(svg, /#39FF14/i, `${path} missing phosphor`);
-    assert.match(svg, /user@para11ax:~\$/i, `${path} missing terminal prompt`);
+    assert.match(svg, /analyst@para11ax:~\$/i, `${path} missing analyst terminal prompt`);
+    assert.doesNotMatch(svg, /user@para11ax:~\$/i, `${path} still contains retired prompt identity`);
     assert.doesNotMatch(svg, /#00E5FF|#F6C945|#39FF88/i, `${path} still contains legacy palette`);
   }
 });
