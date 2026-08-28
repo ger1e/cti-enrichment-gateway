@@ -106,7 +106,7 @@ test('mobile viewport has no legacy outer-page overflow or focus-scroll jump', a
   assert.doesNotMatch(shell, /\binput\.focus\(\);/);
 });
 
-test('mobile prompt is a terminal line, not a legacy cyan focus rectangle', async () => {
+test('mobile prompt is a terminal line, not a focus rectangle', async () => {
   const css = await read('app/shell.css');
   assert.match(css, /\.shell-input:focus-visible\{[^}]*outline:\s*(?:0|none)/);
   assert.match(css, /\.shell-input:focus-visible\{[^}]*outline-offset:\s*0/);
@@ -151,20 +151,17 @@ test('wireframe globe is visible in standby and stays visible through boot', asy
   assert.match(css, /\.boot-modem \.boot-globe[^}]*opacity:/);
 });
 
-test('PARA11AX semantic color scheme is universal across boot shell and result surfaces', async () => {
+test('PARA11AX semantic color scheme is canonical across boot shell and result surfaces', async () => {
   const css = await read('app/shell.css');
-  assert.match(css, /--px-void\s*:\s*#050608/i);
-  assert.match(css, /--px-cyan\s*:\s*#00e5ff/i);
-  assert.match(css, /--px-red\s*:\s*#ff1e2d/i);
-  assert.match(css, /--px-green\s*:\s*#39ff88/i);
-  assert.match(css, /--px-amber\s*:\s*#f6c945/i);
-  assert.match(css, /--px-white\s*:\s*#f3f7fa/i);
-  assert.match(css, /--px-muted\s*:\s*#7d8b95/i);
-  assert.match(css, /\.shell-cyan\{[^}]*var\(--px-cyan\)/);
-  assert.match(css, /\.shell-green\{[^}]*var\(--px-green\)/);
-  assert.match(css, /\.shell-amber\{[^}]*var\(--px-amber\)/);
-  assert.match(css, /\.shell-red\{[^}]*var\(--px-red\)/);
-  assert.doesNotMatch(css, /#28434e|#31434b|#24414c/, 'legacy one-off cyan/gray chrome should be removed from active shell CSS');
+  assert.match(css, /--terminal-bg\s*:\s*#020403/i);
+  assert.match(css, /--terminal-phosphor\s*:\s*#39ff14/i);
+  assert.match(css, /--terminal-alert\s*:\s*#ff2438/i);
+  assert.match(css, /--terminal-text\s*:\s*#f7fff6/i);
+  assert.match(css, /--terminal-muted\s*:\s*#8da391/i);
+  assert.match(css, /\.shell-cyan,.shell-green\{[^}]*var\(--terminal-phosphor\)/);
+  assert.match(css, /\.shell-amber\{[^}]*var\(--terminal-muted\)/);
+  assert.match(css, /\.shell-red\{[^}]*var\(--terminal-alert\)/);
+  assert.doesNotMatch(css, /#00e5ff|#f6c945|#39ff88|#ff1e2d|#ff4050/i);
 });
 
 test('glitch system is event-driven and bounded to boot and meaningful terminal events', async () => {
@@ -190,6 +187,6 @@ test('mobile glitch effects never widen the viewport', async () => {
 
 test('reduced motion keeps semantic glitch feedback without animated tearing', async () => {
   const css = await read('app/shell.css');
-  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.glitch-[^{]+\{[^}]*animation:\s*none/);
-  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*text-shadow:[^;}]*var\(--px-red\)[^;}]*var\(--px-cyan\)/);
+  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.glitch-[^{]+\{[^}]*animation:none!important/);
+  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*text-shadow:[^;}]*var\(--terminal-alert\)[^;}]*var\(--terminal-phosphor\)/);
 });
