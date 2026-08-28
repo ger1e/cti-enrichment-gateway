@@ -33,5 +33,9 @@ export function withProviderMetadata(adapter) {
     displayName: policy.displayName,
     authType: policy.authType,
     semanticClassHints: Object.freeze([...policy.semanticClassHints]),
+    sourceRole: policy.sourceRole,
+    freshnessClass: policy.freshnessClass,
+    admissionVersion: policy.admissionVersion,
+    executionPolicy: policy.executionPolicy,
   });
 }
