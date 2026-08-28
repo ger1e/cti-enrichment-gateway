@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   EXECUTION_POLICY,
   EXECUTION_POLICY_VERSION,
@@ -26,6 +27,18 @@ test('v8 execution policy preserves the existing bounded scheduler contract', ()
     requestDeadlineMs: 20_000,
   });
   assert.equal(Object.isFrozen(EXECUTION_POLICY), true);
+});
+
+test('scheduler and app consume the canonical execution-policy constants', () => {
+  const scheduler = readFileSync(new URL('../src/core/scheduler.js', import.meta.url), 'utf8');
+  const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
+  assert.match(scheduler, /from ['"]\.\/execution-policy\.js['"]/);
+  assert.match(scheduler, /concurrency\s*=\s*PROVIDER_CONCURRENCY_MAX/);
+  assert.match(scheduler, /deadlineMs\s*=\s*REQUEST_DEADLINE_MS/);
+  assert.match(scheduler, /attempts\s*<\s*PROVIDER_MAX_ATTEMPTS/);
+  assert.match(app, /from ['"]\.\/core\/execution-policy\.js['"]/);
+  assert.match(app, /providerConcurrency:\s*PROVIDER_CONCURRENCY_MAX/);
+  assert.match(app, /requestDeadlineMs:\s*REQUEST_DEADLINE_MS/);
 });
 
 test('scheduler defaults remain four concurrent providers, two attempts and a 20 second deadline', async () => {
