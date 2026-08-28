@@ -17,6 +17,8 @@ test('capability registry is deterministic frozen and type-indexed', () => {
   assert.deepEqual(capabilities.providers.map(item => item.name), [...capabilities.providers.map(item => item.name)].sort());
   assert.ok(capabilities.byType.ip.providers.includes('censys'));
   assert.ok(capabilities.byType.cve.providers.includes('cisa-kev'));
+  assert.deepEqual(capabilities.byType.certificate.providers, ['censys', 'virustotal']);
+  assert.ok(capabilities.byType.domain.providers.includes('cloudflare-dns'));
   assert.equal(Object.isFrozen(capabilities.byType.ip), true);
 });
 
