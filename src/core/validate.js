@@ -5,6 +5,7 @@ import { parseCanonicalCidr } from './network.js';
 const MAX_INDICATOR_LENGTH = 4096;
 const CVE_RE = /^CVE-\d{4}-\d{4,}$/i;
 const ATTACK_RE = /^(?:T\d{4}(?:\.\d{3})?|TA\d{4}|G\d{4}|S\d{4}|M\d{4}|C\d{4}|DS\d{4}|DC\d{4}|DET\d{4})$/i;
+const CERT_SHA256_RE = /^cert-sha256:([a-fA-F0-9]{64})$/;
 const HASH_RE = /^(?:[a-fA-F0-9]{32}|[a-fA-F0-9]{40}|[a-fA-F0-9]{64})$/;
 const ASN_RE = /^AS([1-9]\d*)$/i;
 const MAX_ASN = 4_294_967_295n;
@@ -48,6 +49,9 @@ export function classifyIndicator(input) {
   if (value.includes('/') && !/^https?:\/\//i.test(value)) throw new TypeError('unsupported indicator');
   if (CVE_RE.test(value)) return { value: value.toUpperCase(), type: 'cve' };
   if (ATTACK_RE.test(value)) return { value: value.toUpperCase(), type: 'attack' };
+  const certificate = CERT_SHA256_RE.exec(value);
+  if (certificate) return { value: `cert-sha256:${certificate[1].toLowerCase()}`, type: 'certificate' };
+  if (/^cert-sha256:/i.test(value)) throw new TypeError('unsupported indicator');
   if (HASH_RE.test(value)) return { value: value.toLowerCase(), type: 'hash' };
   const url = validUrl(value); if (url) return { value: url, type: 'url' };
   const domain = validDomain(value); if (domain) return { value: domain, type: 'domain' };
