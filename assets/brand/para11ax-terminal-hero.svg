@@ -24,12 +24,12 @@
   <rect x="760" y="105" width="600" height="44" fill="#020403" stroke="#39FF14" stroke-opacity=".28"/>
   <text x="782" y="133" class="g" font-size="16">&gt; PARA11AX TERMINAL v2.0.0</text>
   <circle cx="1215" cy="127" r="5" fill="#39FF14" class="pulse"/><text x="1232" y="133" class="g" font-size="15">OPERATIONAL</text>
-  <text x="792" y="194" class="g" font-size="19">user@para11ax:~$ whoami</text>
+  <text x="792" y="194" class="g" font-size="19">analyst@para11ax:~$ whoami</text>
   <text x="792" y="225" class="w" font-size="18">Threat Hunter</text>
-  <text x="792" y="271" class="g" font-size="19">user@para11ax:~$ mission</text>
+  <text x="792" y="271" class="g" font-size="19">analyst@para11ax:~$ mission</text>
   <text x="792" y="302" class="w" font-size="18">Evidence first. Bounded always.</text>
   <text x="792" y="331" class="w" font-size="18">Operational when supported.</text>
-  <text x="792" y="355" class="g" font-size="18">user@para11ax:~$</text><rect x="1002" y="340" width="11" height="18" fill="#39FF14" class="cursor"/>
+  <text x="792" y="355" class="g" font-size="18">analyst@para11ax:~$</text><rect x="1034" y="340" width="11" height="18" fill="#39FF14" class="cursor"/>
 </g>
 <g class="mono" font-size="14">
   <text x="72" y="406" class="m">37 FIXED SOURCES</text><text x="250" y="406" class="m">//</text><text x="284" y="406" class="m">EVIDENCE V2</text><text x="430" y="406" class="m">//</text><text x="464" y="406" class="m">READ-ONLY</text><text x="580" y="406" class="m">//</text><text x="614" y="406" class="m">FIXED EGRESS</text>
