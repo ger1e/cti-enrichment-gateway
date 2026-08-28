@@ -1,8 +1,8 @@
 <div align="center">
 
 <picture>
-  <source media="(max-width: 640px)" srcset="assets/brand/para11ax-hero-mobile.svg">
-  <img src="assets/brand/para11ax-hero.svg" alt="PARA11AX — CTI Evidence Gateway" width="100%" />
+  <source media="(max-width: 640px)" srcset="assets/brand/para11ax-terminal-hero-mobile.svg">
+  <img src="assets/brand/para11ax-terminal-hero.svg" alt="PARA11AX — provenance-first CTI terminal" width="100%" />
 </picture>
 
 [![Tooling smoke](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml)
@@ -19,7 +19,10 @@
 > [!IMPORTANT]
 > Personal research / lab surface. Do not send commercial-client, internal-enterprise, restricted, or otherwise sensitive data without explicit authorization and suitable data handling.
 
-## OPERATIONAL CORE
+```text
+user@para11ax:~$ core --status
+> OPERATIONAL CORE
+```
 
 PARA11AX is a bounded CTI evidence gateway for hunters and defenders. It takes one supported observable, routes it through a fixed provider workflow, preserves provider-native semantics, and returns provenance-rich evidence without pretending every signal is a verdict.
 
@@ -36,9 +39,12 @@ PARA11AX is a bounded CTI evidence gateway for hunters and defenders. It takes o
 
 **Read-only means read-only:** no scanning, detonation, submission, sample download, takedown, remediation, or arbitrary proxying.
 
-## ANALYST SURFACE
+```text
+user@para11ax:~$ surface --analyst
+> ANALYST SURFACE // https://para11ax.vercel.app/app/
+```
 
-The production analyst terminal is at **https://para11ax.vercel.app/app/**. It keeps the gateway bearer in volatile memory only, exposes bounded shell commands and evidence views, and preserves the same semantic model as the API.
+The production analyst terminal keeps the gateway bearer in volatile memory only, exposes bounded shell commands and evidence views, and preserves the same semantic model as the API.
 
 ### API
 
@@ -71,7 +77,10 @@ para11ax report diff <before.json> <after.json>
 
 The browser terminal and CLI are control surfaces over bounded gateway behavior; neither is a general-purpose shell or arbitrary network client.
 
-## SEMANTIC FIREWALL
+```text
+user@para11ax:~$ semantics --enforce
+> SEMANTIC FIREWALL
+```
 
 ![PARA11AX semantic firewall](assets/brand/para11ax-semantic-firewall.svg)
 
@@ -143,7 +152,10 @@ Full process: [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Release identity: [`re
 
 </details>
 
-## DEEP DOCS
+```text
+user@para11ax:~$ docs --deep
+> DEEP DOCS
+```
 
 - [`docs/BRAND.md`](docs/BRAND.md) — PARA11AX identity and canonical surface rules.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — execution model and trust boundaries.
@@ -158,7 +170,10 @@ Full process: [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Release identity: [`re
 - [`docs/PUBLIC-RELEASE-CHECKLIST.md`](docs/PUBLIC-RELEASE-CHECKLIST.md) — public-extraction gate.
 - [`release-manifest.json`](release-manifest.json) — deterministic release identity.
 
-## DELIBERATE GAPS
+```text
+user@para11ax:~$ gaps --show
+> DELIBERATE GAPS
+```
 
 No TLS/JA3 without a bounded source that passes the source gate. No deprecated SSLBL C2 path. No stale SecurityTrails configuration. No unbounded ATT&CK relationship download. No ransomware-wide enumeration in per-indicator enrichment. No Modat bulk export/broad history path. **No universal maliciousness score.**
 
@@ -166,7 +181,7 @@ No TLS/JA3 without a bounded source that passes the source gate. No deprecated S
 
 <div align="center">
 
-<img src="assets/brand/para11ax-mark.svg" alt="PARA11AX sentinel mark" width="64" />
+`user@para11ax:~$ _`
 
 **OBSERVED ≠ INFERRED ≠ CONTEXTUAL**
 

@@ -1,115 +1,180 @@
-### PARA11AX Brand System
+# PARA11AX Brand System
 
-> **PARA11AX // CTI Evidence Gateway**  
+> **PARA11AX // PROVENANCE-FIRST CTI TERMINAL**  
 > **Intelligence. Enriched. Operational.**
 
-PARA11AX is the product and visual identity for the bounded CTI evidence gateway. Repository, package, CLI, web UI, environment, API, deployment, and integration surfaces use one identity.
+PARA11AX uses one terminal-first identity across the landing page, analyst Web UI, GitHub README, documentation diagrams, package/CLI references and deployment surfaces.
 
-#### Identity
+## Primary identity
 
-The system combines four visual ideas:
+The **terminal frame** is the primary identity element. The product should read first as a bounded phosphor terminal, not as a dashboard, SaaS card system, poster, or illustration-led interface.
 
-1. **Sentinel geometry** — a compact gunmetal helmet/visor mark representing guarded observation and disciplined analysis.
-2. **Phosphor signal** — `#39FF14` is the primary identity color for the visor, structural rails, active state, and technical emphasis.
-3. **Anomaly signal** — red is sparse and event-specific: scanner motion, warning/focal nodes, and deliberate corruption inside Matrix rain.
-4. **Evidence discipline** — white and muted neutrals carry most text so semantic color retains meaning instead of becoming decoration.
+The **terminal prompt** is the second primary identity element:
 
-The result should feel like black-glass intelligence tooling: hostile enough to be memorable, precise enough to be credible, and consistent across landing page, analyst terminal, GitHub, and documentation.
+```text
+user@para11ax:~$ whoami
+Threat Hunter
+user@para11ax:~$ _
+```
 
-#### Primary lockup
+The terminal frame and terminal prompt must be visible whenever a surface has enough space. Sentinel/helmet geometry is optional secondary emblem use only. It may appear as a compact mark where helpful, but it does not own the page hierarchy.
 
-- Product name: **PARA11AX**
-- Descriptor: `CTI // EVIDENCE GATEWAY`
-- Primary line: `BOUNDED · READ-ONLY · PROVENANCE-FIRST`
-- Brand line: `INTELLIGENCE. ENRICHED. OPERATIONAL.`
-- Semantic line: `OBSERVED ≠ INFERRED ≠ CONTEXTUAL`
+## Canonical visual system
 
-Use [`../assets/brand/para11ax-hero.svg`](../assets/brand/para11ax-hero.svg) for the repository hero, [`../assets/brand/para11ax-lockup.svg`](../assets/brand/para11ax-lockup.svg) for horizontal surfaces, [`../assets/brand/para11ax-mark.svg`](../assets/brand/para11ax-mark.svg) for compact/icon surfaces, and [`../app/para11ax-mark.svg`](../app/para11ax-mark.svg) for the analyst header.
+The terminal language combines five rules:
 
-#### Canonical quotation
+1. **Void terminal plane** — `#020403` owns the canvas.
+2. **Phosphor signal** — `#39FF14` owns identity, prompts, cursor, active rails, status and primary terminal borders.
+3. **Signal white** — `#F7FFF6` owns primary readable content.
+4. **Muted terminal gray-green** — `#8DA391` owns passive state and secondary copy.
+5. **Sparse anomaly red** — `#FF2438` is reserved for scanner heads, failures, contradictions and deliberate anomaly cues.
 
-> “You’ve got to follow the evidence… That doesn’t make it fact.”  
-> — **John Kiriakou**
-
-This is the canonical philosophical close for PARA11AX. It captures the core operating rule: evidence is collected, preserved, correlated, and challenged; it is not automatically promoted to fact.
-
-Usage rules:
-
-- preserve the ellipsis — it marks omitted intervening remarks rather than pretending the excerpt was one uninterrupted sentence;
-- preserve the attribution;
-- use the quotation as a design/philosophy cue, not as an endorsement claim;
-- `evidence` may use phosphor emphasis;
-- `fact` stays signal-white or neutral text — never promote it through status color;
-- keep the quotation secondary to the product name and descriptor.
-
-Source context: John Kiriakou, *The Joe Rogan Experience* #2392, approximately 01:32:47–01:33:55. The two quoted clauses occur in the same discussion with intervening remarks omitted by the ellipsis.
-
-#### Color system
+No legacy cyan, amber or alternate green branding is active in the v7 system.
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| `void` | `#020403` | primary background |
-| `panel` | `#061008` | black-green secondary surface |
-| `gunmetal` | `#202922` | sentinel armor / neutral structure |
-| `phosphor` | `#39FF14` | primary identity, visor, active rails, technical emphasis |
-| `phosphor-soft` | `#80FF6B` | secondary green text / glow |
-| `scanner-red` | `#FF2438` | anomaly, scanner head, warning/focal signal |
-| `signal-white` | `#F7FFF6` | primary text |
-| `muted` | `#8CA08F` | secondary copy |
-| `caution-amber` | `#F6C945` | caveats, partial state, upstream uncertainty |
+| `terminal-bg` | `#020403` | primary background |
+| `terminal-phosphor` | `#39FF14` | identity, prompt, cursor, active state |
+| `terminal-text` | `#F7FFF6` | primary content |
+| `terminal-muted` | `#8DA391` | passive/secondary content |
+| `terminal-alert` | `#FF2438` | anomaly, error, contradiction, scanner |
 
-##### Color discipline
+## Canonical copy
 
-- Phosphor owns **identity, active structure, and the sentinel visor**.
-- Red owns **anomaly and motion**, and stays sparse.
-- White owns **primary copy and legibility**.
-- Gunmetal owns **armor and neutral framing**.
-- Amber owns **uncertainty and partial coverage**.
-- Cyan is not part of the active PARA11AX identity.
+Use these phrases consistently:
 
-#### Matrix rain
+```text
+PROVENANCE-FIRST CTI PLATFORM
+EVIDENCE FIRST.
+BOUNDED ALWAYS.
+OPERATIONAL WHEN SUPPORTED.
+OBSERVED ≠ INFERRED ≠ CONTEXTUAL
+ABSENCE ≠ BENIGN
+IMPLEMENTED ≠ CONFIGURED ≠ PRODUCTION-VERIFIED
+```
 
-Matrix rain is an environmental layer, not the content hierarchy.
+Primary product identifiers:
 
-- Primary stream color: phosphor green.
-- Red anomaly streams: sparse; never equal to green density.
-- Desktop: dense, multi-depth, fast enough to feel alive without obscuring the terminal.
-- Mobile: edge-biased and lower-opacity so input/output remains readable.
-- Reduced motion: freeze or remove falling motion while preserving static identity.
+```text
+repository: para11ax
+package: para11ax
+CLI: para11ax
+gateway bearer: PARA11AX_TOKEN
+API: /api/para11ax/*
+production: https://para11ax.vercel.app
+analyst UI: https://para11ax.vercel.app/app/
+```
 
-#### Scanner motion
+## Landing page
 
-The scanner remains a red back-and-forth signal because it represents active observation, not a verdict.
+The landing page is one large terminal environment.
 
-- Direction: left → right → left.
-- Canonical cycle: **1.8 seconds**.
-- Motion: smooth ease-in/ease-out.
-- No flashing or strobing.
-- Static state must remain legible.
+Required composition:
 
-#### Sentinel geometry
+- compact terminal status line with product, link/auth/system state and terminal entry;
+- large PARA11AX terminal/ASCII identity;
+- provenance-first doctrine;
+- terminal-style system overview;
+- capability transcript;
+- visible analyst shell example using `user@para11ax:~$`;
+- fixed-source summary;
+- terminal footer with read-only/fixed-egress doctrine.
 
-The primary emblem is an original angular sentinel/helmet with a phosphor visor.
+Do not use rounded marketing cards as the primary hierarchy. Do not make the sentinel illustration the hero. Do not place decorative motion over readable terminal content.
 
-- Gunmetal shell and dark faceplate.
-- Phosphor visor is the strongest colored element.
-- A tiny red anomaly node may appear as a secondary cue.
-- Use the same silhouette across mark, lockup, README hero, and analyst header.
-- Avoid unrelated skulls, generic padlocks, weapon silhouettes, or copied entertainment/IP motifs.
+## Analyst Web UI
 
-#### Typography
+The `/app` surface is a native shell plane:
 
-No bundled/custom font files are required.
+```text
+status line
+────────────────────────────────
+scrollback / evidence transcript
+────────────────────────────────
+user@para11ax: ~
+```
 
-Preferred stack:
+The authenticated shell keeps status → scrollback → prompt as its DOM and visual hierarchy. Result views remain transcript sections with dotted separators. No dashboard sidebars, view rails, action rails, floating cards, or duplicated command launchers.
+
+Mobile preserves the same hierarchy in one column. Input text stays large enough to avoid browser zoom, raw JSON remains horizontally scrollable, and decorative Matrix content is edge-biased/reduced.
+
+## Motion system
+
+Maximum visual cue means frequent but bounded terminal motion, not flashing.
+
+Canonical motion:
+
+- cursor blink: `0.8–1.0 s` cycle;
+- scanner sweep: approximately `1.8 s`;
+- Matrix streams: `2.8–9 s` multi-depth cycles;
+- status pulse: `1.4–2.4 s` brightness change;
+- terminal-line reveal: `25–90 ms` stagger depending on section;
+- event glitch: maximum `400 ms`, low displacement, event-triggered only.
+
+Allowed cue types:
+
+- blinking block cursor;
+- red scanner line;
+- low-opacity CRT scanlines;
+- phosphor status LED pulse;
+- short channel-split/glitch on result/error/contradiction events;
+- sequential terminal output reveal;
+- background Matrix fall.
+
+Never use high-frequency full-screen flashes, destructive layout shifts, or motion that hides evidence.
+
+`prefers-reduced-motion: reduce` disables nonessential movement and preserves the same static hierarchy.
+
+## Audio
+
+**No new audio** is part of the canonical landing/README/documentation identity.
+
+Landing pages, README assets and documentation remain silent. Existing `/app` synthesized audio behavior is independent runtime behavior and must not be expanded by visual-brand work.
+
+## README and documentation
+
+The README hero uses:
+
+- `assets/brand/para11ax-terminal-hero.svg`
+- `assets/brand/para11ax-terminal-hero-mobile.svg`
+
+Both are terminal frames, not poster art. Major README sections may use concise shell-style text fences to reinforce the operating model, but technical prose must remain readable and searchable.
+
+Architecture and semantic diagrams use square terminal framing, monospaced labels, black/phosphor/white/red palette and visible semantic boundaries. Do not use semantic color as a substitute for exact labels.
+
+## Matrix rain
+
+Matrix rain is atmosphere, never content hierarchy.
+
+- green streams dominate;
+- red anomaly streams are sparse;
+- desktop may be dense and multi-depth;
+- mobile is edge-biased and lower opacity;
+- reduced motion freezes/removes fall animation;
+- no Matrix stream may interfere with prompt, evidence or navigation legibility.
+
+## Typography
+
+No bundled font files are required.
+
+Canonical stack:
 
 ```text
 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
 ```
 
-Use wide tracking for `PARA11AX` and compact uppercase technical labels for descriptors/status text. The `11` may be phosphor green while the remaining wordmark stays signal-white.
+Wide tracking is allowed for PARA11AX/status labels. Long technical content uses normal mono spacing for readability.
 
-#### Voice
+## Canonical quotation
+
+> “You’ve got to follow the evidence… That doesn’t make it fact.”  
+> — **John Kiriakou**
+
+Use the quotation as a secondary evidence-discipline cue, not as the hero. Preserve the ellipsis and attribution. Do not imply endorsement.
+
+Source context: John Kiriakou, *The Joe Rogan Experience* #2392, approximately 01:32:47–01:33:55.
+
+## Voice
 
 PARA11AX copy should be:
 
@@ -121,39 +186,30 @@ PARA11AX copy should be:
 - free of claims that absence means benign;
 - free of attribution by infrastructure proximity alone.
 
-Canonical phrases:
-
-```text
-INTELLIGENCE. ENRICHED. OPERATIONAL.
-BOUNDED · READ-ONLY · PROVENANCE-FIRST
-OBSERVED ≠ INFERRED ≠ CONTEXTUAL
-ABSENCE ≠ BENIGN
-IMPLEMENTED ≠ CONFIGURED ≠ PRODUCTION-VERIFIED
-```
-
-#### Do / do not
+## Do / do not
 
 | Do | Do not |
 | --- | --- |
-| use one phosphor-led identity everywhere | keep legacy cyan branding active beside the new design |
-| use red as a sparse anomaly/scanner cue | turn red into a universal maliciousness verdict |
+| make the terminal frame the visual anchor | turn pages into generic SaaS dashboards |
+| keep `user@para11ax:~$` visible where useful | invent unrelated prompt identities |
+| use phosphor for active structure | reintroduce cyan/amber brand rails |
+| use red only for sparse anomaly/error cues | make red a universal maliciousness verdict |
+| animate cursor/scanner/status subtly | flash full-screen or obscure evidence |
 | preserve black negative space | fill every surface with glow |
-| keep the sentinel readable at small sizes | over-detail the header mark |
-| reduce rain behind mobile content | let decorative motion compromise terminal readability |
+| keep mobile single-column and thumb-safe | shrink desktop cards into a phone layout |
 | retain exact technical caveats | brand away uncertainty |
-| keep canonical PARA11AX identifiers aligned | reintroduce legacy aliases |
 
-#### Canonical identity boundary
+## Identity boundary
 
-The full identity migration is intentionally breaking. Canonical surfaces are:
+The canonical public identity is intentionally singular:
 
 - repository: `para11ax`
 - package: `para11ax`
 - CLI: `para11ax`
-- gateway bearer: `PARA11AX_TOKEN`
+- bearer: `PARA11AX_TOKEN`
 - API paths: `/api/para11ax/*`
 - production URL: `https://para11ax.vercel.app`
 - analyst UI: `https://para11ax.vercel.app/app/`
 - Maltego artifact: `para11ax-local.mtz`
 
-Legacy aliases and the old cyan visual identity are not part of the supported contract.
+Legacy aliases and legacy visual palettes are not part of the supported contract.

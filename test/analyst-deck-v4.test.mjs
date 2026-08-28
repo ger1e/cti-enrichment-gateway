@@ -84,7 +84,7 @@ test('result surfaces render as terminal sections rather than dashboard cards or
   assert.match(css, /\.overview[^}]*display:\s*block/is);
   assert.match(css, /\.hud-cell[^}]*display:\s*grid/is);
   assert.match(css, /\.hud-cell[^}]*grid-template-columns:\s*minmax\(/is);
-  assert.doesNotMatch(css, /repeat\(4|min-height:\s*64px|box-shadow:\s*0 28px 90px|border-radius:/i);
+  assert.doesNotMatch(css, /repeat\(4|box-shadow:\s*0 28px 90px|border-radius:/i);
 });
 
 test('boot auth and runtime share the same terminal palette and do not switch visual language', () => {

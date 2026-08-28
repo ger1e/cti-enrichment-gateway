@@ -6,12 +6,16 @@ const read = (path) => readFileSync(path, 'utf8');
 
 test('production landing artifact runs heavy rain density without external assets', () => {
   const html = read('landing-maxx.html');
+  const motion = read('landing-terminal-v7.js');
   const config = JSON.parse(read('vercel.json'));
-  const columns = (html.match(/class="rain"/g) || []).length;
-  assert.ok(columns >= 40, `expected at least 40 landing rain columns, got ${columns}`);
+  const staticColumns = (html.match(/class="rain"/g) || []).length;
+  const extraMatch = motion.match(/EXTRA_RAIN_COLUMNS\s*=\s*(\d+)/);
+  const extraColumns = Number(extraMatch?.[1] || 0);
+  assert.ok(staticColumns + extraColumns >= 40, `expected at least 40 effective landing rain columns, got ${staticColumns + extraColumns}`);
   assert.match(html, /data-rain-density="heavy"/i);
-  assert.match(html, /--rain-opacity-heavy:/i);
+  assert.match(html, /\.matrix-rain[^}]*opacity:\s*\.55/i);
   assert.match(html, /prefers-reduced-motion:\s*reduce/i);
+  assert.match(motion, /densifyRain/);
   assert.ok(config.routes.some((route) => route.src === '/' && route.dest === '/landing-maxx.html'));
 });
 
