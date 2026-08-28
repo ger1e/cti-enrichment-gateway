@@ -12,9 +12,9 @@ The **terminal frame** is the primary identity element. The product should read 
 The **terminal prompt** is the second primary identity element:
 
 ```text
-user@para11ax:~$ whoami
+analyst@para11ax:~$ whoami
 Threat Hunter
-user@para11ax:~$ _
+analyst@para11ax:~$ _
 ```
 
 The terminal frame and terminal prompt must be visible whenever a surface has enough space. Sentinel/helmet geometry is optional secondary emblem use only. It may appear as a compact mark where helpful, but it does not own the page hierarchy.
@@ -76,7 +76,7 @@ Required composition:
 - provenance-first doctrine;
 - terminal-style system overview;
 - capability transcript;
-- visible analyst shell example using `user@para11ax:~$`;
+- visible analyst shell example using `analyst@para11ax:~$`;
 - fixed-source summary;
 - terminal footer with read-only/fixed-egress doctrine.
 
@@ -91,7 +91,7 @@ status line
 ────────────────────────────────
 scrollback / evidence transcript
 ────────────────────────────────
-user@para11ax: ~
+analyst@para11ax:~$
 ```
 
 The authenticated shell keeps status → scrollback → prompt as its DOM and visual hierarchy. Result views remain transcript sections with dotted separators. No dashboard sidebars, view rails, action rails, floating cards, or duplicated command launchers.
@@ -113,7 +113,7 @@ Canonical motion:
 
 Allowed cue types:
 
-- blinking block cursor;
+- blinking block/native command caret;
 - red scanner line;
 - low-opacity CRT scanlines;
 - phosphor status LED pulse;
@@ -124,6 +124,12 @@ Allowed cue types:
 Never use high-frequency full-screen flashes, destructive layout shifts, or motion that hides evidence.
 
 `prefers-reduced-motion: reduce` disables nonessential movement and preserves the same static hierarchy.
+
+## Pointer system
+
+Browser-owned PARA11AX surfaces use the local `assets/brand/para11ax-cursor.svg` pointer through `/site-cursor.css`. Interactive chrome keeps the branded pointer; terminal output, code, form text and selectable documentation retain native text-selection semantics. The cursor layer must not load remote assets.
+
+GitHub-hosted README and Markdown pages cannot override github.com browser cursor policy; they express the same identity through the terminal hero assets instead.
 
 ## Audio
 
@@ -191,7 +197,7 @@ PARA11AX copy should be:
 | Do | Do not |
 | --- | --- |
 | make the terminal frame the visual anchor | turn pages into generic SaaS dashboards |
-| keep `user@para11ax:~$` visible where useful | invent unrelated prompt identities |
+| keep `analyst@para11ax:~$` visible where useful | invent unrelated prompt identities |
 | use phosphor for active structure | reintroduce cyan/amber brand rails |
 | use red only for sparse anomaly/error cues | make red a universal maliciousness verdict |
 | animate cursor/scanner/status subtly | flash full-screen or obscure evidence |

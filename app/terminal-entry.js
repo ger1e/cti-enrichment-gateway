@@ -34,7 +34,6 @@ let shell = null;
 let shellObserver = null;
 let bootLineStarted = false;
 let bootLineCount = 0;
-let pepeSignature = '';
 let glitchTimer = null;
 
 accessPanel.hidden = true;
@@ -136,7 +135,6 @@ function resetBootSurface() {
   workspace.hidden = true;
   bootStatus.textContent = 'STANDBY // USER INPUT REQUIRED';
   bootLog.replaceChildren();
-  pepeSignature = '';
   pepe.hidden = true;
   bootInitialize.disabled = false;
   bootSkip.disabled = false;
@@ -165,16 +163,6 @@ function appendTarget(text) {
   line.append(led, content);
   bootLog.append(line);
   bootLog.scrollTop = bootLog.scrollHeight;
-}
-
-function restorePepeSignature() {
-  const scrollback = workspace.querySelector('.shell-scrollback');
-  if (!scrollback || !pepeSignature) return;
-  const node = document.createElement('pre');
-  node.className = 'shell-pre shell-cyan shell-boot-pepe';
-  node.textContent = pepeSignature;
-  scrollback.prepend(node);
-  scrollback.scrollTop = scrollback.scrollHeight;
 }
 
 function wireMobileEraseCue() {
@@ -242,7 +230,6 @@ function renderBootStage(stage, payload) {
     document.body.classList.add('boot-pepe-visible', 'boot-glitch');
     bootStatus.textContent = 'firmware0: signature verified';
     pepe.hidden = false;
-    pepeSignature = pepe.textContent;
     triggerGlitch(bootPanel, 'glitch-pepe', 820);
     return;
   }
@@ -271,7 +258,6 @@ function renderBootStage(stage, payload) {
       version: '2.0.0',
       onReboot: replayBoot,
     });
-    restorePepeSignature();
     wireMobileEraseCue();
     shellObserver?.disconnect();
     shellObserver = wireHelpFormatting();

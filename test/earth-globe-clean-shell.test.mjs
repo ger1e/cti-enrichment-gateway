@@ -35,12 +35,12 @@ test('Earth layer rotates longitudinally inside the globe instead of spinning li
   assert.match(css, /\.boot-globe\{[^}]*animation:\s*none!important/);
 });
 
-test('operational shell drops the retained boot wall but keeps Pepe as the sole boot artifact', async () => {
+test('operational shell drops all boot artwork after the ready handoff', async () => {
   const entry = await read('app/terminal-entry.js');
   assert.doesNotMatch(entry, /boot transcript retained/);
   assert.doesNotMatch(entry, /function restoreBootTranscript/);
   assert.doesNotMatch(entry, /remember\(\{ kind: 'line'/);
-  assert.match(entry, /shell-boot-pepe/);
-  assert.match(entry, /restorePepeSignature/);
-  assert.match(entry, /restorePepeSignature\(\)/);
+  assert.match(entry, /pepe\.hidden = false/);
+  assert.match(entry, /mountAnalystShell/);
+  assert.doesNotMatch(entry, /pepeSignature|restorePepeSignature|shell-boot-pepe/);
 });

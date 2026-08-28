@@ -20,7 +20,7 @@
 > Personal research / lab surface. Do not send commercial-client, internal-enterprise, restricted, or otherwise sensitive data without explicit authorization and suitable data handling.
 
 ```text
-user@para11ax:~$ core --status
+analyst@para11ax:~$ core --status
 > OPERATIONAL CORE
 ```
 
@@ -40,7 +40,7 @@ PARA11AX is a bounded CTI evidence gateway for hunters and defenders. It takes o
 **Read-only means read-only:** no scanning, detonation, submission, sample download, takedown, remediation, or arbitrary proxying.
 
 ```text
-user@para11ax:~$ surface --analyst
+analyst@para11ax:~$ surface --analyst
 > ANALYST SURFACE // https://para11ax.vercel.app/app/
 ```
 
@@ -78,7 +78,7 @@ para11ax report diff <before.json> <after.json>
 The browser terminal and CLI are control surfaces over bounded gateway behavior; neither is a general-purpose shell or arbitrary network client.
 
 ```text
-user@para11ax:~$ semantics --enforce
+analyst@para11ax:~$ semantics --enforce
 > SEMANTIC FIREWALL
 ```
 
@@ -153,7 +153,7 @@ Full process: [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Release identity: [`re
 </details>
 
 ```text
-user@para11ax:~$ docs --deep
+analyst@para11ax:~$ docs --deep
 > DEEP DOCS
 ```
 
@@ -171,7 +171,7 @@ user@para11ax:~$ docs --deep
 - [`release-manifest.json`](release-manifest.json) — deterministic release identity.
 
 ```text
-user@para11ax:~$ gaps --show
+analyst@para11ax:~$ gaps --show
 > DELIBERATE GAPS
 ```
 
@@ -181,7 +181,7 @@ No TLS/JA3 without a bounded source that passes the source gate. No deprecated S
 
 <div align="center">
 
-`user@para11ax:~$ _`
+`analyst@para11ax:~$ _`
 
 **OBSERVED ≠ INFERRED ≠ CONTEXTUAL**
 

@@ -26,15 +26,14 @@ test('PARA11AX service OK wall completes before Pepe and gateway readiness', asy
   assert.ok(pepeIndex < stages.findIndex(([name]) => name === 'target'), 'Pepe must precede final gateway readiness');
 });
 
-test('terminal runtime keeps Pepe but does not restore the boot wall into shell scrollback', async () => {
+test('terminal runtime keeps Pepe boot-only and does not restore boot artifacts into shell scrollback', async () => {
   const entry = await read('app/terminal-entry.js');
   assert.doesNotMatch(entry, /bootTranscript/);
   assert.doesNotMatch(entry, /restoreBootTranscript/);
   assert.doesNotMatch(entry, /boot transcript retained/);
-  assert.match(entry, /pepe\.textContent/);
-  assert.match(entry, /restorePepeSignature/);
-  assert.match(entry, /shell-scrollback/);
-  assert.match(entry, /shell-boot-pepe/);
+  assert.match(entry, /pepe\.hidden = false/);
+  assert.match(entry, /mountAnalystShell/);
+  assert.doesNotMatch(entry, /pepeSignature|restorePepeSignature|shell-boot-pepe/);
   assert.doesNotMatch(entry, /bootLog\.replaceChildren\(\)[\s\S]{0,400}stage === ['"]boot-line['"]/, 'boot lines must remain visible during the boot sequence itself');
 });
 
@@ -112,22 +111,22 @@ test('mobile prompt is a terminal line, not a focus rectangle', async () => {
   assert.match(css, /\.shell-input:focus-visible\{[^}]*outline-offset:\s*0/);
 });
 
-test('Pepe signature uses a dedicated preformatted shell surface without boot-line retention', async () => {
+test('Pepe signature remains a boot-only artifact with no runtime preformatted copy', async () => {
   const entry = await read('app/terminal-entry.js');
-  assert.match(entry, /shell-boot-pepe/);
-  assert.match(entry, /document\.createElement\(['"]pre['"]\)/);
-  assert.doesNotMatch(entry, /shell-boot-line/);
+  assert.match(entry, /pepe\.hidden = false/);
+  assert.doesNotMatch(entry, /shell-boot-pepe|restorePepeSignature|pepeSignature/);
   assert.doesNotMatch(entry, /bootTranscript/);
 });
 
-test('active boot and shell branding is Gateway Terminal', async () => {
+test('active terminal presentation exposes the analyst@para11ax shell identity', async () => {
   const boot = await read('app/boot.js');
-  const entry = await read('app/terminal-entry.js');
+  const deck = await read('app/analyst-deck.js');
   const shell = await read('app/shell-ui.js');
   const commands = await read('app/shell.js');
-  const active = `${boot}\n${entry}\n${shell}\n${commands}`;
+  const active = `${boot}\n${deck}\n${shell}\n${commands}`;
   assert.match(active, /Gateway Terminal/);
-  assert.match(shell, /para11ax@gateway:~\$/);
+  assert.match(deck, /analyst@para11ax:~\$/);
+  assert.doesNotMatch(deck, /PROMPT_TEXT\s*=\s*['"](?:user@para11ax|para11ax@gateway)/);
   assert.doesNotMatch(active, /replay the Unix boot sequence|EVIDENCE TERMINAL/);
 });
 

@@ -9,6 +9,6 @@
 <text x="690" y="37" class="mono g" font-size="12" text-anchor="end">LINK:UP · AUTH:UP · <tspan class="pulse">●</tspan></text>
 <g class="mono"><text x="36" y="107" class="g" font-size="48" font-weight="900" letter-spacing="3">PARA11AX</text><text x="38" y="137" class="g" font-size="13" letter-spacing="3">PROVENANCE-FIRST CTI</text><text x="38" y="174" class="m" font-size="13">37 FIXED SOURCES // READ-ONLY // FIXED EGRESS</text></g>
 <rect x="34" y="200" width="652" height="118" fill="#020403" stroke="#39FF14" stroke-opacity=".46"/>
-<g class="mono" font-size="14"><text x="52" y="226" class="g">&gt; PARA11AX TERMINAL v2.0.0</text><text x="52" y="260" class="g">user@para11ax:~$ whoami</text><text x="52" y="284" class="w">Threat Hunter</text><text x="52" y="308" class="g">user@para11ax:~$</text><rect x="228" y="296" width="9" height="15" fill="#39FF14" class="cursor"/></g>
+<g class="mono" font-size="14"><text x="52" y="226" class="g">&gt; PARA11AX TERMINAL v2.0.0</text><text x="52" y="260" class="g">analyst@para11ax:~$ whoami</text><text x="52" y="284" class="w">Threat Hunter</text><text x="52" y="308" class="g">analyst@para11ax:~$</text><rect x="253" y="296" width="9" height="15" fill="#39FF14" class="cursor"/></g>
 <line x1="34" y1="332" x2="686" y2="332" stroke="#39FF14" stroke-opacity=".18"/>
 </svg>
