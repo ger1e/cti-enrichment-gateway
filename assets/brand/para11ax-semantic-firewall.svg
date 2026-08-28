@@ -1,37 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="title desc">
 <title id="title">PARA11AX semantic firewall</title>
-<desc id="desc">Mobile-safe semantic separation diagram keeping contextual, reputation, and vulnerability evidence distinct.</desc>
-<rect width="720" height="420" rx="18" fill="#050608"/>
-<rect x="1" y="1" width="718" height="418" rx="17" fill="none" stroke="#00e5ff" stroke-opacity=".28" stroke-width="2"/>
-<text x="28" y="38" fill="#f3f7fa" font-size="24" font-weight="700" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" letter-spacing="2">PARA11AX // SEMANTIC FIREWALL</text>
+<desc id="desc">Mobile-safe phosphor tactical semantic separation diagram keeping contextual, reputation, and vulnerability evidence distinct.</desc>
+<rect width="720" height="420" rx="18" fill="#020403"/>
+<rect x="1" y="1" width="718" height="418" rx="17" fill="none" stroke="#39FF14" stroke-opacity=".28" stroke-width="2"/>
+<text x="28" y="38" fill="#F7FFF6" font-size="24" font-weight="700" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" letter-spacing="2">PARA11AX // SEMANTIC FIREWALL</text>
 <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
-  <rect x="28" y="58" width="664" height="48" rx="8" fill="#0b0f12" stroke="#26323a"/>
-  <text x="48" y="88" fill="#f3f7fa" font-size="18">PROVIDER OBSERVATION → SEMANTIC CLASS</text>
+  <rect x="28" y="58" width="664" height="48" rx="8" fill="#061008" stroke="#243129"/>
+  <text x="48" y="88" fill="#F7FFF6" font-size="18">PROVIDER OBSERVATION → SEMANTIC CLASS</text>
 
-  <rect x="28" y="132" width="206" height="184" rx="10" fill="#081820" stroke="#00e5ff" stroke-opacity=".8"/>
-  <text x="44" y="158" fill="#00e5ff" font-size="16" font-weight="700">CONTEXT</text>
-  <text x="44" y="190" fill="#f3f7fa" font-size="15">network / routing</text>
-  <text x="44" y="216" fill="#f3f7fa" font-size="15">scanner / Tor</text>
-  <text x="44" y="242" fill="#f3f7fa" font-size="15">ATT&amp;CK knowledge</text>
-  <text x="44" y="268" fill="#f3f7fa" font-size="15">community claims</text>
-  <text x="44" y="300" fill="#00e5ff" font-size="14" font-weight="700">KEEP CONTEXTUAL</text>
+  <rect x="28" y="132" width="206" height="184" rx="10" fill="#07140A" stroke="#39FF14" stroke-opacity=".75"/>
+  <text x="44" y="158" fill="#39FF14" font-size="16" font-weight="700">CONTEXT</text>
+  <text x="44" y="190" fill="#F7FFF6" font-size="15">network / routing</text>
+  <text x="44" y="216" fill="#F7FFF6" font-size="15">scanner / Tor</text>
+  <text x="44" y="242" fill="#F7FFF6" font-size="15">ATT&amp;CK knowledge</text>
+  <text x="44" y="268" fill="#F7FFF6" font-size="15">community claims</text>
+  <text x="44" y="300" fill="#39FF14" font-size="14" font-weight="700">KEEP CONTEXTUAL</text>
 
-  <rect x="257" y="132" width="206" height="184" rx="10" fill="#1b0c10" stroke="#ff4050" stroke-opacity=".8"/>
-  <text x="273" y="158" fill="#ff4050" font-size="16" font-weight="700">REPUTATION</text>
-  <text x="273" y="190" fill="#f3f7fa" font-size="15">malware / abuse</text>
-  <text x="273" y="216" fill="#f3f7fa" font-size="15">compatible evidence</text>
-  <text x="273" y="242" fill="#f3f7fa" font-size="15">independent sources</text>
-  <text x="273" y="276" fill="#39ff88" font-size="14" font-weight="700">CORROBORATE</text>
-  <text x="273" y="298" fill="#39ff88" font-size="14" font-weight="700">ONLY LIKE WITH LIKE</text>
+  <rect x="257" y="132" width="206" height="184" rx="10" fill="#16080B" stroke="#FF2438" stroke-opacity=".75"/>
+  <text x="273" y="158" fill="#FF2438" font-size="16" font-weight="700">REPUTATION</text>
+  <text x="273" y="190" fill="#F7FFF6" font-size="15">malware / abuse</text>
+  <text x="273" y="216" fill="#F7FFF6" font-size="15">compatible evidence</text>
+  <text x="273" y="242" fill="#F7FFF6" font-size="15">independent sources</text>
+  <text x="273" y="276" fill="#39FF14" font-size="14" font-weight="700">CORROBORATE</text>
+  <text x="273" y="298" fill="#39FF14" font-size="14" font-weight="700">ONLY LIKE WITH LIKE</text>
 
-  <rect x="486" y="132" width="206" height="184" rx="10" fill="#17140a" stroke="#f6c945" stroke-opacity=".85"/>
-  <text x="502" y="158" fill="#f6c945" font-size="16" font-weight="700">VULN AXES</text>
-  <text x="502" y="194" fill="#f3f7fa" font-size="15">KEV = exploited</text>
-  <text x="502" y="222" fill="#f3f7fa" font-size="15">EPSS = probability</text>
-  <text x="502" y="250" fill="#f3f7fa" font-size="15">CVSS = severity</text>
-  <text x="502" y="298" fill="#f6c945" font-size="14" font-weight="700">KEEP AXES SEPARATE</text>
+  <rect x="486" y="132" width="206" height="184" rx="10" fill="#17140A" stroke="#F6C945" stroke-opacity=".85"/>
+  <text x="502" y="158" fill="#F6C945" font-size="16" font-weight="700">VULN AXES</text>
+  <text x="502" y="194" fill="#F7FFF6" font-size="15">KEV = exploited</text>
+  <text x="502" y="222" fill="#F7FFF6" font-size="15">EPSS = probability</text>
+  <text x="502" y="250" fill="#F7FFF6" font-size="15">CVSS = severity</text>
+  <text x="502" y="298" fill="#F6C945" font-size="14" font-weight="700">KEEP AXES SEPARATE</text>
 
-  <rect x="28" y="342" width="664" height="50" rx="8" fill="#0b0f12" stroke="#39ff88" stroke-opacity=".55"/>
-  <text x="360" y="373" fill="#39ff88" font-size="17" font-weight="700" text-anchor="middle">NO UNIVERSAL MALICIOUSNESS SCORE</text>
+  <rect x="28" y="342" width="664" height="50" rx="8" fill="#061008" stroke="#39FF14" stroke-opacity=".55"/>
+  <text x="360" y="373" fill="#39FF14" font-size="17" font-weight="700" text-anchor="middle">NO UNIVERSAL MALICIOUSNESS SCORE</text>
 </g>
 </svg>
