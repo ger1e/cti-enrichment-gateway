@@ -13,6 +13,7 @@ import { shodanProvider as rawShodanProvider } from './shodan.js';
 import { censysProvider as rawCensysProvider } from './censys.js';
 import { modatProvider as rawModatProvider } from './modat.js';
 import { cloudflareRadarProvider as rawCloudflareRadarProvider } from './cloudflare-radar.js';
+import { cloudflareDnsProvider as rawCloudflareDnsProvider } from './cloudflare-dns.js';
 import { virustotalProvider as rawVirustotalProvider } from './virustotal.js';
 import { otxProvider as rawOtxProvider } from './otx.js';
 import { threatfoxProvider as rawThreatfoxProvider } from './threatfox.js';
@@ -52,6 +53,7 @@ export const shodanProvider = withProviderMetadata(rawShodanProvider);
 export const censysProvider = withProviderMetadata(rawCensysProvider);
 export const modatProvider = withProviderMetadata(rawModatProvider);
 export const cloudflareRadarProvider = withProviderMetadata(rawCloudflareRadarProvider);
+export const cloudflareDnsProvider = withProviderMetadata(rawCloudflareDnsProvider);
 export const virustotalProvider = withProviderMetadata(rawVirustotalProvider);
 export const otxProvider = withProviderMetadata(rawOtxProvider);
 export const threatfoxProvider = withProviderMetadata(rawThreatfoxProvider);
@@ -78,7 +80,7 @@ export const ALL_PROVIDERS = Object.freeze([
   ipinfoProvider, rdapProvider, ripestatProvider, dshieldProvider, spamhausDropProvider, torExitProvider,
   feodoTrackerProvider, threatminerProvider, mispCirclOsintProvider, mispBotvrijOsintProvider,
   greynoiseProvider, abuseipdbProvider, shodanProvider, censysProvider, modatProvider, cloudflareRadarProvider,
-  virustotalProvider, otxProvider, threatfoxProvider, urlscanProvider, webamonProvider,
+  cloudflareDnsProvider, virustotalProvider, otxProvider, threatfoxProvider, urlscanProvider, webamonProvider,
   pulsediveProvider, openphishProvider, urlhausProvider, circlHashlookupProvider,
   malwarebazaarProvider, malpediaProvider, hybridAnalysisProvider, cisaKevProvider, epssProvider,
   circlVulnerabilityProvider, nvdProvider, osvProvider, attackTaxiiProvider,
