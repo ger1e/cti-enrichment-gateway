@@ -19,14 +19,16 @@ test('Gateway Terminal restores one canonical PARA11AX logo on boot and shell su
   assert.match(css, /\.shell-logo\{/);
 });
 
-test('PARA11AX logo asset uses the universal cyan red and white semantic palette', async () => {
+test('PARA11AX logo asset uses the phosphor sentinel tactical palette', async () => {
   const logoExists = await access(url('app/para11ax-mark.svg')).then(() => true, () => false);
   assert.equal(logoExists, true, 'canonical PARA11AX SVG logo must exist');
   const svg = await read('app/para11ax-mark.svg');
   assert.match(svg, /viewBox=/);
-  assert.match(svg, /#00E5FF/i);
-  assert.match(svg, /#FF1E2D/i);
-  assert.match(svg, /#F3F7FA/i);
+  assert.match(svg, /#39FF14/i);
+  assert.match(svg, /#FF2438/i);
+  assert.match(svg, /#F7FFF6/i);
+  assert.match(svg, /sentinel|helmet|visor/i);
+  assert.doesNotMatch(svg, /#00E5FF/i);
   assert.match(svg, /PARA11AX/);
   assert.doesNotMatch(svg, /(?:href|src)\s*=\s*["']https?:\/\//i, 'logo must not load external resources');
 });
