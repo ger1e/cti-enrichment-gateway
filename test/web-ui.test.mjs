@@ -68,11 +68,12 @@ test('controller exposes approved views, raw filter, and no provider override', 
   assert.doesNotMatch(source, /token[^\n]{0,120}typing\s*\(/i);
 });
 
-test('maximum design contains semantic palette and three rain depths', () => {
+test('terminal design contains canonical palette and three rain depths', () => {
   const css = read('app/app.css').toLowerCase();
-  for (const token of ['#050608', '#0b0f12', '#00e5ff', '#ff1e2d', '#39ff88', '#f6c945', 'matrix-far', 'matrix-mid', 'matrix-front', 'semantic-context', 'semantic-claim', 'tone-amber', 'coverage-failure', 'code-line']) {
+  for (const token of ['#020403', '#39ff14', '#ff2438', '#f7fff6', '#8da391', 'matrix-far', 'matrix-mid', 'matrix-front', 'semantic-context', 'semantic-claim', 'tone-amber', 'coverage-failure', 'code-line']) {
     assert.match(css, new RegExp(token));
   }
+  assert.doesNotMatch(css, /#00e5ff|#f6c945|#39ff88|#ff1e2d|#ff4050/i);
 });
 
 test('boot terminal contains explicit initialize, skip, diagnostics, and Unicode Pepe', () => {

@@ -21,9 +21,10 @@ test('Gateway Terminal header renders a live local 24-hour clock with responsive
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-clock-meta[^}]*display:\s*none/);
 });
 
-test('Gateway Terminal adds a persistent semantic footer rail below the prompt', async () => {
+test('Gateway Terminal retains semantic footer telemetry as a compatibility hook', async () => {
   const polish = await read('app/terminal-polish.js');
   const css = await read('app/shell-polish.css');
+  const finalCss = await read('app/analyst-deck.css');
   assert.match(polish, /shell-footer/);
   assert.match(polish, /PARA11AX \/\/ EVIDENCE GATEWAY/);
   assert.match(polish, /37 SOURCES/);
@@ -31,12 +32,9 @@ test('Gateway Terminal adds a persistent semantic footer rail below the prompt',
   assert.match(polish, /EVIDENCE v2/);
   assert.match(polish, /READ ONLY/);
   assert.match(polish, /shell-footer-led/);
-  assert.match(polish, /GATEWAY/);
-  assert.match(polish, /EVIDENCE/);
-  assert.match(polish, /PROVIDERS/);
-  assert.match(polish, /AUTH/);
   assert.match(css, /\.shell-footer\{/);
   assert.match(css, /position:\s*sticky/);
+  assert.match(finalCss, /\.shell-footer\{display:\s*none!important\}/, 'v6 keeps telemetry behavior without rendering a dashboard footer');
 });
 
 test('status cues remain semantic and event-driven instead of permanently animating the shell', async () => {
@@ -47,23 +45,24 @@ test('status cues remain semantic and event-driven instead of permanently animat
     assert.match(css, new RegExp(`\\.${cue}`));
   }
   assert.match(polish, /secret-mode/);
-  assert.match(css, /\.secret-mode[^}]*--prompt-accent:\s*var\(--px-amber\)/);
+  assert.match(css, /\.secret-mode[^}]*--prompt-accent:\s*var\(--terminal-phosphor\)/);
   assert.doesNotMatch(css, /\.unix-shell\s*\{[^}]*animation:\s*[^;]*infinite/);
 });
 
 test('active Gateway Terminal retains the red back-and-forth PARA11AX scanner', async () => {
   const polish = await read('app/terminal-polish.js');
-  const legacy = await read('app/app.css');
+  const base = await read('app/app.css');
   assert.match(polish, /scanner-track/);
   assert.match(polish, /shell-scanner-track/);
-  assert.match(legacy, /\.scanner-track i\{[^}]*animation:scanner\s+1\.8s\s+ease-in-out\s+infinite\s+alternate/);
-  assert.match(legacy, /@keyframes scanner\{from\{transform:translateX\(-20%\)\}to\{transform:translateX\(670%\)\}\}/);
+  assert.match(base, /\.scanner-track i\{[^}]*animation:scanner\s+1\.8s\s+ease-in-out\s+infinite\s+alternate/);
+  assert.match(base, /@keyframes scanner\{from\{transform:translateX\(-20%\)\}to\{transform:translateX\(670%\)\}\}/);
 });
 
-test('mobile header and footer collapse secondary telemetry before brand prompt or clock overflow', async () => {
+test('mobile header collapses secondary clock metadata before brand or prompt overflow', async () => {
   const css = await read('app/shell-polish.css');
+  const finalCss = await read('app/analyst-deck.css');
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-status[^}]*grid-template-columns:/);
-  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-footer-center[^}]*display:\s*none/);
-  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-footer-desktop[^}]*display:\s*none/);
-  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-footer-mobile[^}]*display:\s*inline/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-clock-seconds[^}]*display:\s*none/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-clock-meta[^}]*display:\s*none/);
+  assert.match(finalCss, /@media\(max-width:430px\)[\s\S]*\.shell-prompt[^}]*grid-template-columns:\s*1fr/);
 });
