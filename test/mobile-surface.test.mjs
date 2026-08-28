@@ -28,7 +28,7 @@ test('landing page implements the approved tactical hero identity', () => {
   assert.match(html, /class="hero-grid"/i);
   assert.match(html, /class="knight-stage"/i);
   assert.match(html, /class="knight"/i);
-  assert.match(html, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
+  assert.match(html, /INTELLIGENCE\.\s*ENRICHED\.\s*<strong>OPERATIONAL\.<\/strong>/i);
   assert.match(html, /ACCESS TERMINAL/i);
   assert.match(html, /@keyframes\s+hud-spin/i);
   assert.match(html, /@keyframes\s+visor-pulse/i);
