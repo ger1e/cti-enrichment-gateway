@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { ALL_PROVIDERS } from '../src/providers/index.js';
 import { PROVIDER_MANIFEST, providerPolicy, providerSecretNames } from '../src/providers/manifest.js';
+import { EXECUTION_POLICY_VERSION } from '../src/core/execution-policy.js';
 
 const json = path => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const text = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -10,7 +11,11 @@ const text = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'
 const REQUIRED = [
   'displayName','credentialEnv','optionalCredential','authType','tier','costClass','types','observationTypes',
   'timeoutMs','cacheTtlMs','negativeCacheTtlMs','maxResponseBytes','fixedHosts','methods','protocols','parserVersion','sourceUrl','distribution',
+  'sourceRole','freshnessClass','admissionVersion','executionPolicy',
 ];
+
+const SOURCE_ROLES = new Set(['authoritative', 'first_party', 'aggregator', 'community', 'contextual']);
+const FRESHNESS_CLASSES = new Set(['live', 'near_real_time', 'periodic', 'reference']);
 
 test('canonical provider manifest has exactly one complete policy for every active adapter', () => {
   const names = ALL_PROVIDERS.map(p => p.name).sort();
@@ -31,9 +36,17 @@ test('canonical provider manifest has exactly one complete policy for every acti
     assert.deepEqual(policy.protocols, provider.protocols ?? ['https:']);
     assert.equal(policy.parserVersion, provider.parserVersion);
     assert.equal(policy.sourceUrl, provider.sourceUrl);
+    assert.equal(policy.sourceRole, provider.sourceRole);
+    assert.equal(policy.freshnessClass, provider.freshnessClass);
+    assert.equal(policy.admissionVersion, provider.admissionVersion);
+    assert.equal(policy.executionPolicy, provider.executionPolicy);
     assert.match(policy.displayName, /^.{1,80}$/);
     assert.ok(['none','api_key','bearer','basic','token'].includes(policy.authType));
     assert.ok(['internal','shareable','internal_only'].includes(policy.distribution));
+    assert.equal(SOURCE_ROLES.has(policy.sourceRole), true, `${provider.name}.sourceRole`);
+    assert.equal(FRESHNESS_CLASSES.has(policy.freshnessClass), true, `${provider.name}.freshnessClass`);
+    assert.equal(policy.admissionVersion, 'v8.1', `${provider.name}.admissionVersion`);
+    assert.equal(policy.executionPolicy, EXECUTION_POLICY_VERSION, `${provider.name}.executionPolicy`);
   }
 });
 

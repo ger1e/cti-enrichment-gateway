@@ -1,3 +1,9 @@
+import {
+  PROVIDER_CONCURRENCY_MAX,
+  PROVIDER_MAX_ATTEMPTS,
+  REQUEST_DEADLINE_MS,
+} from './execution-policy.js';
+
 function retryableFailure(result) {
   if (!result || result.ok || !result.failure) return false;
   const reason = result.failure.reason;
@@ -51,8 +57,8 @@ async function runPool(items, concurrency, worker) {
 export async function runScheduledProviders({
   providers = [],
   execute,
-  concurrency = 4,
-  deadlineMs = 20_000,
+  concurrency = PROVIDER_CONCURRENCY_MAX,
+  deadlineMs = REQUEST_DEADLINE_MS,
   callLimit = Math.max(1, providers.length * 2),
   nowMs = () => Date.now(),
   circuitBreaker = null,
@@ -60,7 +66,7 @@ export async function runScheduledProviders({
 } = {}) {
   if (!Array.isArray(providers)) throw new TypeError('providers must be an array');
   if (typeof execute !== 'function') throw new TypeError('execute must be a function');
-  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 4) throw new TypeError('concurrency must be between 1 and 4');
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > PROVIDER_CONCURRENCY_MAX) throw new TypeError(`concurrency must be between 1 and ${PROVIDER_CONCURRENCY_MAX}`);
   if (!Number.isFinite(deadlineMs) || deadlineMs <= 0) throw new TypeError('deadlineMs must be positive');
   if (!Number.isInteger(callLimit) || callLimit < 1) throw new TypeError('callLimit must be a positive integer');
 
@@ -77,7 +83,7 @@ export async function runScheduledProviders({
 
     let attempts = 0;
     let result;
-    while (attempts < 2) {
+    while (attempts < PROVIDER_MAX_ATTEMPTS) {
       const remainingMs = deadlineAt - nowMs();
       if (remainingMs <= 0) {
         if (attempts === 0) return { provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts: 0 };
@@ -105,7 +111,7 @@ export async function runScheduledProviders({
         retryable,
         retryAfter: result?.failure?.retryAfter ?? null,
       });
-      if (!retryable || attempts >= 2 || calls >= callLimit) break;
+      if (!retryable || attempts >= PROVIDER_MAX_ATTEMPTS || calls >= callLimit) break;
 
       const delay = retryDelayMs(result, nowMs);
       const remainingAfter = deadlineAt - nowMs();

@@ -1,4 +1,5 @@
 import rawManifest from '../../config/providers.json' with { type: 'json' };
+import { EXECUTION_POLICY_VERSION } from '../core/execution-policy.js';
 
 const MAX_PROVIDERS = 64;
 const MAX_TEXT = 512;
@@ -7,6 +8,9 @@ const REQUIRED_NUMBERS = ['tier','timeoutMs','cacheTtlMs','negativeCacheTtlMs','
 const COST_CLASSES = new Set(['free','quota','scarce']);
 const AUTH_TYPES = new Set(['none','api_key','bearer','basic','token']);
 const DISTRIBUTIONS = new Set(['internal','shareable','internal_only']);
+const SOURCE_ROLES = new Set(['authoritative','first_party','aggregator','community','contextual']);
+const FRESHNESS_CLASSES = new Set(['live','near_real_time','periodic','reference']);
+const ADMISSION_VERSIONS = new Set(['v8.1']);
 
 function fail(message) {
   throw new Error(`invalid provider manifest: ${message}`);
@@ -37,6 +41,14 @@ function validatePolicy(name, input) {
   if (input.credentialEnv !== null && input.authType === 'none') fail(`${name}.credential auth`);
   if (!COST_CLASSES.has(input.costClass)) fail(`${name}.costClass`);
   if (!DISTRIBUTIONS.has(input.distribution)) fail(`${name}.distribution`);
+  if (!SOURCE_ROLES.has(input.sourceRole)) fail(`${name}.sourceRole`);
+  if (!FRESHNESS_CLASSES.has(input.freshnessClass)) fail(`${name}.freshnessClass`);
+  if (!ADMISSION_VERSIONS.has(input.admissionVersion)) fail(`${name}.admissionVersion`);
+  if (input.executionPolicy !== EXECUTION_POLICY_VERSION) fail(`${name}.executionPolicy`);
+  output.sourceRole = input.sourceRole;
+  output.freshnessClass = input.freshnessClass;
+  output.admissionVersion = input.admissionVersion;
+  output.executionPolicy = input.executionPolicy;
   if (typeof input.active !== 'boolean') fail(`${name}.active`);
   for (const field of REQUIRED_NUMBERS) {
     if (!Number.isSafeInteger(input[field]) || input[field] < 1) fail(`${name}.${field}`);

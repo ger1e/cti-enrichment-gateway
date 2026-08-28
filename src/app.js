@@ -7,18 +7,20 @@ import { TtlCache } from './core/cache.js';
 import { CircuitBreaker } from './core/circuit-breaker.js';
 import { createTelemetry } from './core/telemetry.js';
 import { createProviderRegistry } from './core/provider-registry.js';
+import { validateProviderSet } from './core/provider-contract.js';
+import { OBSERVABLE_MANIFEST } from './core/observable-registry.js';
 import { enrich } from './core/orchestrator.js';
 import { runBatch } from './core/batch.js';
 import { toStixBundle } from './export/stix.js';
 import { GATEWAY_VERSION, EVIDENCE_SCHEMA_VERSION } from './core/version.js';
+import { PROVIDER_CONCURRENCY_MAX, REQUEST_DEADLINE_MS } from './core/execution-policy.js';
 import { ALL_PROVIDERS } from './providers/index.js';
+import { PROVIDER_MANIFEST } from './providers/manifest.js';
 import { PROFILE_NAMES, selectProviders } from './profiles.js';
 import { WORKFLOWS, WORKFLOW_CALL_LIMITS } from './workflows.js';
 
 const MAX_BODY_BYTES = 16 * 1024;
 const MAX_BATCH_BODY_BYTES = 96 * 1024;
-const REQUEST_DEADLINE_MS = 20_000;
-const PROVIDER_CONCURRENCY = 4;
 const BATCH_INPUT_LIMIT = 20;
 const BATCH_PROVIDER_CALL_LIMIT = 200;
 const BATCH_INDICATOR_CONCURRENCY = 3;
@@ -95,6 +97,13 @@ export function createApp({
 } = {}) {
   const startedAtMs = nowMs();
   const registry = createProviderRegistry(adapters);
+  if (adapters === ALL_PROVIDERS) {
+    validateProviderSet({
+      adapters: registry.values(),
+      manifest: PROVIDER_MANIFEST,
+      observableRegistry: OBSERVABLE_MANIFEST,
+    });
+  }
   const breaker = circuitBreaker ?? new CircuitBreaker({ maxProviders: Math.max(1, registry.names().length), now: nowMs });
   const events = telemetry ?? createTelemetry();
   const configured = name => {
@@ -159,7 +168,7 @@ export function createApp({
         types: Object.keys(WORKFLOWS), profiles: [...PROFILE_NAMES],
         limits: {
           requestBodyBytes: MAX_BODY_BYTES, batchBodyBytes: MAX_BATCH_BODY_BYTES, requestDeadlineMs: REQUEST_DEADLINE_MS,
-          providerConcurrency: PROVIDER_CONCURRENCY, batchInputs: BATCH_INPUT_LIMIT,
+          providerConcurrency: PROVIDER_CONCURRENCY_MAX, batchInputs: BATCH_INPUT_LIMIT,
           batchProviderCalls: BATCH_PROVIDER_CALL_LIMIT, batchIndicatorConcurrency: BATCH_INDICATOR_CONCURRENCY, stixObjects: STIX_OBJECT_LIMIT,
           workflowProviderCalls: { ...WORKFLOW_CALL_LIMITS },
         },
