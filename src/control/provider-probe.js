@@ -6,6 +6,7 @@ export const PROBE_SAMPLE_BY_TYPE = Object.freeze({
   domain: 'example.com',
   url: 'https://example.com/',
   hash: '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f',
+  certificate: 'cert-sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f',
   cve: 'CVE-2021-44228',
   attack: 'T1059',
   asn: 'AS15169',
