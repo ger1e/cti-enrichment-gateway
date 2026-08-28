@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createProviderRegistry } from '../src/core/provider-registry.js';
 import { manifestForRegistry } from '../src/core/provider-manifest.js';
+import { EXECUTION_POLICY_VERSION } from '../src/core/execution-policy.js';
 import { ALL_PROVIDERS } from '../src/providers/index.js';
 import { WORKFLOWS, WORKFLOW_CALL_LIMITS } from '../src/workflows.js';
 import { GATEWAY_VERSION, EVIDENCE_SCHEMA_VERSION } from '../src/core/version.js';
@@ -26,7 +27,7 @@ test('every active workflow adapter is registered supports its routed type and f
   }
 });
 
-test('provider manifest has complete immutable bounded transport metadata', () => {
+test('provider manifest has complete immutable bounded transport and admission metadata', () => {
   assert.equal(manifest.length, registry.names().length);
   for (const provider of manifest) {
     assert.ok(provider.name);
@@ -46,6 +47,10 @@ test('provider manifest has complete immutable bounded transport metadata', () =
     assert.deepEqual(provider.protocols, ['https:'], `${provider.name}: non-HTTPS provider protocol`);
     assert.match(provider.sourceUrl, /^https:\/\//);
     assert.ok(provider.parserVersion);
+    assert.ok(['authoritative','first_party','aggregator','community','contextual'].includes(provider.sourceRole), `${provider.name}: sourceRole`);
+    assert.ok(['live','near_real_time','periodic','reference'].includes(provider.freshnessClass), `${provider.name}: freshnessClass`);
+    assert.equal(provider.admissionVersion, 'v8.1', `${provider.name}: admissionVersion`);
+    assert.equal(provider.executionPolicy, EXECUTION_POLICY_VERSION, `${provider.name}: executionPolicy`);
   }
 });
 
