@@ -10,7 +10,7 @@
 
 **INTELLIGENCE. ENRICHED. OPERATIONAL.**
 
-`37 FIXED SOURCES` · `EVIDENCE V2` · `STIX 2.1` · `READ-ONLY` · `FIXED EGRESS` · `NODE 24.x`
+`37 FIXED SOURCES` · `EVIDENCE V2` · `STIX 2.1` · `READ-ONLY` · `FIXED EGRESS` · `Node.js 24.x`
 
 [**ENTER ANALYST UI**](https://para11ax.vercel.app/app/) · [Landing](https://para11ax.vercel.app/) · [API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md) · [Providers](docs/PROVIDERS.md) · [Security](SECURITY.md)
 
