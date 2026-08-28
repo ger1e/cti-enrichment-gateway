@@ -15,7 +15,7 @@
     },
     {
       "name": "censys",
-      "parserVersion": "v3-2026-08-22.1",
+      "parserVersion": "v3-2026-08-29.1",
       "active": true
     },
     {
@@ -31,6 +31,11 @@
     {
       "name": "cisa-kev",
       "parserVersion": "1",
+      "active": true
+    },
+    {
+      "name": "cloudflare-dns",
+      "parserVersion": "2026-08-29.1",
       "active": true
     },
     {
@@ -180,7 +185,7 @@
     },
     {
       "name": "virustotal",
-      "parserVersion": "v3-2026-08-22.1",
+      "parserVersion": "v3-2026-08-29.1",
       "active": true
     },
     {
