@@ -1,27 +1,12 @@
 const STYLE_URL = '/app/analyst-deck.css';
-const VIEW_COMMANDS = Object.freeze([
-  ['OVERVIEW', 'overview'],
-  ['EVIDENCE', 'evidence'],
-  ['CORRELATION', 'correlation'],
-  ['RELATIONSHIPS', 'relationships'],
-  ['COVERAGE', 'coverage'],
-  ['RAW', 'raw'],
-]);
-const ACTION_COMMANDS = Object.freeze([
-  ['HELP', 'help'],
-  ['META', 'meta'],
-  ['STATUS', 'status'],
-  ['JSON', 'json'],
-  ['STIX', 'stix'],
-  ['CLEAR', 'clear'],
-]);
+const PROMPT_TEXT = 'user@para11ax: ~';
 
 function loadDeckStyles() {
   if (document.querySelector(`link[href="${STYLE_URL}"]`)) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = STYLE_URL;
-  link.dataset.analystDeckStyle = 'v4';
+  link.dataset.analystDeckStyle = 'v5';
   document.head.append(link);
 }
 
@@ -32,132 +17,91 @@ function element(tag, className, text) {
   return node;
 }
 
-function submitExistingCommand(root, command) {
-  const input = root.querySelector('#para11ax-command-input');
-  const form = input?.closest('form');
-  if (!input || !form || input.type === 'password') return false;
-  input.value = command;
-  input.dispatchEvent(new Event('input', { bubbles: true }));
-  if (typeof form.requestSubmit === 'function') form.requestSubmit();
-  else form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-  return true;
-}
-
-function commandButton(root, label, command, className = '') {
-  const button = element('button', `analyst-command${className ? ` ${className}` : ''}`, label);
-  button.type = 'button';
-  button.dataset.command = command;
-  button.addEventListener('click', () => {
-    if (submitExistingCommand(root, command)) button.dataset.lastRun = 'true';
-  });
-  return button;
-}
-
-function buildSentinelStage() {
-  const stage = element('aside', 'analyst-sentinel-stage');
-  stage.setAttribute('aria-label', 'PARA11AX evidence control plane');
-  const orbit = element('div', 'analyst-sentinel-orbit');
-  orbit.setAttribute('aria-hidden', 'true');
-  const logo = document.createElement('img');
-  logo.className = 'analyst-sentinel-logo';
-  logo.src = '/app/para11ax-mark.svg';
-  logo.alt = '';
-  logo.decoding = 'async';
-  orbit.append(logo);
-  const copy = element('div', 'analyst-sentinel-copy');
-  copy.append(
+function buildIdentity() {
+  const identity = element('div', 'analyst-identity');
+  const mark = document.createElement('img');
+  mark.className = 'analyst-identity-mark';
+  mark.src = '/app/para11ax-mark.svg';
+  mark.alt = '';
+  mark.decoding = 'async';
+  const text = element('div', 'analyst-identity-copy');
+  text.append(
     element('strong', '', 'EVIDENCE CONTROL PLANE'),
     element('span', '', 'OBSERVE · CORRELATE · PRESERVE PROVENANCE'),
   );
-  stage.append(orbit, copy);
-  return stage;
+  identity.append(mark, text);
+  return identity;
 }
 
-function buildStatusRail() {
-  const rail = element('aside', 'analyst-status-rail');
-  rail.setAttribute('aria-label', 'PARA11AX operational status');
-  const title = element('div', 'analyst-rail-title', 'OPERATIONAL STATE');
-  const facts = element('div', 'analyst-facts');
-  for (const [label, value] of [
-    ['SOURCES', '37 FIXED'],
-    ['SCHEMA', 'EVIDENCE V2'],
-    ['EGRESS', 'FIXED'],
-    ['MODE', 'READ ONLY'],
-    ['EXPORT', 'STIX 2.1'],
-  ]) {
-    const row = element('div', 'analyst-fact');
-    row.append(element('span', '', label), element('strong', '', value));
-    facts.append(row);
-  }
-  const live = element('div', 'analyst-live-state');
-  const auth = element('span', 'analyst-state-pill');
+function buildTelemetryStrip() {
+  const strip = element('footer', 'analyst-telemetry-strip');
+  strip.setAttribute('aria-label', 'PARA11AX operational state');
+
+  const title = element('span', 'analyst-telemetry-title', 'OPERATIONAL STATE');
+  const auth = element('span', 'analyst-telemetry-state', 'AUTH DOWN');
   auth.dataset.state = 'down';
-  auth.textContent = 'AUTH DOWN';
-  const runtime = element('span', 'analyst-state-pill');
+  const runtime = element('span', 'analyst-telemetry-state', 'READY');
   runtime.dataset.state = 'ready';
-  runtime.textContent = 'READY';
-  live.append(auth, runtime);
-  const doctrine = element('p', 'analyst-doctrine', 'OBSERVED ≠ INFERRED ≠ CONTEXTUAL');
-  rail.append(title, facts, live, doctrine);
-  rail._authPill = auth;
-  rail._runtimePill = runtime;
-  return rail;
+  const facts = element('span', 'analyst-telemetry-facts', '37 FIXED SOURCES · EVIDENCE V2 · FIXED EGRESS · READ ONLY · STIX 2.1');
+  const doctrine = element('span', 'analyst-telemetry-doctrine', 'OBSERVED ≠ INFERRED ≠ CONTEXTUAL');
+
+  strip.append(title, auth, runtime, facts, doctrine);
+  strip._auth = auth;
+  strip._runtime = runtime;
+  return strip;
 }
 
-function buildRail(root, commands, className, label) {
-  const nav = element('nav', className);
-  nav.setAttribute('aria-label', label);
-  for (const [text, command] of commands) nav.append(commandButton(root, text, command));
-  return nav;
+function setText(node, value) {
+  if (node && node.textContent !== value) node.textContent = value;
 }
 
-function setPill(pill, state, text) {
-  if (!pill) return;
-  if (pill.dataset.state !== state) pill.dataset.state = state;
-  if (pill.textContent !== text) pill.textContent = text;
+function setState(node, state, value) {
+  if (!node) return;
+  if (node.dataset.state !== state) node.dataset.state = state;
+  setText(node, value);
 }
 
-function updateLiveState(root, statusRail) {
-  const text = root.querySelector('.shell-session-state')?.textContent || '';
-  const authenticated = text.includes('AUTH:UP');
-  const busy = text.includes('BUSY');
-  setPill(statusRail._authPill, authenticated ? 'ok' : 'down', authenticated ? 'AUTH UP' : 'AUTH DOWN');
-  setPill(statusRail._runtimePill, busy ? 'active' : 'ready', busy ? 'ENRICHING' : 'READY');
+function updateTelemetry(root, strip) {
+  const state = root.querySelector('.shell-session-state')?.textContent || '';
+  const authenticated = state.includes('AUTH:UP');
+  const busy = state.includes('BUSY');
+  setState(strip._auth, authenticated ? 'ok' : 'down', authenticated ? 'AUTH UP' : 'AUTH DOWN');
+  setState(strip._runtime, busy ? 'active' : 'ready', busy ? 'ENRICHING' : 'READY');
 }
 
-function syncLegacyChrome(root, commandDeck, statusRail) {
+function normalizePrompt(root) {
+  const label = root.querySelector('.shell-prompt-label');
+  const input = root.querySelector('#para11ax-command-input');
+  if (!label || !input || input.type === 'password' || label.textContent.trim() === 'BEARER:') return;
+  setText(label, PROMPT_TEXT);
+}
+
+function syncPassiveChrome(root, header, telemetry) {
   const scanner = root.querySelector('.shell-scanner-track');
-  if (scanner && scanner.parentElement !== commandDeck) commandDeck.append(scanner);
+  if (scanner && scanner.parentElement !== header) header.append(scanner);
   const footer = root.querySelector('.shell-footer');
-  if (footer && footer.parentElement !== statusRail) statusRail.append(footer);
-  updateLiveState(root, statusRail);
+  if (footer && footer.parentElement !== telemetry) telemetry.append(footer);
+  normalizePrompt(root);
+  updateTelemetry(root, telemetry);
 }
 
 function decorateAnalystDeck(root) {
-  if (!root || root.dataset.analystDeck === 'v4') return Boolean(root);
+  if (!root || root.dataset.analystDeck === 'v5') return Boolean(root);
   const status = root.querySelector('.shell-status');
   const scrollback = root.querySelector('.shell-scrollback');
   const prompt = root.querySelector('.shell-prompt');
   if (!status || !scrollback || !prompt) return false;
 
   root.classList.add('analyst-deck');
-  root.dataset.analystDeck = 'v4';
-  document.documentElement.dataset.analystDeck = 'v4';
+  root.dataset.analystDeck = 'v5';
+  document.documentElement.dataset.analystDeck = 'v5';
 
-  const commandDeck = element('section', 'analyst-command-deck');
-  commandDeck.append(status, buildSentinelStage());
-
-  const statusRail = buildStatusRail();
+  const header = element('header', 'analyst-header');
+  header.append(status, buildIdentity());
 
   const launcher = element('section', 'investigation-launcher');
-  const launcherHead = element('header', 'investigation-launcher-head');
-  launcherHead.append(
-    element('span', 'investigation-kicker', 'INVESTIGATION LAUNCHER'),
-    element('span', 'investigation-hint', 'enrich <observable> · batch <observables> · profile fast|standard|full'),
-  );
-  launcher.append(launcherHead, prompt);
-
-  const viewRail = buildRail(root, VIEW_COMMANDS, 'analyst-view-rail', 'Evidence views');
+  launcher.setAttribute('aria-label', 'PARA11AX command line');
+  launcher.append(prompt);
 
   const workspace = element('section', 'analyst-workspace');
   const workspaceHead = element('header', 'analyst-workspace-head');
@@ -167,20 +111,25 @@ function decorateAnalystDeck(root) {
   );
   workspace.append(workspaceHead, scrollback);
 
-  const actions = buildRail(root, ACTION_COMMANDS, 'analyst-action-rail', 'Bounded analyst actions');
-
-  root.replaceChildren(commandDeck, launcher, viewRail, workspace, statusRail, actions);
-  syncLegacyChrome(root, commandDeck, statusRail);
+  const telemetry = buildTelemetryStrip();
+  root.replaceChildren(header, launcher, workspace, telemetry);
+  syncPassiveChrome(root, header, telemetry);
 
   const sessionState = root.querySelector('.shell-session-state');
   if (sessionState && typeof MutationObserver === 'function') {
-    const stateObserver = new MutationObserver(() => updateLiveState(root, statusRail));
-    stateObserver.observe(sessionState, { childList: true, characterData: true, subtree: true });
+    const observer = new MutationObserver(() => updateTelemetry(root, telemetry));
+    observer.observe(sessionState, { childList: true, characterData: true, subtree: true });
+  }
+
+  const promptLabel = root.querySelector('.shell-prompt-label');
+  if (promptLabel && typeof MutationObserver === 'function') {
+    const observer = new MutationObserver(() => normalizePrompt(root));
+    observer.observe(promptLabel, { childList: true, characterData: true, subtree: true });
   }
 
   if (typeof MutationObserver === 'function') {
-    const chromeObserver = new MutationObserver(() => syncLegacyChrome(root, commandDeck, statusRail));
-    chromeObserver.observe(root, { childList: true, subtree: true });
+    const observer = new MutationObserver(() => syncPassiveChrome(root, header, telemetry));
+    observer.observe(root, { childList: true, subtree: true });
   }
 
   return true;
@@ -202,4 +151,4 @@ if (typeof document !== 'undefined') {
   else initializeAnalystDeck();
 }
 
-export { ACTION_COMMANDS, VIEW_COMMANDS, decorateAnalystDeck, initializeAnalystDeck, submitExistingCommand };
+export { PROMPT_TEXT, decorateAnalystDeck, initializeAnalystDeck };
