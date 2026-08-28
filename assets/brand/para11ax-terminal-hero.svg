@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 480" role="img" aria-labelledby="title desc">
+<title id="title">PARA11AX terminal hero</title>
+<desc id="desc">Phosphor terminal identity with operational status, provenance-first doctrine and analyst prompt.</desc>
+<style>
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.g{fill:#39FF14}.w{fill:#F7FFF6}.m{fill:#8DA391}.line{stroke:#39FF14;stroke-opacity:.28}.scan{animation:scan 4.2s ease-in-out infinite}.cursor{animation:blink .9s steps(1,end) infinite}.pulse{animation:pulse 1.8s ease-in-out infinite}@keyframes scan{0%,100%{transform:translateY(0);opacity:.05}50%{transform:translateY(410px);opacity:.7}}@keyframes blink{50%{opacity:0}}@keyframes pulse{50%{opacity:.35}}@media(prefers-reduced-motion:reduce){.scan,.cursor,.pulse{animation:none}}
+</style>
+<rect width="1440" height="480" fill="#020403"/>
+<g opacity=".12" stroke="#39FF14" stroke-width="1"><path d="M40 0v480M100 0v480M160 0v480M220 0v480M1220 0v480M1280 0v480M1340 0v480M1400 0v480"/><path d="M0 72h1440M0 132h1440M0 420h1440"/></g>
+<rect x="18" y="18" width="1404" height="444" fill="none" stroke="#39FF14" stroke-opacity=".38"/>
+<rect x="18" y="18" width="1404" height="48" fill="#020403" stroke="#39FF14" stroke-opacity=".26"/>
+<text x="48" y="50" class="mono g" font-size="22" font-weight="700" letter-spacing="4">PARA11AX</text>
+<text x="500" y="49" class="mono g" font-size="15" letter-spacing="2">LINK: UP  |  AUTH: UP  |  SYS: NOMINAL  |  v2.0.0</text>
+<circle cx="1102" cy="43" r="5" fill="#39FF14" class="pulse"/>
+<text x="1388" y="49" class="mono g" font-size="15" text-anchor="end">&gt; ENTER TERMINAL</text>
+<g class="mono">
+  <text x="70" y="170" class="g" font-size="72" font-weight="900" letter-spacing="5">PARA11AX</text>
+  <text x="72" y="207" class="g" font-size="18" letter-spacing="5">PROVENANCE-FIRST CTI PLATFORM</text>
+  <text x="72" y="262" class="g" font-size="20">EVIDENCE FIRST.</text>
+  <text x="72" y="296" class="g" font-size="20">BOUNDED ALWAYS.</text>
+  <text x="72" y="330" class="g" font-size="20">OPERATIONAL WHEN SUPPORTED.</text>
+</g>
+<g class="mono">
+  <rect x="760" y="105" width="600" height="265" fill="#020403" stroke="#39FF14" stroke-opacity=".5"/>
+  <rect x="760" y="105" width="600" height="44" fill="#020403" stroke="#39FF14" stroke-opacity=".28"/>
+  <text x="782" y="133" class="g" font-size="16">&gt; PARA11AX TERMINAL v2.0.0</text>
+  <circle cx="1215" cy="127" r="5" fill="#39FF14" class="pulse"/><text x="1232" y="133" class="g" font-size="15">OPERATIONAL</text>
+  <text x="792" y="194" class="g" font-size="19">user@para11ax:~$ whoami</text>
+  <text x="792" y="225" class="w" font-size="18">Threat Hunter</text>
+  <text x="792" y="271" class="g" font-size="19">user@para11ax:~$ mission</text>
+  <text x="792" y="302" class="w" font-size="18">Evidence first. Bounded always.</text>
+  <text x="792" y="331" class="w" font-size="18">Operational when supported.</text>
+  <text x="792" y="355" class="g" font-size="18">user@para11ax:~$</text><rect x="1002" y="340" width="11" height="18" fill="#39FF14" class="cursor"/>
+</g>
+<g class="mono" font-size="14">
+  <text x="72" y="406" class="m">37 FIXED SOURCES</text><text x="250" y="406" class="m">//</text><text x="284" y="406" class="m">EVIDENCE V2</text><text x="430" y="406" class="m">//</text><text x="464" y="406" class="m">READ-ONLY</text><text x="580" y="406" class="m">//</text><text x="614" y="406" class="m">FIXED EGRESS</text>
+</g>
+<rect x="18" y="18" width="1404" height="1" fill="#FF2438" opacity=".15" class="scan"/>
+</svg>
