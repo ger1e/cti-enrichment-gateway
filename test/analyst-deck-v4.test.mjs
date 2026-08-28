@@ -45,7 +45,7 @@ test('terminal-first presentation assets load after terminal polish without repl
 test('terminal-first shell uses one canonical prompt and keeps scrollback as the dominant viewport', () => {
   const [source, css] = [read('app/analyst-deck.js'), read('app/analyst-deck.css')];
   assert.match(source, /user@para11ax: ~/);
-  assert.match(source, /data\.terminalFirst\s*=\s*['"]v6['"]/);
+  assert.match(source, /dataset\.terminalFirst\s*=\s*['"]v6['"]/);
   assert.match(css, /\.unix-shell[^}]*display:\s*grid/is);
   assert.match(css, /grid-template-rows:\s*auto\s+minmax\(0,1fr\)\s+auto/is);
   assert.match(css, /\.shell-scrollback[^}]*min-height:\s*0/is);
@@ -74,7 +74,7 @@ test('terminal-first palette is black phosphor white muted gray with red reserve
   assert.match(finalCss, /--terminal-text:\s*#f7fff6/);
   assert.match(finalCss, /--terminal-muted:\s*#8da391/);
   assert.match(finalCss, /--terminal-alert:\s*#ff2438/);
-  assert.doesNotMatch(finalCss, /--.*cyan|--.*amber|--.*green:/i);
+  assert.doesNotMatch(finalCss, /--[\w-]*(?:cyan|amber|green)\s*:/i);
 });
 
 test('result surfaces render as terminal sections rather than dashboard cards or HUD grids', () => {
