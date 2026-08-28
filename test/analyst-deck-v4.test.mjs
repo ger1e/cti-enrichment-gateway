@@ -34,6 +34,7 @@ test('v5 is prompt-first with one evidence viewport and passive telemetry', () =
   assert.match(source, /EVIDENCE WORKSPACE/);
   assert.match(source, /OPERATIONAL STATE/);
   assert.match(source, /OBSERVED ≠ INFERRED ≠ CONTEXTUAL/);
+  assert.match(source, /user@para11ax: ~/);
   assert.match(source, /shell-scrollback/);
   assert.match(source, /shell-prompt/);
   assert.doesNotMatch(source, /requestSubmit|data-command|data-last-run/);
