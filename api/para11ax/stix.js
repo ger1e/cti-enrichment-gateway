@@ -1,8 +1,8 @@
-import { createApp, writeVercelResponse } from '../src/app.js';
+import { createApp, writeVercelResponse } from '../../src/app.js';
 
 const app = createApp();
 
 export default async function handler(req, res) {
-  const result = await app.handleStatus(req);
+  const result = await app.handleStix(req);
   writeVercelResponse(res, result);
 }

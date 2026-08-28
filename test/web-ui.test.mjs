@@ -32,7 +32,7 @@ test('Vercel app route precedes API catch-all and human fallback', () => {
   const routes = JSON.parse(read('vercel.json')).routes;
   const fs = routes.findIndex((r) => r.handle === 'filesystem');
   const app = routes.findIndex((r) => r.src === '/app/?' && r.dest === '/app/index.html');
-  const api = routes.findIndex((r) => r.src === '/api/(.*)' && r.dest === '/api/[...path].js');
+  const api = routes.findIndex((r) => r.src === '/api/para11ax/(.*)' && r.dest === '/api/para11ax/[...path].js');
   const human404 = routes.findIndex((r) => r.dest === '/404.html' && r.status === 404);
   assert.ok(fs >= 0 && app > fs && api > app && human404 > api);
 });

@@ -8,7 +8,7 @@ Close the remaining high-value gaps without turning the gateway into a larger di
 
 - Preserve the existing gateway API contract, evidence schema v2, provider order, scheduler ceilings, egress allowlist, secret boundary, Maltego transform surface, and fail-closed provider semantics.
 - No database, queue, Kubernetes, dashboard, microservice split, universal risk score, or new analytical framework.
-- Vendor secrets remain server-side only. Maltego/local clients use only `CTI_GATEWAY_TOKEN` through the existing native credential-store boundary.
+- Vendor secrets remain server-side only. Maltego/local clients use only `PARA11AX_TOKEN` through the existing native credential-store boundary.
 - All new collections and outputs are bounded. Reports render only from a frozen evidence snapshot; renderers never re-query providers.
 - Important claims must be traceable to evidence IDs or explicitly labelled inference/context. Absence is never benign evidence.
 - Cross-platform support remains Windows PowerShell, macOS zsh/bash, and Linux bash/zsh.
@@ -27,16 +27,16 @@ Runtime metadata loading, provider manifest exposure, environment-template verif
 
 ## 3. Operator control plane
 
-Add a dependency-free Node 24 CLI at `bin/cti.mjs` with bounded commands:
+Add a dependency-free Node 24 CLI at `bin/para11ax.mjs` with bounded commands:
 
-- `cti doctor` — read-only repository/runtime/configuration diagnostics.
-- `cti providers list` and `cti providers env-template` — manifest-driven provider inventory and secret template.
-- `cti maltego check` — delegates to the existing cross-platform secure Maltego bootstrap check.
-- `cti release verify` — executes repository verification without mutating deployment state.
-- `cti report compile <snapshot.json> --out <dir> [--preset ...]` — compile frozen evidence into deterministic artifacts.
-- `cti report diff <a.json> <b.json>` — deterministic snapshot comparison.
+- `para11ax doctor` — read-only repository/runtime/configuration diagnostics.
+- `para11ax providers list` and `para11ax providers env-template` — manifest-driven provider inventory and secret template.
+- `para11ax maltego check` — delegates to the existing cross-platform secure Maltego bootstrap check.
+- `para11ax release verify` — executes repository verification without mutating deployment state.
+- `para11ax report compile <snapshot.json> --out <dir> [--preset ...]` — compile frozen evidence into deterministic artifacts.
+- `para11ax report diff <a.json> <b.json>` — deterministic snapshot comparison.
 
-`cti setup` and `cti repair` remain thin dispatchers to the hardened platform-native setup paths; they never implement a second credential store.
+`para11ax setup` and `para11ax repair` remain thin dispatchers to the hardened platform-native setup paths; they never implement a second credential store.
 
 ## 4. Canonical ReportModel
 
@@ -89,8 +89,8 @@ Commit `package-lock.json` even if the runtime dependency set is empty. CI uses 
 
 ## 9. Custom error surface
 
-The approved bounded design is part of this release. API/CLI callers retain JSON; browser clients requesting HTML get branded fail-closed pages. Supported status catalogue: 400, 401, 403, 404, 405, 408, 413, 415, 422, 429, 500, 502, 503, 504. Error responses include only a bounded request ID and safe code/message, use `no-store`, CSP, frame denial, nosniff, and never reflect exception text, bodies, secrets, provider configuration, or upstream URLs. Unknown `/api/*` paths route to the controlled 404 handler.
+The approved bounded design is part of this release. API/CLI callers retain JSON; browser clients requesting HTML get branded fail-closed pages. Supported status catalogue: 400, 401, 403, 404, 405, 408, 413, 415, 422, 429, 500, 502, 503, 504. Error responses include only a bounded request ID and safe code/message, use `no-store`, CSP, frame denial, nosniff, and never reflect exception text, bodies, secrets, provider configuration, or upstream URLs. Unknown `/api/para11ax/*` paths route to the controlled 404 handler.
 
 ## Acceptance
 
-The exact PR head must pass repository invariants, dependency lock/audit validation, all Node tests, all Maltego tests, Python compile, bash/zsh/ShellCheck, PowerShell syntax, Linux/macOS/Windows jobs, Vercel preview, report fixture determinism, secret/public-release audit, and final security diff review. Merge uses the exact verified head SHA; production is accepted only after exact-main Vercel `READY`, `/api/meta` 200, protected unauthenticated endpoints 401/no-store, custom browser 401 and unknown-route 404 behavior, and zero new runtime error clusters.
+The exact PR head must pass repository invariants, dependency lock/audit validation, all Node tests, all Maltego tests, Python compile, bash/zsh/ShellCheck, PowerShell syntax, Linux/macOS/Windows jobs, Vercel preview, report fixture determinism, secret/public-release audit, and final security diff review. Merge uses the exact verified head SHA; production is accepted only after exact-main Vercel `READY`, `/api/para11ax/meta` 200, protected unauthenticated endpoints 401/no-store, custom browser 401 and unknown-route 404 behavior, and zero new runtime error clusters.

@@ -45,7 +45,7 @@ finalizer_ok() {
 canonical_env_ok() {
   local expected actual
   expected="$(cat <<'EOF'
-CTI_GATEWAY_TOKEN=
+PARA11AX_TOKEN=
 ABUSECH_API_KEY=
 ABUSEIPDB_API_KEY=
 GREYNOISE_API_KEY=
@@ -72,7 +72,7 @@ EOF
 
 bootstrap_secrets_ok() {
   local script=scripts/bootstrap-vercel.ps1 name
-  for name in CTI_GATEWAY_TOKEN ABUSECH_API_KEY ABUSEIPDB_API_KEY GREYNOISE_API_KEY VIRUSTOTAL_API_KEY HYBRID_ANALYSIS_API_KEY URLSCAN_API_KEY WEBAMON_API_KEY SENTRY_AUTH_TOKEN OTX_API_KEY SHODAN_API_KEY CENSYS_PAT PULSEDIVE_API_KEY IPINFO_TOKEN MALPEDIA_API_TOKEN NVD_API_KEY CLOUDFLARE_RADAR_TOKEN RANSOMWARE_LIVE_API_KEY MODAT_API_KEY; do grep -Fq "'${name}'" "${script}" || return 1; done
+  for name in PARA11AX_TOKEN ABUSECH_API_KEY ABUSEIPDB_API_KEY GREYNOISE_API_KEY VIRUSTOTAL_API_KEY HYBRID_ANALYSIS_API_KEY URLSCAN_API_KEY WEBAMON_API_KEY SENTRY_AUTH_TOKEN OTX_API_KEY SHODAN_API_KEY CENSYS_PAT PULSEDIVE_API_KEY IPINFO_TOKEN MALPEDIA_API_TOKEN NVD_API_KEY CLOUDFLARE_RADAR_TOKEN RANSOMWARE_LIVE_API_KEY MODAT_API_KEY; do grep -Fq "'${name}'" "${script}" || return 1; done
   ! grep -Fq 'SECURITYTRAILS_API_KEY' "${script}"
 }
 
@@ -93,7 +93,7 @@ qa_suite_ok() {
   [[ -s test/fuzz-deterministic.test.js ]] && [[ -s test/chaos-provider.test.js ]] && [[ -s test/manifest-invariants.test.js ]] && grep -Fq "1000 deterministic arbitrary strings" test/fuzz-deterministic.test.js && grep -Fq 'transient provider failures are never negative-cached' test/chaos-provider.test.js && grep -Fq 'every active workflow adapter is registered' test/manifest-invariants.test.js
 }
 
-vnext_api_surface_ok() { local path; for path in api/enrich.js api/batch.js api/stix.js api/meta.js api/status.js api/health.js 'api/[...path].js'; do [[ -s "${path}" ]] || return 1; done; }
+vnext_api_surface_ok() { local path; for path in api/para11ax/enrich.js api/para11ax/batch.js api/para11ax/stix.js api/para11ax/meta.js api/para11ax/status.js api/para11ax/health.js 'api/para11ax/[...path].js'; do [[ -s "${path}" ]] || return 1; done; }
 egress_boundary_ok() { grep -Fq 'safeFetch' src/core/provider-runner.js && ! grep -R -E '[^[:alnum:]_]fetch[[:space:]]*\(' src/providers --include='*.js'; }
 
 release_docs_ok() {

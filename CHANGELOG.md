@@ -11,7 +11,7 @@ All notable repository changes should be recorded here. This project uses a ligh
 - Architecture and trust-boundary documentation.
 - Security-control matrix covering implemented and settings-dependent controls.
 - GitHub governance layer: CODEOWNERS, contribution guidance, pull-request template and structured issue forms.
-- Dependency-free `cti` operator CLI for doctor, provider inventory/environment templates, setup/repair, Maltego checks, release verification and frozen-snapshot report compile/diff workflows.
+- Dependency-free `para11ax` operator CLI for doctor, provider inventory/environment templates, setup/repair, Maltego checks, release verification and frozen-snapshot report compile/diff workflows.
 - Canonical provider manifest used as the policy source for provider metadata, credential inventory and distribution classification.
 - Deterministic frozen-snapshot intelligence reporting with HTML, PDF, text, JSON, STIX 2.1, CSV, KQL and ATT&CK Navigator artifacts plus SHA-256 integrity manifests.
 - Read-only GitHub governance verifier for the required `main` branch-protection contract.
@@ -19,6 +19,7 @@ All notable repository changes should be recorded here. This project uses a ligh
 
 ##### Changed
 
+- Completed the breaking PARA11AX identity migration across repository/package metadata, the `para11ax` CLI, `PARA11AX_TOKEN` / `PARA11AX_URL`, `/api/para11ax/*`, `para11ax-local.mtz`, Maltego properties, GitHub links and `https://para11ax.vercel.app`; legacy aliases are intentionally unsupported.
 - npm dependency state is now lockfile-backed and CI performs deterministic `npm ci --ignore-scripts` plus `npm audit --omit=dev`.
 - Report generation is offline-only, bounded and deterministic for a frozen evidence snapshot and supplied generation timestamp.
 - Error content negotiation honors media-type quality values and defaults safely to JSON on ties, wildcards and absent `Accept` headers.
@@ -36,4 +37,4 @@ All notable repository changes should be recorded here. This project uses a ligh
 
 #### 1.0.0
 
-Initial private personal-research implementation of the read-only CTI enrichment gateway, bounded Maltego client, provider normalization layer, CI verification and Vercel bootstrap/deployment workflow.
+Initial private personal-research implementation of the read-only PARA11AX gateway, bounded Maltego client, provider normalization layer, CI verification and Vercel bootstrap/deployment workflow.

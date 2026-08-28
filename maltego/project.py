@@ -14,7 +14,7 @@ register_transform_classes(transforms)
 
 
 def write_local_mtz() -> Path:
-    mtz_path = ROOT / 'cti-enrichment-gateway-local.mtz'
+    mtz_path = ROOT / 'para11ax-local.mtz'
     registry.write_local_mtz(
         mtz_path=str(mtz_path),
         working_dir=str(ROOT),

@@ -73,7 +73,7 @@ test('PDF renderer emits stable self-contained PDF bytes without network or wall
     assert.deepEqual(first, second);
     assert.equal(first.subarray(0, 8).toString('ascii'), '%PDF-1.4');
     assert.match(first.toString('latin1'), /%%EOF\s*$/);
-    assert.match(first.toString('latin1'), /CTI Enrichment Gateway/);
+    assert.match(first.toString('latin1'), /PARA11AX/);
   } finally {
     globalThis.fetch = originalFetch;
   }

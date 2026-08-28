@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp, renderHttpError, writeVercelResponse } from '../src/app.js';
 
-const env = { CTI_GATEWAY_TOKEN: 'gateway-secret-value' };
+const env = { PARA11AX_TOKEN: 'gateway-secret-value' };
 
 function req({ method = 'POST', auth = false, accept = 'application/json', body = { indicator: '8.8.8.8' }, headers = {} } = {}) {
   return {
     method,
     headers: {
       accept,
-      ...(auth ? { authorization: `Bearer ${env.CTI_GATEWAY_TOKEN}` } : {}),
+      ...(auth ? { authorization: `Bearer ${env.PARA11AX_TOKEN}` } : {}),
       ...headers,
     },
     body,
@@ -34,7 +34,7 @@ test('API clients retain deterministic JSON errors with a bounded correlation id
   assert.match(result.body.requestId, /^[0-9a-f-]{36}$/i);
   assert.equal(result.headers['cache-control'], 'no-store');
   assert.equal(result.headers['content-type'], 'application/json; charset=utf-8');
-  assert.equal(JSON.stringify(result).includes(env.CTI_GATEWAY_TOKEN), false);
+  assert.equal(JSON.stringify(result).includes(env.PARA11AX_TOKEN), false);
 });
 
 test('browser clients receive branded HTML for the same 401 without changing status semantics', async () => {
@@ -45,9 +45,11 @@ test('browser clients receive branded HTML for the same 401 without changing sta
   assert.equal(result.headers['cache-control'], 'no-store');
   assert.match(result.body, /401/);
   assert.match(result.body, /AUTHENTICATION REQUIRED/);
+  assert.match(result.body, /PARA11AX/);
   assert.match(result.body, /REQUEST ID/i);
-  assert.match(result.body, /\/api\/meta/);
-  assert.equal(result.body.includes(env.CTI_GATEWAY_TOKEN), false);
+  assert.match(result.body, /\/api\/para11ax\/meta/);
+  assert.doesNotMatch(result.body, /CTI ENRICHMENT GATEWAY/);
+  assert.equal(result.body.includes(env.PARA11AX_TOKEN), false);
 });
 
 test('renderer supports the hardened error status catalogue and never reflects unsafe detail', () => {

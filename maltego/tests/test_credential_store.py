@@ -11,7 +11,7 @@ from credential_store import CredentialStoreError
 
 class CredentialStoreTests(unittest.TestCase):
     def test_environment_override_has_highest_precedence(self):
-        with patch.dict(os.environ, {'CTI_GATEWAY_TOKEN': ' env-secret '}, clear=False):
+        with patch.dict(os.environ, {'PARA11AX_TOKEN': ' env-secret '}, clear=False):
             with patch.object(credential_store, '_native_backend_name', side_effect=AssertionError('native backend touched')):
                 self.assertEqual(credential_store.load_token(), 'env-secret')
                 self.assertEqual(credential_store.backend_name(), 'environment')

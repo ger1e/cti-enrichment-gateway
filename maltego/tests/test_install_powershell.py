@@ -27,7 +27,7 @@ class InstallPowerShellTests(unittest.TestCase):
                 self.assertIn(flag, SCRIPT)
 
     def test_windows_installer_does_not_handle_plaintext_token_or_vendor_secrets(self):
-        for forbidden in ['Read-Host \'CTI_GATEWAY_TOKEN', 'SecureStringToBSTR', 'VIRUSTOTAL_API_KEY', 'GREYNOISE_API_KEY', '.env']:
+        for forbidden in ['Read-Host \'PARA11AX_TOKEN', 'SecureStringToBSTR', 'VIRUSTOTAL_API_KEY', 'GREYNOISE_API_KEY', '.env']:
             with self.subTest(forbidden=forbidden):
                 self.assertNotIn(forbidden, SCRIPT)
         self.assertIn('vendor API credentials remain server-side in Vercel', SCRIPT)

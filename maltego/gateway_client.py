@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 
 from credential_store import CredentialStoreError, load_token
 
-DEFAULT_GATEWAY_URL = 'https://cti-enrichment-gateway.vercel.app'
+DEFAULT_GATEWAY_URL = 'https://para11ax.vercel.app'
 DEFAULT_TIMEOUT_SECONDS = 15.0
 DEFAULT_MAX_RESPONSE_BYTES = 2_000_000
 SUPPORTED_INDICATOR_TYPES = frozenset({'ip', 'domain', 'url', 'hash', 'cve', 'attack', 'asn', 'cidr'})
@@ -33,12 +33,12 @@ def _validate_base_url(base_url: str) -> str:
     value = (base_url or '').strip().rstrip('/')
     parsed = urlparse(value)
     if not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
-        raise GatewayConfigurationError('invalid CTI gateway URL')
+        raise GatewayConfigurationError('invalid PARA11AX URL')
     is_loopback = parsed.hostname in {'127.0.0.1', 'localhost', '::1'}
     if parsed.scheme != 'https' and not (parsed.scheme == 'http' and is_loopback):
-        raise GatewayConfigurationError('CTI gateway URL must use HTTPS (HTTP is allowed only for localhost)')
+        raise GatewayConfigurationError('PARA11AX URL must use HTTPS (HTTP is allowed only for localhost)')
     if parsed.path not in {'', '/'}:
-        raise GatewayConfigurationError('CTI gateway URL must point to the gateway root')
+        raise GatewayConfigurationError('PARA11AX URL must point to the gateway root')
     return value
 
 
@@ -52,13 +52,13 @@ class GatewayClient:
 
     @classmethod
     def from_environment(cls) -> 'GatewayClient':
-        base_url = _validate_base_url(os.environ.get('CTI_GATEWAY_URL', DEFAULT_GATEWAY_URL))
+        base_url = _validate_base_url(os.environ.get('PARA11AX_URL', DEFAULT_GATEWAY_URL))
         try:
             token = load_token()
         except CredentialStoreError as exc:
             raise GatewayConfigurationError(str(exc)) from exc
         if not token.strip():
-            raise GatewayConfigurationError('CTI gateway token is empty')
+            raise GatewayConfigurationError('PARA11AX token is empty')
         return cls(base_url=base_url, token=token.strip())
 
     def enrich(self, indicator: str, indicator_type: str) -> dict:
@@ -67,7 +67,7 @@ class GatewayClient:
         if indicator_type not in SUPPORTED_INDICATOR_TYPES:
             raise GatewayError('unsupported indicator type')
 
-        endpoint = f'{_validate_base_url(self.base_url)}/api/enrich'
+        endpoint = f'{_validate_base_url(self.base_url)}/api/para11ax/enrich'
         payload = json.dumps({'indicator': indicator.strip(), 'type': indicator_type}, separators=(',', ':')).encode('utf-8')
         request = urllib.request.Request(
             endpoint,
@@ -76,7 +76,7 @@ class GatewayClient:
                 'Authorization': f'Bearer {self.token}',
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'User-Agent': 'cti-enrichment-gateway-maltego/2.0',
+                'User-Agent': 'para11ax-maltego/2.0',
             },
             method='POST',
         )

@@ -7,7 +7,7 @@ const STALE_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
 const ATTACK_ID = /^T\d{4}(?:\.\d{3})?$/;
 const KNOWN_SECRET_IDENTIFIERS = Object.freeze([
   ...providerSecretNames(),
-  'CTI_GATEWAY_TOKEN',
+  'PARA11AX_TOKEN',
   'SENTRY_AUTH_TOKEN',
 ]);
 const SECRET_VALUE_PATTERNS = Object.freeze([

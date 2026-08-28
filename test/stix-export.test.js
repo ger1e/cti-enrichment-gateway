@@ -99,7 +99,7 @@ function adapter() {
 function req(body, token = 'secret') { return { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body }; }
 
 test('authenticated STIX API performs normal enrichment first and rejects direct enrichment injection', async () => {
-  const app = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [adapter()] });
+  const app = createApp({ env: { PARA11AX_TOKEN: 'secret' }, adapters: [adapter()] });
   assert.equal((await app.handleStix(req({ indicator: 'evil.example' }, 'bad'))).status, 401);
   const injected = await app.handleStix(req({ indicator: 'evil.example', enrichment: { status: 'ok' } }));
   assert.equal(injected.status, 400);

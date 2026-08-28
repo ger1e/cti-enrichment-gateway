@@ -60,9 +60,9 @@ class MapperTests(unittest.TestCase):
         specs = map_enrichment(result, max_entities=50)
         evidence = [spec for spec in specs if spec.link_label == 'evidence' and spec.value.startswith('rdap:')]
         self.assertEqual(len(evidence), 1)
-        self.assertEqual(evidence[0].properties['cti.parser_version'], '2026-08-21')
-        self.assertEqual(evidence[0].properties['cti.fingerprint'], 'f'*64)
-        self.assertEqual(evidence[0].properties['cti.cache_state'], 'hit')
+        self.assertEqual(evidence[0].properties['para11ax.parser_version'], '2026-08-21')
+        self.assertEqual(evidence[0].properties['para11ax.fingerprint'], 'f'*64)
+        self.assertEqual(evidence[0].properties['para11ax.cache_state'], 'hit')
         self.assertNotIn('rawHash', evidence[0].properties)
         self.assertNotIn('deadbeef', str(evidence[0].properties))
 

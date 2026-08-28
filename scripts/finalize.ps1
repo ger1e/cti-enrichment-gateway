@@ -5,16 +5,16 @@ param()
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$Repository       = 'ger1e/cti-enrichment-gateway'
+$Repository       = 'ger1e/para11ax'
 $RequiredBranch   = 'main'
 $RequiredStatus   = 'Tooling smoke'
 $RepoRoot         = Split-Path -Parent $PSScriptRoot
 $BootstrapPath    = Join-Path $PSScriptRoot 'bootstrap-vercel.ps1'
 $GovernanceVerifierPath = Join-Path $PSScriptRoot 'verify-github-governance.mjs'
 $AllowedOrigins   = @(
-    'https://github.com/ger1e/cti-enrichment-gateway.git',
-    'https://github.com/ger1e/cti-enrichment-gateway',
-    'git@github.com:ger1e/cti-enrichment-gateway.git'
+    'https://github.com/ger1e/para11ax.git',
+    'https://github.com/ger1e/para11ax',
+    'git@github.com:ger1e/para11ax.git'
 )
 
 function Refresh-ProcessPath {
@@ -310,7 +310,7 @@ function Invoke-LocalToolingSmoke {
     }
 }
 
-Write-Host '=== CTI Enrichment Gateway / finalization ==='
+Write-Host '=== PARA11AX / finalization ==='
 Write-Host 'This script never reads or prints provider secret values. Vercel secret entry remains inside the hardened bootstrap.'
 Write-Host 'Governance mode: public repository with GitHub server-side branch protection plus exact-SHA hosted and local validation.'
 Write-Host ''

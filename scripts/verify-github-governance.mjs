@@ -2,7 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
-const REPOSITORY = 'ger1e/cti-enrichment-gateway';
+const REPOSITORY = 'ger1e/para11ax';
 const BRANCH = 'main';
 const REQUIRED_STATUS = 'Tooling smoke';
 const MAX_OUTPUT_BYTES = 1_000_000;

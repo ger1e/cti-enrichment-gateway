@@ -121,12 +121,12 @@ h1{font-size:clamp(20px,4vw,34px);margin:0 0 14px;letter-spacing:.08em}p{color:v
 </head>
 <body>
 <main>
-<div class="kicker">CTI ENRICHMENT GATEWAY // CONTROLLED FAILURE</div>
+<div class="kicker">PARA11AX // CONTROLLED FAILURE</div>
 <div class="code">${status}</div>
 <h1>${meta.title}</h1>
 <p>${meta.message}</p>
 <div class="meta"><span>REQUEST ID <b>${requestId}</b></span><span>MODE <b>FAIL CLOSED</b></span></div>
-<a href="/api/meta">OPEN PUBLIC GATEWAY META →</a>
+<a href="/api/para11ax/meta">OPEN PUBLIC GATEWAY META →</a>
 </main>
 </body>
 </html>`;

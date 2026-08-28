@@ -72,7 +72,7 @@ function publicProvider(adapter) {
 
 function requestGate(request, env, method = 'POST') {
   if (request?.method !== method) return renderHttpError(request, 405, 'method_not_allowed', { headers: { allow: method } });
-  if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return renderHttpError(request, 401, 'unauthorized');
+  if (!requireGatewayAuth(request, env.PARA11AX_TOKEN)) return renderHttpError(request, 401, 'unauthorized');
   const contentType = headerValue(request.headers, 'content-type');
   if (contentType && !isJsonMediaType(contentType)) return renderHttpError(request, 415, 'unsupported_media_type');
   return null;
@@ -143,10 +143,10 @@ export function createApp({
   return {
     async handleHealth(request) {
       if (request?.method !== 'GET') return renderHttpError(request, 405, 'method_not_allowed', { headers: { allow: 'GET' } });
-      if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return renderHttpError(request, 401, 'unauthorized');
+      if (!requireGatewayAuth(request, env.PARA11AX_TOKEN)) return renderHttpError(request, 401, 'unauthorized');
       const providers = Object.fromEntries(registry.names().map(name => [name, providerStatus(registry.get(name), env)]));
       return response(200, {
-        status: 'ok', version: gatewayVersion, gatewayAuthConfigured: Boolean(env.CTI_GATEWAY_TOKEN), providers,
+        status: 'ok', version: gatewayVersion, gatewayAuthConfigured: Boolean(env.PARA11AX_TOKEN), providers,
         operations: { sentry: { configured: Boolean(env.SENTRY_AUTH_TOKEN), role: 'observability_only' } }, activeWorkflows: WORKFLOWS,
       }, { 'cache-control': 'no-store' });
     },
@@ -169,7 +169,7 @@ export function createApp({
 
     async handleStatus(request) {
       if (request?.method !== 'GET') return renderHttpError(request, 405, 'method_not_allowed', { headers: { allow: 'GET' } });
-      if (!requireGatewayAuth(request, env.CTI_GATEWAY_TOKEN)) return renderHttpError(request, 401, 'unauthorized');
+      if (!requireGatewayAuth(request, env.PARA11AX_TOKEN)) return renderHttpError(request, 401, 'unauthorized');
       const providers = Object.fromEntries(registry.names().map(name => {
         const adapter = registry.get(name);
         return [name, { ...providerStatus(adapter, env), parserVersion: adapter.parserVersion, active: adapter.active !== false }];
@@ -177,7 +177,7 @@ export function createApp({
       return response(200, {
         gatewayVersion, schemaVersion: EVIDENCE_SCHEMA_VERSION,
         uptimeMs: Math.max(0, nowMs() - startedAtMs),
-        gatewayAuthConfigured: Boolean(env.CTI_GATEWAY_TOKEN), providers,
+        gatewayAuthConfigured: Boolean(env.PARA11AX_TOKEN), providers,
         cache: typeof cache?.stats === 'function' ? cache.stats() : { entries: 0, inflight: 0, hits: 0, misses: 0, evictions: 0, expirations: 0 },
         circuit: typeof breaker?.stats === 'function' ? breaker.stats() : { providers: 0, open: 0 },
         telemetry: typeof events?.stats === 'function' ? events.stats() : { events: 0, sinkErrors: 0, byEvent: {} },

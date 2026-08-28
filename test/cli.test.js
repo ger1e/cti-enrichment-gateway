@@ -8,7 +8,8 @@ import { PROVIDER_MANIFEST } from '../src/providers/manifest.js';
 
 const ROOT = new URL('..', import.meta.url);
 const FIXTURE = new URL('./fixtures/report/enrichment.json', import.meta.url);
-const run = (args = [], env = {}) => spawnSync(process.execPath, ['bin/cti.mjs', ...args], {
+const LEGACY_PROJECT = ['cti', 'enrichment', 'gateway'].join('-');
+const run = (args = [], env = {}) => spawnSync(process.execPath, ['bin/para11ax.mjs', ...args], {
   cwd: ROOT,
   encoding: 'utf8',
   env: { ...process.env, ...env },
@@ -17,19 +18,23 @@ const run = (args = [], env = {}) => spawnSync(process.execPath, ['bin/cti.mjs',
 
 const combined = result => `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
 
-test('cti help is deterministic and lists the bounded control-plane commands', () => {
+test('para11ax help is deterministic and lists the bounded control-plane commands', () => {
   const first = run(['--help']);
   const second = run(['--help']);
   assert.equal(first.status, 0, combined(first));
   assert.equal(second.status, 0, combined(second));
   assert.equal(first.stdout, second.stdout);
+  assert.match(first.stdout, /^PARA11AX operator CLI$/m);
+  assert.match(first.stdout, /^\s+para11ax doctor$/m);
+  assert.equal(first.stdout.includes(LEGACY_PROJECT), false);
+  assert.doesNotMatch(first.stdout, /^\s+cti\s/m);
   for (const command of ['doctor','providers list','providers env-template','maltego check','release verify','setup','repair','report compile','report diff']) {
     assert.match(first.stdout, new RegExp(command.replace(' ', '\\s+')));
   }
   assert.doesNotMatch(first.stdout, /token|secret value|password/i);
 });
 
-test('cti rejects unknown commands without shell evaluation', () => {
+test('para11ax rejects unknown commands without shell evaluation', () => {
   const result = run(['wat;echo', 'pwned']);
   assert.notEqual(result.status, 0);
   assert.match(combined(result), /unknown command/i);
@@ -62,7 +67,7 @@ test('doctor reports presence booleans and never reflects configured secret valu
   const marker = 'TOP-SECRET-MARKER-DO-NOT-PRINT';
   const credential = Object.values(PROVIDER_MANIFEST).find(p => p.credentialEnv)?.credentialEnv;
   assert.ok(credential);
-  const result = run(['doctor'], { [credential]: marker, CTI_GATEWAY_TOKEN: marker, SENTRY_AUTH_TOKEN: marker });
+  const result = run(['doctor'], { [credential]: marker, PARA11AX_TOKEN: marker, SENTRY_AUTH_TOKEN: marker });
   assert.equal(result.status, 0, combined(result));
   assert.doesNotMatch(combined(result), new RegExp(marker));
   const output = JSON.parse(result.stdout);
@@ -73,7 +78,7 @@ test('doctor reports presence booleans and never reflects configured secret valu
 });
 
 test('report compile writes only the selected deterministic preset and returns a bounded summary', () => {
-  const temp = mkdtempSync(join(tmpdir(), 'cti-cli-compile-'));
+  const temp = mkdtempSync(join(tmpdir(), 'para11ax-cli-compile-'));
   const input = join(temp, 'snapshot.json');
   const out = join(temp, 'out');
   try {
@@ -92,7 +97,7 @@ test('report compile writes only the selected deterministic preset and returns a
 });
 
 test('report diff compares two bounded snapshots and emits deterministic JSON', () => {
-  const temp = mkdtempSync(join(tmpdir(), 'cti-cli-diff-'));
+  const temp = mkdtempSync(join(tmpdir(), 'para11ax-cli-diff-'));
   const beforePath = join(temp, 'before.json');
   const afterPath = join(temp, 'after.json');
   try {
@@ -119,7 +124,7 @@ test('report diff compares two bounded snapshots and emits deterministic JSON', 
 });
 
 test('report CLI rejects unsafe/invalid argument shapes before creating output', () => {
-  const temp = mkdtempSync(join(tmpdir(), 'cti-cli-invalid-'));
+  const temp = mkdtempSync(join(tmpdir(), 'para11ax-cli-invalid-'));
   const input = join(temp, 'snapshot.json');
   const out = join(temp, 'out');
   try {

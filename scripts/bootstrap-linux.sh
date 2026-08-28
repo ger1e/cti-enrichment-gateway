@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 trap 'echo "[!] bootstrap failed at line ${LINENO}" >&2' ERR
 
-# FINAL MAXX Linux/Codespaces bootstrap for cti-enrichment-gateway.
+# FINAL MAXX Linux/Codespaces bootstrap for para11ax.
 # Debian/Ubuntu-family only. Safe to re-run.
 # Broad but bounded CTI/dev/forensics tooling; no distro-sized offensive bundle.
 

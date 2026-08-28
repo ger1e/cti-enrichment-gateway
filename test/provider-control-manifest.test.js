@@ -40,11 +40,11 @@ test('canonical provider manifest has exactly one complete policy for every acti
 test('provider secret inventory is the exact source for env and bootstrap provider credentials', () => {
   const providerNames = [...providerSecretNames()].sort();
   assert.deepEqual(providerNames, [...new Set(providerNames)].sort());
-  assert.equal(providerNames.includes('CTI_GATEWAY_TOKEN'), false);
+  assert.equal(providerNames.includes('PARA11AX_TOKEN'), false);
   assert.equal(providerNames.includes('SENTRY_AUTH_TOKEN'), false);
   for (const name of providerNames) assert.match(name, /^[A-Z0-9_]+$/);
 
-  const expected = ['CTI_GATEWAY_TOKEN', ...providerNames, 'SENTRY_AUTH_TOKEN'].sort();
+  const expected = ['PARA11AX_TOKEN', ...providerNames, 'SENTRY_AUTH_TOKEN'].sort();
   const envNames = text('.env.example').split(/\r?\n/).filter(line => /^[A-Z0-9_]+=$/.test(line)).map(line => line.slice(0, -1)).sort();
   assert.deepEqual(envNames, expected);
 

@@ -19,7 +19,7 @@ function request(contentType) {
 
 function fixtureApp() {
   const fetchImpl = async () => new Response(JSON.stringify({ handle: 'NET-X', country: 'US' }), { status: 200 });
-  return createApp({ env: { CTI_GATEWAY_TOKEN: gatewayToken }, fetchImpl, adapters: [rdapProvider] });
+  return createApp({ env: { PARA11AX_TOKEN: gatewayToken }, fetchImpl, adapters: [rdapProvider] });
 }
 
 test('JSON media type validation accepts JSON and structured +json but rejects lookalikes', async () => {
@@ -74,7 +74,7 @@ test('Maltego bootstrap reuses native stored credentials and keeps Windows DPAPI
   assert.match(installer, /bootstrap_entry\.py/);
   assert.match(entry, /load_token\(\)/);
   assert.match(entry, /configure_token_interactively\(\)/);
-  assert.match(entry, /CTI_GATEWAY_TOKEN/);
+  assert.match(entry, /PARA11AX_TOKEN/);
   assert.match(store, /CryptProtectData/);
   assert.match(store, /CryptUnprotectData/);
   assert.match(store, /gateway-token\.dpapi/);

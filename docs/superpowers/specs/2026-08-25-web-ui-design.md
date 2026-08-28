@@ -23,7 +23,7 @@ Phase 1 is for trusted external users, not anonymous public self-service. Anyone
 - No arbitrary provider selection, arbitrary egress, active scanning, detonation, submission, remediation, or sample download.
 - No new global risk or maliciousness score.
 - No fabricated provider progress, attribution, or graph relationships.
-- No changes to the current `/api/*` request contracts unless a browser-security requirement forces a minimal compatibility change.
+- No changes to the current `/api/para11ax/*` request contracts unless a browser-security requirement forces a minimal compatibility change.
 
 #### Authentication model
 
@@ -31,7 +31,7 @@ The user enters a gateway bearer token on `/app` through an integrated `PARA11AX
 
 The token exists only in JavaScript memory for the active page session. It must not be written to `localStorage`, `sessionStorage`, cookies, IndexedDB, the URL, DOM attributes, analytics, console output, error pages, or telemetry.
 
-Token validation uses `GET /api/health` with `Authorization: Bearer <token>`. On `200`, the workspace unlocks and the access terminal collapses into the connection-state indicator. On `401`, the UI reports an invalid or unauthorized token without echoing it. Refreshing or closing the page clears the token because it is not persisted.
+Token validation uses `GET /api/para11ax/health` with `Authorization: Bearer <token>`. On `200`, the workspace unlocks and the access terminal collapses into the connection-state indicator. On `401`, the UI reports an invalid or unauthorized token without echoing it. Refreshing or closing the page clears the token because it is not persisted.
 
 A user can explicitly disconnect. The UI clears all application-held token references and the visible token field, clears the current result state, aborts any active browser request, and returns to the access screen. The design does not claim secure memory zeroization of immutable JavaScript string values.
 
@@ -50,7 +50,7 @@ Recommended files:
 - `app/audio.js` — synthesized Web Audio cue engine.
 - `app/app.js` — state machine/controller, event wiring, exports, and orchestration.
 - `test/web-ui.test.mjs` — structural/security/browser-logic tests.
-- `vercel.json` — route `/app` and `/app/` to the application shell without changing `/api/*` routing.
+- `vercel.json` — route `/app` and `/app/` to the application shell without changing `/api/para11ax/*` routing.
 - `index.html` — add a clear `ENTER PARA11AX` action to `/app`.
 
 No frontend framework or third-party runtime dependency is required for v1. Standards-based HTML, CSS, JavaScript, Web Audio, Blob, Clipboard, AbortController, and DOM APIs are sufficient.
@@ -65,7 +65,7 @@ Base system:
 - panel `#0B0F12`.
 - scanner red `#FF1E2D`.
 - hot red `#FF4050`.
-- parallax cyan `#00E5FF`.
+- para11ax cyan `#00E5FF`.
 - evidence green `#39FF88`.
 - caution amber `#F6C945`.
 - signal white `#F3F7FA`.
@@ -89,7 +89,7 @@ Use three restrained red code-rain depth layers behind the workspace:
 - middle layer: denser and faster.
 - transient foreground layer: appears only during enrichment/transition moments and never overpowers text.
 
-Cyan angular parallax/sight geometry sits above rain but below evidence panels and converges toward the active pivot. The red scanner is the primary motion signature.
+Cyan angular para11ax/sight geometry sits above rain but below evidence panels and converges toward the active pivot. The red scanner is the primary motion signature.
 
 Add very low-opacity CSS CRT scanlines, vignette, and transient chromatic edge offsets during state changes. No permanent blur, text distortion, or readability loss.
 
@@ -196,7 +196,7 @@ Result actions:
 
 `COPY IOC · COPY JSON · DOWNLOAD JSON · PACKAGE STIX 2.1 · RESET`
 
-`PACKAGE STIX 2.1` calls `/api/stix`; a short scanner cue may animate across the action during the request and it turns successful only after a valid bundle response.
+`PACKAGE STIX 2.1` calls `/api/para11ax/stix`; a short scanner cue may animate across the action during the request and it turns successful only after a valid bundle response.
 
 #### Mobile-native composition
 
@@ -233,7 +233,7 @@ Audio controls:
 
 Cue palette, all short and synthesized:
 
-- `access-ok` — tight low-to-high two-tone confirmation after `/api/health` succeeds.
+- `access-ok` — tight low-to-high two-tone confirmation after `/api/para11ax/health` succeeds.
 - `access-denied` — short low descending pulse on `401`.
 - `key` — very quiet high-frequency terminal tick on pivot typing, rate-limited/debounced so key repeat cannot create a wall of sound; disabled for token-field typing to avoid any side-channel-like correlation with credential entry.
 - `tab` — subtle cyan-feeling blip when switching semantic views.
@@ -263,21 +263,21 @@ Sound design constraints:
 
 1. User opens `/app`.
 2. Access terminal asks for a gateway token.
-3. User gesture unlocks optional Web Audio and UI validates with `/api/health`.
+3. User gesture unlocks optional Web Audio and UI validates with `/api/para11ax/health`.
 4. Workspace unlocks on success.
 5. User enters one pivot and chooses `fast`, `standard`, or `full`.
-6. UI submits to `POST /api/enrich`.
+6. UI submits to `POST /api/para11ax/enrich`.
 7. Submit triggers one scanner visual/audio cue; running state shows no fabricated provider progress.
 8. Response is rendered into semantic views.
 9. A single result cue reflects `ok`, `partial`, or top-level request error.
-10. User may inspect/copy/export exact JSON or request STIX 2.1 through `POST /api/stix`.
+10. User may inspect/copy/export exact JSON or request STIX 2.1 through `POST /api/para11ax/stix`.
 11. User may disconnect, clearing application-held token/result state and returning to access mode.
 
 #### Export behavior
 
 `DOWNLOAD JSON` serializes the exact enrichment response currently held in memory and creates a client-side Blob download. It must not add or remove evidence fields.
 
-`DOWNLOAD STIX 2.1` calls `POST /api/stix` with the same canonical indicator/profile request contract, then downloads the returned bundle. The UI does not fabricate STIX locally.
+`DOWNLOAD STIX 2.1` calls `POST /api/para11ax/stix` with the same canonical indicator/profile request contract, then downloads the returned bundle. The UI does not fabricate STIX locally.
 
 No token, Authorization header, credential-bearing state, or audio state may appear in filenames or exported content.
 
@@ -287,7 +287,7 @@ A small API client owns all authenticated fetches.
 
 Requirements:
 
-- same-origin relative `/api/*` paths only.
+- same-origin relative `/api/para11ax/*` paths only.
 - `Authorization: Bearer <token>` only when required.
 - `Content-Type: application/json` for POST bodies.
 - no browser retries beyond what the gateway itself defines.
@@ -335,7 +335,7 @@ Independent audio state tracks `unsupported`, `locked`, `enabled`, or `muted` wi
 - sound frequencies/timing are fixed cue definitions and never derived from token/IOC/provider content.
 - token input never emits typing sounds.
 - existing bearer authentication and fixed-egress boundaries stay unchanged.
-- existing unknown `/api/*` structured JSON behavior remains intact.
+- existing unknown `/api/para11ax/*` structured JSON behavior remains intact.
 
 #### Accessibility
 
@@ -362,10 +362,10 @@ Structural/security tests:
 - no third-party JS/CSS/audio or remote fonts.
 - no `localStorage`, `sessionStorage`, cookies, IndexedDB, analytics.
 - no `innerHTML` evidence rendering.
-- same-origin `/api/health`, `/api/enrich`, `/api/stix` usage.
+- same-origin `/api/para11ax/health`, `/api/para11ax/enrich`, `/api/para11ax/stix` usage.
 - only fixed profile values in UI.
 - landing page links to `/app`.
-- Vercel routing preserves `/api/*` before human fallbacks.
+- Vercel routing preserves `/api/para11ax/*` before human fallbacks.
 - Web Audio cue engine contains no remote asset loading.
 - token field cannot trigger typing cue.
 - sound cue definitions are fixed and not based on IOC/token values.
@@ -381,7 +381,7 @@ Behavioral logic tests:
 - provider failures render outside evidence verdicts.
 - contradictions render separately and trigger at most one contradiction cue per result.
 - JSON export matches the response object.
-- STIX export uses `/api/stix` response rather than local generation.
+- STIX export uses `/api/para11ax/stix` response rather than local generation.
 - reset/disconnect clears application-held token references, visible token input, result state, and active controller.
 - audio-disabled/unsupported state does not block any workflow.
 - result sounds fire once per request, not per provider card.
@@ -399,9 +399,9 @@ Acceptance requires:
 2. CodeQL passes.
 3. `/` remains healthy and exposes `ENTER PARA11AX`.
 4. `/app` returns the analyst UI on the exact deployed main SHA.
-5. `/api/meta` remains public JSON.
-6. `/api/health` remains bearer-protected.
-7. unknown `/api/*` remains structured JSON 404.
+5. `/api/para11ax/meta` remains public JSON.
+6. `/api/para11ax/health` remains bearer-protected.
+7. unknown `/api/para11ax/*` remains structured JSON 404.
 8. human-facing `403`, `404`, and `500` routes remain branded HTML with correct status codes.
 9. a real authorized enrichment completes through `/app` without the token appearing in storage, URL, exported JSON, visible diagnostics, or audio behavior.
 10. JSON and STIX export work from the UI.

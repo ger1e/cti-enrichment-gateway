@@ -19,8 +19,8 @@
       "dest": "/app/index.html"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/[...path].js"
+      "src": "/api/para11ax/(.*)",
+      "dest": "/api/para11ax/[...path].js"
     },
     {
       "src": "/403",

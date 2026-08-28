@@ -106,16 +106,16 @@ Extend telemetry stats with bounded deterministic provider outcome counters:
 
 Counts only. No indicator, URL, header, secret, response body, exception string, or provider raw data may be retained.
 
-Authenticated `/api/status` may expose these aggregate counters automatically through existing telemetry stats. Public `/api/meta` remains static capability metadata and must expose no configuration or runtime state.
+Authenticated `/api/para11ax/status` may expose these aggregate counters automatically through existing telemetry stats. Public `/api/para11ax/meta` remains static capability metadata and must expose no configuration or runtime state.
 
 ## API Compatibility
 Preserve all existing endpoints and HTTP methods:
-- `/api/enrich`
-- `/api/batch`
-- `/api/stix`
-- `/api/meta`
-- `/api/health`
-- `/api/status`
+- `/api/para11ax/enrich`
+- `/api/para11ax/batch`
+- `/api/para11ax/stix`
+- `/api/para11ax/meta`
+- `/api/para11ax/health`
+- `/api/para11ax/status`
 
 Existing response fields remain present. New fields are additive only. Deterministic ordering and current object/relationship caps remain enforced.
 
@@ -155,6 +155,6 @@ Before merge:
 After squash merge:
 - fresh `main` Tooling smoke must be success;
 - Vercel production deployment must be `READY` from the exact merge SHA;
-- `/api/meta` returns 200 and remains non-secret;
-- unauthenticated `/api/status` returns 401;
+- `/api/para11ax/meta` returns 200 and remains non-secret;
+- unauthenticated `/api/para11ax/status` returns 401;
 - production runtime error clusters remain zero or are explicitly investigated before completion is claimed.

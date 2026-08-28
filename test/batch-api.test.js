@@ -23,7 +23,7 @@ function request(body, { token = 'secret', method = 'POST', contentType = 'appli
 }
 
 function app(options = {}) {
-  return createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [adapter('rdap', options)], fetchImpl: async () => { throw new Error('network not expected'); } });
+  return createApp({ env: { PARA11AX_TOKEN: 'secret' }, adapters: [adapter('rdap', options)], fetchImpl: async () => { throw new Error('network not expected'); } });
 }
 
 test('batch requires POST bearer auth and JSON media type', async () => {
@@ -46,7 +46,7 @@ test('canonical duplicates perform provider work once and re-associate to input 
     const a = adapter(name);
     return Object.freeze({ ...a, async run(input) { calls += 1; return a.run(input); } });
   };
-  const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [counted('rdap'), counted('threatminer')] });
+  const target = createApp({ env: { PARA11AX_TOKEN: 'secret' }, adapters: [counted('rdap'), counted('threatminer')] });
   const result = await target.handleBatch(request({ indicators: ['AS3333', 'as3333', 'EXAMPLE.com', 'example.com'], profile: 'full' }));
   assert.equal(result.status, 200);
   assert.equal(calls, 2);
@@ -57,7 +57,7 @@ test('canonical duplicates perform provider work once and re-associate to input 
 });
 
 test('an invalid individual indicator is represented independently instead of rejecting the batch', async () => {
-  const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [adapter('rdap'), adapter('threatminer')] });
+  const target = createApp({ env: { PARA11AX_TOKEN: 'secret' }, adapters: [adapter('rdap'), adapter('threatminer')] });
   const result = await target.handleBatch(request({ indicators: ['192.0.2.1', 'not an indicator', 'example.com'] }));
   assert.equal(result.status, 200);
   assert.equal(result.body.results[0].status, 'ok');
@@ -90,7 +90,7 @@ test('batch never runs more than three indicator enrichments concurrently', asyn
 test('batch reports global call-budget exhaustion explicitly', async () => {
   const names = ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'greynoise'];
   const adapters = names.map(name => adapter(name));
-  const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters, batchProviderCallLimit: 2 });
+  const target = createApp({ env: { PARA11AX_TOKEN: 'secret' }, adapters, batchProviderCallLimit: 2 });
   const result = await target.handleBatch(request({ indicators: ['192.0.2.1', '192.0.2.2', '192.0.2.3'] }));
   assert.equal(result.status, 200);
   assert.equal(result.body.budget.providerCallLimit, 2);
@@ -124,7 +124,7 @@ test('batch charges the full reservation when enrichment throws and consumption 
 
 test('batch deadline exhaustion is explicit', async () => {
   let clock = 0;
-  const target = createApp({ env: { CTI_GATEWAY_TOKEN: 'secret' }, adapters: [adapter()], nowMs: () => { clock += 10; return clock; }, batchDeadlineMs: 5 });
+  const target = createApp({ env: { PARA11AX_TOKEN: 'secret' }, adapters: [adapter()], nowMs: () => { clock += 10; return clock; }, batchDeadlineMs: 5 });
   const result = await target.handleBatch(request({ indicators: ['192.0.2.1', '192.0.2.2'] }));
   assert.equal(result.status, 200);
   assert.equal(result.body.budget.deadlineMs, 5);

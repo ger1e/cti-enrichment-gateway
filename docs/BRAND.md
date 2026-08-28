@@ -1,15 +1,15 @@
-### PARALLAX Brand System
+### PARA11AX Brand System
 
-> **PARALLAX // CTI Evidence Gateway**  
+> **PARA11AX // CTI Evidence Gateway**
 > **Observe · Correlate · Preserve Provenance**
 
-PARALLAX is the visual identity for the CTI Enrichment Gateway. The brand layer does **not** rename the repository package, API contracts, environment variables, or the `cti` CLI. Those remain compatibility surfaces.
+PARA11AX is the product and visual identity for the bounded CTI evidence gateway. Repository, package, CLI, environment, API, deployment, and integration surfaces use the same identity.
 
 #### Identity
 
 The system combines three visual ideas:
 
-1. **Parallax geometry** — offset cyan sight-lines converging on a single observation point.
+1. **PARA11AX geometry** — offset cyan sight-lines converging on a single observation point.
 2. **Oscillating scanner** — a red back-and-forth LED sweep representing active observation.
 3. **Evidence state** — acid green is reserved for verified/healthy evidence cues rather than decoration.
 
@@ -17,26 +17,26 @@ The result should feel like black-glass intelligence tooling: technical, precise
 
 #### Primary lockup
 
-- Product name: **PARALLAX**
+- Product name: **PARA11AX**
 - Descriptor: `CTI // EVIDENCE GATEWAY`
 - Primary line: `BOUNDED · READ-ONLY · PROVENANCE-FIRST`
 - Tagline: `OBSERVE · CORRELATE · PRESERVE PROVENANCE`
 
-Use [`../assets/brand/parallax-hero.svg`](../assets/brand/parallax-hero.svg) for the repository hero, [`../assets/brand/parallax-lockup.svg`](../assets/brand/parallax-lockup.svg) for horizontal surfaces, and [`../assets/brand/parallax-mark.svg`](../assets/brand/parallax-mark.svg) for compact/icon surfaces.
+Use [`../assets/brand/para11ax-hero.svg`](../assets/brand/para11ax-hero.svg) for the repository hero, [`../assets/brand/para11ax-lockup.svg`](../assets/brand/para11ax-lockup.svg) for horizontal surfaces, and [`../assets/brand/para11ax-mark.svg`](../assets/brand/para11ax-mark.svg) for compact/icon surfaces.
 
 #### Canonical quotation
 
 > “You’ve got to follow the evidence… That doesn’t make it fact.”  
 > — **John Kiriakou**
 
-This is the canonical philosophical close for PARALLAX. It captures the core operating rule: evidence is collected, preserved, correlated, and challenged; it is not automatically promoted to fact.
+This is the canonical philosophical close for PARA11AX. It captures the core operating rule: evidence is collected, preserved, correlated, and challenged; it is not automatically promoted to fact.
 
 Usage rules:
 
 - preserve the ellipsis — it marks omitted intervening remarks rather than pretending the excerpt was one uninterrupted sentence;
 - preserve the attribution;
 - use the quotation as a design/philosophy cue, not as an endorsement claim;
-- `evidence` may use `parallax-cyan`;
+- `evidence` may use `para11ax-cyan`;
 - `fact` stays `signal-white` or neutral text — **never** `evidence-green`, because the quotation explicitly warns against promoting evidence into verified fact;
 - keep the quotation secondary to the product name and descriptor.
 
@@ -50,7 +50,7 @@ Source context: John Kiriakou, *The Joe Rogan Experience* #2392, approximately 0
 | `panel` | `#0B0F12` | black-glass secondary surface |
 | `scanner-red` | `#FF1E2D` | scanner track / observation motion |
 | `hot-red` | `#FF4050` | scanner head / focal observation point |
-| `parallax-cyan` | `#00E5FF` | geometry, boundaries, technical structure |
+| `para11ax-cyan` | `#00E5FF` | geometry, boundaries, technical structure |
 | `evidence-green` | `#39FF88` | verified / healthy / evidence state only |
 | `caution-amber` | `#F6C945` | caveats, partial state, upstream uncertainty |
 | `signal-white` | `#F3F7FA` | primary text |
@@ -79,10 +79,10 @@ The repository hero uses declarative SVG animation only; it contains no script o
 
 #### Geometry
 
-The PARALLAX mark is two offset angular sight-lines converging on a red observation node.
+The PARA11AX mark is two offset angular sight-lines converging on a red observation node.
 
 - Left cyan geometry is dominant.
-- Right geometry is intentionally lower-opacity to create the parallax offset.
+- Right geometry is intentionally lower-opacity to create the para11ax offset.
 - The center node is red, not green: it represents an **observation**, not a verdict.
 - Never add skulls, crosshairs, shields, locks, or generic “hacker” glyphs to the primary mark.
 
@@ -96,11 +96,11 @@ Preferred stack:
 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
 ```
 
-Use wide tracking for `PARALLAX` and compact uppercase technical labels for descriptors/status text.
+Use wide tracking for `PARA11AX` and compact uppercase technical labels for descriptors/status text.
 
 #### Voice
 
-PARALLAX copy should be:
+PARA11AX copy should be:
 
 - short;
 - evidence-first;
@@ -128,16 +128,18 @@ IMPLEMENTED ≠ CONFIGURED ≠ PRODUCTION-VERIFIED
 | use cyan for trust boundaries and structure | use red as a maliciousness verdict |
 | reserve green for verified evidence/status | use green as generic decoration |
 | retain exact technical caveats | brand away uncertainty |
-| keep repository/API compatibility names stable | rename the CLI/package casually |
+| keep canonical PARA11AX identifiers aligned | reintroduce legacy aliases |
 
-#### Compatibility boundary
+#### Canonical identity boundary
 
-PARALLAX is a **product/visual identity layer**. Until a separate versioned migration is explicitly designed:
+The full identity migration is intentionally breaking. Canonical surfaces are:
 
-- repository: `cti-enrichment-gateway`
-- package: `cti-enrichment-gateway`
-- CLI: `cti`
-- gateway bearer: `CTI_GATEWAY_TOKEN`
-- API paths: `/api/*`
+- repository: `para11ax`
+- package: `para11ax`
+- CLI: `para11ax`
+- gateway bearer: `PARA11AX_TOKEN`
+- API paths: `/api/para11ax/*`
+- production URL: `https://para11ax.vercel.app`
+- Maltego artifact: `para11ax-local.mtz`
 
-remain unchanged.
+Legacy aliases are not part of the supported contract.

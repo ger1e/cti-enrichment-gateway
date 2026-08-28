@@ -36,10 +36,10 @@ def execute_gateway_transform(request, response, indicator_type: str) -> None:
         client = GatewayClient.from_environment()
         result = client.enrich(request.Value, indicator_type)
     except GatewayConfigurationError as exc:
-        response.addUIMessage(f'CTI Gateway configuration error: {exc}', UIM_FATAL)
+        response.addUIMessage(f'PARA11AX configuration error: {exc}', UIM_FATAL)
         return
     except GatewayError as exc:
-        response.addUIMessage(f'CTI Gateway request failed: {exc}', UIM_PARTIAL)
+        response.addUIMessage(f'PARA11AX request failed: {exc}', UIM_PARTIAL)
         return
 
     specs = map_enrichment(result, max_entities=_max_entities(), include_provider_nodes=_include_provider_nodes())

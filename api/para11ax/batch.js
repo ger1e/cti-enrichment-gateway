@@ -1,4 +1,4 @@
-import { createApp, writeVercelResponse } from '../src/app.js';
+import { createApp, writeVercelResponse } from '../../src/app.js';
 
 const app = createApp();
 

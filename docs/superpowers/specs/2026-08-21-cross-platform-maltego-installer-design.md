@@ -13,7 +13,7 @@ Native launchers remain deliberately thin: `maltego/install.ps1` for Windows and
 - Python hard floor: 3.10. Preferred/tested bootstrap interpreter: 3.12. A stale, corrupt, wrong-version, or incompatible `.venv` is rebuilt automatically when safe.
 
 ## Credential model
-Resolution order remains explicit `CTI_GATEWAY_TOKEN` environment variable first, then OS-native user credential storage. Windows uses DPAPI. macOS uses Keychain through `/usr/bin/security`. Linux uses Secret Service through `secret-tool` when available; if no secure backend exists, installation requires the ephemeral environment variable and never writes plaintext credentials to disk. Vendor credentials remain server-side only. Tokens must not appear in repository files, MTZ output, shell history, diagnostics, exceptions, or CI logs.
+Resolution order remains explicit `PARA11AX_TOKEN` environment variable first, then OS-native user credential storage. Windows uses DPAPI. macOS uses Keychain through `/usr/bin/security`. Linux uses Secret Service through `secret-tool` when available; if no secure backend exists, installation requires the ephemeral environment variable and never writes plaintext credentials to disk. Vendor credentials remain server-side only. Tokens must not appear in repository files, MTZ output, shell history, diagnostics, exceptions, or CI logs.
 
 `credential_store.py` exposes `save`, `check`, `delete`, and `backend` commands and a platform-neutral `load_token()` API.
 
@@ -38,4 +38,4 @@ Windows: `./install.ps1` from PowerShell.
 
 macOS/Linux: `./install.sh` from zsh or bash.
 
-The user enters the gateway token once through a non-echoing prompt when a secure native backend is available, receives a tested `cti-enrichment-gateway-local.mtz`, imports it into Maltego Graph Desktop, and does not manually manage Python, pip, or venvs during normal operation.
+The user enters the gateway token once through a non-echoing prompt when a secure native backend is available, receives a tested `para11ax-local.mtz`, imports it into Maltego Graph Desktop, and does not manually manage Python, pip, or venvs during normal operation.

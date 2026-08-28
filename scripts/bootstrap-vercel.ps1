@@ -5,20 +5,20 @@ param()
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$ProjectName             = 'cti-enrichment-gateway'
+$ProjectName             = 'para11ax'
 $ProjectId               = 'prj_ojUpOTw8x8KOj9CrTs8jih1mrPjo'
 $TeamSlug                = 'geri6'
 $OrgId                   = 'team_hXokufMlDFuhPPT5r8jPf4aH'
-$RepoUrl                 = 'https://github.com/ger1e/cti-enrichment-gateway.git'
-$ProductionAlias         = 'cti-enrichment-gateway-geri6.vercel.app'
+$RepoUrl                 = 'https://github.com/ger1e/para11ax.git'
+$ProductionAlias         = 'para11ax.vercel.app'
 $RequiredNodeMajor       = 24
 $PinnedVercelCliVersion  = '58.4.4'
-$GatewayTokenDir         = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'CTIEnrichmentGateway'
+$GatewayTokenDir         = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PARA11AX'
 $GatewayTokenFile        = Join-Path $GatewayTokenDir 'gateway-token.dpapi'
 $RepoRoot                = Split-Path -Parent $PSScriptRoot
 
 $SecretNames = @(
-    'CTI_GATEWAY_TOKEN',
+    'PARA11AX_TOKEN',
     'ABUSECH_API_KEY',
     'ABUSEIPDB_API_KEY',
     'GREYNOISE_API_KEY',
@@ -276,7 +276,7 @@ function Prepare-VerifiedWorkspace {
     param([Parameter(Mandatory = $true)][string]$Vercel)
 
     if (-not (Test-Path (Join-Path $RepoRoot '.git'))) {
-        throw 'Run this bootstrap from a Git clone of ger1e/cti-enrichment-gateway; a verified repository checkout is required for production deployment.'
+        throw 'Run this bootstrap from a Git clone of ger1e/para11ax; a verified repository checkout is required for production deployment.'
     }
 
     Push-Location $RepoRoot
@@ -284,8 +284,8 @@ function Prepare-VerifiedWorkspace {
         $originUrl = Invoke-NativeCapture git.exe remote get-url origin
         $allowedOrigins = @(
             $RepoUrl,
-            'https://github.com/ger1e/cti-enrichment-gateway',
-            'git@github.com:ger1e/cti-enrichment-gateway.git'
+            'https://github.com/ger1e/para11ax',
+            'git@github.com:ger1e/para11ax.git'
         )
         if ($originUrl -notin $allowedOrigins) {
             throw "Unexpected origin remote '$originUrl'. Refusing to deploy source from an unapproved repository."
@@ -330,11 +330,11 @@ function Verify-ProductionHealth {
     )
 
     $deploymentUrl = "https://$ProductionAlias"
-    Write-Host "Verifying protected production health at $deploymentUrl/api/health ..."
+    Write-Host "Verifying protected production health at $deploymentUrl/api/para11ax/health ..."
 
     $authorization = "Authorization: Bearer $GatewayToken"
     try {
-        $raw = (& $Vercel curl '/api/health' --deployment $deploymentUrl --scope $TeamSlug -- --header $authorization | Out-String).Trim()
+        $raw = (& $Vercel curl '/api/para11ax/health' --deployment $deploymentUrl --scope $TeamSlug -- --header $authorization | Out-String).Trim()
     } finally {
         $authorization = $null
     }
@@ -352,13 +352,13 @@ function Verify-ProductionHealth {
         throw "Production health check failed: status '$($health.status)'."
     }
     if (-not $health.gatewayAuthConfigured) {
-        throw 'Production health check failed: CTI_GATEWAY_TOKEN is not configured.'
+        throw 'Production health check failed: PARA11AX_TOKEN is not configured.'
     }
 
     Write-Host 'Production health verified through authenticated Vercel CLI: gateway authentication is configured.'
 }
 
-Write-Host '=== CTI Enrichment Gateway / Vercel bootstrap ==='
+Write-Host '=== PARA11AX / Vercel bootstrap ==='
 Write-Host 'Secrets are entered locally with masked input and are never written to GitHub.'
 Write-Host 'The gateway bearer is stored locally with current-user Windows DPAPI and reused by Maltego.'
 Write-Host 'Production deployment is allowed only from a clean checkout exactly matching origin/main.'
@@ -381,7 +381,7 @@ try {
     if ($gatewayToken) {
         Write-Host 'Reusing stored gateway token protected with current-user Windows DPAPI.'
     } else {
-        $secure = Read-Host 'CTI_GATEWAY_TOKEN (Enter = generate securely)' -AsSecureString
+        $secure = Read-Host 'PARA11AX_TOKEN (Enter = generate securely)' -AsSecureString
         $gatewayToken = Convert-SecureStringToPlainText -Secure $secure
         if ([string]::IsNullOrWhiteSpace($gatewayToken)) {
             $gatewayToken = New-GatewayToken
@@ -390,12 +390,12 @@ try {
         Save-GatewayToken -Token $gatewayToken
     }
 
-    Set-SensitiveVercelEnv -Vercel $Vercel -Name 'CTI_GATEWAY_TOKEN' -Value $gatewayToken
-    Write-Host 'Added/updated CTI_GATEWAY_TOKEN for Production + Preview and retained only the DPAPI-protected local copy.'
+    Set-SensitiveVercelEnv -Vercel $Vercel -Name 'PARA11AX_TOKEN' -Value $gatewayToken
+    Write-Host 'Added/updated PARA11AX_TOKEN for Production + Preview and retained only the DPAPI-protected local copy.'
     $gatewayToken = $null
     [GC]::Collect()
 
-    foreach ($name in $SecretNames | Where-Object { $_ -ne 'CTI_GATEWAY_TOKEN' }) {
+    foreach ($name in $SecretNames | Where-Object { $_ -ne 'PARA11AX_TOKEN' }) {
         $secure = Read-Host "$name (Enter = skip)" -AsSecureString
         $plain = Convert-SecureStringToPlainText -Secure $secure
 
@@ -442,4 +442,4 @@ try {
 Write-Host ''
 Write-Host 'Bootstrap complete.'
 Write-Host 'No secret values were written to the repository or printed to the terminal.'
-Write-Host 'GitHub is connected to Vercel, Production + Preview secrets were applied, exact origin/main was deployed, and /api/health passed.'
+Write-Host 'GitHub is connected to Vercel, Production + Preview secrets were applied, exact origin/main was deployed, and /api/para11ax/health passed.'

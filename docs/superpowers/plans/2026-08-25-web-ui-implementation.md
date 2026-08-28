@@ -4,7 +4,7 @@
 
 **Goal:** Build a production `/app` PARA11AX analyst terminal that lets a trusted token holder run single-indicator enrichment, inspect Evidence v2 semantically, export exact JSON/STIX, and use user-controlled synthesized cyberpunk sound cues without weakening the existing gateway/API security model.
 
-**Architecture:** Keep the Node/Vercel gateway unchanged and add a standards-only browser client under `app/`. Browser responsibilities are split into a same-origin API client with response-shape gates, a memory-only session state machine, pure Evidence v2 view-model functions, safe DOM renderers, a fixed Web Audio cue engine, and a thin UI controller. The public landing page links to `/app`; Vercel serves `/app` before the existing `/api/*` catch-all and branded human error fallbacks.
+**Architecture:** Keep the Node/Vercel gateway unchanged and add a standards-only browser client under `app/`. Browser responsibilities are split into a same-origin API client with response-shape gates, a memory-only session state machine, pure Evidence v2 view-model functions, safe DOM renderers, a fixed Web Audio cue engine, and a thin UI controller. The public landing page links to `/app`; Vercel serves `/app` before the existing `/api/para11ax/*` catch-all and branded human error fallbacks.
 
 **Tech Stack:** HTML5, CSS, ECMAScript modules, Web Audio API, Fetch API, AbortController, Blob/URL, Clipboard API, Node.js 24 built-in test runner, existing Vercel static/functions deployment. No frontend framework, no new npm runtime dependency, no external JS/CSS/audio/fonts.
 
@@ -12,11 +12,11 @@
 
 ## Global Constraints
 
-- Preserve `cti-enrichment-gateway`, `cti`, `CTI_GATEWAY_TOKEN`, and `/api/*` compatibility surfaces.
+- Preserve `para11ax`, `para11ax`, `PARA11AX_TOKEN`, and `/api/para11ax/*` compatibility surfaces.
 - Phase 1 is trusted external use with the current bearer; no anonymous enrichment or per-user isolation claims.
 - Token is memory-only: never localStorage, sessionStorage, cookies, IndexedDB, URL, DOM attributes, logs, analytics, exports, or audio derivation.
 - Provider credentials remain server-side.
-- Browser calls same-origin relative `/api/*` only.
+- Browser calls same-origin relative `/api/para11ax/*` only.
 - Profiles are exactly `fast`, `standard`, `full`; no provider override UI.
 - Only one active enrichment request at a time.
 - Preserve Evidence v2 semantics: context ≠ reputation, claims ≠ proof, failure ≠ negative evidence, KEV ≠ EPSS ≠ CVSS.
@@ -27,7 +27,7 @@
 - Audio is supplemental; the app remains fully functional muted or without Web Audio.
 - `prefers-reduced-motion` disables nonessential motion while retaining semantic information.
 - Narrow Android layouts must not create horizontal document overflow.
-- Existing unknown `/api/*` JSON 404 and branded human `403/404/500` behavior must remain intact.
+- Existing unknown `/api/para11ax/*` JSON 404 and branded human `403/404/500` behavior must remain intact.
 - Existing Node, Maltego, repository invariant, public-release, Tooling smoke, and CodeQL gates remain green.
 
 ---
@@ -83,7 +83,7 @@ test('Vercel app route precedes API catch-all and human fallback', () => {
   const routes = JSON.parse(read('vercel.json')).routes;
   const fs = routes.findIndex((r) => r.handle === 'filesystem');
   const app = routes.findIndex((r) => r.src === '/app/?' && r.dest === '/app/index.html');
-  const api = routes.findIndex((r) => r.src === '/api/(.*)' && r.dest === '/api/[...path].js');
+  const api = routes.findIndex((r) => r.src === '/api/para11ax/(.*)' && r.dest === '/api/para11ax/[...path].js');
   const human404 = routes.findIndex((r) => r.dest === '/404.html' && r.status === 404);
   assert.ok(fs >= 0 && app > fs && api > app && human404 > api);
 });
@@ -180,7 +180,7 @@ Insert immediately after `{ "handle": "filesystem" }` in `vercel.json`:
 {"src":"/app/?","dest":"/app/index.html"}
 ```
 
-Keep the existing `/api/(.*)` route immediately after it and before human error fallbacks.
+Keep the existing `/api/para11ax/(.*)` route immediately after it and before human error fallbacks.
 
 - [ ] **Step 6: Add the landing CTA**
 
@@ -229,7 +229,7 @@ import assert from 'node:assert/strict';import test from 'node:test';
 import { createGatewayClient, GatewayHttpError } from '../app/api-client.js';import { createSession } from '../app/session.js';
 const jsonResponse=(status,body)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}});
 
-test('gateway client uses relative same-origin bearer request',async()=>{const calls=[];const client=createGatewayClient({getToken:()=> 'secret-token',fetchImpl:async(url,init)=>{calls.push({url,init});return jsonResponse(200,{ready:true});}});assert.deepEqual(await client.health(),{ready:true});assert.equal(calls[0].url,'/api/health');assert.equal(calls[0].init.credentials,'same-origin');assert.equal(calls[0].init.headers.Authorization,'Bearer secret-token');});
+test('gateway client uses relative same-origin bearer request',async()=>{const calls=[];const client=createGatewayClient({getToken:()=> 'secret-token',fetchImpl:async(url,init)=>{calls.push({url,init});return jsonResponse(200,{ready:true});}});assert.deepEqual(await client.health(),{ready:true});assert.equal(calls[0].url,'/api/para11ax/health');assert.equal(calls[0].init.credentials,'same-origin');assert.equal(calls[0].init.headers.Authorization,'Bearer secret-token');});
 
 test('enrich sends only indicator and fixed profile',async()=>{let sent;const client=createGatewayClient({getToken:()=> 't',fetchImpl:async(_url,init)=>{sent=JSON.parse(init.body);return jsonResponse(200,{requestId:'r',indicator:'example.org',type:'domain',profile:'standard',status:'ok',evidence:[],failures:[],relationships:[],correlation:{}});}});await client.enrich('example.org','standard');assert.deepEqual(sent,{indicator:'example.org',profile:'standard'});await assert.rejects(()=>client.enrich('example.org','virustotal'),/invalid profile/i);});
 
@@ -262,9 +262,9 @@ export class GatewayHttpError extends Error{constructor(status,code,requestId=nu
 function validEnvelope(x){return x&&typeof x==='object'&&typeof x.requestId==='string'&&typeof x.indicator==='string'&&typeof x.type==='string'&&PROFILES.has(x.profile)&&['ok','partial','error'].includes(x.status)&&Array.isArray(x.evidence)&&Array.isArray(x.failures)&&Array.isArray(x.relationships)&&x.correlation&&typeof x.correlation==='object';}
 function validStix(x){return x&&typeof x==='object'&&x.type==='bundle'&&Array.isArray(x.objects);}
 export function createGatewayClient({fetchImpl=fetch,getToken}){if(typeof getToken!=='function')throw new TypeError('getToken must be a function');
-  async function request(path,{method='GET',body,signal,validate}={}){if(!path.startsWith('/api/'))throw new Error('same-origin API path required');const token=getToken();if(!token)throw new GatewayHttpError(401,'unauthorized');const headers={Authorization:`Bearer ${token}`};if(body!==undefined)headers['Content-Type']='application/json';const response=await fetchImpl(path,{method,headers,credentials:'same-origin',cache:'no-store',signal,body:body===undefined?undefined:JSON.stringify(body)});const isJson=response.headers.get('content-type')?.includes('application/json');const payload=isJson?await response.json():null;if(!response.ok)throw new GatewayHttpError(response.status,payload?.error,payload?.requestId);if(!isJson)throw new GatewayHttpError(502,'unexpected_response');if(validate&&!validate(payload))throw new GatewayHttpError(502,path==='/api/stix'?'invalid_stix_bundle':'invalid_envelope');return payload;}
+  async function request(path,{method='GET',body,signal,validate}={}){if(!path.startsWith('/api/'))throw new Error('same-origin API path required');const token=getToken();if(!token)throw new GatewayHttpError(401,'unauthorized');const headers={Authorization:`Bearer ${token}`};if(body!==undefined)headers['Content-Type']='application/json';const response=await fetchImpl(path,{method,headers,credentials:'same-origin',cache:'no-store',signal,body:body===undefined?undefined:JSON.stringify(body)});const isJson=response.headers.get('content-type')?.includes('application/json');const payload=isJson?await response.json():null;if(!response.ok)throw new GatewayHttpError(response.status,payload?.error,payload?.requestId);if(!isJson)throw new GatewayHttpError(502,'unexpected_response');if(validate&&!validate(payload))throw new GatewayHttpError(502,path==='/api/para11ax/stix'?'invalid_stix_bundle':'invalid_envelope');return payload;}
   function payload(indicator,profile){if(!PROFILES.has(profile))throw new TypeError('invalid profile');return{indicator:String(indicator),profile};}
-  return Object.freeze({health:(signal)=>request('/api/health',{signal}),enrich:(indicator,profile,signal)=>request('/api/enrich',{method:'POST',body:payload(indicator,profile),signal,validate:validEnvelope}),stix:(indicator,profile,signal)=>request('/api/stix',{method:'POST',body:payload(indicator,profile),signal,validate:validStix})});}
+  return Object.freeze({health:(signal)=>request('/api/para11ax/health',{signal}),enrich:(indicator,profile,signal)=>request('/api/para11ax/enrich',{method:'POST',body:payload(indicator,profile),signal,validate:validEnvelope}),stix:(indicator,profile,signal)=>request('/api/para11ax/stix',{method:'POST',body:payload(indicator,profile),signal,validate:validStix})});}
 ```
 
 - [ ] **Step 4: Implement session state**
@@ -556,11 +556,11 @@ Use:
 ```markdown
 ## Summary
 - add authenticated `/app` PARA11AX analyst terminal
-- keep bearer in browser memory only and preserve same-origin `/api/*`
+- keep bearer in browser memory only and preserve same-origin `/api/para11ax/*`
 - render Evidence v2 as evidence/correlation/relationship/coverage/raw views without synthetic scoring
 - add three-depth red glyph rain and fixed synthesized Web Audio cues with mute/volume and silent token typing
 - fail closed on malformed enrichment/STIX responses
-- preserve `/api/*` JSON fallbacks and branded human 403/404/500 routes
+- preserve `/api/para11ax/*` JSON fallbacks and branded human 403/404/500 routes
 
 ## Verification
 - focused web UI tests
@@ -591,8 +591,8 @@ Production deployment must be `READY` and `githubCommitSha` must equal the merge
 ```text
 GET /                          -> 200 HTML, ENTER PARA11AX present
 GET /app                      -> 200 HTML analyst terminal
-GET /api/meta                 -> 200 application/json
-GET /api/health without bearer -> 401 JSON
+GET /api/para11ax/meta                 -> 200 application/json
+GET /api/para11ax/health without bearer -> 401 JSON
 GET /api/definitely-unknown   -> 404 JSON gateway error
 GET /403                      -> 403 branded HTML
 GET /definitely-unknown       -> 404 branded HTML
@@ -610,7 +610,7 @@ With a valid bearer:
 5. Confirm `partial` is amber/incomplete coverage, never benign.
 6. Confirm Raw filter works without changing underlying JSON export.
 7. Confirm JSON download parses to the exact enrichment object.
-8. Confirm STIX action calls `/api/stix`, rejects non-bundle JSON, and downloads a valid returned bundle.
+8. Confirm STIX action calls `/api/para11ax/stix`, rejects non-bundle JSON, and downloads a valid returned bundle.
 9. Confirm sound mute/volume work and app remains functional muted.
 10. Confirm token-field typing is silent and pivot typing is rate-limited after audio enablement.
 11. Confirm contradiction cue fires only once when Correlation first becomes visible for that request.
@@ -644,7 +644,7 @@ Tooling smoke result
 CodeQL result
 exact Vercel production SHA/state
 /app production status
-unknown /api/* JSON status
+unknown /api/para11ax/* JSON status
 authorized enrichment result status
 JSON/STIX export verification
 mobile overflow verification

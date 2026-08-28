@@ -13,7 +13,7 @@ test('meta is public same-origin no-store and never sends bearer', async () => {
   });
   const meta = await client.meta();
   assert.equal(meta.gatewayVersion, '2.0.0');
-  assert.equal(calls[0].url, '/api/meta');
+  assert.equal(calls[0].url, '/api/para11ax/meta');
   assert.equal(calls[0].init.cache, 'no-store');
   assert.equal(calls[0].init.credentials, 'same-origin');
   assert.equal(calls[0].init.headers.Authorization, undefined);
@@ -26,7 +26,7 @@ test('status remains authenticated and same-origin', async () => {
     fetchImpl: async (url, init) => { calls.push({ url, init }); return jsonResponse(200, { gatewayVersion: '2.0.0', uptimeMs: 42, providers: {} }); },
   });
   assert.equal((await client.status()).uptimeMs, 42);
-  assert.equal(calls[0].url, '/api/status');
+  assert.equal(calls[0].url, '/api/para11ax/status');
   assert.equal(calls[0].init.headers.Authorization, 'Bearer secret-token');
 });
 

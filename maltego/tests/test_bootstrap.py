@@ -65,11 +65,11 @@ class BootstrapTests(unittest.TestCase):
             root = Path(tmp)
             (root / '.venv').mkdir()
             (root / '.venv' / 'marker').write_text('x', encoding='utf-8')
-            (root / 'cti-enrichment-gateway-local.mtz').write_bytes(b'mtz')
+            (root / 'para11ax-local.mtz').write_bytes(b'mtz')
             delete = Mock()
             bootstrap.remove_local_artifacts(root=root, credential_delete=delete)
             self.assertFalse((root / '.venv').exists())
-            self.assertFalse((root / 'cti-enrichment-gateway-local.mtz').exists())
+            self.assertFalse((root / 'para11ax-local.mtz').exists())
             delete.assert_not_called()
 
             (root / '.venv').mkdir()

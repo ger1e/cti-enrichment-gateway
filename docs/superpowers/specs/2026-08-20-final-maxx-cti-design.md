@@ -15,9 +15,9 @@ The result must be maintainable, read-only by default, secret-safe, quota-aware,
 ```text
 Maltego / direct API caller
         |
-        | HTTPS + CTI_GATEWAY_TOKEN
+        | HTTPS + PARA11AX_TOKEN
         v
-Vercel CTI Enrichment Gateway
+Vercel PARA11AX
         |
         +-- input validation / canonicalization
         +-- authentication / security headers
@@ -46,7 +46,7 @@ Feature work is ported onto that base in small logical commits. The old `feature
 
 ## API surface
 
-### `GET /api/health`
+### `GET /api/para11ax/health`
 
 Returns only safe operational/configuration metadata:
 
@@ -60,12 +60,12 @@ Returns only safe operational/configuration metadata:
 
 It must never expose secret values.
 
-### `POST /api/enrich`
+### `POST /api/para11ax/enrich`
 
 Authenticated with:
 
 ```http
-Authorization: Bearer <CTI_GATEWAY_TOKEN>
+Authorization: Bearer <PARA11AX_TOKEN>
 Content-Type: application/json
 ```
 
@@ -286,7 +286,7 @@ local Python transforms
       |
 HTTPS + one gateway token
       v
-/api/enrich
+/api/para11ax/enrich
 ```
 
 Local transform support includes:
@@ -403,7 +403,7 @@ No merge or production deployment is allowed until all applicable gates are gree
 On Vercel preview:
 
 1. build succeeds
-2. `/api/health` returns safe metadata only
+2. `/api/para11ax/health` returns safe metadata only
 3. unauthenticated enrich returns 401
 4. invalid indicators return 400 without provider calls
 5. one controlled lookup for each configured provider family verifies current authentication and response parsing

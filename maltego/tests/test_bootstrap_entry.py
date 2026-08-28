@@ -25,7 +25,7 @@ class BootstrapEntryTests(unittest.TestCase):
 
     def test_environment_override_is_never_persisted_to_keychain(self):
         with patch.object(bootstrap_entry.sys, 'platform', 'darwin'):
-            with patch.dict(os.environ, {'CTI_GATEWAY_TOKEN': 'ephemeral'}, clear=True):
+            with patch.dict(os.environ, {'PARA11AX_TOKEN': 'ephemeral'}, clear=True):
                 with patch.object(bootstrap_entry, 'load_token', side_effect=AssertionError('native store touched')):
                     with patch.object(bootstrap_entry, 'configure_token_interactively') as configure:
                         bootstrap_entry.prepare_native_credential([])

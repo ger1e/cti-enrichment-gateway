@@ -14,7 +14,7 @@
 
 - Preserve evidence schema v2, provider order, scheduler ceilings, fixed-host egress, gateway bearer boundary, and current Maltego transform surface.
 - Do not add a database, queue, Kubernetes, dashboard, microservice split, universal risk score, or new analytical framework.
-- Vendor secrets remain server-side only; local clients retain only `CTI_GATEWAY_TOKEN` through existing native credential stores.
+- Vendor secrets remain server-side only; local clients retain only `PARA11AX_TOKEN` through existing native credential stores.
 - Reports compile from frozen evidence only and never invoke provider/network calls.
 - All outputs and collections are bounded and deterministic for identical input + supplied generation timestamp.
 - Windows PowerShell, macOS bash/zsh, and Linux bash/zsh remain first-class.
@@ -31,7 +31,7 @@
 - Test: `test/api-catchall.test.js`
 
 **Interfaces:**
-- Produces: `renderHttpError(request, status, code, options)` and controlled `/api/*` catch-all behavior.
+- Produces: `renderHttpError(request, status, code, options)` and controlled `/api/para11ax/*` catch-all behavior.
 - Preserves: JSON error semantics for API/CLI/Maltego and raw HTML only for explicit browser `Accept: text/html`.
 
 - [x] **Step 1: Write failing negotiation tests**
@@ -86,14 +86,14 @@
 - [ ] **Step 3: Run CI and confirm RED on manifest absence/parity**
 - [ ] **Step 4: Generate `config/providers.json` from the current reviewed metadata with explicit credential/auth/distribution fields**
 - [ ] **Step 5: Add JSON loader/validator and switch `metadata.js` to consume the manifest instead of duplicating policy literals**
-- [ ] **Step 6: Derive/check environment template and bootstrap secret names against manifest credentials while keeping `CTI_GATEWAY_TOKEN` and observability-only secrets explicit**
+- [ ] **Step 6: Derive/check environment template and bootstrap secret names against manifest credentials while keeping `PARA11AX_TOKEN` and observability-only secrets explicit**
 - [ ] **Step 7: Make repository verification reject drift in any derived surface**
 - [ ] **Step 8: Run full CI and verify manifest parity GREEN**
 
 ### Task 4: Unified operator CLI
 
 **Files:**
-- Create: `bin/cti.mjs`
+- Create: `bin/para11ax.mjs`
 - Create: `src/control/doctor.js`
 - Create: `src/control/commands.js`
 - Modify: `package.json`
@@ -165,7 +165,7 @@
 
 **Files:**
 - Create: `src/report/diff.js`
-- Modify: `bin/cti.mjs`
+- Modify: `bin/para11ax.mjs`
 - Test: `test/report-diff.test.js`
 
 **Interfaces:**
@@ -174,7 +174,7 @@
 - [ ] **Step 1: Write failing tests covering evidence IDs, observables, provider outcomes, threat assessment, contradictions, relationships, ATT&CK mappings, and limitations**
 - [ ] **Step 2: Verify RED with missing diff implementation**
 - [ ] **Step 3: Implement canonical set/object comparison with stable sorting and no significance scoring**
-- [ ] **Step 4: Wire `cti report diff` and `cti report compile` to final interfaces**
+- [ ] **Step 4: Wire `para11ax report diff` and `para11ax report compile` to final interfaces**
 - [ ] **Step 5: Run diff/CLI tests and full CI GREEN**
 
 ### Task 8: Governance verification, docs, final security review, merge and production acceptance
@@ -197,7 +197,7 @@
 - [ ] **Step 3: Add CI fixture-level governance contract checks without requiring admin credentials in PR CI**
 - [ ] **Step 4: Update docs for one-command/operator/report workflows and error negotiation**
 - [ ] **Step 5: Run exact-head full Tooling smoke; inspect job logs, not only summary status**
-- [ ] **Step 6: Verify Vercel preview `/api/meta`, JSON 401, HTML 401 unit contract, and unknown `/api/*` 404 routing**
+- [ ] **Step 6: Verify Vercel preview `/api/para11ax/meta`, JSON 401, HTML 401 unit contract, and unknown `/api/para11ax/*` 404 routing**
 - [ ] **Step 7: Run final changed-file security diff review; reject any new secret/egress/dependency/network/reporting bypass**
 - [ ] **Step 8: Merge only the exact verified PR head SHA**
 - [ ] **Step 9: Verify new exact `main` CI, exact-SHA production Vercel `READY`, live endpoint acceptance, and zero new runtime error clusters**

@@ -1,6 +1,6 @@
-### Maltego local transforms for CTI Enrichment Gateway
+### Maltego local transforms for PARA11AX
 
-Maltego Graph Desktop talks only to the private CTI enrichment gateway. Vendor API credentials stay server-side; the workstation stores only `CTI_GATEWAY_TOKEN`.
+Maltego Graph Desktop talks only to the private PARA11AX gateway. Vendor API credentials stay server-side; the workstation stores only `PARA11AX_TOKEN`.
 
 #### Install
 
@@ -25,9 +25,9 @@ Credential backends:
 
 - Windows: current-user DPAPI.
 - macOS: login Keychain through `/usr/bin/security`.
-- Linux: Secret Service/libsecret through `secret-tool` when available. There is no plaintext credential-file fallback; otherwise use an explicit process-local `CTI_GATEWAY_TOKEN`.
+- Linux: Secret Service/libsecret through `secret-tool` when available. There is no plaintext credential-file fallback; otherwise use an explicit process-local `PARA11AX_TOKEN`.
 
-Import the resulting `cti-enrichment-gateway-local.mtz` into Maltego Graph Desktop.
+Import the resulting `para11ax-local.mtz` into Maltego Graph Desktop.
 
 #### Lifecycle
 
@@ -53,7 +53,7 @@ Windows equivalents:
 
 `--check` / `-Check` is read-only. Uninstall preserves the native credential unless deletion is explicitly requested. Re-running the normal installer is idempotent: a healthy venv is reused; stale, corrupt, or Python-3.9 venvs are rebuilt automatically.
 
-For unattended execution, pre-supply `CTI_GATEWAY_TOKEN` to the process and use `--non-interactive` / `-NonInteractive`. Do not put the token in a repository file or shell profile.
+For unattended execution, pre-supply `PARA11AX_TOKEN` to the process and use `--non-interactive` / `-NonInteractive`. Do not put the token in a repository file or shell profile.
 
 #### Architecture
 
@@ -62,11 +62,11 @@ Maltego Graph Desktop
         |
         | local transform (maltego-trx 1.7.0)
         v
-CTI Gateway client
+PARA11AX client
         |
         | HTTPS + one bearer token
         v
-https://cti-enrichment-gateway.vercel.app/api/enrich
+https://para11ax.vercel.app/api/para11ax/enrich
         |
         v
 Gateway provider router / normalized evidence v2
@@ -78,16 +78,16 @@ The transform layer never receives provider secrets.
 
 The versioned `transform-manifest.json` is the package inventory and is verified during MTZ generation.
 
-- CTI Enrich IPv4 -> `maltego.IPv4Address`
-- CTI Enrich IPv6 -> `maltego.IPv6Address`
-- CTI Enrich Domain -> `maltego.Domain`
-- CTI Enrich DNS Name -> `maltego.DNSName`
-- CTI Enrich URL -> `maltego.URL`
-- CTI Enrich Hash -> `maltego.Hash`
-- CTI Enrich CVE -> `maltego.Phrase`
-- CTI Enrich MITRE ATT&CK -> `maltego.Phrase`
-- CTI Enrich ASN -> `maltego.Phrase` input such as `AS3333`; graph output uses `maltego.AS` where appropriate
-- CTI Enrich CIDR -> `maltego.Phrase` input such as `192.0.2.0/24` or `2001:db8::/32`
+- PARA11AX Enrich IPv4 -> `maltego.IPv4Address`
+- PARA11AX Enrich IPv6 -> `maltego.IPv6Address`
+- PARA11AX Enrich Domain -> `maltego.Domain`
+- PARA11AX Enrich DNS Name -> `maltego.DNSName`
+- PARA11AX Enrich URL -> `maltego.URL`
+- PARA11AX Enrich Hash -> `maltego.Hash`
+- PARA11AX Enrich CVE -> `maltego.Phrase`
+- PARA11AX Enrich MITRE ATT&CK -> `maltego.Phrase`
+- PARA11AX Enrich ASN -> `maltego.Phrase` input such as `AS3333`; graph output uses `maltego.AS` where appropriate
+- PARA11AX Enrich CIDR -> `maltego.Phrase` input such as `192.0.2.0/24` or `2001:db8::/32`
 
 Transforms map normalized relationships, malware-family/actor context and graphable provider attributes. Evidence v2 additionally renders bounded Phrase nodes for provider provenance, corroboration, contradictions, freshness, huntability and separate KEV/EPSS/CVSS axes. Integrity fingerprints and parser versions are graphable; raw upstream hashes are deliberately not emitted as Maltego properties.
 
@@ -96,7 +96,7 @@ ATT&CK TAXII results are knowledge/mapping context, not IOC reputation or a mali
 #### Non-secret configuration
 
 ```text
-CTI_GATEWAY_URL=https://cti-enrichment-gateway.vercel.app
+PARA11AX_URL=https://para11ax.vercel.app
 MALTEGO_MAX_ENTITIES=50
 MALTEGO_INCLUDE_PROVIDER_NODES=false
 ```
@@ -105,7 +105,7 @@ MALTEGO_INCLUDE_PROVIDER_NODES=false
 
 Secret resolution order:
 
-1. Explicit process-local `CTI_GATEWAY_TOKEN` environment variable.
+1. Explicit process-local `PARA11AX_TOKEN` environment variable.
 2. Native OS credential backend configured by the installer.
 
 No provider API secret is stored in this directory or in the generated MTZ.

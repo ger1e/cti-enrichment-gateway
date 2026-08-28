@@ -1,5 +1,5 @@
 {
-  "name": "CTI Enrichment Gateway",
+  "name": "PARA11AX",
   "image": "mcr.microsoft.com/devcontainers/universal:2",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {

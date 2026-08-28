@@ -4,7 +4,7 @@ import { createApp } from '../src/app.js';
 import { TtlCache } from '../src/core/cache.js';
 import { rdapProvider, ripestatProvider, shodanProvider } from '../src/providers/index.js';
 
-const baseEnv = { CTI_GATEWAY_TOKEN: 'gateway' };
+const baseEnv = { PARA11AX_TOKEN: 'gateway' };
 const routingAdapters = [rdapProvider, ripestatProvider, shodanProvider];
 function req(indicator) { return { method: 'POST', headers: { authorization: 'Bearer gateway' }, body: { indicator } }; }
 function r(body, status = 200) { return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } }); }

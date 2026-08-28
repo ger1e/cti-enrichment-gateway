@@ -1,6 +1,6 @@
 ### Security policy
 
-This repository is a public, read-only CTI enrichment gateway. Security controls are intentionally conservative, and every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
+This repository is a public, read-only PARA11AX gateway. Security controls are intentionally conservative, and every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
 
 #### Supported use
 
@@ -10,7 +10,7 @@ The current gateway is for personal research and lab use. Do not route commercia
 
 - Never commit API keys, tokens, credentials, private keys, certificates, `.env` files, packet captures, malware samples, or sensitive analysis artifacts.
 - Use Vercel environment variables/secrets for production and `.env.example` only as a non-secret template.
-- The only credential a Maltego client should know is `CTI_GATEWAY_TOKEN`; vendor credentials remain server-side.
+- The only credential a Maltego client should know is `PARA11AX_TOKEN`; vendor credentials remain server-side.
 - API and health responses must never return environment-variable values.
 - Provider errors must not reflect credential-bearing URLs, headers, or arbitrary upstream exception text.
 - Unexpected handler-error telemetry is correlation-only and must not contain exception messages, stacks, request bodies or raw indicators.
@@ -29,13 +29,13 @@ The current gateway is for personal research and lab use. Do not route commercia
 
 #### API and error boundary
 
-- `POST /api/enrich`, `/api/batch`, and `/api/stix` require `Authorization: Bearer <CTI_GATEWAY_TOKEN>`.
+- `POST /api/para11ax/enrich`, `/api/para11ax/batch`, and `/api/para11ax/stix` require `Authorization: Bearer <PARA11AX_TOKEN>`.
 - Explicit non-JSON request content types are rejected.
 - Indicator types and sizes are validated before provider calls.
 - Authenticated responses use `Cache-Control: no-store` and defensive response headers.
 - Gateway bearer comparison remains constant-time.
 - Provider calls use bounded response sizes, explicit timeouts, structured rate-limit handling, and redirect restrictions.
-- Unknown `/api/*` routes fail closed.
+- Unknown `/api/para11ax/*` routes fail closed.
 - Error content negotiation honors `Accept` quality values, defaults safely to JSON, and uses HTML only when `text/html` has a strictly stronger positive preference.
 - Error pages/responses must never reflect exception text, request bodies, provider configuration state, credentials, or upstream URLs.
 

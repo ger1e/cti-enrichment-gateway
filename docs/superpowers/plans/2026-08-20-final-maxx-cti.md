@@ -219,7 +219,7 @@ const providers = Object.fromEntries(registry.names().map(name => {
 return response(200, {
   status: 'ok',
   version: gatewayVersion,
-  gatewayAuthConfigured: Boolean(env.CTI_GATEWAY_TOKEN),
+  gatewayAuthConfigured: Boolean(env.PARA11AX_TOKEN),
   providers,
   operations: { sentry: { configured: Boolean(env.SENTRY_AUTH_TOKEN), role: 'observability_only' } },
   activeWorkflows: WORKFLOWS,
@@ -277,9 +277,9 @@ Commit message: `feat: add final read-only CTI gateway core`.
 
 **Interfaces:**
 - `GatewayClient.enrich(indicator, indicator_type) -> dict`
-- `load_token()` resolves `CTI_GATEWAY_TOKEN` env first, then current-user Windows DPAPI store.
+- `load_token()` resolves `PARA11AX_TOKEN` env first, then current-user Windows DPAPI store.
 - `map_enrichment(result, max_entities=50, include_provider_nodes=False) -> list[EntitySpec]`
-- Local transforms call only `/api/enrich` with the single gateway bearer.
+- Local transforms call only `/api/para11ax/enrich` with the single gateway bearer.
 
 - [ ] **Step 1: Port the feature-branch Maltego files exactly**
 
@@ -342,7 +342,7 @@ Commit message: `feat: add hardened Maltego local transforms`.
 Use exactly:
 
 ```text
-CTI_GATEWAY_TOKEN=
+PARA11AX_TOKEN=
 ABUSECH_API_KEY=
 ABUSEIPDB_API_KEY=
 GREYNOISE_API_KEY=
@@ -381,9 +381,9 @@ Add:
 
 ```bash
 gateway_secret_contract_ok() {
-  grep -Fq 'CTI_GATEWAY_TOKEN' .env.example &&
+  grep -Fq 'PARA11AX_TOKEN' .env.example &&
     grep -Fq 'MALPEDIA_API_TOKEN' .env.example &&
-    grep -Fq "'CTI_GATEWAY_TOKEN'" scripts/bootstrap-vercel.ps1 &&
+    grep -Fq "'PARA11AX_TOKEN'" scripts/bootstrap-vercel.ps1 &&
     grep -Fq "'MALPEDIA_API_TOKEN'" scripts/bootstrap-vercel.ps1 &&
     ! grep -Fq 'SECURITYTRAILS_API_KEY' .env.example &&
     ! grep -Fq 'SECURITYTRAILS_API_KEY' scripts/bootstrap-vercel.ps1
@@ -416,7 +416,7 @@ Keep the existing immutable action SHAs and least-privilege permissions.
 The README must document:
 - personal/read-only scope;
 - Node.js 24.x parity and existing MAXX tooling commands;
-- `/api/health` and authenticated `/api/enrich`;
+- `/api/para11ax/health` and authenticated `/api/para11ax/enrich`;
 - the five exact active workflow orders;
 - provider credential list with NVD optional and Sentry operations-only;
 - explicit prohibited action surfaces;
@@ -494,9 +494,9 @@ Confirm build state is `READY` and the deployment corresponds to the final PR/he
 Verify:
 
 ```text
-GET /api/health -> 200, no secret values
-POST /api/enrich without Authorization -> 401
-POST /api/enrich with explicit text/plain -> 415 when authenticated execution is available
+GET /api/para11ax/health -> 200, no secret values
+POST /api/para11ax/enrich without Authorization -> 401
+POST /api/para11ax/enrich with explicit text/plain -> 415 when authenticated execution is available
 invalid indicator -> 400 without provider execution when authenticated execution is available
 ```
 
@@ -538,7 +538,7 @@ The exact verified head SHA must match the SHA being merged.
 
 - [ ] **Step 2: Squash-merge `final/maxx-cti` to `main`**
 
-Commit title: `feat: finalize MAXX CTI enrichment gateway`.
+Commit title: `feat: finalize MAXX PARA11AX gateway`.
 
 - [ ] **Step 3: Verify `main` hosted CI**
 
@@ -546,7 +546,7 @@ Read the `Tooling smoke` result for the resulting main commit. Expected: success
 
 - [ ] **Step 4: Verify production Vercel deployment**
 
-Confirm production deployment is `READY` and tied to the merged main commit. Re-run safe `/api/health` and unauthenticated `401` smoke checks; perform authenticated live/Maltego smoke if the bearer can be used without disclosure.
+Confirm production deployment is `READY` and tied to the merged main commit. Re-run safe `/api/para11ax/health` and unauthenticated `401` smoke checks; perform authenticated live/Maltego smoke if the bearer can be used without disclosure.
 
 - [ ] **Step 5: Close obsolete PR #1 only after production is confirmed**
 

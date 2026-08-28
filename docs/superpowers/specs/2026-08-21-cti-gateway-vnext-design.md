@@ -1,8 +1,8 @@
-# CTI Enrichment Gateway vNext — Ultimate Bounded Design
+# PARA11AX vNext — Ultimate Bounded Design
 
 Date: 2026-08-21
 Status: design for implementation
-Scope: personal, read-only CTI enrichment gateway
+Scope: personal, read-only PARA11AX gateway
 
 ## 1. Objective
 
@@ -88,7 +88,7 @@ Create a static provider manifest generated from registered adapters. Each provi
 - active/deprecated state
 - source documentation/reference URL
 
-Runtime routing, `/api/meta`, health output, README provider tables and invariant tests derive from this manifest instead of maintaining parallel lists.
+Runtime routing, `/api/para11ax/meta`, health output, README provider tables and invariant tests derive from this manifest instead of maintaining parallel lists.
 
 A provider cannot register if its name is duplicated, its type list is empty, a timeout/body limit is missing, or its fixed host declaration is absent.
 
@@ -279,7 +279,7 @@ SSLBL or another source is included only if its current official endpoint is sup
 
 ## 15. Batch enrichment endpoint
 
-Add authenticated `POST /api/batch`.
+Add authenticated `POST /api/para11ax/batch`.
 
 Request:
 
@@ -304,7 +304,7 @@ This is for IOC triage, not bulk scanning.
 
 ## 16. STIX 2.1 export
 
-Add a pure, dependency-free canonical-to-STIX mapper and authenticated `POST /api/stix` endpoint.
+Add a pure, dependency-free canonical-to-STIX mapper and authenticated `POST /api/para11ax/stix` endpoint.
 
 The endpoint enriches one indicator (or accepts an already normalized internal result only through internal code, not arbitrary caller evidence) and emits a bounded STIX 2.1 Bundle.
 
@@ -322,11 +322,11 @@ MISP export is not added unless there is a clear downstream consumer; ingest/cor
 
 ## 17. API capability and authenticated status endpoints
 
-Keep `/api/health` public-safe and minimal.
+Keep `/api/para11ax/health` public-safe and minimal.
 
 Add:
 
-### `GET /api/meta`
+### `GET /api/para11ax/meta`
 Public-safe static capabilities only:
 
 - gateway/schema version
@@ -336,7 +336,7 @@ Public-safe static capabilities only:
 - whether a provider requires credentials (never whether a particular secret value exists unless already safe by policy)
 - API limits
 
-### `GET /api/status`
+### `GET /api/para11ax/status`
 Bearer-authenticated operational state:
 
 - provider configured booleans
@@ -483,7 +483,7 @@ Introduce constants:
 - evidence schema version
 - provider parser version already per adapter
 
-`/api/enrich` remains backward compatible for existing required fields. New fields are additive. Breaking response changes require a new schema major version and explicit migration tests.
+`/api/para11ax/enrich` remains backward compatible for existing required fields. New fields are additive. Breaking response changes require a new schema major version and explicit migration tests.
 
 Unknown request fields may be rejected once request schemas are centralized, but existing documented fields remain accepted.
 
@@ -549,8 +549,8 @@ Production acceptance is separate:
 
 - Vercel deployment corresponds to exact verified `main`
 - required credential variables are configured without disclosure
-- authenticated protected `/api/health` check succeeds
-- `/api/meta` and authenticated `/api/status` reflect the expected schema/provider set
+- authenticated protected `/api/para11ax/health` check succeeds
+- `/api/para11ax/meta` and authenticated `/api/para11ax/status` reflect the expected schema/provider set
 - a bounded smoke enrichment exercises at least one public source and one configured credentialed source without exposing secrets
 
 ## 27. Explicit non-goals

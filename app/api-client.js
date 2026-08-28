@@ -64,9 +64,9 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
     if (!response.ok) throw new GatewayHttpError(response.status, payload?.error, payload?.requestId);
     if (!isJson) throw new GatewayHttpError(502, 'unexpected_response');
     if (validate && !validate(payload)) {
-      const code = path === '/api/stix' ? 'invalid_stix_bundle'
-        : path === '/api/batch' ? 'invalid_batch_envelope'
-          : path === '/api/meta' ? 'invalid_meta_envelope'
+      const code = path === '/api/para11ax/stix' ? 'invalid_stix_bundle'
+        : path === '/api/para11ax/batch' ? 'invalid_batch_envelope'
+          : path === '/api/para11ax/meta' ? 'invalid_meta_envelope'
             : 'invalid_envelope';
       throw new GatewayHttpError(502, code);
     }
@@ -74,7 +74,7 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
   }
 
   async function request(path, { method = 'GET', body, signal, validate } = {}) {
-    if (!path.startsWith('/api/')) throw new Error('same-origin API path required');
+    if (!path.startsWith('/api/para11ax/')) throw new Error('same-origin PARA11AX API path required');
     const token = getToken();
     if (!token) throw new GatewayHttpError(401, 'unauthorized');
 
@@ -92,7 +92,7 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
   }
 
   async function publicRequest(path, { signal, validate } = {}) {
-    if (!path.startsWith('/api/')) throw new Error('same-origin API path required');
+    if (!path.startsWith('/api/para11ax/')) throw new Error('same-origin PARA11AX API path required');
     const response = await fetchImpl(path, {
       method: 'GET',
       headers: {},
@@ -117,22 +117,22 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
   }
 
   return Object.freeze({
-    meta: (signal) => publicRequest('/api/meta', { signal, validate: validMeta }),
-    health: (signal) => request('/api/health', { signal }),
-    status: (signal) => request('/api/status', { signal }),
-    enrich: async (indicator, profile, signal) => request('/api/enrich', {
+    meta: (signal) => publicRequest('/api/para11ax/meta', { signal, validate: validMeta }),
+    health: (signal) => request('/api/para11ax/health', { signal }),
+    status: (signal) => request('/api/para11ax/status', { signal }),
+    enrich: async (indicator, profile, signal) => request('/api/para11ax/enrich', {
       method: 'POST',
       body: requestPayload(indicator, profile),
       signal,
       validate: validEnvelope,
     }),
-    batch: async (indicators, profile, signal) => request('/api/batch', {
+    batch: async (indicators, profile, signal) => request('/api/para11ax/batch', {
       method: 'POST',
       body: batchPayload(indicators, profile),
       signal,
       validate: validBatch,
     }),
-    stix: async (indicator, profile, signal) => request('/api/stix', {
+    stix: async (indicator, profile, signal) => request('/api/para11ax/stix', {
       method: 'POST',
       body: requestPayload(indicator, profile),
       signal,

@@ -1,4 +1,4 @@
-### CTI Enrichment Gateway Architecture
+### PARA11AX Architecture
 
 #### Purpose
 
@@ -16,7 +16,7 @@ The important boundary is `safeFetch`: callers cannot choose an arbitrary provid
 
 ```text
 Client / Maltego
-  -> API auth and request limits (except public /api/meta)
+  -> API auth and request limits (except public /api/para11ax/meta)
   -> strict canonical indicator classifier
   -> fixed workflow + fast|standard|full profile
   -> configured-provider filter
