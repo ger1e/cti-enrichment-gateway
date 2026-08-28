@@ -4,33 +4,36 @@ import { readFileSync } from 'node:fs';
 
 const read = (path) => readFileSync(path, 'utf8');
 
-test('landing page runs heavy rain density without external assets', () => {
-  const html = read('index.html');
+test('production landing artifact runs heavy rain density without external assets', () => {
+  const html = read('landing-maxx.html');
+  const config = JSON.parse(read('vercel.json'));
   const columns = (html.match(/class="rain"/g) || []).length;
-  assert.ok(columns >= 36, `expected at least 36 landing rain columns, got ${columns}`);
+  assert.ok(columns >= 40, `expected at least 40 landing rain columns, got ${columns}`);
   assert.match(html, /data-rain-density="heavy"/i);
   assert.match(html, /--rain-opacity-heavy:/i);
   assert.match(html, /prefers-reduced-motion:\s*reduce/i);
+  assert.ok(config.routes.some((route) => route.src === '/' && route.dest === '/landing-maxx.html'));
 });
 
-test('analyst web UI carries the landing tactical identity', () => {
-  const html = read('app/index.html');
-  const css = read('app/app.css');
-  assert.match(html, /data-visual="tactical-maxx"/i);
-  assert.match(html, /class="tactical-hud"/i);
-  assert.match(html, /class="sentinel-mark"/i);
+test('analyst web UI carries the landing tactical identity through an isolated visual layer', () => {
+  const main = read('app/terminal-main.js');
+  const visual = read('app/visual-maxx.js');
+  const css = read('app/tactical-maxx.css');
+  assert.match(main, /visual-maxx\.js/i);
+  assert.match(visual, /tactical-maxx/i);
+  assert.match(visual, /tactical-hud/i);
+  assert.match(visual, /sentinel-mark/i);
   assert.match(css, /--phosphor:\s*#39ff14/i);
   assert.match(css, /\.tactical-hud/i);
   assert.match(css, /@keyframes\s+hud-spin/i);
   assert.match(css, /@keyframes\s+visor-pulse/i);
 });
 
-test('analyst UI uses heavier multi-depth rain while keeping mobile text clear', () => {
-  const html = read('app/index.html');
-  const css = read('app/app.css');
-  const cols = (html.match(/class="rain-col"/g) || []).length;
-  assert.ok(cols >= 36, `expected at least 36 app rain columns, got ${cols}`);
-  assert.match(html, /matrix-heavy/i);
+test('analyst UI multiplies rain density at runtime while keeping mobile text clear', () => {
+  const visual = read('app/visual-maxx.js');
+  const css = read('app/tactical-maxx.css');
+  assert.match(visual, /RAIN_COLUMNS_PER_LAYER\s*=\s*8/i);
+  assert.match(visual, /matrix-heavy/i);
   assert.match(css, /\.matrix-heavy/i);
   assert.match(css, /@media\s*\(max-width:\s*430px\)/i);
   assert.match(css, /prefers-reduced-motion:\s*reduce/i);
