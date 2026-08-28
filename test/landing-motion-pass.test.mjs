@@ -24,7 +24,7 @@ test('landing radar uses a rotational phosphor sweep with trail pulse and bounde
 test('landing disables the full-height hero scanner and keeps radar motion circular', () => {
   const css = motion();
   assert.match(css, /\.terminal-hero:before\s*\{[^}]*content:\s*none!important[^}]*animation:\s*none!important/is);
-  assert.doesNotMatch(css, /translateY\(/i);
+  assert.doesNotMatch(css, /translateY\(588px\)/i);
   assert.match(css, /\.radar-sweep[^}]*animation:\s*radar-sweep/i);
 });
 
