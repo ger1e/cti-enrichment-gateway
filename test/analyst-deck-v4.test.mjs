@@ -99,10 +99,11 @@ test('boot auth and runtime share the same terminal palette and do not switch vi
 
 test('mobile terminal preserves one shell plane and prompt without dashboard reflow', () => {
   const css = read('app/analyst-deck.css');
-  assert.match(css, /@media\s*\(max-width:\s*430px\)/i);
-  assert.match(css, /\.unix-shell[^}]*grid-template-rows:\s*auto\s+minmax\(0,1fr\)\s+auto/is);
-  assert.match(css, /\.shell-prompt[^}]*grid-template-columns:\s*1fr/is);
-  assert.match(css, /\.shell-scrollback[^}]*scrollbar-width:\s*none/is);
+  const phone = css.slice(css.indexOf('@media(max-width:430px)'), css.indexOf('@media(prefers-reduced-motion:reduce)'));
+  assert.match(phone, /\.unix-shell[^}]*grid-template-rows:\s*auto\s+auto\s+auto/is);
+  assert.match(phone, /\.shell-prompt[^}]*grid-template-columns:\s*max-content\s+minmax\(0,1fr\)/is);
+  assert.match(phone, /\.shell-scrollback[^}]*scrollbar-width:\s*none/is);
+  assert.doesNotMatch(phone, /\.unix-shell[^}]*grid-template-rows:[^;}]*minmax\(0,1fr\)/is);
   assert.doesNotMatch(css, /analyst-view-rail|analyst-action-rail|analyst-status-rail|analyst-workspace|analyst-telemetry/);
 });
 
