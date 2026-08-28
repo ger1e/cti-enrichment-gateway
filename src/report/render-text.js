@@ -14,7 +14,7 @@ function assessment(model) {
 
 export function renderText(model) {
   const out = [
-    'CTI ENRICHMENT GATEWAY',
+    'PARA11AX',
     `${model.subject.type.toUpperCase()}: ${model.subject.value}`,
     `Generated: ${model.generatedAt}`,
     '',

@@ -4,7 +4,7 @@
 
 **Goal:** Make every canonical provider adapter contract-current, observable, secret-safe, and probeable so “working” is determined by real provider behavior rather than fixture-only tests.
 
-**Architecture:** Keep the existing dependency-free provider model and fixed-host egress boundary. Provider-specific adapters own endpoint/auth/response semantics; the control plane adds a sequential, bounded `cti providers probe` that classifies configuration/auth/rate/upstream/contract states without printing secrets. Normal provider absence must be represented as neutral absence evidence when the upstream contract explicitly defines it, never as benign and never as an outage.
+**Architecture:** Keep the existing dependency-free provider model and fixed-host egress boundary. Provider-specific adapters own endpoint/auth/response semantics; the control plane adds a sequential, bounded `para11ax providers probe` that classifies configuration/auth/rate/upstream/contract states without printing secrets. Normal provider absence must be represented as neutral absence evidence when the upstream contract explicitly defines it, never as benign and never as an outage.
 
 **Tech Stack:** Node.js 24 ESM, built-in `node:test`, existing `fetchJson`/`safeFetch`, canonical `config/providers.json`, GitHub/Vercel control plane.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Preserve `/api/enrich`, `/api/batch`, `/api/stix`, `/api/meta`, `/api/health`, and `/api/status` public contracts.
+- Preserve `/api/para11ax/enrich`, `/api/para11ax/batch`, `/api/para11ax/stix`, `/api/para11ax/meta`, `/api/para11ax/health`, and `/api/para11ax/status` public contracts.
 - No new framework, database, queue, cache service, agent subsystem, or direct client-side vendor credentials.
 - Secrets remain server-side and must never be printed by probe output, tests, telemetry, reports, references, or errors.
 - Fixed-host HTTPS egress, bounded request/response sizes, redirect denial by default, provider timeouts, scheduler bounds, and neutral absence semantics remain mandatory.
@@ -26,7 +26,7 @@
 **Files:**
 - Test: `test/provider-contract-regression.test.js`
 - Create: `src/control/provider-probe.js`
-- Modify: `bin/cti.mjs`
+- Modify: `bin/para11ax.mjs`
 
 **Interfaces:**
 - Produces: `probeProviders({ providers, env, includeCredentialed, selectedNames }) -> Promise<Array<ProbeResult>>`
@@ -34,7 +34,7 @@
 
 - [x] Write failing tests for RansomLook v2, Cloudflare Radar nested response, Webamon current search contract, and sequential secret-safe probing.
 - [x] Implement the minimum adapter/probe changes.
-- [ ] Add CLI regression tests for `cti providers probe`, `--all`, and `--provider`.
+- [ ] Add CLI regression tests for `para11ax providers probe`, `--all`, and `--provider`.
 - [ ] Confirm no probe path emits credential values or raw upstream error text.
 
 ### Task 2: Audit and fix network/infrastructure providers
@@ -109,6 +109,6 @@
 
 - [ ] During overbilling window, perform only primary-doc research, public harmless live requests, GitHub read/write, and static diff review; trigger no Actions/Vercel build.
 - [ ] After reset, run one local/manual test gate and require all unit/invariant/audit tests green.
-- [ ] Run one sequential `cti providers probe --all` with locally/configured credentials; do not print secrets.
+- [ ] Run one sequential `para11ax providers probe --all` with locally/configured credentials; do not print secrets.
 - [ ] Classify every provider: `ok` means production-ready; `unconfigured` requires credential setup; `auth_failed` requires credential correction; `rate_limited` requires quota policy; `upstream_error` is vendor availability; `contract_error` returns to Tasks 2–6.
 - [ ] Do not merge/deploy until repository defects are zero and the remaining non-`ok` states are demonstrably external/configuration constraints.

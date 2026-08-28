@@ -30,7 +30,7 @@ test('source commit is accepted only as an exact SHA-1 and no environment values
   assert.equal(buildReleaseManifest({ sourceCommit: sha }).sourceCommit, sha);
   assert.equal(buildReleaseManifest({ sourceCommit: 'refs/heads/main' }).sourceCommit, null);
   const text = committedText();
-  for (const forbidden of ['CTI_GATEWAY_TOKEN', 'API_KEY', 'API_TOKEN', 'CENSYS_PAT', 'SENTRY_AUTH_TOKEN', 'process.env']) assert.equal(text.includes(forbidden), false);
+  for (const forbidden of ['PARA11AX_TOKEN', 'API_KEY', 'API_TOKEN', 'CENSYS_PAT', 'SENTRY_AUTH_TOKEN', 'process.env']) assert.equal(text.includes(forbidden), false);
 });
 
 test('release manifest has no timestamps or nondeterministic identifiers', () => {

@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 [CmdletBinding()]
 param(
-    [string]$GatewayUrl = 'https://cti-enrichment-gateway.vercel.app',
+    [string]$GatewayUrl = 'https://para11ax.vercel.app',
     [switch]$Check,
     [switch]$Repair,
     [switch]$Update,
@@ -106,7 +106,7 @@ if ($DeleteCredential -and -not $Uninstall) {
     throw '-DeleteCredential is valid only with -Uninstall.'
 }
 
-Write-Host '=== CTI Gateway / Maltego Local Transforms ==='
+Write-Host '=== PARA11AX / Maltego Local Transforms ==='
 Write-Host 'Windows uses current-user DPAPI for the gateway token; vendor API credentials remain server-side in Vercel.'
 $Python = Resolve-BootstrapPython
 Invoke-Bootstrap -Python $Python

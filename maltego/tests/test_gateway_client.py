@@ -34,7 +34,7 @@ class GatewayClientTests(unittest.TestCase):
         client = GatewayClient('https://gateway.example', 'secret-token', opener=opener)
         result = client.enrich('8.8.8.8', 'ip')
         self.assertEqual(result['status'], 'ok')
-        self.assertEqual(seen['url'], 'https://gateway.example/api/enrich')
+        self.assertEqual(seen['url'], 'https://gateway.example/api/para11ax/enrich')
         self.assertEqual(seen['auth'], 'Bearer secret-token')
         self.assertEqual(seen['body'], {'indicator': '8.8.8.8', 'type': 'ip'})
         self.assertEqual(seen['timeout'], 15.0)
@@ -58,7 +58,7 @@ class GatewayClientTests(unittest.TestCase):
             client.enrich('x', 'unsupported')
 
     def test_environment_token_takes_precedence_without_touching_dpapi(self):
-        with patch.dict(os.environ, {'CTI_GATEWAY_TOKEN': 'env-secret'}, clear=False):
+        with patch.dict(os.environ, {'PARA11AX_TOKEN': 'env-secret'}, clear=False):
             self.assertEqual(load_token(), 'env-secret')
 
 if __name__ == '__main__':

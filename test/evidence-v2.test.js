@@ -38,7 +38,7 @@ function request(body) {
 
 test('enrichment adds evidence-v2 envelope without removing legacy fields', async () => {
   const app = createApp({
-    env: { CTI_GATEWAY_TOKEN: 'test-token' },
+    env: { PARA11AX_TOKEN: 'test-token' },
     adapters: [fixture],
     gatewayVersion: GATEWAY_VERSION,
     now: (() => { let i = 0; return () => new Date(Date.UTC(2026, 7, 21, 0, 0, i++)).toISOString(); })(),
@@ -68,7 +68,7 @@ test('enrichment adds evidence-v2 envelope without removing legacy fields', asyn
 });
 
 test('evidence v2 carries cache/duration/parser provenance and normalized fingerprint', async () => {
-  const app = createApp({ env: { CTI_GATEWAY_TOKEN: 'test-token' }, adapters: [fixture], gatewayVersion: GATEWAY_VERSION });
+  const app = createApp({ env: { PARA11AX_TOKEN: 'test-token' }, adapters: [fixture], gatewayVersion: GATEWAY_VERSION });
   const first = await app.handleEnrich(request({ indicator: '203.0.113.7' }));
   const second = await app.handleEnrich(request({ indicator: '203.0.113.7' }));
   const item = second.body.evidence[0];

@@ -2,15 +2,15 @@
 
 <picture>
   <source media="(max-width: 640px)" srcset="assets/brand/para11ax-hero-mobile.svg">
-  <img src="assets/brand/parallax-hero.svg" alt="PARA11AX — CTI Evidence Gateway" width="100%" />
+  <img src="assets/brand/para11ax-hero.svg" alt="PARA11AX — CTI Evidence Gateway" width="100%" />
 </picture>
 
-[![Tooling smoke](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/tooling-smoke.yml)
-[![CodeQL](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/cti-enrichment-gateway/actions/workflows/codeql.yml)
+[![Tooling smoke](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml)
+[![CodeQL](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml)
 
 **37 fixed sources · Evidence v2 · STIX 2.1 · Node.js 24.x**
 
-[Landing page](https://cti-enrichment-gateway.vercel.app/) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Providers](docs/PROVIDERS.md) · [Evidence](docs/EVIDENCE-SCHEMA.md) · [Security](SECURITY.md)
+[Landing page](https://para11ax.vercel.app/) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Providers](docs/PROVIDERS.md) · [Evidence](docs/EVIDENCE-SCHEMA.md) · [Security](SECURITY.md)
 
 </div>
 
@@ -23,7 +23,7 @@
 - **Profiles:** `fast` · `standard` · `full`; callers cannot choose arbitrary providers.
 - **Boundary:** `safeFetch` fixed egress + provider-specific parsing.
 - **Output:** Evidence v2 · typed correlation · JSON · batch · STIX 2.1 · deterministic offline reports.
-- **Identity:** PARA11AX is the visual/product identity. Compatibility surfaces remain `cti-enrichment-gateway`, `cti`, `CTI_GATEWAY_TOKEN`, and `/api/*`.
+- **Identity:** every public and operator surface uses PARA11AX: repository/package `para11ax`, CLI `para11ax`, bearer `PARA11AX_TOKEN`, and API base `/api/para11ax/*`.
 
 ![PARA11AX request path](assets/brand/para11ax-architecture.svg)
 
@@ -46,13 +46,13 @@ Full semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
 
 **API SURFACE**
 
-- `GET /api/meta` — public static capabilities and hard limits.
-- `GET /api/health` — bearer-protected readiness.
-- `GET /api/status` — bearer-protected aggregate runtime state.
-- `POST /api/enrich` — one indicator, fixed workflow/profile only.
-- `POST /api/batch` — 1–20 indicators; max 3 active indicators / 200 calls.
-- `POST /api/stix` — enrich then export STIX 2.1; max 100 objects.
-- Unknown `/api/*` — controlled fail-closed API 404; browser content negotiation never changes API status semantics.
+- `GET /api/para11ax/meta` — public static capabilities and hard limits.
+- `GET /api/para11ax/health` — bearer-protected readiness.
+- `GET /api/para11ax/status` — bearer-protected aggregate runtime state.
+- `POST /api/para11ax/enrich` — one indicator, fixed workflow/profile only.
+- `POST /api/para11ax/batch` — 1–20 indicators; max 3 active indicators / 200 calls.
+- `POST /api/para11ax/stix` — enrich then export STIX 2.1; max 100 objects.
+- Unknown `/api/para11ax/*` — controlled fail-closed API 404; browser content negotiation never changes API status semantics.
 
 Example:
 
@@ -84,7 +84,7 @@ Complete contract: [`docs/API.md`](docs/API.md).
 <details>
 <summary><strong>Security and resilience</strong></summary>
 
-- Bearer authentication protects private API surfaces; `/api/meta` is intentionally public.
+- Bearer authentication protects private API surfaces; `/api/para11ax/meta` is intentionally public.
 - Provider secrets stay server-side; Maltego receives only the gateway bearer.
 - Exact fixed HTTPS hosts and declared methods/protocols; redirects refused.
 - Streamed upstream bodies are byte-capped before parsing.
@@ -103,17 +103,17 @@ Security detail: [`docs/SECURITY-CONTROLS.md`](docs/SECURITY-CONTROLS.md) · [`d
 <summary><strong>Operator CLI, Maltego, and deterministic reports</strong></summary>
 
 ```text
-cti doctor
-cti providers list
-cti providers env-template
-cti providers probe --all
-cti maltego check
-cti release verify
-cti report compile <snapshot.json> --out <dir> [--preset <name>]
-cti report diff <before.json> <after.json>
+para11ax doctor
+para11ax providers list
+para11ax providers env-template
+para11ax providers probe --all
+para11ax maltego check
+para11ax release verify
+para11ax report compile <snapshot.json> --out <dir> [--preset <name>]
+para11ax report diff <before.json> <after.json>
 ```
 
-Maltego crosses one credential boundary only: `CTI_GATEWAY_TOKEN`. Vendor credentials never enter the MTZ or transform output. See [`maltego/README.md`](maltego/README.md).
+Maltego crosses one credential boundary only: `PARA11AX_TOKEN`. Vendor credentials never enter the MTZ or transform output. See [`maltego/README.md`](maltego/README.md).
 
 Report rendering never calls providers. It compiles frozen evidence through a canonical `ReportModel` and hard quality gate into deterministic HTML, PDF, text, JSON/STIX, CSV, KQL, ATT&CK Navigator, and SHA-256 manifest artifacts.
 
@@ -134,7 +134,7 @@ Full process: [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Release identity: [`re
 
 **DEEP DOCS**
 
-- [`docs/BRAND.md`](docs/BRAND.md) — PARA11AX identity and compatibility rules.
+- [`docs/BRAND.md`](docs/BRAND.md) — PARA11AX identity and canonical surface rules.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — execution model and trust boundaries.
 - [`docs/END-TO-END-EXAMPLE.md`](docs/END-TO-END-EXAMPLE.md) — IOC → evidence → export walkthrough.
 - [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md) — Evidence v2 and correlation semantics.
@@ -155,7 +155,7 @@ No TLS/JA3 without a bounded source that passes the source gate. No deprecated S
 
 <div align="center">
 
-<img src="assets/brand/parallax-mark.svg" alt="PARA11AX mark" width="52" />
+<img src="assets/brand/para11ax-mark.svg" alt="PARA11AX mark" width="52" />
 
 **OBSERVED ≠ INFERRED ≠ CONTEXTUAL**
 

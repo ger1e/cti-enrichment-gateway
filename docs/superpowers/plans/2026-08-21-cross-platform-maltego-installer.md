@@ -14,7 +14,7 @@
 - Python hard floor is 3.10; preferred/tested bootstrap version is 3.12.
 - Windows uses DPAPI, macOS uses Keychain, Linux uses Secret Service when available.
 - No plaintext credential-file fallback.
-- Explicit `CTI_GATEWAY_TOKEN` remains the ephemeral highest-precedence override.
+- Explicit `PARA11AX_TOKEN` remains the ephemeral highest-precedence override.
 - Vendor credentials never enter Maltego, MTZ, local repository files, or installer logs.
 - macOS/Linux installer must work from zsh and bash without requiring permanent profile edits.
 - Installation must be idempotent and must rebuild stale/incompatible `.venv` safely.

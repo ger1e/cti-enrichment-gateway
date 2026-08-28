@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Personal, read-only CTI enrichment gateway.
+- Personal, read-only PARA11AX gateway.
 - No submission, detonation, scanning, blocking, takedown, remediation, write-back, arbitrary egress, arbitrary provider selection, or master maliciousness score.
 - Provider/gateway secrets never enter Git, responses, logs, errors, telemetry, evidence, generated artifacts, or printed command output.
 - Preserve the exact v2 indicator types: `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`.
@@ -192,7 +192,7 @@ test('production health supplies the DPAPI-backed gateway bearer through native 
   assert.match(source, /--scope\s+\$TeamSlug/i);
   assert.match(source, /--\s+--header/i);
   assert.match(source, /Authorization:\s*Bearer\s+\$GatewayToken/i);
-  assert.doesNotMatch(source, /CTI_GATEWAY_TOKEN\s*=\s*['"][^'"]+['"]/i);
+  assert.doesNotMatch(source, /PARA11AX_TOKEN\s*=\s*['"][^'"]+['"]/i);
   assert.match(source, /ConvertFrom-Json/i);
   assert.match(source, /gatewayAuthConfigured/);
 });
@@ -227,11 +227,11 @@ function Verify-ProductionHealth {
     )
 
     $deploymentUrl = "https://$ProductionAlias"
-    Write-Host "Verifying protected production health at $deploymentUrl/api/health ..."
+    Write-Host "Verifying protected production health at $deploymentUrl/api/para11ax/health ..."
 
     $authorization = "Authorization: Bearer $GatewayToken"
     try {
-        $raw = (& $Vercel curl '/api/health' --deployment $deploymentUrl --scope $TeamSlug -- --header $authorization 2>&1 | Out-String).Trim()
+        $raw = (& $Vercel curl '/api/para11ax/health' --deployment $deploymentUrl --scope $TeamSlug -- --header $authorization 2>&1 | Out-String).Trim()
     } finally {
         $authorization = $null
     }
@@ -249,7 +249,7 @@ function Verify-ProductionHealth {
         throw "Production health check failed: status '$($health.status)'."
     }
     if (-not $health.gatewayAuthConfigured) {
-        throw 'Production health check failed: CTI_GATEWAY_TOKEN is not configured.'
+        throw 'Production health check failed: PARA11AX_TOKEN is not configured.'
     }
 
     Write-Host 'Production health verified through authenticated Vercel CLI: gateway authentication is configured.'
@@ -743,7 +743,7 @@ Record the merged `main` SHA.
 - No source changes unless production verification reproduces a new defect.
 
 **Interfaces:**
-- Consumes: merged `main` SHA and existing Vercel project `cti-enrichment-gateway`.
+- Consumes: merged `main` SHA and existing Vercel project `para11ax`.
 - Produces: final acceptance evidence or a reproducible defect routed back through TDD.
 
 - [ ] **Step 1: Verify exact production deployment SHA**
@@ -757,12 +757,12 @@ Require the newest `target: production` deployment to be `READY` and `meta.githu
 Fetch production alias endpoints:
 
 ```text
-GET /api/meta    -> 200
-GET /api/health  -> 401 without gateway bearer
-GET /api/status  -> 401 without gateway bearer
+GET /api/para11ax/meta    -> 200
+GET /api/para11ax/health  -> 401 without gateway bearer
+GET /api/para11ax/status  -> 401 without gateway bearer
 ```
 
-Require `Cache-Control: no-store` on all gateway JSON responses and the existing security headers. Do not expose or extract `CTI_GATEWAY_TOKEN` through connectors.
+Require `Cache-Control: no-store` on all gateway JSON responses and the existing security headers. Do not expose or extract `PARA11AX_TOKEN` through connectors.
 
 - [ ] **Step 3: Check production runtime errors**
 

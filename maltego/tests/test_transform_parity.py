@@ -44,7 +44,7 @@ class TransformParityTests(unittest.TestCase):
         client = (ROOT / 'gateway_client.py').read_text(encoding='utf-8')
         store = (ROOT / 'credential_store.py').read_text(encoding='utf-8')
         combined = f'{client}\n{store}'
-        self.assertIn('CTI_GATEWAY_TOKEN', combined)
+        self.assertIn('PARA11AX_TOKEN', combined)
         self.assertIn('DPAPI', combined.upper())
         self.assertIn('SUPPORTED_INDICATOR_TYPES', client)
         for indicator_type in ['ip', 'domain', 'url', 'hash', 'cve', 'attack', 'asn', 'cidr']:

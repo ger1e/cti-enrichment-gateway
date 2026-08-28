@@ -1,12 +1,12 @@
 cff-version: 1.2.0
 message: "If this project informs your work, cite the repository and preserve provenance for any derived intelligence, detections, or reports."
-title: "CTI Enrichment Gateway"
+title: "PARA11AX"
 type: software
 authors:
   - family-names: "Illy"
     given-names: "Gergő"
-repository-code: "https://github.com/ger1e/cti-enrichment-gateway"
-url: "https://github.com/ger1e/cti-enrichment-gateway"
+repository-code: "https://github.com/ger1e/para11ax"
+url: "https://github.com/ger1e/para11ax"
 keywords:
   - cyber threat intelligence
   - CTI enrichment

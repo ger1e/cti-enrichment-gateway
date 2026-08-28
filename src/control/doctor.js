@@ -19,7 +19,7 @@ export function collectDoctorState(env = process.env) {
     }),
     configuration: Object.freeze({
       providersConfigured,
-      gatewayTokenConfigured: typeof env.CTI_GATEWAY_TOKEN === 'string' && env.CTI_GATEWAY_TOKEN.length > 0,
+      gatewayTokenConfigured: typeof env.PARA11AX_TOKEN === 'string' && env.PARA11AX_TOKEN.length > 0,
       observabilityConfigured: typeof env.SENTRY_AUTH_TOKEN === 'string' && env.SENTRY_AUTH_TOKEN.length > 0,
     }),
   });

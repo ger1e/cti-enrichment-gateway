@@ -11,7 +11,7 @@
 **Spec:** `docs/superpowers/specs/2026-08-22-decision-grade-evidence-max-design.md`
 
 ## Global Constraints
-- Preserve `/api/enrich`, `/api/batch`, `/api/stix`, `/api/meta`, `/api/health`, and `/api/status` paths and methods.
+- Preserve `/api/para11ax/enrich`, `/api/para11ax/batch`, `/api/para11ax/stix`, `/api/para11ax/meta`, `/api/para11ax/health`, and `/api/para11ax/status` paths and methods.
 - Changes are additive only; preserve existing response fields.
 - No new providers, frameworks, databases, queues, cache services, ML/LLM verdicting, client-side secrets, or public endpoint paths.
 - Keep provider concurrency <= 4 and request deadline <= 20 seconds.
@@ -79,7 +79,7 @@
 
 - [ ] Add failing telemetry test emitting representative provider outcomes and asserting exact deterministic aggregate counts.
 - [ ] Add failing adversarial test with indicator/secret-shaped arbitrary input proving stats cannot retain them.
-- [ ] Add failing `/api/status` test proving authenticated status exposes only aggregate provider outcome counts and unauthenticated status remains 401.
+- [ ] Add failing `/api/para11ax/status` test proving authenticated status exposes only aggregate provider outcome counts and unauthenticated status remains 401.
 - [ ] Run telemetry/status tests and confirm RED.
 - [ ] Implement bounded provider outcome maps only for the five approved statuses; ignore unknown statuses for this aggregate while preserving existing `byStatus` behavior.
 - [ ] Ensure provider execution paths emit normalized countable outcomes without adding raw error text or provider payload data.
@@ -121,5 +121,5 @@
 - [ ] Squash merge only the exact verified head SHA.
 - [ ] Require fresh `main` Tooling smoke success after merge.
 - [ ] Verify Vercel production is `READY` from the exact merge SHA.
-- [ ] Verify live `/api/meta` returns 200 with no secret/config state and unauthenticated `/api/status` returns 401.
+- [ ] Verify live `/api/para11ax/meta` returns 200 with no secret/config state and unauthenticated `/api/para11ax/status` returns 401.
 - [ ] Verify production runtime error clusters are zero; investigate any cluster before completion is claimed.

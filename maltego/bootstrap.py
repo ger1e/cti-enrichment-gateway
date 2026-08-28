@@ -19,12 +19,12 @@ from credential_store import CredentialStoreError, backend_name, delete_token, l
 ROOT = Path(__file__).resolve().parent
 VENV = ROOT / '.venv'
 REQUIREMENTS = ROOT / 'requirements.txt'
-MTZ = ROOT / 'cti-enrichment-gateway-local.mtz'
+MTZ = ROOT / 'para11ax-local.mtz'
 TRANSFORM_MANIFEST = ROOT / 'transform-manifest.json'
 PROVIDER_MANIFEST = ROOT.parent / 'config' / 'providers.json'
 MIN_PYTHON = (3, 10)
 PREFERRED_PYTHON = (3, 12)
-DEFAULT_GATEWAY_URL = 'https://cti-enrichment-gateway.vercel.app'
+DEFAULT_GATEWAY_URL = 'https://para11ax.vercel.app'
 MAX_CAPTURE_CHARS = 12_000
 MAX_MTZ_BYTES = 10_000_000
 MAX_MTZ_ENTRIES = 500
@@ -44,7 +44,7 @@ def _load_forbidden_mtz_tokens(path: Path = PROVIDER_MANIFEST) -> tuple[str, ...
         raise BootstrapError('provider manifest could not be read for MTZ verification') from exc
     if not isinstance(manifest, dict) or not manifest or len(manifest) > 64:
         raise BootstrapError('provider manifest is invalid for MTZ verification')
-    tokens = {'CTI_GATEWAY_TOKEN', 'SENTRY_AUTH_TOKEN'}
+    tokens = {'PARA11AX_TOKEN', 'SENTRY_AUTH_TOKEN'}
     for name, policy in manifest.items():
         if not isinstance(name, str) or not isinstance(policy, dict):
             raise BootstrapError('provider manifest contains invalid entries')
@@ -177,7 +177,7 @@ def remove_local_artifacts(
     credential_delete=delete_token,
 ) -> None:
     _safe_remove_tree(root / '.venv', root=root)
-    (root / 'cti-enrichment-gateway-local.mtz').unlink(missing_ok=True)
+    (root / 'para11ax-local.mtz').unlink(missing_ok=True)
     if delete_credential:
         credential_delete()
 
@@ -332,7 +332,7 @@ def _credential_ready(*, non_interactive: bool) -> str:
         backend = backend_name()
     except CredentialStoreError as backend_error:
         raise BootstrapError(str(backend_error)) from backend_error
-    token = getpass.getpass(f'CTI_GATEWAY_TOKEN (stored via {backend}): ').strip()
+    token = getpass.getpass(f'PARA11AX_TOKEN (stored via {backend}): ').strip()
     if not token:
         raise BootstrapError('gateway token cannot be empty')
     try:
@@ -365,7 +365,7 @@ def check_state(*, gateway_url: str) -> dict[str, str]:
 
 
 def print_ready(state: dict[str, str]) -> None:
-    print('CTI Gateway / Maltego')
+    print('PARA11AX / Maltego')
     print(f"Platform             {state['platform']}")
     print(f"Python               {state['python']} PASS")
     print(f"Virtual environment  {state['venv']} PASS")
@@ -397,7 +397,7 @@ def install(*, gateway_url: str, update: bool, non_interactive: bool, verbose: b
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description='CTI Gateway Maltego bootstrap')
+    parser = argparse.ArgumentParser(description='PARA11AX Maltego bootstrap')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--check', action='store_true', help='read-only readiness check')
     mode.add_argument('--repair', action='store_true', help='repair/rebuild local runtime when needed')
@@ -405,7 +405,7 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument('--uninstall', action='store_true', help='remove local runtime and generated MTZ')
     parser.add_argument('--delete-credential', action='store_true', help='with --uninstall, also remove the OS credential')
     parser.add_argument('--non-interactive', action='store_true', help='never prompt for credentials')
-    parser.add_argument('--gateway-url', default=os.environ.get('CTI_GATEWAY_URL', DEFAULT_GATEWAY_URL))
+    parser.add_argument('--gateway-url', default=os.environ.get('PARA11AX_URL', DEFAULT_GATEWAY_URL))
     parser.add_argument('--verbose', action='store_true')
     return parser
 

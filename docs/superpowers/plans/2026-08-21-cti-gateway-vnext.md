@@ -1,8 +1,8 @@
-# CTI Enrichment Gateway vNext Implementation Plan
+# PARA11AX vNext Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Deliver the ultimate bounded personal CTI enrichment gateway: deterministic, read-only, fixed-egress, provenance-rich, resilient, batch/STIX capable, Maltego-compatible, fully tested and independently release-verifiable.
+**Goal:** Deliver the ultimate bounded personal PARA11AX gateway: deterministic, read-only, fixed-egress, provenance-rich, resilient, batch/STIX capable, Maltego-compatible, fully tested and independently release-verifiable.
 
 **Architecture:** Preserve the existing adapter/registry/orchestrator design and zero-runtime-dependency posture. Add focused modules for provider metadata, egress control, bounded scheduling, evidence v2, correlation, telemetry, STIX export and release metadata; keep all active network destinations fixed in code and all state ephemeral/bounded.
 
@@ -19,7 +19,7 @@
 - Malformed/redirected/oversized source data fails closed and never becomes negative intelligence.
 - Request/provider/cache/batch/relationship/output limits are finite and statically testable.
 - Runtime remains Node.js 24.x and adds no npm runtime dependency.
-- Existing `/api/enrich` required fields remain backward compatible; vNext fields are additive.
+- Existing `/api/para11ax/enrich` required fields remain backward compatible; vNext fields are additive.
 - Every runtime task follows RED → minimal GREEN → full `npm run check` → merge-tree `Tooling smoke` → squash merge → exact-main verification.
 - Production acceptance is separate from repository acceptance.
 
@@ -169,12 +169,12 @@ assert.equal(await Promise.all([cache.getOrLoad('p:k', load), cache.getOrLoad('p
 - Test: `test/batch-api.test.js`
 
 **Interfaces:**
-- `POST /api/batch` body `{indicators:string[1..20], profile?:'fast'|'standard'|'full'}`.
+- `POST /api/para11ax/batch` body `{indicators:string[1..20], profile?:'fast'|'standard'|'full'}`.
 - Max 20 inputs, max 200 provider calls globally, max 3 indicators active, one request deadline, canonical duplicates collapsed before work and re-associated in output.
 
 - [ ] **Step 1: RED tests.** Unauthorized/method/media/body limits; 21 inputs rejected; duplicates perform provider work once; invalid individual indicator is represented independently; no provider override accepted; batch deadline/call-budget exhaustion is explicit.
 - [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement `runBatch()` using the same classifier/profile/scheduler as `/api/enrich`.** Do not duplicate provider routing logic.
+- [ ] **Step 3: Implement `runBatch()` using the same classifier/profile/scheduler as `/api/para11ax/enrich`.** Do not duplicate provider routing logic.
 - [ ] **Step 4: GREEN/full gate.**
 - [ ] **Step 5: PR `vnext/07-batch`; verify/merge.**
 
@@ -192,7 +192,7 @@ assert.equal(await Promise.all([cache.getOrLoad('p:k', load), cache.getOrLoad('p
 
 - [ ] **Step 1: RED tests.** Valid patterns for IPv4/IPv6/domain/url/file hashes/CVE where defensible; escaping; ATT&CK STIX ID preservation; malware/actor objects only from supported relationships; external references sanitized; no fabricated confidence; object cap enforced.
 - [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement pure mapper and authenticated `POST /api/stix` that performs normal enrichment first.**
+- [ ] **Step 3: Implement pure mapper and authenticated `POST /api/para11ax/stix` that performs normal enrichment first.**
 - [ ] **Step 4: GREEN/full gate.**
 - [ ] **Step 5: PR `vnext/08-stix`; verify/merge.**
 
@@ -209,8 +209,8 @@ assert.equal(await Promise.all([cache.getOrLoad('p:k', load), cache.getOrLoad('p
 - Test: `test/telemetry.test.js`
 
 **Interfaces:**
-- Public `GET /api/meta`: versions, types, profiles, static provider capabilities and hard limits only.
-- Bearer `GET /api/status`: configuration booleans, parser versions, circuit/cache count-only stats, uptime/counters; no raw prior indicators or secrets.
+- Public `GET /api/para11ax/meta`: versions, types, profiles, static provider capabilities and hard limits only.
+- Bearer `GET /api/para11ax/status`: configuration booleans, parser versions, circuit/cache count-only stats, uptime/counters; no raw prior indicators or secrets.
 - `telemetry.emit(event)` is no-op by default and never receives provider credential values.
 
 - [ ] **Step 1: RED tests for information boundaries and `Cache-Control: no-store` on authenticated status.**
@@ -303,5 +303,5 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 .\scripts\finalize.ps1
 ```
 
-- [ ] **Step 5: Production smoke acceptance after deployment.** Authenticated protected `/api/health`; public `/api/meta`; bearer `/api/status`; one bounded public-source enrichment; one configured credentialed-source enrichment; confirm no secret reflection in responses/log surfaces.
+- [ ] **Step 5: Production smoke acceptance after deployment.** Authenticated protected `/api/para11ax/health`; public `/api/para11ax/meta`; bearer `/api/para11ax/status`; one bounded public-source enrichment; one configured credentialed-source enrichment; confirm no secret reflection in responses/log surfaces.
 - [ ] **Step 6: Final report must separate repository-complete, production-complete, and any gated/omitted source class. No completion claim without fresh evidence.**

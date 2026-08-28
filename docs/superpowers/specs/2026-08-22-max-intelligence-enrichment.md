@@ -1,10 +1,10 @@
 # MAX Intelligence Enrichment Design
 
 ## Goal
-Strengthen the existing CTI enrichment gateway without changing its public API shape or adding infrastructure dependencies. Improve evidence quality, infrastructure correlation, provider observability, and production safety around Modat and peer providers.
+Strengthen the existing PARA11AX gateway without changing its public API shape or adding infrastructure dependencies. Improve evidence quality, infrastructure correlation, provider observability, and production safety around Modat and peer providers.
 
 ## Constraints
-- Preserve current `/api/enrich`, `/api/batch`, `/api/stix`, `/api/meta`, `/api/health`, and `/api/status` contracts.
+- Preserve current `/api/para11ax/enrich`, `/api/para11ax/batch`, `/api/para11ax/stix`, `/api/para11ax/meta`, `/api/para11ax/health`, and `/api/para11ax/status` contracts.
 - No new framework, database, queue, cache service, agent subsystem, or direct client-side vendor credentials.
 - Secrets remain server-side Vercel environment variables.
 - Infrastructure observations such as internet exposure, passive DNS, routing and registration remain neutral context unless an independent reputation/threat source supplies a threat verdict.
@@ -22,7 +22,7 @@ Correlation exposes `infrastructureContext` for network indicators. It summarize
 The telemetry accumulator retains the existing sanitized event model and adds bounded aggregate counters by provider and status. No indicator, authorization header, secret, URL query, or response body is added to default telemetry.
 
 ### Status
-Authenticated `/api/status` continues returning aggregate telemetry only. New telemetry aggregates become visible there automatically through `telemetry.stats()`; secret values remain absent.
+Authenticated `/api/para11ax/status` continues returning aggregate telemetry only. New telemetry aggregates become visible there automatically through `telemetry.stats()`; secret values remain absent.
 
 ### Modat safety
 Modat remains fixed to `api.magnify.modat.io`, tier 3/quota, server-side Bearer auth, bounded responses, fail-closed parsing, positive/negative cache TTLs, and neutral `observed` verdicts for infrastructure/passive-DNS facts.

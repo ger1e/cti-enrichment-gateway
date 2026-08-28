@@ -1,10 +1,10 @@
 {
-  "name": "cti-enrichment-gateway",
+  "name": "para11ax",
   "private": true,
   "version": "2.0.0",
   "type": "module",
   "bin": {
-    "cti": "./bin/cti.mjs"
+    "para11ax": "./bin/para11ax.mjs"
   },
   "scripts": {
     "bootstrap": "bash scripts/bootstrap-linux.sh",

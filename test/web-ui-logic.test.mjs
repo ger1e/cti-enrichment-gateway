@@ -11,7 +11,7 @@ test('gateway client uses relative same-origin bearer request', async () => {
   const calls = [];
   const client = createGatewayClient({ getToken: () => 'secret-token', fetchImpl: async (url, init) => { calls.push({ url, init }); return jsonResponse(200, { ready: true }); } });
   assert.deepEqual(await client.health(), { ready: true });
-  assert.equal(calls[0].url, '/api/health');
+  assert.equal(calls[0].url, '/api/para11ax/health');
   assert.equal(calls[0].init.credentials, 'same-origin');
   assert.equal(calls[0].init.headers.Authorization, 'Bearer secret-token');
 });

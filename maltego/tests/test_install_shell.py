@@ -23,7 +23,7 @@ class InstallShellTests(unittest.TestCase):
         self.assertIn('import bootstrap', ENTRY)
         self.assertIn('configure_token_interactively', ENTRY)
         self.assertIn("sys.platform != 'darwin'", ENTRY)
-        self.assertIn("os.environ.get('CTI_GATEWAY_TOKEN'", ENTRY)
+        self.assertIn("os.environ.get('PARA11AX_TOKEN'", ENTRY)
         self.assertIn('return bootstrap.main(args)', ENTRY)
 
     def test_shell_installer_considers_standard_homebrew_locations(self):
@@ -37,9 +37,9 @@ class InstallShellTests(unittest.TestCase):
         self.assertNotIn('raw.githubusercontent.com/Homebrew/install', SCRIPT)
 
     def test_shell_installer_contains_no_gateway_token_argument_or_plaintext_store(self):
-        self.assertNotIn('CTI_GATEWAY_TOKEN=', SCRIPT)
+        self.assertNotIn('PARA11AX_TOKEN=', SCRIPT)
         self.assertNotIn('.env', SCRIPT)
-        self.assertNotIn('echo "$CTI_GATEWAY_TOKEN"', SCRIPT)
+        self.assertNotIn('echo "$PARA11AX_TOKEN"', SCRIPT)
 
     def test_linux_guidance_covers_major_package_managers(self):
         for manager in ['apt-get', 'dnf', 'yum', 'zypper', 'pacman', 'apk']:

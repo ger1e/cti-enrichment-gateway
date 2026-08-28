@@ -80,4 +80,4 @@
 - [ ] Require green CI and review final diff.
 - [ ] Merge using the repository's existing safe merge path.
 - [ ] Verify Vercel production deployment is `READY`, sourced from merged `main`, and has no new runtime error clusters.
-- [ ] Verify public `/api/meta` remains non-secret and authenticated health/status boundaries remain unchanged.
+- [ ] Verify public `/api/para11ax/meta` remains non-secret and authenticated health/status boundaries remain unchanged.

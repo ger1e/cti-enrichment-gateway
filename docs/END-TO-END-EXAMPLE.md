@@ -6,10 +6,10 @@ This is a **sanitized structural example**, not captured production telemetry an
 
 ```bash
 curl --fail-with-body \
-  -H 'Authorization: Bearer <CTI_GATEWAY_TOKEN>' \
+  -H 'Authorization: Bearer <PARA11AX_TOKEN>' \
   -H 'Content-Type: application/json' \
   -d '{"indicator":"203.0.113.10","profile":"standard"}' \
-  https://<gateway>/api/enrich
+  https://<gateway>/api/para11ax/enrich
 ```
 
 The caller supplies only an indicator and a fixed profile. It cannot select an upstream provider, host, method, header or provider credential.
@@ -104,10 +104,10 @@ The same input can be sent to the bounded STIX surface:
 
 ```bash
 curl --fail-with-body \
-  -H 'Authorization: Bearer <CTI_GATEWAY_TOKEN>' \
+  -H 'Authorization: Bearer <PARA11AX_TOKEN>' \
   -H 'Content-Type: application/json' \
   -d '{"indicator":"203.0.113.10","profile":"standard"}' \
-  https://<gateway>/api/stix
+  https://<gateway>/api/para11ax/stix
 ```
 
 The gateway enriches first and then maps only defensible evidence into a STIX 2.1 Bundle. Callers cannot inject their own enrichment object into the exporter. The bundle is capped at 100 objects.
@@ -117,7 +117,7 @@ The gateway enriches first and then maps only defensible evidence into a STIX 2.
 A frozen gateway evidence snapshot can be compiled without any network calls:
 
 ```bash
-cti report compile snapshot.json --out ./report --preset all
+para11ax report compile snapshot.json --out ./report --preset all
 ```
 
 The report quality gate runs before artifacts are written. The resulting bundle can contain deterministic HTML/PDF/text, evidence JSON, STIX, observables CSV, KQL hunt material, ATT&CK Navigator data and a SHA-256 manifest.

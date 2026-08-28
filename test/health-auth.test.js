@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 
-const env = { CTI_GATEWAY_TOKEN: 'health-secret', SHODAN_API_KEY: 'provider-secret' };
+const env = { PARA11AX_TOKEN: 'health-secret', SHODAN_API_KEY: 'provider-secret' };
 
 function request(auth = true, method = 'GET') {
-  return { method, headers: auth ? { authorization: `Bearer ${env.CTI_GATEWAY_TOKEN}` } : {} };
+  return { method, headers: auth ? { authorization: `Bearer ${env.PARA11AX_TOKEN}` } : {} };
 }
 
 test('health rejects unauthenticated callers and uses no-store', async () => {

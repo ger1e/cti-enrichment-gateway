@@ -50,11 +50,11 @@ function serializePdf(objects) {
 }
 
 export function renderPdf(model) {
-  const sourceLines = ['CTI Enrichment Gateway', ...renderText(model).split(/\r?\n/)];
+  const sourceLines = ['PARA11AX', ...renderText(model).split(/\r?\n/)];
   const wrapped = sourceLines.flatMap(wrapLine);
   const pages = [];
   for (let index = 0; index < wrapped.length; index += PAGE_LINES) pages.push(wrapped.slice(index, index + PAGE_LINES));
-  if (!pages.length) pages.push(['CTI Enrichment Gateway']);
+  if (!pages.length) pages.push(['PARA11AX']);
 
   const objectCount = 3 + pages.length * 2;
   const objects = new Array(objectCount + 1);

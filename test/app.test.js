@@ -5,13 +5,13 @@ import { TtlCache } from '../src/core/cache.js';
 import { rdapProvider, cisaKevProvider, epssProvider } from '../src/providers/index.js';
 
 const env = {
-  CTI_GATEWAY_TOKEN: 'super-secret-gateway-token',
+  PARA11AX_TOKEN: 'super-secret-gateway-token',
   SHODAN_API_KEY: 'shodan-secret',
   MALPEDIA_API_TOKEN: 'malpedia-secret',
 };
 
 function req({ method = 'POST', auth = true, body = undefined, headers = {} } = {}) {
-  return { method, headers: { ...(auth ? { authorization: `Bearer ${env.CTI_GATEWAY_TOKEN}` } : {}), ...headers }, body };
+  return { method, headers: { ...(auth ? { authorization: `Bearer ${env.PARA11AX_TOKEN}` } : {}), ...headers }, body };
 }
 
 test('health exposes configuration booleans but never secret values', async () => {

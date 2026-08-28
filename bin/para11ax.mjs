@@ -4,19 +4,19 @@ import { printProviderList, printProviderEnvTemplate, runMaltegoCheck, runReleas
 import { probeProviders } from '../src/control/provider-probe.js';
 import { runReportCompile, runReportDiff } from '../src/control/report-commands.js';
 
-const HELP = `cti-enrichment-gateway operator CLI
+const HELP = `PARA11AX operator CLI
 
 Usage:
-  cti doctor
-  cti providers list
-  cti providers env-template
-  cti providers probe [--all] [--provider <name>]
-  cti maltego check
-  cti release verify
-  cti setup
-  cti repair
-  cti report compile <snapshot.json> --out <dir> [--preset <name>] [--generated-at <ISO8601>] [--source-sha <SHA1>]
-  cti report diff <before.json> <after.json>
+  para11ax doctor
+  para11ax providers list
+  para11ax providers env-template
+  para11ax providers probe [--all] [--provider <name>]
+  para11ax maltego check
+  para11ax release verify
+  para11ax setup
+  para11ax repair
+  para11ax report compile <snapshot.json> --out <dir> [--preset <name>] [--generated-at <ISO8601>] [--source-sha <SHA1>]
+  para11ax report diff <before.json> <after.json>
 `;
 
 function fail(message, code = 2) {

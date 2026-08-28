@@ -60,7 +60,7 @@ test('quality gate rejects unsafe references', () => {
 });
 
 test('quality gate rejects known secret identifiers and secret-like values anywhere in output', () => {
-  expectViolation(model => { model.limitations.push('CTI_GATEWAY_TOKEN'); }, 'secret_material');
+  expectViolation(model => { model.limitations.push('PARA11AX_TOKEN'); }, 'secret_material');
   expectViolation(model => { model.limitations.push('sk-live-1234567890abcdefghijklmnop'); }, 'secret_material');
 });
 

@@ -1,6 +1,6 @@
 ### Providers
 
-The executable provider registry is the source of truth. `release-manifest.json` records every active adapter and parser version; `/api/meta` exposes static capabilities without credential configuration state.
+The executable provider registry is the source of truth. `release-manifest.json` records every active adapter and parser version; `/api/para11ax/meta` exposes static capabilities without credential configuration state.
 
 #### Registry contract
 
@@ -74,7 +74,7 @@ No active scanning is performed.
 A provider can be:
 
 - **Implemented:** adapter exists and repository tests pass.
-- **Configured:** required runtime secret is present; check authenticated `/api/status`.
+- **Configured:** required runtime secret is present; check authenticated `/api/para11ax/status`.
 - **Production-verified:** the provider completed a smoke enrichment on the exact deployed source SHA.
 - **Unavailable/gap:** provider is intentionally omitted, unconfigured or failed the source/boundedness gate.
 

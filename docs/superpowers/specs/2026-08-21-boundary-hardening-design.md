@@ -1,9 +1,9 @@
-# CTI Enrichment Gateway — Final Boundary Hardening Design
+# PARA11AX — Final Boundary Hardening Design
 
 Date: 2026-08-21
 Status: approved design, pending implementation plan
 Base: `main` at `71c2bf331d279fb7a0ddd3532ffb4909ab0a6042`
-Scope: personal, read-only CTI enrichment gateway
+Scope: personal, read-only PARA11AX gateway
 
 ## 1. Objective
 
@@ -67,7 +67,7 @@ RED tests must establish all of the following before implementation:
 
 #### Confirmed defect
 
-`/api/health` is now application-bearer protected, but `scripts/bootstrap-vercel.ps1` still verifies it through `vercel curl` without supplying the gateway Authorization header. `vercel curl` can satisfy Vercel Deployment Protection, but does not satisfy the gateway's own bearer check by itself.
+`/api/para11ax/health` is now application-bearer protected, but `scripts/bootstrap-vercel.ps1` still verifies it through `vercel curl` without supplying the gateway Authorization header. `vercel curl` can satisfy Vercel Deployment Protection, but does not satisfy the gateway's own bearer check by itself.
 
 The next full local finalization can therefore fail at the post-deployment health step even when production is healthy.
 
@@ -78,7 +78,7 @@ Keep the existing DPAPI trust boundary and use the already-stored gateway token 
 Behavior:
 
 - `Verify-ProductionHealth` receives or obtains the current DPAPI-protected gateway token without printing it.
-- Invoke `vercel curl` against `/api/health` and pass native curl flags after `--`, including `Authorization: Bearer <token>`.
+- Invoke `vercel curl` against `/api/para11ax/health` and pass native curl flags after `--`, including `Authorization: Bearer <token>`.
 - Preserve `--deployment` and `--scope` so Vercel Deployment Protection and project scoping remain handled by the CLI.
 - Parse JSON exactly as today and require `status == ok` and `gatewayAuthConfigured == true`.
 - Clear the plaintext variable immediately after use.
@@ -92,7 +92,7 @@ The implementation plan must verify the exact Vercel CLI syntax against current 
 Strengthen `test/production-health.test.js` so it fails unless the production-health function:
 
 - uses `vercel curl`;
-- targets `/api/health` through the production deployment alias;
+- targets `/api/para11ax/health` through the production deployment alias;
 - supplies an application Authorization header via native curl flags;
 - obtains the value through the existing DPAPI token path rather than an environment-file secret;
 - never contains a literal token value;
@@ -242,8 +242,8 @@ Required final gates:
 - squash merge only with the expected reviewed head SHA;
 - post-merge final `main` status success;
 - production Vercel deployment `READY` on the exact final `main` SHA;
-- live `/api/meta` 200;
-- live unauthenticated `/api/health` and `/api/status` 401 with `Cache-Control: no-store`;
+- live `/api/para11ax/meta` 200;
+- live unauthenticated `/api/para11ax/health` and `/api/para11ax/status` 401 with `Cache-Control: no-store`;
 - current production runtime error check clean.
 
 A positive authenticated live smoke remains restricted to a trusted context that can use the DPAPI-protected gateway bearer without exposing it to chat or connector output. The repository bootstrap/finalizer is the canonical place for that acceptance check.

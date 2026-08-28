@@ -24,7 +24,7 @@ def write_manifest(path: Path) -> None:
 
 
 def write_good_mtz(path: Path, extra: str = '') -> None:
-    content = '\n'.join(CLASSES) + '\nhttps://cti-enrichment-gateway.vercel.app\n' + extra
+    content = '\n'.join(CLASSES) + '\nhttps://para11ax.vercel.app\n' + extra
     with zipfile.ZipFile(path, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr('TransformRepositories/Local/transforms.txt', content)
         archive.writestr('Servers/Local/server.txt', 'local-transform-config')
@@ -58,7 +58,7 @@ class MtzIntegrityTests(unittest.TestCase):
             root = Path(tmp)
             manifest = root / 'manifest.json'
             write_manifest(manifest)
-            for extra in ['VIRUSTOTAL_API_KEY', 'CTI_GATEWAY_TOKEN', 'http://localhost:3000']:
+            for extra in ['VIRUSTOTAL_API_KEY', 'PARA11AX_TOKEN', 'http://localhost:3000']:
                 mtz = root / f"bad-{len(extra)}.mtz"
                 write_good_mtz(mtz, extra)
                 with self.subTest(extra=extra):

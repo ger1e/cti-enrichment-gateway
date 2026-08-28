@@ -20,11 +20,11 @@ def prepare_native_credential(argv: list[str]) -> None:
 
     macOS Keychain's `security ... -w` prompt is intentionally attached directly to
     the user's terminal. Other platforms remain handled by bootstrap.py, and an
-    explicit CTI_GATEWAY_TOKEN environment override is never persisted implicitly.
+    explicit PARA11AX_TOKEN environment override is never persisted implicitly.
     """
     if sys.platform != 'darwin' or not _is_setup_mode(argv):
         return
-    if os.environ.get('CTI_GATEWAY_TOKEN', '').strip():
+    if os.environ.get('PARA11AX_TOKEN', '').strip():
         return
     try:
         load_token()

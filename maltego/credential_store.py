@@ -8,11 +8,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-APP_DIR = Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'CTIEnrichmentGateway'
+APP_DIR = Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'PARA11AX'
 TOKEN_FILE = APP_DIR / 'gateway-token.dpapi'
-KEYCHAIN_SERVICE = 'cti-enrichment-gateway'
+KEYCHAIN_SERVICE = 'para11ax'
 KEYCHAIN_ACCOUNT = 'gateway-token'
-SECRET_LABEL = 'CTI Enrichment Gateway token'
+SECRET_LABEL = 'PARA11AX token'
 COMMAND_TIMEOUT_SECONDS = 10
 
 
@@ -88,13 +88,13 @@ def _native_backend_name() -> str:
             return 'linux-secret-service'
         raise CredentialStoreError(
             'no secure Linux credential backend is available; install libsecret/secret-tool '
-            'or set CTI_GATEWAY_TOKEN for the current process'
+            'or set PARA11AX_TOKEN for the current process'
         )
     raise CredentialStoreError(f'no supported secure credential backend for platform {sys.platform!r}')
 
 
 def backend_name() -> str:
-    if os.environ.get('CTI_GATEWAY_TOKEN', '').strip():
+    if os.environ.get('PARA11AX_TOKEN', '').strip():
         return 'environment'
     return _native_backend_name()
 
@@ -140,7 +140,7 @@ def _save_windows(token: str, path: Path) -> Path:
 
 def _load_windows(path: Path) -> str:
     if not path.exists():
-        raise CredentialStoreError('gateway token is not configured; run the platform installer or set CTI_GATEWAY_TOKEN')
+        raise CredentialStoreError('gateway token is not configured; run the platform installer or set PARA11AX_TOKEN')
     try:
         protected = base64.b64decode(path.read_text(encoding='ascii'), validate=True)
         token = _unprotect(protected).decode('utf-8').strip()
@@ -200,7 +200,7 @@ def _secret_tool() -> str:
     if not command:
         raise CredentialStoreError(
             'no secure Linux credential backend is available; install libsecret/secret-tool '
-            'or set CTI_GATEWAY_TOKEN for the current process'
+            'or set PARA11AX_TOKEN for the current process'
         )
     return command
 
@@ -221,7 +221,7 @@ def _load_linux() -> str:
     ])
     token = result.stdout.strip()
     if not token:
-        raise CredentialStoreError('gateway token is not configured; run the platform installer or set CTI_GATEWAY_TOKEN')
+        raise CredentialStoreError('gateway token is not configured; run the platform installer or set PARA11AX_TOKEN')
     return token
 
 
@@ -259,7 +259,7 @@ def save_token(token: str, path: Path = TOKEN_FILE) -> Path | None:
 
 
 def load_token(path: Path = TOKEN_FILE) -> str:
-    env_token = os.environ.get('CTI_GATEWAY_TOKEN', '').strip()
+    env_token = os.environ.get('PARA11AX_TOKEN', '').strip()
     if env_token:
         return env_token
     backend = _native_backend_name()

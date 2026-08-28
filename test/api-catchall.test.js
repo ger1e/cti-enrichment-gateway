@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler from '../api/[...path].js';
+import handler from '../api/para11ax/[...path].js';
 
 function fakeResponse() {
   return {
@@ -13,7 +13,7 @@ function fakeResponse() {
 }
 
 test('unknown API routes fail closed as JSON by default', async () => {
-  const req = { method: 'GET', headers: { accept: 'application/json' }, url: '/api/nope' };
+  const req = { method: 'GET', headers: { accept: 'application/json' }, url: '/api/para11ax/nope' };
   const res = fakeResponse();
   await handler(req, res);
   assert.equal(res.statusCode, 404);
@@ -25,7 +25,7 @@ test('unknown API routes fail closed as JSON by default', async () => {
 });
 
 test('unknown API routes render the branded 404 for browser clients', async () => {
-  const req = { method: 'GET', headers: { accept: 'text/html' }, url: '/api/nope' };
+  const req = { method: 'GET', headers: { accept: 'text/html' }, url: '/api/para11ax/nope' };
   const res = fakeResponse();
   await handler(req, res);
   assert.equal(res.statusCode, 404);

@@ -30,13 +30,13 @@ test('unexpected handler failures emit correlation-safe telemetry without except
     get() { throw new Error(secretMarker); },
     stats() { return { entries: 0, inflight: 0, hits: 0, misses: 0, evictions: 0, expirations: 0 }; },
   };
-  const env = { CTI_GATEWAY_TOKEN: 'gateway-test-token' };
+  const env = { PARA11AX_TOKEN: 'gateway-test-token' };
   const app = createApp({ env, cache, telemetry });
   const result = await app.handleEnrich({
     method: 'POST',
     headers: {
       accept: 'application/json',
-      authorization: `Bearer ${env.CTI_GATEWAY_TOKEN}`,
+      authorization: `Bearer ${env.PARA11AX_TOKEN}`,
       'content-type': 'application/json',
     },
     body: { indicator: '8.8.8.8' },

@@ -1,6 +1,6 @@
 ### Contributing
 
-This repository is a private personal-research/lab CTI enrichment gateway. Changes should preserve its read-only, bounded, evidence-first design.
+This repository is a private personal-research/lab PARA11AX gateway. Changes should preserve its read-only, bounded, evidence-first design.
 
 #### Before changing code
 

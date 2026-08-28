@@ -5,7 +5,7 @@
 Keep these states separate:
 
 1. **Repository-complete:** exact `main` passes repository, Node, Maltego, Python, PowerShell, ShellCheck and public-release gates.
-2. **Configured:** required Vercel/runtime secrets exist. `/api/status` reports booleans only.
+2. **Configured:** required Vercel/runtime secrets exist. `/api/para11ax/status` reports booleans only.
 3. **Production-complete:** the deployed Vercel source SHA equals exact verified `main` and production smoke tests pass against that deployment.
 
 Do not call production complete from repository CI alone.
@@ -54,9 +54,9 @@ Acceptance is against one exact source SHA. Verify deployment metadata first; re
 
 Required smoke set:
 
-- protected `GET /api/health`
-- public `GET /api/meta`
-- bearer `GET /api/status` and `Cache-Control: no-store`
+- protected `GET /api/para11ax/health`
+- public `GET /api/para11ax/meta`
+- bearer `GET /api/para11ax/status` and `Cache-Control: no-store`
 - one bounded public-source enrichment
 - one configured credentialed-source enrichment
 - no credential or bearer reflection in response bodies/error surfaces
@@ -65,7 +65,7 @@ Required smoke set:
 For provider readiness, use the sequential secret-safe probe in the credential-bearing operator environment:
 
 ```bash
-cti providers probe --all
+para11ax providers probe --all
 ```
 
 The probe distinguishes `ok`, `unconfigured`, `auth_failed`, `rate_limited`, `timeout`, `upstream_error`, and `contract_error`. Never reinterpret `unconfigured`, upstream failure, or feed absence as a clean verdict.
@@ -74,7 +74,7 @@ The probe distinguishes `ok`, `unconfigured`, `auth_failed`, `rate_limited`, `ti
 
 - Keep `.env*` except `.env.example` untracked.
 - Store production secrets in Vercel/project secret storage, not Git.
-- Rotate `CTI_GATEWAY_TOKEN` if exposed; clients must update their bearer after rotation.
+- Rotate `PARA11AX_TOKEN` if exposed; clients must update their bearer after rotation.
 - Rotate an affected provider credential independently. Other provider secrets should not need rotation merely because one provider token changed.
 - Sentry auth remains observability-only; do not send CTI evidence or raw queried indicators to Sentry.
 
@@ -88,7 +88,7 @@ When a provider degrades:
 - successful providers continue and response status becomes partial where applicable
 - do not convert provider outage into a `not_listed`/clean verdict
 
-Use authenticated `/api/status` for count-only circuit/cache/configuration state. Do not add raw IOC history to the status surface.
+Use authenticated `/api/para11ax/status` for count-only circuit/cache/configuration state. Do not add raw IOC history to the status surface.
 
 #### Parser/source changes
 

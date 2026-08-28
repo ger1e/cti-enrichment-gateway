@@ -18,7 +18,7 @@ class ProviderManifestParityTests(unittest.TestCase):
             for policy in manifest.values()
             if policy.get('credentialEnv')
         }
-        expected.update({'CTI_GATEWAY_TOKEN', 'SENTRY_AUTH_TOKEN'})
+        expected.update({'PARA11AX_TOKEN', 'SENTRY_AUTH_TOKEN'})
         self.assertEqual(set(bootstrap.FORBIDDEN_MTZ_TOKENS), expected)
         self.assertIn('MODAT_API_KEY', bootstrap.FORBIDDEN_MTZ_TOKENS)
 

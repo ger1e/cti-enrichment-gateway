@@ -15,7 +15,7 @@ function adapter() {
 function get(token = null) { return { method: 'GET', headers: token ? { authorization: `Bearer ${token}` } : {} }; }
 
 test('public meta exposes static capabilities and hard limits but no secret names or configuration state', async () => {
-  const app = createApp({ env: { CTI_GATEWAY_TOKEN: 'gateway', RDAP_SECRET_TEST: 'actual-secret' }, adapters: [adapter()] });
+  const app = createApp({ env: { PARA11AX_TOKEN: 'gateway', RDAP_SECRET_TEST: 'actual-secret' }, adapters: [adapter()] });
   const out = await app.handleMeta(get());
   assert.equal(out.status, 200);
   assert.equal(out.body.gatewayVersion, '2.0.0');
@@ -39,7 +39,7 @@ test('authenticated status is no-store and aggregate-only', async () => {
   telemetry.emit({ event: 'request_start', requestId: 'r1', type: 'ip', indicator: '192.0.2.44', status: 'start' });
   telemetry.emit({ event: 'provider_complete', requestId: 'r1', type: 'ip', provider: 'rdap', status: 'ok', indicator: '192.0.2.44', authorization: 'Bearer actual-secret' });
   telemetry.emit({ event: 'provider_outcome', requestId: 'r1', type: 'ip', provider: 'rdap', status: 'success', indicator: '192.0.2.44', authorization: 'Bearer actual-secret' });
-  const app = createApp({ env: { CTI_GATEWAY_TOKEN: 'gateway', RDAP_SECRET_TEST: 'actual-secret' }, adapters: [adapter()], cache, telemetry, nowMs: () => now });
+  const app = createApp({ env: { PARA11AX_TOKEN: 'gateway', RDAP_SECRET_TEST: 'actual-secret' }, adapters: [adapter()], cache, telemetry, nowMs: () => now });
   assert.equal((await app.handleStatus(get())).status, 401);
   now = 1500;
   const out = await app.handleStatus(get('gateway'));
@@ -60,7 +60,7 @@ test('authenticated status is no-store and aggregate-only', async () => {
 });
 
 test('meta and status are GET-only', async () => {
-  const app = createApp({ env: { CTI_GATEWAY_TOKEN: 'gateway' }, adapters: [adapter()] });
+  const app = createApp({ env: { PARA11AX_TOKEN: 'gateway' }, adapters: [adapter()] });
   assert.equal((await app.handleMeta({ method: 'POST', headers: {} })).status, 405);
   assert.equal((await app.handleStatus({ method: 'POST', headers: { authorization: 'Bearer gateway' } })).status, 405);
 });
