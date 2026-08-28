@@ -38,13 +38,31 @@ test('clicking terminal chrome refocuses the command line without stealing text 
   assert.match(deck, /\.shell-input['"]\)\?\.focus\(\{\s*preventScroll:\s*true\s*\}\)/);
 });
 
-test('browser-owned PARA11AX surfaces share one local custom cursor system', () => {
+test('browser-owned PARA11AX surfaces use distinct tactical default and actionable cursors', () => {
   assert.equal(existsSync('site-cursor.css'), true, 'shared cursor stylesheet must exist');
-  assert.equal(existsSync('assets/brand/para11ax-cursor.svg'), true, 'local cursor asset must exist');
+  assert.equal(existsSync('assets/brand/para11ax-cursor.svg'), true, 'default cursor asset must exist');
+  assert.equal(existsSync('assets/brand/para11ax-cursor-target.svg'), true, 'actionable cursor asset must exist');
+
   const cursorCss = read('site-cursor.css');
-  assert.match(cursorCss, /url\(['"]?\/assets\/brand\/para11ax-cursor\.svg/i);
+  const defaultCursor = read('assets/brand/para11ax-cursor.svg');
+  const targetCursor = read('assets/brand/para11ax-cursor-target.svg');
+
+  assert.match(cursorCss, /--para11ax-cursor:url\(['"]?\/assets\/brand\/para11ax-cursor\.svg['"]?\)\s+1\s+1/i);
+  assert.match(cursorCss, /--para11ax-cursor-target:url\(['"]?\/assets\/brand\/para11ax-cursor-target\.svg['"]?\)\s+14\s+14/i);
+  assert.match(cursorCss, /a\[href\][\s\S]*cursor:var\(--para11ax-cursor-target\),pointer/i);
   assert.match(cursorCss, /cursor:\s*text/i, 'selectable terminal and document text must retain text selection semantics');
   assert.doesNotMatch(cursorCss, /https?:\/\//i, 'cursor layer must not load remote assets');
+
+  for (const svg of [defaultCursor, targetCursor]) {
+    assert.match(svg, /width=['"]28['"]/i);
+    assert.match(svg, /height=['"]28['"]/i);
+    assert.match(svg, /#39FF14/i);
+    assert.match(svg, /#020403/i);
+  }
+  assert.match(defaultCursor, /#FF2438/i, 'default cursor keeps a restrained scanner notch');
+  assert.match(targetCursor, /#FF2438/i, 'action cursor uses red acquisition accents');
+  assert.doesNotMatch(defaultCursor, /<circle/i, 'default cursor must not regress to detached crosshair ornament');
+
   assert.match(read('app/analyst-deck.js'), /CURSOR_HREF\s*=\s*['"]\/site-cursor\.css['"]/);
   assert.match(read('landing-terminal-v7.js'), /CURSOR_HREF\s*=\s*['"]\/site-cursor\.css['"]/);
   for (const path of ['403.html', '404.html', '500.html']) {
