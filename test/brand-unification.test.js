@@ -23,7 +23,9 @@ test('shared compact logo assets remain compatible secondary marks', () => {
 });
 
 test('browser surfaces share one simplified phosphor sentinel favicon', () => {
-  assert.equal(existsSync('favicon.svg'), true, 'root favicon asset must exist');
+  assert.equal(existsSync('favicon.svg'), true, 'canonical favicon SVG must exist');
+  assert.equal(existsSync('favicon.ico'), true, 'root favicon fallback must exist for browser autodiscovery');
+
   const favicon = read('favicon.svg');
   assert.match(favicon, /viewBox=["']0 0 64 64["']/i);
   assert.match(favicon, /#020403/i, 'favicon must use the terminal background');
@@ -31,9 +33,16 @@ test('browser surfaces share one simplified phosphor sentinel favicon', () => {
   assert.doesNotMatch(favicon, /#FF2438/i, 'favicon must not carry the red anomaly accent');
   assert.doesNotMatch(favicon, /<text|<animate|<filter/i, 'favicon must stay simple at tab size');
 
+  const ico = readFileSync('favicon.ico');
+  assert.deepEqual([...ico.subarray(0, 4)], [0, 0, 1, 0], 'favicon.ico must be a valid ICO container');
+  assert.ok(ico.length > 128, 'favicon.ico must contain actual raster icon data');
+
   for (const path of ['landing-maxx.html', 'app/index.html', '403.html', '404.html', '500.html']) {
     const html = read(path);
-    assert.match(html, /<link\s+rel=["']icon["']\s+type=["']image\/svg\+xml["']\s+href=["']\/favicon\.svg["']\s*\/?>/i, `${path} must use the shared favicon`);
+    const declaredIcons = html.match(/<link\b[^>]*\brel=["'][^"']*icon[^"']*["'][^>]*>/gi) ?? [];
+    for (const icon of declaredIcons) {
+      assert.match(icon, /href=["']\/favicon\.(?:svg|ico)["']/i, `${path} must not override the shared root favicon`);
+    }
   }
 });
 
