@@ -36,10 +36,11 @@ test('boot uses PARA11AX-native services, dense OK statuses, kernel timestamps, 
   assert.doesNotMatch(source, /if\s*\(reducedMotion\)\s*\{[^}]*return\s+true[^}]*\}/);
 });
 
-test('interactive shell exposes the gateway prompt, secret auth mode and command scrollback', async () => {
+test('interactive shell exposes the analyst prompt, secret auth mode and command scrollback', async () => {
   const source = await read('app/shell-ui.js');
   const css = await read('app/shell.css');
-  assert.match(source, /para11ax@gateway:~\$/);
+  assert.match(source, /analyst@para11ax:~\$/);
+  assert.doesNotMatch(source, /para11ax@gateway:~\$/);
   assert.doesNotMatch(source, /para11ax@terminal:~\$/);
   assert.match(source, /hostname['"]\) appendLine\(['"]gateway['"]\)/);
   assert.match(source, /runEnrichmentOperation/);
