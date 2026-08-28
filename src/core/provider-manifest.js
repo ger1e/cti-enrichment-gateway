@@ -22,6 +22,11 @@ function entry(adapter) {
     parserVersion: adapter.parserVersion,
     sourceUrl: adapter.sourceUrl,
     active: adapter.active !== false,
+    sourceRole: adapter.sourceRole ?? null,
+    freshnessClass: adapter.freshnessClass ?? null,
+    admissionVersion: adapter.admissionVersion ?? null,
+    executionPolicy: adapter.executionPolicy ?? null,
+    distribution: adapter.distribution ?? null,
   });
 }
 
