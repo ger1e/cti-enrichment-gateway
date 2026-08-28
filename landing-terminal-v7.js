@@ -1,8 +1,17 @@
 const media = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
 const reduced = Boolean(media?.matches);
 const EXTRA_RAIN_COLUMNS = 16;
+const CURSOR_HREF = '/site-cursor.css';
 
 document.documentElement.dataset.terminalMotion = 'v7';
+
+function ensureCursorStylesheet() {
+  if (document.querySelector(`link[href="${CURSOR_HREF}"]`)) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = CURSOR_HREF;
+  document.head.append(link);
+}
 
 function densifyRain() {
   const rain = document.querySelector('.matrix-rain');
@@ -23,6 +32,7 @@ function densifyRain() {
   }
 }
 
+ensureCursorStylesheet();
 densifyRain();
 
 const reveal = (node) => node?.classList.add('is-visible');
@@ -71,4 +81,4 @@ media?.addEventListener?.('change', (event) => {
   else if (!glitchTimer && !resetTimer) scheduleGlitch();
 });
 
-export { EXTRA_RAIN_COLUMNS, clearMotionTimers, densifyRain };
+export { EXTRA_RAIN_COLUMNS, clearMotionTimers, densifyRain, ensureCursorStylesheet };
