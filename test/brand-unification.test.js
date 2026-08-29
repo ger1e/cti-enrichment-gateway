@@ -23,24 +23,31 @@ test('shared compact logo assets remain compatible secondary marks', () => {
 });
 
 test('landing hero wordmark matches the canonical white-green-white lockup split', () => {
-  const landing = read('landing-maxx.html');
+  const runtime = read('brand-unification.js');
+  const css = read('brand-unification.css');
   const lockup = read('assets/brand/para11ax-radar-lockup.svg');
   assert.match(lockup, /<tspan fill="#F7FFF6">PARA<\/tspan><tspan fill="#39FF14">11<\/tspan><tspan fill="#F7FFF6">AX<\/tspan>/i);
-  assert.match(landing, /<h1[^>]*class="ascii-logo"[^>]*>\s*<span class="logo-white">PARA<\/span>\s*<span class="logo-green">11<\/span>\s*<span class="logo-white">AX<\/span>\s*<\/h1>/i);
-  assert.match(landing, /\.ascii-logo \.logo-white\{[^}]*color:var\(--white\)/is);
-  assert.match(landing, /\.ascii-logo \.logo-green\{[^}]*color:var\(--green\)/is);
+  assert.match(runtime, /function\s+syncHeroWordmark\s*\(/i);
+  assert.match(runtime, /logo-white/i);
+  assert.match(runtime, /logo-green/i);
+  assert.match(css, /\.ascii-logo \.logo-white\s*\{[^}]*color:\s*#f7fff6/is);
+  assert.match(css, /\.ascii-logo \.logo-green\s*\{[^}]*color:\s*#39ff14/is);
 });
 
-test('browser surfaces share one simplified phosphor sentinel favicon', () => {
+test('browser surfaces share one simplified phosphor radar favicon', () => {
   assert.equal(existsSync('favicon.svg'), true, 'canonical favicon SVG must exist');
   assert.equal(existsSync('favicon.ico'), true, 'root favicon fallback must exist for browser autodiscovery');
 
   const favicon = read('favicon.svg');
   assert.match(favicon, /viewBox=["']0 0 64 64["']/i);
+  assert.match(favicon, /aria-label=["'][^"']*radar[^"']*["']/i, 'favicon must identify as radar');
   assert.match(favicon, /#020403/i, 'favicon must use the terminal background');
   assert.match(favicon, /#39FF14/i, 'favicon must use phosphor green');
+  assert.ok((favicon.match(/<circle\b/gi) ?? []).length >= 3, 'radar favicon must use concentric circles');
+  assert.match(favicon, /M8 32H56M32 8V56/i, 'radar favicon must include crosshairs');
+  assert.doesNotMatch(favicon, /sentinel|M32 4 54 14/i, 'favicon must not retain the sentinel shield geometry');
   assert.doesNotMatch(favicon, /#FF2438/i, 'favicon must not carry the red anomaly accent');
-  assert.doesNotMatch(favicon, /<text|<animate|<filter/i, 'favicon must stay simple at tab size');
+  assert.doesNotMatch(favicon, /<text|<animate|<filter/i, 'favicon must stay simple and static at tab size');
 
   const ico = readFileSync('favicon.ico');
   assert.deepEqual([...ico.subarray(0, 4)], [0, 0, 1, 0], 'favicon.ico must be a valid ICO container');
