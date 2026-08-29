@@ -1,5 +1,8 @@
+import { SUPPORTED_OBSERVABLE_TYPES } from './observable-input.js';
+
 const PROFILES = Object.freeze(['fast', 'standard', 'full']);
 const VIEWS = Object.freeze(['overview', 'evidence', 'correlation', 'relationships', 'coverage', 'raw']);
+const CASE_SUBCOMMANDS = Object.freeze(['close', 'export', 'find', 'import', 'list', 'new', 'open', 'refresh', 'show']);
 
 export const COMMANDS = Object.freeze([
   { name: 'help', aliases: ['?'], category: 'core', usage: 'help [command]', summary: 'show command index or command help' },
@@ -22,6 +25,12 @@ export const COMMANDS = Object.freeze([
   { name: 'enrich', aliases: ['scan', 'pivot'], category: 'enrichment', usage: 'enrich <observable> [--fast|--standard|--full]', summary: 'run bounded Evidence v2 enrichment' },
   { name: 'profile', category: 'enrichment', usage: 'profile [fast|standard|full]', summary: 'show or set the fixed enrichment profile' },
   { name: 'batch', category: 'enrichment', usage: 'batch <observable> [observable ...]', summary: 'enrich 1..20 observables using the active profile' },
+
+  { name: 'case', category: 'case', usage: 'case <new|open|close|list|show|refresh|export|import|find>', summary: 'manage the browser-local analyst workspace' },
+  { name: 'pin', category: 'case', usage: 'pin', summary: 'pin the current typed enrichment result to the active case' },
+  { name: 'unpin', category: 'case', usage: 'unpin <type> <value>', summary: 'remove one exact typed pin from the active case' },
+  { name: 'note', category: 'case', usage: 'note <text>', summary: 'append an analyst note to the active case' },
+  { name: 'diff', category: 'case', usage: 'diff', summary: 'show the latest semantic diff for the current result' },
 
   { name: 'view', category: 'result', usage: 'view <overview|evidence|correlation|relationships|coverage|raw>', summary: 'render a result view' },
   { name: 'overview', aliases: ['ovr'], category: 'result', usage: 'overview', summary: 'render overview' },
@@ -92,6 +101,7 @@ const error = (message, historySafe = true) => result('error', { message }, hist
 const needsAuth = () => result('auth-required', { message: 'authentication required; run login' });
 const isProfile = value => PROFILES.includes(value);
 const isView = value => VIEWS.includes(value);
+const isObservableType = value => SUPPORTED_OBSERVABLE_TYPES.includes(value);
 
 function parseEnrich(args, activeProfile) {
   if (!args.length) return error('usage: enrich <observable> [--fast|--standard|--full]');
@@ -106,6 +116,35 @@ function parseEnrich(args, activeProfile) {
     profile = requested;
   }
   return result('enrich', { indicator, profile });
+}
+
+function parseCase(args) {
+  const subcommand = args[0]?.toLowerCase();
+  if (!subcommand) return error('usage: case <new|open|close|list|show|refresh|export|import|find>');
+
+  if (subcommand === 'new') {
+    const title = args.slice(1).join(' ');
+    if (!title) return error('usage: case new <title>');
+    return result('case-new', { title });
+  }
+  if (subcommand === 'open') {
+    if (args.length !== 2 || !args[1]) return error('usage: case open <id>');
+    return result('case-open', { caseId: args[1] });
+  }
+  if (['close', 'list', 'show', 'export', 'import'].includes(subcommand)) {
+    if (args.length !== 1) return error(`usage: case ${subcommand}`);
+    return result(`case-${subcommand}`);
+  }
+  if (subcommand === 'refresh') {
+    if (args.length === 1) return result('case-refresh', { staleOnly: false });
+    if (args.length === 2 && args[1] === '--stale') return result('case-refresh', { staleOnly: true });
+    return error('usage: case refresh [--stale]');
+  }
+  if (subcommand === 'find') {
+    if (args.length !== 3 || !isObservableType(args[1]) || !args[2]) return error('usage: case find <type> <value>');
+    return result('case-find', { observable: { type: args[1], value: args[2] } });
+  }
+  return error(`unsupported case subcommand: ${subcommand}`);
 }
 
 function directView(command) {
@@ -146,6 +185,24 @@ export function interpretCommand(input, context = {}) {
   if (canonical === 'hostname') return result('local', { name: 'hostname' });
   if (canonical === 'date') return result('local', { name: 'date' });
   if (canonical === 'echo') return result('local', { name: 'echo', value: args.join(' ') });
+
+  if (canonical === 'case') return parseCase(args);
+  if (canonical === 'pin') {
+    if (args.length) return error('usage: pin');
+    return result('case-pin');
+  }
+  if (canonical === 'unpin') {
+    if (args.length !== 2 || !isObservableType(args[0]) || !args[1]) return error('usage: unpin <type> <value>');
+    return result('case-unpin', { observable: { type: args[0], value: args[1] } });
+  }
+  if (canonical === 'note') {
+    if (!args.length) return error('usage: note <text>');
+    return result('case-note', { text: args.join(' ') });
+  }
+  if (canonical === 'diff') {
+    if (args.length) return error('usage: diff');
+    return result('case-diff');
+  }
 
   if (canonical === 'sound') {
     if (args.length !== 1 || !['on', 'off'].includes(args[0])) return error('usage: sound <on|off>');
@@ -221,6 +278,8 @@ const COMPLETIONS = Object.freeze({
   auth: Object.freeze(['clear', 'status']),
   copy: Object.freeze(['json', 'observable', 'request-id']),
   json: Object.freeze(['save']),
+  case: CASE_SUBCOMMANDS,
+  unpin: SUPPORTED_OBSERVABLE_TYPES,
 });
 
 export function completeCommand(input) {
@@ -237,6 +296,17 @@ export function completeCommand(input) {
   const command = trimmedLeft.slice(0, firstSpace).toLowerCase();
   const canonical = INDEX.get(command)?.name || command;
   const fragment = trimmedLeft.slice(firstSpace).trimStart().toLowerCase();
+
+  if (canonical === 'case') {
+    const pieces = fragment.split(/\s+/);
+    if (pieces[0] === 'find' && (pieces.length > 1 || fragment.endsWith(' '))) {
+      const typeFragment = pieces[1] ?? '';
+      return [...SUPPORTED_OBSERVABLE_TYPES].filter(value => value.startsWith(typeFragment)).sort();
+    }
+    if (pieces.length > 1) return [];
+    return [...CASE_SUBCOMMANDS].filter(value => value.startsWith(pieces[0] ?? '')).sort();
+  }
+
   return [...(COMPLETIONS[canonical] || [])].filter(value => value.startsWith(fragment)).sort();
 }
 
