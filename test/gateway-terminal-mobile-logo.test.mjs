@@ -66,14 +66,15 @@ test('mobile header keeps the PARA11AX lockup readable while reserving space for
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-status\{[^}]*min-height:\s*50px/);
 });
 
-test('desktop analyst shell has a v7 full-frame layout loaded after visual layers', async () => {
+test('desktop analyst shell has a v7 full-frame layout loaded before runtime', async () => {
   const layoutExists = await access(url('app/desktop-layout-v7.css')).then(() => true, () => false);
   assert.equal(layoutExists, true, 'desktop v7 layout stylesheet must exist');
-  const [runtime, main, css] = await Promise.all([
-    read('app/analyst-deck.js'), read('app/terminal-main.js'), read('app/desktop-layout-v7.css'),
+  const [html, runtime, main, css] = await Promise.all([
+    read('app/index.html'), read('app/analyst-deck.js'), read('app/terminal-main.js'), read('app/desktop-layout-v7.css'),
   ]);
   assert.match(runtime, /dataset\.terminalFirst\s*=\s*['"]v7['"]/);
-  assert.match(main, /import\s+['"]\.\/desktop-layout-v7\.js['"]/);
+  assert.match(html, /<link rel="stylesheet" href="\/app\/desktop-layout-v7\.css">/);
+  assert.doesNotMatch(main, /desktop-layout-v7\.js/);
   assert.match(css, /html\[data-terminal-first=["']v7["']\] \.app-shell\{[^}]*width:\s*min\(1380px,calc\(100% - 18px\)\)/);
   assert.match(css, /\.unix-shell\{[^}]*grid-template-rows:\s*auto\s+minmax\(0,1fr\)\s+auto/);
   assert.match(css, /\.shell-scrollback\{[^}]*max-height:\s*none!important/);
@@ -82,9 +83,8 @@ test('desktop analyst shell has a v7 full-frame layout loaded after visual layer
   assert.match(css, /\.tactical-readout[^}]*display:\s*none!important/);
 });
 
-test('Vercel cuts the legacy app script over to terminal main wrapper before filesystem resolution', async () => {
-  const vercel = JSON.parse(await read('vercel.json'));
-  const appScriptRoute = vercel.routes.find(route => route.src === '/app/app.js');
-  assert.equal(appScriptRoute?.dest, '/app/terminal-main.js');
-  assert.ok(vercel.routes.indexOf(appScriptRoute) < vercel.routes.findIndex(route => route.handle === 'filesystem'));
+test('Vercel serves the direct terminal entry without the legacy app script rewrite', async () => {
+  const [html, vercel] = await Promise.all([read('app/index.html'), read('vercel.json').then(JSON.parse)]);
+  assert.match(html, /<script\s+type="module"\s+src="\/app\/terminal-main\.js"/);
+  assert.equal(vercel.routes.some(route => route.src === '/app/app.js'), false);
 });
