@@ -16,6 +16,8 @@ function packageJson() {
 }
 
 test('every active workflow adapter is registered supports its routed type and fits the static call ceiling', () => {
+  assert.equal(registry.names().length, 38);
+  assert.equal(Object.keys(WORKFLOWS).length, 9);
   for (const [type, names] of Object.entries(WORKFLOWS)) {
     assert.ok(Number.isInteger(WORKFLOW_CALL_LIMITS[type]) && WORKFLOW_CALL_LIMITS[type] >= names.length, `${type} call ceiling too small`);
     for (const name of names) {
@@ -65,11 +67,15 @@ test('gateway package major version and evidence schema major stay aligned', () 
   assert.equal(pkg.engines.node, '24.x');
 });
 
-test('Maltego transform registry covers every gateway workflow type', () => {
+test('Maltego covers the legacy eight workflow types and certificate is the sole staged Train 6 gap', () => {
   const init = readFileSync(new URL('../maltego/transforms/__init__.py', import.meta.url), 'utf8');
   const requirements = {
     ip: ['EnrichIPv4','EnrichIPv6'], domain: ['EnrichDomain'], url: ['EnrichURL'], hash: ['EnrichHash'],
     cve: ['EnrichCVE'], attack: ['EnrichATTACK'], asn: ['EnrichASN'], cidr: ['EnrichCIDR'],
   };
-  for (const type of Object.keys(WORKFLOWS)) for (const name of requirements[type] ?? []) assert.ok(init.includes(name), `${type}: missing Maltego ${name}`);
+  const supported = Object.keys(requirements).sort();
+  assert.deepEqual(supported, ['asn','attack','cidr','cve','domain','hash','ip','url']);
+  assert.deepEqual(Object.keys(WORKFLOWS).filter(type => !supported.includes(type)), ['certificate']);
+  for (const [type, names] of Object.entries(requirements)) for (const name of names) assert.ok(init.includes(name), `${type}: missing Maltego ${name}`);
+  assert.equal(init.includes('EnrichCertificate'), false, 'certificate Maltego parity is intentionally deferred to Train 6');
 });

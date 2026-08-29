@@ -7,7 +7,7 @@ import { EXECUTION_POLICY } from '../src/core/execution-policy.js';
 import { ALL_PROVIDERS } from '../src/providers/index.js';
 import { WORKFLOW_CALL_LIMITS } from '../src/workflows.js';
 
-const EXPECTED_TYPES = ['asn', 'attack', 'cidr', 'cve', 'domain', 'hash', 'ip', 'url'];
+const EXPECTED_TYPES = ['asn', 'attack', 'certificate', 'cidr', 'cve', 'domain', 'hash', 'ip', 'url'];
 
 test('capability registry is deterministic frozen and type-indexed', () => {
   const providerRegistry = createProviderRegistry(ALL_PROVIDERS);
@@ -17,6 +17,8 @@ test('capability registry is deterministic frozen and type-indexed', () => {
   assert.deepEqual(capabilities.providers.map(item => item.name), [...capabilities.providers.map(item => item.name)].sort());
   assert.ok(capabilities.byType.ip.providers.includes('censys'));
   assert.ok(capabilities.byType.cve.providers.includes('cisa-kev'));
+  assert.deepEqual(capabilities.byType.certificate.providers, ['censys', 'virustotal']);
+  assert.ok(capabilities.byType.domain.providers.includes('cloudflare-dns'));
   assert.equal(Object.isFrozen(capabilities.byType.ip), true);
 });
 

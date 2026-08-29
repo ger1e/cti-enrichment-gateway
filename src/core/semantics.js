@@ -16,6 +16,7 @@ const NETWORK_CONTEXT_KINDS = new Set([
   'registration',
   'internet_exposure',
   'passive_dns',
+  'dns_resolution',
 ]);
 
 const SEMANTIC_ALIASES = new Map([
@@ -25,6 +26,7 @@ const SEMANTIC_ALIASES = new Map([
   ['community_ioc_report', 'threat_context'],
   ['sample_hosts', 'malware_association'],
   ['malware_sample', 'malware_sample_metadata'],
+  ['certificate_metadata', 'certificate_context'],
 ]);
 
 const POSITIVE_VERDICTS = new Set([

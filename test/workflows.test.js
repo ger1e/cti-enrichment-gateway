@@ -4,7 +4,7 @@ import { rdapProvider } from '../src/providers/rdap.js';
 import { epssProvider } from '../src/providers/epss.js';
 import { cisaKevProvider } from '../src/providers/cisa-kev.js';
 import { ALL_PROVIDERS } from '../src/providers/index.js';
-import { WORKFLOWS, WORKFLOW_BLUEPRINTS } from '../src/workflows.js';
+import { WORKFLOWS, WORKFLOW_BLUEPRINTS, WORKFLOW_CALL_LIMITS } from '../src/workflows.js';
 
 function jsonFetch(expectedUrl, payload) {
   return async (url, options = {}) => {
@@ -69,12 +69,15 @@ test('every active workflow provider has an implemented adapter', () => {
 
 test('active workflows preserve MAX routing order', () => {
   assert.deepEqual(WORKFLOWS.ip, ['ipinfo', 'rdap', 'ripestat', 'dshield', 'spamhaus-drop', 'tor-exit', 'feodo-tracker', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'greynoise', 'abuseipdb', 'shodan', 'censys', 'modat', 'cloudflare-radar', 'virustotal', 'otx', 'threatfox', 'urlscan', 'webamon', 'pulsedive']);
-  assert.deepEqual(WORKFLOWS.domain, ['threatminer', 'openphish', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'urlscan', 'webamon', 'modat', 'ransomware-live', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
+  assert.deepEqual(WORKFLOWS.domain, ['threatminer', 'cloudflare-dns', 'openphish', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'urlscan', 'webamon', 'modat', 'ransomware-live', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.url, ['openphish', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'urlscan', 'webamon', 'urlhaus', 'ransomware-live', 'virustotal', 'otx', 'threatfox', 'pulsedive']);
   assert.deepEqual(WORKFLOWS.hash, ['circl-hashlookup', 'threatminer', 'misp-circl-osint', 'misp-botvrij-osint', 'tweetfeed', 'ransomlook', 'malwarebazaar', 'malpedia', 'virustotal', 'hybrid-analysis', 'otx', 'threatfox']);
   assert.deepEqual(WORKFLOWS.cve, ['cisa-kev', 'epss', 'circl-vulnerability', 'misp-circl-osint', 'misp-botvrij-osint', 'nvd', 'osv', 'otx']);
   assert.deepEqual(WORKFLOWS.attack, ['attack-taxii']);
   assert.deepEqual(WORKFLOWS.asn, ['rdap', 'ripestat', 'spamhaus-drop']);
   assert.deepEqual(WORKFLOWS.cidr, ['rdap', 'ripestat', 'spamhaus-drop']);
+  assert.deepEqual(WORKFLOWS.certificate, ['censys', 'virustotal']);
+  assert.equal(WORKFLOW_CALL_LIMITS.certificate, 4);
+  assert.equal(WORKFLOW_CALL_LIMITS.domain, 15);
   assert.equal(WORKFLOW_BLUEPRINTS, WORKFLOWS);
 });

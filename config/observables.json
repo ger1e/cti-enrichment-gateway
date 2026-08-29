@@ -31,6 +31,14 @@
     "stixExport": "indicator",
     "active": true
   },
+  "certificate": {
+    "displayName": "X.509 certificate SHA-256",
+    "category": "infrastructure",
+    "canonicalization": "cert-sha256",
+    "maxLength": 76,
+    "stixExport": "unsupported",
+    "active": true
+  },
   "cve": {
     "displayName": "CVE",
     "category": "vulnerability",
