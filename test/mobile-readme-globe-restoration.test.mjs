@@ -23,7 +23,7 @@ test('README serves one complete self-contained SVG hero', async () => {
   assert.doesNotMatch(hero, /url\(\s*["']?https?:\/\//i);
 });
 
-test('final CRT branding preserves the Natural Earth globe instead of replacing it with a radar disc', async () => {
+test('final CRT branding preserves a real rotating Natural Earth sphere instead of replacing it with a radar disc', async () => {
   const [brandCss, earthCss, earthJs] = await Promise.all([
     read('app/brand-final.css'),
     read('app/earth-globe.css'),
@@ -32,11 +32,12 @@ test('final CRT branding preserves the Natural Earth globe instead of replacing 
 
   assert.doesNotMatch(brandCss, /\.boot-globe>\*\{display:none!important\}/);
   assert.doesNotMatch(brandCss, /\.boot-globe\{[\s\S]*?conic-gradient\(from var\(--ppi-angle\)/);
-  assert.match(earthJs, /boot-earth-window/);
-  assert.match(earthJs, /boot-earth-track/);
-  assert.match(earthJs, /animateTransform/);
-  assert.match(earthJs, /setAttribute\(['"]to['"], ['"]-720 0['"]\)/);
-  assert.doesNotMatch(earthCss, /\.boot-earth-track\{[^}]*animation:/);
+  assert.match(earthJs, /parseEquirectangularPath/);
+  assert.match(earthJs, /projectOrthographic/);
+  assert.match(earthJs, /requestAnimationFrame/);
+  assert.doesNotMatch(earthJs, /animateTransform|boot-earth-track|translate\(-720/);
+  assert.match(earthCss, /\.boot-earth-layer\{/);
+  assert.match(earthCss, /\.boot-globe\{[^}]*animation:none!important/);
   assert.doesNotMatch(brandCss, /\.shell-brand::before|\.terminal-mark::before/);
   assert.match(brandCss, /\.crt\{[\s\S]*repeating-linear-gradient/);
 });

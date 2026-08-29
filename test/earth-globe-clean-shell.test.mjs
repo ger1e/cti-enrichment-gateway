@@ -19,26 +19,24 @@ test('boot globe uses generated Natural Earth coastline geometry instead of pain
   assert.ok((geometry.match(/\bM\s*[\d.-]+/g) || []).length >= 20, 'coastline geometry must contain many real land polygons');
   assert.match(renderer, /NATURAL_EARTH_LAND_PATHS/);
   assert.match(renderer, /boot-globe-landmasses/);
-  assert.match(renderer, /\.remove\(\)/, 'renderer must remove the superseded fake landmass layer');
-  assert.match(css, /\.boot-globe-landmasses\{[^}]*display:none!important/,
-    'coarse fallback must be hidden before the Natural Earth module executes');
+  assert.match(renderer, /\.remove\(\)/, 'renderer must remove any superseded fake landmass layer');
+  assert.match(css, /boot-globe-landmasses[^}]*display:none!important/,
+    'coarse fallback must stay hidden even if legacy code attempts to add it');
 });
 
-test('Earth layer moves longitudinally with explicit SVG coordinates instead of spinning like a flat disc', async () => {
+test('Earth layer is orthographically reprojected and rotates by longitude while the globe frame stays fixed', async () => {
   const renderer = await read('app/earth-globe.js');
   const css = await read('app/earth-globe.css');
   const main = await read('app/terminal-main.js');
   assert.match(main, /earth-globe\.js/);
-  assert.match(renderer, /boot-earth-window/);
-  assert.match(renderer, /boot-earth-track/);
-  assert.match(renderer, /boot-earth-copy/);
-  assert.match(renderer, /animateTransform/);
-  assert.match(renderer, /setAttribute\(['"]type['"], ['"]translate['"]\)/);
-  assert.match(renderer, /setAttribute\(['"]to['"], ['"]-720 0['"]\)/);
-  assert.match(renderer, /setAttribute\(['"]dur['"], ['"]36s['"]\)/);
-  assert.match(renderer, /setAttribute\(['"]repeatCount['"], ['"]indefinite['"]\)/);
-  assert.match(css, /\.boot-earth-window\{/);
-  assert.doesNotMatch(css, /\.boot-earth-track\{[^}]*animation:/);
+  assert.match(renderer, /parseEquirectangularPath/);
+  assert.match(renderer, /projectOrthographic/);
+  assert.match(renderer, /Math\.cos\(lat\)\s*\*\s*Math\.cos\(deltaLon\)/);
+  assert.match(renderer, /requestAnimationFrame/);
+  assert.match(renderer, /ROTATION_MS\s*=\s*36_000/);
+  assert.doesNotMatch(renderer, /animateTransform|boot-earth-track|createEarthCopy\(720\)/);
+  assert.match(css, /\.boot-earth-layer\{/);
+  assert.doesNotMatch(css, /boot-earth-track/);
   assert.match(css, /\.boot-globe\{[^}]*animation:\s*none!important/);
 });
 
