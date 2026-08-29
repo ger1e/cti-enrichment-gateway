@@ -53,16 +53,18 @@ test('production landing owns a browser-native PPI while standalone SVG remains 
   assert.match(svg, /@keyframes\s+ppi-spin/i);
 });
 
-test('landing rain remains staggered PARA11AX motion without runtime construction', () => {
+test('landing rain mirrors the GER1E vertical glyph-stream treatment at higher density', () => {
   assert.equal(existsSync(RAIN), true);
   const css = read('landing-radar-motion.css');
   const svg = read(RAIN);
   assert.match(css, /\.matrix-rain[^}]*para11ax-rain\.svg/i);
   assert.match(css, /\.matrix-rain\s*>\s*\.rain[^}]*display:\s*none/i);
   const animations = svg.match(/<animateTransform\b[^>]*type=["']translate["'][^>]*>/gi) ?? [];
-  assert.ok(animations.length >= 12, `expected at least 12 staggered rain tracks, got ${animations.length}`);
-  assert.match(svg, /#39FF14/i);
-  assert.match(svg, /#FF2438/i);
+  assert.ok(animations.length >= 40, `expected at least 40 staggered rain tracks, got ${animations.length}`);
+  for (const glyph of ['ヘ', 'カ', '尺', '乇', 'シ', 'キ']) assert.match(svg, new RegExp(glyph), `rain must preserve GER1E glyph ${glyph}`);
+  assert.match(svg, /class=["'][^"']*dim[^"']*["']/i, 'rain must retain a dim secondary depth layer');
+  assert.match(svg, /#39FF14/i, 'PARA11AX rain must remain phosphor green');
+  assert.doesNotMatch(svg, /[01]{24,}/, 'rain must use vertical glyph streams rather than long horizontal binary strings');
 });
 
 test('landing adapter constructs neither radar nor rain and reveals content before enhancement', () => {
