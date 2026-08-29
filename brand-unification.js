@@ -26,16 +26,18 @@ function createWordmarkSpan(text, className) {
 }
 
 function syncHeroWordmark() {
-  for (const wordmark of document.querySelectorAll('.ascii-logo')) {
+  for (const wordmark of document.querySelectorAll('.ascii-logo,.wordmark')) {
     if (wordmark.dataset.brandSplit === 'true') continue;
     const value = (wordmark.textContent || '').replace(/\s+/g, '').toUpperCase();
     if (value !== 'PARA11AX') continue;
     wordmark.replaceChildren(
-      createWordmarkSpan('PARA', 'logo-white'),
+      createWordmarkSpan('PΛRΛ', 'logo-white'),
       createWordmarkSpan('11', 'logo-green'),
-      createWordmarkSpan('AX', 'logo-white'),
+      createWordmarkSpan('ΛX', 'logo-white'),
     );
     wordmark.dataset.brandSplit = 'true';
+    wordmark.dataset.wordmark = 'para11ax-angular-a';
+    wordmark.setAttribute('aria-label', 'PARA11AX');
   }
 }
 
@@ -53,6 +55,7 @@ function syncLogoImages() {
   }
   replaceTextBrand('.terminal-brand');
   replaceTextBrand('.terminal-mark');
+  replaceTextBrand('.brand-mini');
   syncHeroWordmark();
 }
 

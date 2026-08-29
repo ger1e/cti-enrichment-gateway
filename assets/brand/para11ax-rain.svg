@@ -1,38 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
-  <defs>
-    <style>
-      .g{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;fill:#39FF14;fill-opacity:.43}.dim{fill-opacity:.23}.alert{fill:#FF2438;fill-opacity:.2}.static{display:none}
-      @media(prefers-reduced-motion: reduce){.motion{display:none}.static{display:block;opacity:.32}}
-    </style>
-    <g id="col"><text text-anchor="middle">0<tspan x="0" dy="20">ヘ</tspan><tspan x="0" dy="20">1</tspan><tspan x="0" dy="20">P</tspan><tspan x="0" dy="20">A</tspan><tspan x="0" dy="20">R</tspan><tspan x="0" dy="20">A</tspan><tspan x="0" dy="20">11</tspan><tspan x="0" dy="20">AX</tspan><tspan x="0" dy="20">7</tspan><tspan x="0" dy="20">0</tspan><tspan x="0" dy="20">キ</tspan><tspan x="0" dy="20">1</tspan></text></g>
-  </defs>
-  <g class="motion g">
-    <g transform="translate(30 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-520;0,1180" dur="18s" begin="-7s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(85 0)" class="dim"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-680;0,1020" dur="21s" begin="-14s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(140 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-430;0,1270" dur="16s" begin="-3s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(195 0)" class="dim"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-760;0,940" dur="22s" begin="-19s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(250 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-390;0,1310" dur="19s" begin="-11s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(305 0)" class="alert"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-610;0,1090" dur="17s" begin="-8s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(360 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-500;0,1200" dur="20s" begin="-16s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(415 0)" class="dim"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-720;0,980" dur="23s" begin="-5s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(470 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-450;0,1250" dur="18.5s" begin="-12s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(525 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-650;0,1050" dur="20.5s" begin="-2s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(580 0)" class="dim"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-780;0,920" dur="22.5s" begin="-17s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(635 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-470;0,1230" dur="17.5s" begin="-9s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(690 0)" class="alert"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-690;0,1010" dur="21.5s" begin="-15s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(745 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-410;0,1290" dur="19.5s" begin="-6s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(800 0)" class="dim"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-740;0,960" dur="22s" begin="-18s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(855 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-540;0,1160" dur="18s" begin="-4s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(910 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-630;0,1070" dur="21s" begin="-10s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(965 0)" class="dim"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-440;0,1260" dur="16.5s" begin="-1s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(1020 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-700;0,1000" dur="23s" begin="-20s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(1075 0)" class="alert"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-480;0,1220" dur="19s" begin="-13s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(1130 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-670;0,1030" dur="20s" begin="-8s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(1185 0)" class="dim"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-400;0,1300" dur="17s" begin="-14s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(1240 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-730;0,970" dur="22.5s" begin="-5s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(1295 0)"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-510;0,1190" dur="18.5s" begin="-16s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(1350 0)" class="dim"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-620;0,1080" dur="21.5s" begin="-9s" repeatCount="indefinite"/></g></g>
-    <g transform="translate(1405 0)" class="alert"><g><use href="#col"/><animateTransform attributeName="transform" type="translate" values="0,-460;0,1240" dur="19.5s" begin="-3s" repeatCount="indefinite"/></g></g>
-  </g>
-  <g class="static g dim"><use href="#col" transform="translate(85 120)"/><use href="#col" transform="translate(305 420)"/><use href="#col" transform="translate(525 180)"/><use href="#col" transform="translate(745 520)"/><use href="#col" transform="translate(965 260)"/><use href="#col" transform="translate(1185 460)"/><use href="#col" transform="translate(1405 160)"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <style>.col{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;letter-spacing:2px;fill:#39FF14;opacity:.22}.dim{opacity:.12}.hot{fill:#FF2438;opacity:.13}@media(prefers-reduced-motion: reduce){animateTransform{display:none}.col{opacity:.12}.hot{opacity:.08}}</style>
+  <g class="col"><text x="22" y="0">010011010110101101001101101010110010110100101101</text><animateTransform attributeName="transform" type="translate" from="0 -620" to="0 940" dur="16s" repeatCount="indefinite"/></g>
+  <g class="col dim"><text x="112" y="0">110101100101110010101101001101011010010110100101</text><animateTransform attributeName="transform" type="translate" from="0 -820" to="0 940" dur="18s" repeatCount="indefinite"/></g>
+  <g class="col"><text x="202" y="0">001101011010011010110010110100101101001011010011</text><animateTransform attributeName="transform" type="translate" from="0 -430" to="0 940" dur="17s" repeatCount="indefinite"/></g>
+  <g class="col dim"><text x="292" y="0">101100101101001110100110101001101001011011001010</text><animateTransform attributeName="transform" type="translate" from="0 -910" to="0 940" dur="21s" repeatCount="indefinite"/></g>
+  <g class="col"><text x="382" y="0">011010010110110101001011010110010101101001101100</text><animateTransform attributeName="transform" type="translate" from="0 -570" to="0 940" dur="19s" repeatCount="indefinite"/></g>
+  <g class="col hot"><text x="472" y="0">100101101001101100101101001011010110010110100110</text><animateTransform attributeName="transform" type="translate" from="0 -760" to="0 940" dur="22s" repeatCount="indefinite"/></g>
+  <g class="col"><text x="562" y="0">011001011010010110110010101101001101011001011010</text><animateTransform attributeName="transform" type="translate" from="0 -350" to="0 940" dur="16.5s" repeatCount="indefinite"/></g>
+  <g class="col dim"><text x="652" y="0">101011001101001011010010110101100101101001101100</text><animateTransform attributeName="transform" type="translate" from="0 -880" to="0 940" dur="23s" repeatCount="indefinite"/></g>
+  <g class="col"><text x="742" y="0">001101101001011010011011001010110100101101001101</text><animateTransform attributeName="transform" type="translate" from="0 -510" to="0 940" dur="20s" repeatCount="indefinite"/></g>
+  <g class="col dim"><text x="832" y="0">110010110100101101001101011001011010010110110010</text><animateTransform attributeName="transform" type="translate" from="0 -690" to="0 940" dur="18.5s" repeatCount="indefinite"/></g>
+  <g class="col"><text x="922" y="0">010110101001101011001011010011010110010101101001</text><animateTransform attributeName="transform" type="translate" from="0 -400" to="0 940" dur="17.5s" repeatCount="indefinite"/></g>
+  <g class="col hot"><text x="1012" y="0">101001101101001011010110010100110101101001101011</text><animateTransform attributeName="transform" type="translate" from="0 -840" to="0 940" dur="22.5s" repeatCount="indefinite"/></g>
+  <g class="col"><text x="1102" y="0">001101011010011010110010110111001011010010110100</text><animateTransform attributeName="transform" type="translate" from="0 -540" to="0 940" dur="19.5s" repeatCount="indefinite"/></g>
+  <g class="col dim"><text x="1192" y="0">110010110100110110010110100101101001101100101101</text><animateTransform attributeName="transform" type="translate" from="0 -930" to="0 940" dur="23s" repeatCount="indefinite"/></g>
+  <g class="col"><text x="1282" y="0">011010010110110100101101001110010110100110110010</text><animateTransform attributeName="transform" type="translate" from="0 -470" to="0 940" dur="18s" repeatCount="indefinite"/></g>
+  <g class="col dim"><text x="1372" y="0">101101001011010011010110010101101001011010011011</text><animateTransform attributeName="transform" type="translate" from="0 -720" to="0 940" dur="21.5s" repeatCount="indefinite"/></g>
 </svg>
