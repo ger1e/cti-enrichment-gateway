@@ -7,8 +7,10 @@
     <linearGradient id="fade" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#39FF14" stop-opacity=".32"/><stop offset="1" stop-color="#39FF14" stop-opacity="0"/></linearGradient>
   </defs>
   <style>
-    .motion{display:block}.static-sweep{display:none}.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;fill:#39FF14;opacity:.14;letter-spacing:3px}
-    @media(prefers-reduced-motion: reduce){.motion{display:none}.static-sweep{display:block}.rain-move{display:none}}
+    .code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;fill:#39FF14;opacity:.14;letter-spacing:3px}
+    .radar-sweep{transform-box:view-box;transform-origin:330px 260px;animation:radar-spin 4.8s linear infinite}
+    @keyframes radar-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion: reduce){.radar-sweep{animation-duration:24s}.rain-move{display:none}}
   </style>
   <rect width="1440" height="520" fill="#020403"/>
   <rect width="1440" height="520" fill="url(#fade)" opacity=".09"/>
@@ -36,10 +38,9 @@
     <g id="crosshair" stroke="#39FF14"><path d="M-222 0H222M0-222V222" stroke-opacity=".36"/><path d="M0-222v16M0 206v16M-222 0h16M206 0h16" stroke-opacity=".92" stroke-width="2"/></g>
     <g fill="#39FF14"><circle cx="104" cy="-116" r="4.6"/><circle cx="-128" cy="85" r="4" fill-opacity=".84"/><circle cx="132" cy="106" r="3.8" fill-opacity=".74"/><circle cx="-61" cy="-139" r="3" fill-opacity=".66"/></g>
     <g fill="#FF2438"><circle cx="-134" cy="-83" r="4.5"/><circle cx="154" cy="43" r="3.7"/></g>
-    <g class="motion"><path d="M0 0 205-55A212 212 0 0 1 208 40Z" fill="url(#sweep)"/><path d="M0 0H211" stroke="#39FF14" stroke-width="2.7" stroke-linecap="round"/><path d="M0-1H211" stroke="#F7FFF6" stroke-opacity=".36" stroke-width=".8"/><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="4.8s" repeatCount="indefinite"/></g>
-    <g class="static-sweep" transform="rotate(34)"><path d="M0 0 205-55A212 212 0 0 1 208 40Z" fill="url(#sweep)"/><path d="M0 0H211" stroke="#39FF14" stroke-width="2.7"/></g>
     <circle r="7" fill="#020403" stroke="#F7FFF6" stroke-opacity=".6"/><circle r="2.5" fill="#39FF14"/>
   </g>
+  <g class="radar-sweep" aria-hidden="true"><g transform="translate(330 260)"><path d="M0 0 205-55A212 212 0 0 1 208 40Z" fill="url(#sweep)"/><path d="M0 0H211" stroke="#39FF14" stroke-width="2.7" stroke-linecap="round"/><path d="M0-1H211" stroke="#F7FFF6" stroke-opacity=".36" stroke-width=".8"/></g></g>
 
   <g transform="translate(730 112)">
     <text data-wordmark="para11ax-angular-a" aria-label="PARA11AX" font-family="Arial Black,Arial,sans-serif" font-size="96" font-weight="900" letter-spacing="1"><tspan fill="#F7FFF6">PΛRΛ</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">ΛX</tspan></text>
