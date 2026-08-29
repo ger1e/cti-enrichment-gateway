@@ -69,19 +69,11 @@ test('landing adapter no longer constructs radar or rain layers at runtime', () 
   assert.doesNotMatch(js, /['"]radar-sweep['"]|['"]radar-trail['"]|['"]radar-pulse['"]/i);
 });
 
-test('active landing hero is reduced to wordmark, Kiriakou quote, and the single radar', () => {
+test('dormant landing adapter does not reconstruct the production hero after paint', () => {
   const js = read(ADAPTER);
-  const css = read('landing-radar-motion.css');
-  assert.match(js, /function\s+mountMinimalHero\s*\(/i);
-  assert.match(js, /You’ve got to follow the evidence/i);
-  assert.match(js, /John Kiriakou/i);
-  assert.match(js, /\.hero-kicker/);
-  assert.match(js, /\.hero-doctrine/);
-  assert.match(js, /\.hero-actions/);
-  assert.match(css, /\.hero-kicker[^}]*display:\s*none/i);
-  assert.match(css, /\.hero-doctrine[^}]*display:\s*none/i);
-  assert.match(css, /\.hero-actions[^}]*display:\s*none/i);
-  assert.match(css, /\.hero-kiriakou/);
+  assert.doesNotMatch(js, /function\s+mountMinimalHero\s*\(/i);
+  assert.doesNotMatch(js, /createElement\(['"]blockquote['"]\)/i);
+  assert.doesNotMatch(js, /You’ve got to follow the evidence|John Kiriakou/i);
 });
 
 test('shared brand runtime stays visual-only and non-persistent', () => {
