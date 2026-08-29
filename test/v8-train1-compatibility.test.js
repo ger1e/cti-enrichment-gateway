@@ -62,8 +62,8 @@ test('Train 1 compatibility remains stable except Train 3 additive evidence sema
   assert.equal(out.body.schemaVersion, '2.0');
   assert.equal(out.body.gatewayVersion, '2.0.0');
   assert.deepEqual(out.body.evidence[0].semantics, {
-    class: 'provider_claim',
-    semanticClass: 'unknown',
+    class: 'observed_fact',
+    semanticClass: 'network_context',
     sourceRole: 'first_party',
   });
 
