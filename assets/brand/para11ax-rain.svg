@@ -1,19 +1,71 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-  <style>.col{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;letter-spacing:2px;fill:#39FF14;opacity:.22}.dim{opacity:.12}.hot{fill:#FF2438;opacity:.13}@media(prefers-reduced-motion: reduce){animateTransform{display:none}.col{opacity:.12}.hot{opacity:.08}}</style>
-  <g class="col"><text x="22" y="0">010011010110101101001101101010110010110100101101</text><animateTransform attributeName="transform" type="translate" from="0 -620" to="0 940" dur="16s" repeatCount="indefinite"/></g>
-  <g class="col dim"><text x="112" y="0">110101100101110010101101001101011010010110100101</text><animateTransform attributeName="transform" type="translate" from="0 -820" to="0 940" dur="18s" repeatCount="indefinite"/></g>
-  <g class="col"><text x="202" y="0">001101011010011010110010110100101101001011010011</text><animateTransform attributeName="transform" type="translate" from="0 -430" to="0 940" dur="17s" repeatCount="indefinite"/></g>
-  <g class="col dim"><text x="292" y="0">101100101101001110100110101001101001011011001010</text><animateTransform attributeName="transform" type="translate" from="0 -910" to="0 940" dur="21s" repeatCount="indefinite"/></g>
-  <g class="col"><text x="382" y="0">011010010110110101001011010110010101101001101100</text><animateTransform attributeName="transform" type="translate" from="0 -570" to="0 940" dur="19s" repeatCount="indefinite"/></g>
-  <g class="col hot"><text x="472" y="0">100101101001101100101101001011010110010110100110</text><animateTransform attributeName="transform" type="translate" from="0 -760" to="0 940" dur="22s" repeatCount="indefinite"/></g>
-  <g class="col"><text x="562" y="0">011001011010010110110010101101001101011001011010</text><animateTransform attributeName="transform" type="translate" from="0 -350" to="0 940" dur="16.5s" repeatCount="indefinite"/></g>
-  <g class="col dim"><text x="652" y="0">101011001101001011010010110101100101101001101100</text><animateTransform attributeName="transform" type="translate" from="0 -880" to="0 940" dur="23s" repeatCount="indefinite"/></g>
-  <g class="col"><text x="742" y="0">001101101001011010011011001010110100101101001101</text><animateTransform attributeName="transform" type="translate" from="0 -510" to="0 940" dur="20s" repeatCount="indefinite"/></g>
-  <g class="col dim"><text x="832" y="0">110010110100101101001101011001011010010110110010</text><animateTransform attributeName="transform" type="translate" from="0 -690" to="0 940" dur="18.5s" repeatCount="indefinite"/></g>
-  <g class="col"><text x="922" y="0">010110101001101011001011010011010110010101101001</text><animateTransform attributeName="transform" type="translate" from="0 -400" to="0 940" dur="17.5s" repeatCount="indefinite"/></g>
-  <g class="col hot"><text x="1012" y="0">101001101101001011010110010100110101101001101011</text><animateTransform attributeName="transform" type="translate" from="0 -840" to="0 940" dur="22.5s" repeatCount="indefinite"/></g>
-  <g class="col"><text x="1102" y="0">001101011010011010110010110111001011010010110100</text><animateTransform attributeName="transform" type="translate" from="0 -540" to="0 940" dur="19.5s" repeatCount="indefinite"/></g>
-  <g class="col dim"><text x="1192" y="0">110010110100110110010110100101101001101100101101</text><animateTransform attributeName="transform" type="translate" from="0 -930" to="0 940" dur="23s" repeatCount="indefinite"/></g>
-  <g class="col"><text x="1282" y="0">011010010110110100101101001110010110100110110010</text><animateTransform attributeName="transform" type="translate" from="0 -470" to="0 940" dur="18s" repeatCount="indefinite"/></g>
-  <g class="col dim"><text x="1372" y="0">101101001011010011010110010101101001011010011011</text><animateTransform attributeName="transform" type="translate" from="0 -720" to="0 940" dur="21.5s" repeatCount="indefinite"/></g>
+  <defs>
+    <style>
+      .col{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1.8px;fill:#39FF14;opacity:.23}
+      .soft{opacity:.17}
+      .dim{opacity:.085}
+      @media(prefers-reduced-motion:reduce){.moving{display:none}.depth{opacity:.12}}
+    </style>
+    <g id="c">
+      <text text-anchor="middle">0<tspan x="0" dy="18">ヘ</tspan><tspan x="0" dy="18">カ</tspan><tspan x="0" dy="18">尺</tspan><tspan x="0" dy="18">乇</tspan><tspan x="0" dy="18">1</tspan><tspan x="0" dy="18">シ</tspan><tspan x="0" dy="18">キ</tspan><tspan x="0" dy="18">7</tspan><tspan x="0" dy="18">0</tspan></text>
+    </g>
+  </defs>
+  <g class="col dim depth" transform="translate(34 120)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(137 -45)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(238 314)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(343 520)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(446 48)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(551 690)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(657 260)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(762 -80)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(866 440)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(971 155)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(1077 610)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(1180 350)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(1286 -30)"><use href="#c"/></g>
+  <g class="col dim depth" transform="translate(1390 745)"><use href="#c"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="18 -180" to="18 1080" dur="15.8s" begin="0.0s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="47 -263" to="47 1080" dur="19.5s" begin="-2.9s" repeatCount="indefinite"/></g>
+  <g class="col moving soft"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="82 -346" to="82 1080" dur="23.2s" begin="-5.8s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="113 -429" to="113 1080" dur="18.8s" begin="-8.7s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="151 -512" to="151 1080" dur="22.5s" begin="-11.6s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="178 -595" to="178 1080" dur="18.1s" begin="-14.5s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="212 -678" to="212 1080" dur="21.8s" begin="-17.4s" repeatCount="indefinite"/></g>
+  <g class="col moving soft"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="244 -761" to="244 1080" dur="17.4s" begin="-0.3s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="280 -844" to="280 1080" dur="21.1s" begin="-3.2s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="309 -927" to="309 1080" dur="16.7s" begin="-6.1s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="344 -250" to="344 1080" dur="20.4s" begin="-9.0s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="375 -333" to="375 1080" dur="16.0s" begin="-11.9s" repeatCount="indefinite"/></g>
+  <g class="col moving soft"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="413 -416" to="413 1080" dur="19.7s" begin="-14.8s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="440 -499" to="440 1080" dur="23.4s" begin="-17.7s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="474 -582" to="474 1080" dur="19.0s" begin="-0.6s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="506 -665" to="506 1080" dur="22.7s" begin="-3.5s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="542 -748" to="542 1080" dur="18.3s" begin="-6.4s" repeatCount="indefinite"/></g>
+  <g class="col moving soft"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="571 -831" to="571 1080" dur="22.0s" begin="-9.3s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="606 -914" to="606 1080" dur="17.6s" begin="-12.2s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="637 -237" to="637 1080" dur="21.3s" begin="-15.1s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="675 -320" to="675 1080" dur="16.9s" begin="-18.0s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="702 -403" to="702 1080" dur="20.6s" begin="-0.9s" repeatCount="indefinite"/></g>
+  <g class="col moving soft"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="736 -486" to="736 1080" dur="16.2s" begin="-3.8s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="768 -569" to="768 1080" dur="19.9s" begin="-6.7s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="804 -652" to="804 1080" dur="23.6s" begin="-9.6s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="833 -735" to="833 1080" dur="19.2s" begin="-12.5s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="868 -818" to="868 1080" dur="22.9s" begin="-15.4s" repeatCount="indefinite"/></g>
+  <g class="col moving soft"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="899 -901" to="899 1080" dur="18.5s" begin="-18.3s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="937 -224" to="937 1080" dur="22.2s" begin="-1.2s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="964 -307" to="964 1080" dur="17.8s" begin="-4.1s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="998 -390" to="998 1080" dur="21.5s" begin="-7.0s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1030 -473" to="1030 1080" dur="17.1s" begin="-9.9s" repeatCount="indefinite"/></g>
+  <g class="col moving soft"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1066 -556" to="1066 1080" dur="20.8s" begin="-12.8s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1095 -639" to="1095 1080" dur="16.4s" begin="-15.7s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1130 -722" to="1130 1080" dur="20.1s" begin="-18.6s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1161 -805" to="1161 1080" dur="23.8s" begin="-1.5s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1199 -888" to="1199 1080" dur="19.4s" begin="-4.4s" repeatCount="indefinite"/></g>
+  <g class="col moving soft"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1226 -211" to="1226 1080" dur="23.1s" begin="-7.3s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1260 -294" to="1260 1080" dur="18.7s" begin="-10.2s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1292 -377" to="1292 1080" dur="22.4s" begin="-13.1s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1328 -460" to="1328 1080" dur="18.0s" begin="-16.0s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1357 -543" to="1357 1080" dur="21.7s" begin="-18.9s" repeatCount="indefinite"/></g>
+  <g class="col moving soft"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1392 -626" to="1392 1080" dur="17.3s" begin="-1.8s" repeatCount="indefinite"/></g>
+  <g class="col moving"><use href="#c"/><animateTransform attributeName="transform" type="translate" from="1423 -709" to="1423 1080" dur="21.0s" begin="-4.7s" repeatCount="indefinite"/></g>
 </svg>
