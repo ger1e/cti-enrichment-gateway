@@ -23,6 +23,7 @@ defaults:
 
 jobs:
   validate:
+    name: Tooling smoke
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

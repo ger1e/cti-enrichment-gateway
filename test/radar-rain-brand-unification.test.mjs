@@ -23,7 +23,7 @@ test('landing and analyst UI resolve the exact same compact radar lockup asset',
   assert.match(runtime, /\.terminal-mark/);
   assert.match(runtime, /\.para11ax-logo/);
   assert.match(landing, /import\s+['"]\.\/brand-unification\.js['"]/i);
-  assert.match(app, /import\s+['"]\.\.\/brand-unification\.js['"]/i);
+  assert.match(app, /await\s+import\(['"]\.\.\/brand-unification\.js['"]\)/i);
 });
 
 test('shared compact lockup is a native animated radar plus PARA11AX wordmark', () => {
