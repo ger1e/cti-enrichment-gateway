@@ -30,4 +30,25 @@
 .reference-line{margin:3px 0;overflow-wrap:anywhere}.reference{color:var(--terminal-phosphor);text-decoration:underline;text-decoration-color:rgba(57,255,20,.28);text-underline-offset:2px}
 .signal-details{margin-top:8px;padding-top:4px;border-top:1px dotted var(--terminal-line)}.signal-details summary{color:var(--terminal-muted);font-size:10px;letter-spacing:.07em;cursor:pointer}
 .shell-result-facts .fact-section{padding:2px 0 7px}
-@media(max-width:430px){.analyst-brief{gap:11px}.brief-section{gap:5px;padding-bottom:9px}.fact-row{grid-template-columns:92px minmax(0,1fr);gap:6px;padding:3px 0}.fact-label{font-size:8.5px;letter-spacing:.035em}.fact-value{font-size:11.5px;line-height:1.35}.analyst-section-label,.shell-fact-heading{font-size:10px}.fact-card,.signal,.coverage-failure{padding:7px 6px;margin:4px 0}.fact-title,.failure-label{font-size:10px}.failure-summary{font-size:11px}.risk-axis{grid-template-columns:74px minmax(0,1fr);gap:6px}.risk-axis-label{font-size:9px}.risk-axis-value{font-size:11.5px}.coverage-summary,.coverage-line{font-size:10px}}
+
+.ip-intelligence-report{gap:9px;max-width:100%}
+.ip-report-header{gap:2px;padding-bottom:8px}
+.ip-report-title{margin:0;color:var(--terminal-phosphor);font-size:14px;line-height:1.25;font-weight:800;letter-spacing:.08em;overflow-wrap:anywhere}
+.ip-report-assessment{gap:5px;padding:10px 12px;border:1px solid var(--terminal-line);border-left:3px solid var(--terminal-phosphor);background:rgba(57,255,20,.018)}
+.ip-assessment-state{font-size:13px;letter-spacing:.04em}
+.ip-assessment-summary{margin:1px 0 4px;font-size:12.5px;line-height:1.5}
+.ip-report-section{gap:4px;padding:7px 0 9px}
+.ip-report-section>.fact-grid{margin:0 0 3px}
+.ip-report-section>.empty-state{margin:2px 0;color:var(--terminal-muted);font-size:11px}
+.ip-source-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:6px;margin-top:2px}
+.ip-source-line{min-width:0;margin:0;padding:6px 8px;background:rgba(57,255,20,.012)}
+.ip-source-line .signal-head{gap:6px}
+.ip-source-line .signal-provider{font-size:11px;font-weight:800}
+.ip-source-line .signal-kind{color:var(--terminal-muted);font-size:9px;letter-spacing:.05em}
+.ip-source-line .signal-verdict{display:block;margin:3px 0 1px;font-size:10px;letter-spacing:.055em}
+.ip-failure-line{margin:3px 0;padding:6px 8px;background:rgba(255,36,56,.018)}
+.ip-failure-line .failure-summary{margin:2px 0;font-size:11px}
+.ip-section-coverage{gap:3px}
+.ip-section-coverage .coverage-summary{margin:0 0 4px}
+
+@media(max-width:430px){.analyst-brief{gap:11px}.brief-section{gap:5px;padding-bottom:9px}.fact-row{grid-template-columns:92px minmax(0,1fr);gap:6px;padding:3px 0}.fact-label{font-size:8.5px;letter-spacing:.035em}.fact-value{font-size:11.5px;line-height:1.35}.analyst-section-label,.shell-fact-heading{font-size:10px}.fact-card,.signal,.coverage-failure{padding:7px 6px;margin:4px 0}.fact-title,.failure-label{font-size:10px}.failure-summary{font-size:11px}.risk-axis{grid-template-columns:74px minmax(0,1fr);gap:6px}.risk-axis-label{font-size:9px}.risk-axis-value{font-size:11.5px}.coverage-summary,.coverage-line{font-size:10px}.ip-intelligence-report{gap:7px}.ip-report-header{padding-bottom:6px}.ip-report-title{font-size:12px;line-height:1.3;letter-spacing:.045em}.ip-report-assessment{padding:8px 7px}.ip-assessment-state{font-size:11px}.ip-assessment-summary{font-size:11px;line-height:1.42}.ip-report-section{padding:5px 0 7px}.ip-source-list{grid-template-columns:1fr;gap:4px}.ip-source-line{padding:5px 6px;margin:0}.ip-source-line .signal-provider{font-size:10px}.ip-source-line .signal-kind{font-size:8.5px}.ip-failure-line{padding:5px 6px}}
