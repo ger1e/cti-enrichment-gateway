@@ -47,6 +47,15 @@ test('Cloudflare DNS empty NOERROR and NXDOMAIN are neutral absence, never benig
   }
 });
 
+test('Cloudflare DNS non-NXDOMAIN resolver failures remain provider failures', async () => {
+  for (const Status of [1, 2, 4, 5]) {
+    await assert.rejects(
+      () => cloudflareDnsProvider.run(INPUT, { fetchImpl: async () => json({ Status, AD: false }) }),
+      /provider_dns_error/,
+    );
+  }
+});
+
 test('Cloudflare DNS ignores non-A records and caps accepted A answers at 100', async () => {
   const answers = [
     { name: 'example.com.', type: 5, TTL: 60, data: 'alias.example.net.' },
