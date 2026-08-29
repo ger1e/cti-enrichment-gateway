@@ -7,6 +7,7 @@ const adapter = () => read('landing-terminal-v7.js');
 const motion = () => read('landing-radar-motion.css');
 const radar = () => read('assets/brand/para11ax-radar.svg');
 const rain = () => read('assets/brand/para11ax-rain.svg');
+const desktopFit = () => read('landing-desktop-fit.css');
 
 test('landing radar uses a self-contained rotational phosphor SVG sweep', () => {
   assert.equal(existsSync('landing-radar-motion.css'), true, 'landing radar motion stylesheet must exist');
@@ -50,4 +51,17 @@ test('mobile and reduced-motion radar contracts lower complexity without hiding 
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.matrix-rain[^}]*opacity:/is);
   assert.match(radarSvg, /prefers-reduced-motion:\s*reduce/i);
   assert.match(rainSvg, /prefers-reduced-motion:\s*reduce/i);
+});
+
+test('medium desktop landing uses a bounded fit layer instead of large-desktop hero geometry', () => {
+  assert.equal(existsSync('landing-desktop-fit.css'), true, 'medium-desktop landing fit stylesheet must exist');
+  const js = adapter();
+  const css = desktopFit();
+  assert.match(js, /DESKTOP_FIT_HREF\s*=\s*['"]\/landing-desktop-fit\.css['"]/i);
+  assert.match(css, /@media\s*\(min-width:\s*901px\)\s*and\s*\(max-width:\s*1600px\)/i);
+  assert.match(css, /\.terminal-page\s*\{[^}]*width:\s*min\(1240px,calc\(100%\s*-\s*40px\)\)/i);
+  assert.match(css, /\.terminal-hero\s*\{[^}]*min-height:\s*480px/i);
+  assert.match(css, /\.hero-ghost\s*\{[^}]*width:\s*min\(33%,400px\)/i);
+  assert.match(css, /\.ascii-logo\s*\{[^}]*font-size:\s*clamp\([^}]*6\.4rem/i);
+  assert.doesNotMatch(css, /transform:\s*scale\(|zoom\s*:/i, 'desktop fit must use real layout constraints, not page scaling');
 });

@@ -1,0 +1,28 @@
+@media (min-width:901px) and (max-width:1600px){
+  .terminal-page{width:min(1240px,calc(100% - 40px));padding:10px 0 28px}
+  .terminal-topline{min-height:48px;gap:14px;padding:5px 10px}
+  .terminal-state{font-size:.64rem;letter-spacing:.05em}
+  .state-sep{margin:0 7px}
+  .terminal-enter{padding:7px 11px;font-size:.62rem}
+
+  .terminal-hero{min-height:480px;margin-top:12px;padding:40px 48px}
+  .hero-copy{max-width:650px}
+  .ascii-logo{font-size:clamp(3.4rem,6.3vw,6.4rem);line-height:.8}
+  .hero-kicker{margin-top:18px;font-size:.78rem}
+  .hero-doctrine{margin-top:20px;font-size:1rem;line-height:1.45}
+  .hero-actions{margin-top:24px}
+  .terminal-button{min-height:42px;padding:9px 14px;font-size:.78rem}
+  .hero-ghost{right:5%;top:15%;bottom:12%;width:min(33%,400px);opacity:.36!important}
+
+  .terminal-overview,.terminal-section,.terminal-integrations{margin-top:14px}
+  .section-head{min-height:38px;padding:7px 14px;font-size:.68rem}
+  .overview-grid{grid-template-columns:repeat(4,1fr)}
+  .metric{min-height:100px;padding:18px}
+  .metric-value{font-size:clamp(1.45rem,2.2vw,2.1rem)}
+  .terminal-grid{gap:14px;margin-top:14px}
+  .cap-list{padding:10px 18px 15px}
+  .cap-row{padding-top:12px;padding-bottom:12px}
+  .terminal-session{min-height:310px;padding:20px 22px;font-size:clamp(.76rem,.92vw,.92rem);line-height:1.75}
+  .integration{min-height:72px;padding:14px 15px}
+  .terminal-footer{margin-top:14px;padding-top:14px}
+}
