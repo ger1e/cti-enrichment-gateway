@@ -37,12 +37,12 @@ test('shared compact lockup is a native animated radar plus PARA11AX wordmark', 
   assert.doesNotMatch(svg, /sentinel-helmet|helmet/i);
 });
 
-test('landing hero radar is self-contained native SVG motion', () => {
+test('landing hero radar is self-contained native SVG motion mounted without runtime construction', () => {
   assert.equal(existsSync(HERO_RADAR), true, 'landing hero radar asset must exist');
   const css = read('landing-radar-motion.css');
   const svg = read(HERO_RADAR);
-  assert.match(css, /hero-ghost[^}]*para11ax-radar\.svg/i);
-  assert.match(css, /\.hero-radar[^}]*opacity:/i);
+  assert.match(css, /\.hero-ghost[^}]*para11ax-radar\.svg/i);
+  assert.match(css, /\.hero-ghost[^}]*opacity:/i);
   assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["']/i);
   assert.match(svg, /repeatCount=["']indefinite["']/i);
   assert.match(svg, /prefers-reduced-motion:\s*reduce/i);
@@ -52,7 +52,7 @@ test('landing rain uses staggered native SVG translate animation in PARA11AX col
   assert.equal(existsSync(RAIN), true, 'shared landing rain asset must exist');
   const css = read('landing-radar-motion.css');
   const svg = read(RAIN);
-  assert.match(css, /matrix-rain[^}]*para11ax-rain\.svg/i);
+  assert.match(css, /\.matrix-rain[^}]*para11ax-rain\.svg/i);
   assert.match(css, /\.matrix-rain\s*>\s*\.rain[^}]*display:\s*none/i);
   const animations = svg.match(/<animateTransform\b[^>]*type=["']translate["'][^>]*>/gi) ?? [];
   assert.ok(animations.length >= 12, `expected at least 12 staggered rain tracks, got ${animations.length}`);
@@ -80,5 +80,5 @@ test('reduced motion keeps static rain and radar visible', () => {
   const css = read('landing-radar-motion.css');
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/i);
   assert.match(css, /\.matrix-rain[^}]*opacity:/i);
-  assert.match(css, /\.hero-radar[^}]*opacity:/i);
+  assert.match(css, /\.hero-ghost[^}]*opacity:/i);
 });
