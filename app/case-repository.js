@@ -15,6 +15,14 @@ export function createCaseRepository({ storage, now = () => new Date().toISOStri
     throw new TypeError('case storage required');
   }
 
+  let mutationTail = Promise.resolve();
+
+  function mutate(operation) {
+    const result = mutationTail.then(operation, operation);
+    mutationTail = result.then(() => undefined, () => undefined);
+    return result;
+  }
+
   async function get(id) {
     const value = await storage.get(id);
     return value == null ? null : clone(value);
@@ -34,9 +42,8 @@ export function createCaseRepository({ storage, now = () => new Date().toISOStri
   }
 
   return Object.freeze({
-    async create(title) {
-      const value = createCase({ title, now, uuid });
-      return persist(value);
+    create(title) {
+      return mutate(() => persist(createCase({ title, now, uuid })));
     },
 
     get,
@@ -50,32 +57,44 @@ export function createCaseRepository({ storage, now = () => new Date().toISOStri
       return values;
     },
 
-    async save(value) {
-      return persist(value);
+    save(value) {
+      const detached = clone(value);
+      return mutate(() => persist(detached));
     },
 
-    async remove(id) {
-      await storage.delete(id);
+    remove(id) {
+      return mutate(() => storage.delete(id));
     },
 
-    async addNote(id, text) {
-      const current = await requireExisting(id);
-      return persist(addCaseNote(current, text, { now, uuid }));
+    addNote(id, text) {
+      return mutate(async () => {
+        const current = await requireExisting(id);
+        return persist(addCaseNote(current, text, { now, uuid }));
+      });
     },
 
-    async addPin(id, observable) {
-      const current = await requireExisting(id);
-      return persist(addCasePin(current, observable, { now }));
+    addPin(id, observable) {
+      const detached = clone(observable);
+      return mutate(async () => {
+        const current = await requireExisting(id);
+        return persist(addCasePin(current, detached, { now }));
+      });
     },
 
-    async removePin(id, observable) {
-      const current = await requireExisting(id);
-      return persist(removeCasePin(current, observable, { now }));
+    removePin(id, observable) {
+      const detached = clone(observable);
+      return mutate(async () => {
+        const current = await requireExisting(id);
+        return persist(removeCasePin(current, detached, { now }));
+      });
     },
 
-    async capture(id, enrichment) {
-      const current = await requireExisting(id);
-      return persist(appendSnapshot(current, enrichment, { now, uuid }));
+    capture(id, enrichment) {
+      const detached = clone(enrichment);
+      return mutate(async () => {
+        const current = await requireExisting(id);
+        return persist(appendSnapshot(current, detached, { now, uuid }));
+      });
     },
   });
 }
