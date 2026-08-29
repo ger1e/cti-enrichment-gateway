@@ -9,7 +9,11 @@
   "routes": [
     {
       "src": "/",
-      "dest": "/landing-maxx.html"
+      "dest": "/index.html"
+    },
+    {
+      "src": "/landing-maxx.html",
+      "dest": "/index.html"
     },
     {
       "src": "/app/app.css",
