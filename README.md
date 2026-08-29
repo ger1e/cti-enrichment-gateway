@@ -10,7 +10,7 @@
 
 **INTELLIGENCE. ENRICHED. OPERATIONAL.**
 
-`37 FIXED SOURCES` · `EVIDENCE V2` · `STIX 2.1` · `READ-ONLY` · `FIXED EGRESS` · `Node.js 24.x`
+`38 FIXED SOURCES` · `EVIDENCE V2` · `STIX 2.1` · `READ-ONLY` · `FIXED EGRESS` · `Node.js 24.x`
 
 [**ENTER ANALYST UI**](https://para11ax.vercel.app/app/) · [Landing](https://para11ax.vercel.app/) · [API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md) · [Providers](docs/PROVIDERS.md) · [Security](SECURITY.md)
 
@@ -26,7 +26,7 @@ analyst@para11ax:~$ core --status
 
 PARA11AX is a bounded CTI evidence gateway for hunters and defenders. It takes one supported observable, routes it through a fixed provider workflow, preserves provider-native semantics, and returns provenance-rich evidence without pretending every signal is a verdict.
 
-- **Inputs:** IP · domain · URL · hash · CVE · ATT&CK ID · ASN · CIDR.
+- **Inputs:** IP · domain · URL · hash · CVE · ATT&CK ID · ASN · CIDR · certificate (`cert-sha256:<64-hex>`).
 - **Profiles:** `fast` · `standard` · `full`; callers cannot select arbitrary providers.
 - **Trust boundary:** `safeFetch` allows only declared HTTPS hosts, methods, protocols, body ceilings, and redirect behavior.
 - **Execution:** tiered provider scheduling, bounded concurrency, bounded cache, explicit timeout/circuit states.
@@ -94,9 +94,9 @@ analyst@para11ax:~$ semantics --enforce
 Full semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
 
 <details>
-<summary><strong>37 upstream APIs and feeds</strong></summary>
+<summary><strong>38 upstream APIs and feeds</strong></summary>
 
-**Identity / routing / exposure:** IPinfo · RDAP · RIPEstat · Shodan · Censys · Modat Magnify · Cloudflare Radar · Tor Exit · Spamhaus DROP / ASN-DROP.
+**Identity / routing / exposure:** IPinfo · RDAP · RIPEstat · Shodan · Censys · Modat Magnify · Cloudflare Radar · Cloudflare DNS · Tor Exit · Spamhaus DROP / ASN-DROP.
 
 **Threat / IOC:** DShield · Feodo Tracker · ThreatMiner · CIRCL MISP OSINT · Botvrij MISP OSINT · GreyNoise · AbuseIPDB · VirusTotal · OTX · ThreatFox · urlscan.io · Webamon · Pulsedive · OpenPhish · URLhaus · TweetFeed.
 
