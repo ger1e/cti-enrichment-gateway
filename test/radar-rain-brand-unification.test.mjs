@@ -12,9 +12,7 @@ const BRAND_CSS = 'brand-unification.css';
 const ADAPTER = 'landing-terminal-v7.js';
 
 test('landing and analyst UI resolve the exact same compact radar lockup asset', () => {
-  for (const path of [LOCKUP, BRAND_RUNTIME, BRAND_CSS]) {
-    assert.equal(existsSync(path), true, `${path} must exist`);
-  }
+  for (const path of [LOCKUP, BRAND_RUNTIME, BRAND_CSS]) assert.equal(existsSync(path), true, `${path} must exist`);
   const runtime = read(BRAND_RUNTIME);
   const landing = read(ADAPTER);
   const app = read('app/terminal-main.js');
@@ -26,8 +24,9 @@ test('landing and analyst UI resolve the exact same compact radar lockup asset',
   assert.match(app, /await\s+import\(['"]\.\.\/brand-unification\.js['"]\)/i);
 });
 
-test('shared compact lockup is a native animated radar plus PARA11AX wordmark', () => {
+test('shared compact lockup is one native animated PPI radar plus PARA11AX wordmark', () => {
   const svg = read(LOCKUP);
+  assert.equal((svg.match(/data-radar=["']ppi["']/gi) ?? []).length, 1);
   assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["']/i);
   assert.match(svg, /PARA/i);
   assert.match(svg, /11/i);
@@ -43,6 +42,7 @@ test('landing hero radar is self-contained native SVG motion mounted without run
   const svg = read(HERO_RADAR);
   assert.match(css, /\.hero-ghost[^}]*para11ax-radar\.svg/i);
   assert.match(css, /\.hero-ghost[^}]*opacity:/i);
+  assert.equal((svg.match(/data-radar=["']ppi["']/gi) ?? []).length, 1);
   assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["']/i);
   assert.match(svg, /repeatCount=["']indefinite["']/i);
   assert.match(svg, /prefers-reduced-motion:\s*reduce/i);
@@ -69,6 +69,21 @@ test('landing adapter no longer constructs radar or rain layers at runtime', () 
   assert.doesNotMatch(js, /['"]radar-sweep['"]|['"]radar-trail['"]|['"]radar-pulse['"]/i);
 });
 
+test('active landing hero is reduced to wordmark, Kiriakou quote, and the single radar', () => {
+  const js = read(ADAPTER);
+  const css = read('landing-radar-motion.css');
+  assert.match(js, /function\s+mountMinimalHero\s*\(/i);
+  assert.match(js, /You’ve got to follow the evidence/i);
+  assert.match(js, /John Kiriakou/i);
+  assert.match(js, /\.hero-kicker/);
+  assert.match(js, /\.hero-doctrine/);
+  assert.match(js, /\.hero-actions/);
+  assert.match(css, /\.hero-kicker[^}]*display:\s*none/i);
+  assert.match(css, /\.hero-doctrine[^}]*display:\s*none/i);
+  assert.match(css, /\.hero-actions[^}]*display:\s*none/i);
+  assert.match(css, /\.hero-kiriakou/);
+});
+
 test('shared brand runtime stays visual-only and non-persistent', () => {
   const js = read(BRAND_RUNTIME);
   assert.doesNotMatch(js, /fetch\s*\(|XMLHttpRequest|WebSocket|EventSource/i);
@@ -83,13 +98,11 @@ test('reduced motion keeps static rain and radar visible', () => {
   assert.match(css, /\.hero-ghost[^}]*opacity:/i);
 });
 
-test('radar sweep has a page-level CSS fallback instead of depending on SVG image animation', () => {
+test('native SVG owns the only radar sweep without a second CSS overlay', () => {
   const brandCss = read(BRAND_CSS);
   const landingCss = read('landing-radar-motion.css');
-  assert.match(brandCss, /@keyframes\s+para11ax-lockup-radar-spin/i);
-  assert.match(brandCss, /\.terminal-brand::after|\.terminal-mark::after|\.shell-brand::after|\.boot-brand-lockup::after/i);
-  assert.match(brandCss, /animation:\s*para11ax-lockup-radar-spin/i);
-  assert.match(landingCss, /@keyframes\s+para11ax-hero-radar-spin/i);
-  assert.match(landingCss, /\.hero-ghost::after/i);
-  assert.match(landingCss, /animation:\s*para11ax-hero-radar-spin/i);
+  assert.doesNotMatch(brandCss, /para11ax-lockup-radar-spin/i);
+  assert.doesNotMatch(brandCss, /\.terminal-brand::after|\.terminal-mark::after|\.shell-brand::after|\.boot-brand-lockup::after/i);
+  assert.doesNotMatch(landingCss, /para11ax-hero-radar-spin|para11ax-hero-radar-trail-spin/i);
+  assert.match(landingCss, /\.hero-ghost::before,\.hero-ghost::after\{[^}]*content:none!important;[^}]*animation:none!important/i);
 });
