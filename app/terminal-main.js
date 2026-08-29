@@ -6,3 +6,4 @@ await import('./terminal-polish.js');
 await import('./analyst-deck.js');
 await import('./earth-globe.js');
 await import('../brand-unification.js');
+await import('./brand-final.js');
