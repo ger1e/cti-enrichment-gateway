@@ -5,18 +5,23 @@ import test from 'node:test';
 const url = path => new URL(`../${path}`, import.meta.url);
 const read = path => readFile(url(path), 'utf8');
 
-test('Web UI enters directly into one prepainted v7 visual stack', async () => {
-  const [html, main, analystCss, vercel] = await Promise.all([
+test('Web UI resolves the compatibility entry into one render-blocking v7 cascade', async () => {
+  const [html, appCss, baseCss, prepaint, main, analystCss, vercel] = await Promise.all([
     read('app/index.html'),
+    read('app/app.css'),
+    read('app/app-base.css'),
+    read('app/prepaint-v7.css'),
     read('app/terminal-main.js'),
     read('app/analyst-deck.css'),
     read('vercel.json').then(JSON.parse),
   ]);
 
-  assert.match(html, /<html[^>]*data-terminal-first="v7"/);
+  assert.equal(baseCss, appCss, 'prepaint base must remain byte-identical to the canonical app stylesheet');
+  assert.match(html, /<link rel="stylesheet" href="\/app\/app\.css">/);
+  assert.match(html, /<script type="module" src="\/app\/app\.js"><\/script>/);
 
   const styles = [
-    '/app/app.css',
+    '/app/app-base.css',
     '/app/shell.css',
     '/app/shell-polish.css',
     '/app/analyst-deck.css',
@@ -27,16 +32,23 @@ test('Web UI enters directly into one prepainted v7 visual stack', async () => {
   ];
   let previous = -1;
   for (const href of styles) {
-    const marker = `<link rel="stylesheet" href="${href}">`;
-    const index = html.indexOf(marker);
-    assert.ok(index > previous, `${href} must be declared in deterministic head order`);
+    const marker = `@import url('${href}');`;
+    const index = prepaint.indexOf(marker);
+    assert.ok(index > previous, `${href} must be imported in deterministic cascade order`);
     previous = index;
   }
 
-  assert.match(html, /<script type="module" src="\/app\/terminal-main\.js"><\/script>/);
+  const cssRoute = vercel.routes.find(route => route.src === '/app/app.css');
+  const jsRoute = vercel.routes.find(route => route.src === '/app/app.js');
+  assert.equal(cssRoute?.dest, '/app/prepaint-v7.css');
+  assert.equal(jsRoute?.dest, '/app/terminal-main.js');
+
+  assert.match(main, /PREPAINT_STYLES/);
+  assert.match(main, /marker\.rel = 'preload'/);
+  assert.match(main, /marker\.as = 'style'/);
+  assert.match(main, /await import\('\.\/terminal-entry\.js'\)/);
   assert.doesNotMatch(main, /visual-maxx\.js/);
   assert.doesNotMatch(main, /desktop-layout-v7\.js/);
   assert.match(analystCss, /data-terminal-first="v7"/);
   assert.doesNotMatch(analystCss, /data-terminal-first="v6"/);
-  assert.equal(vercel.routes.some(route => route.src === '/app/app.js'), false, 'legacy app.js rewrite must be removed');
 });
