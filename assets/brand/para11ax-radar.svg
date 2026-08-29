@@ -22,8 +22,8 @@
   <g text-anchor="middle" aria-hidden="true"><text class="bearing" x="260" y="17">000</text><text class="bearing" x="503" y="264">090</text><text class="bearing" x="260" y="516">180</text><text class="bearing" x="17" y="264">270</text></g>
   <g aria-hidden="true"><text class="range" x="269" y="221">RNG 25</text><text class="range" x="269" y="173">RNG 50</text><text class="range" x="269" y="125">RNG 75</text><text class="range" x="269" y="77">RNG 100</text></g>
   <g clip-path="url(#scope)">
-    <g fill="#39FF14" filter="url(#pipGlow)"><circle class="return r1" cx="374" cy="143" r="3.4"/><circle class="return r3" cx="168" cy="340" r="3.1"/><circle class="return r2" cx="352" cy="352" r="3"/><circle class="return r5" cx="306" cy="180" r="2.5"/><circle class="return r6" cx="142" cy="214" r="2.3"/></g>
-    <g fill="#FF2438" filter="url(#pipGlow)"><circle class="return r4" cx="198" cy="146" r="3.1"/><circle class="return r7" cx="392" cy="303" r="2.6"/></g>
+    <g fill="#39FF14" filter="url(#pipGlow)"><circle cx="374" cy="143" r="3.4" class="return r1"/><circle cx="168" cy="340" r="3.1" class="return r3"/><circle cx="352" cy="352" r="3" class="return r2"/><circle cx="306" cy="180" r="2.5" class="return r5"/><circle cx="142" cy="214" r="2.3" class="return r6"/></g>
+    <g fill="#FF2438" filter="url(#pipGlow)"><circle cx="198" cy="146" r="3.1" class="return r4"/><circle cx="392" cy="303" r="2.6" class="return r7"/></g>
     <g class="ppi-sweep" aria-hidden="true">
       <path d="M260 260L213 39A226 226 0 0 1 260 34Z" fill="#39FF14" fill-opacity=".075"/>
       <path d="M260 260V34" stroke="url(#beam)" stroke-width="1.7" stroke-linecap="round"/>
