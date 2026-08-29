@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 72" role="img" aria-labelledby="title desc">
   <title id="title">PARA11AX</title>
-  <desc id="desc">Compact PARA11AX radar logo.</desc>
-  <style>.motion{display:block}.static-sweep{display:none}@media(prefers-reduced-motion: reduce){.motion{display:none}.static-sweep{display:block}}</style>
+  <desc id="desc">Compact PARA11AX moving radar logo.</desc>
+  <style>.motion{display:block}.static-sweep{display:none}@media(prefers-reduced-motion: reduce){.motion{display:block}.static-sweep{display:none}}</style>
   <g transform="translate(36 36)" data-radar="ppi">
     <circle r="31" fill="#020403" stroke="#39FF14" stroke-opacity=".74" stroke-width="1.5"/>
     <circle r="21" fill="none" stroke="#39FF14" stroke-opacity=".34"/>

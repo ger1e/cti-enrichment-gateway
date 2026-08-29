@@ -1,78 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" role="img" aria-labelledby="title desc" data-radar="ppi">
   <title id="title">PARA11AX radar</title>
-  <desc id="desc">Circular plan-position display with concentric range rings, azimuth ticks, target persistence, and a rotating radial sweep.</desc>
+  <desc id="desc">Moving plan-position indicator with range rings, azimuth grid, fixed target returns and rotating sweep.</desc>
   <defs>
-    <radialGradient id="bg" cx="50%" cy="50%" r="52%">
-      <stop offset="0" stop-color="#0A170C"/>
-      <stop offset=".7" stop-color="#061008"/>
-      <stop offset="1" stop-color="#020403"/>
-    </radialGradient>
-    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#39FF14" stop-opacity="0"/>
-      <stop offset=".68" stop-color="#39FF14" stop-opacity=".07"/>
-      <stop offset="1" stop-color="#39FF14" stop-opacity=".34"/>
-    </linearGradient>
+    <radialGradient id="bg" cx="50%" cy="50%" r="52%"><stop offset="0" stop-color="#0A170C"/><stop offset=".7" stop-color="#061008"/><stop offset="1" stop-color="#020403"/></radialGradient>
+    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#39FF14" stop-opacity="0"/><stop offset=".68" stop-color="#39FF14" stop-opacity=".07"/><stop offset="1" stop-color="#39FF14" stop-opacity=".34"/></linearGradient>
     <clipPath id="scope"><circle cx="260" cy="260" r="232"/></clipPath>
   </defs>
   <style>
-    .motion{display:block}.static-sweep{display:none}.bearing,.range{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#39FF14}.bearing{font-size:11px;opacity:.78}.range{font-size:9px;opacity:.38;letter-spacing:.06em}
-    @media(prefers-reduced-motion: reduce){.motion{display:none}.static-sweep{display:block}}
+    .bearing,.range{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#39FF14}.bearing{font-size:11px;opacity:.78}.range{font-size:9px;opacity:.38;letter-spacing:.06em}
+    .ppi-sweep{transform-box:view-box;transform-origin:260px 260px;animation:ppi-spin 4.8s linear infinite}
+    @keyframes ppi-spin{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){.ppi-sweep{animation-duration:24s}}
   </style>
-
   <circle cx="260" cy="260" r="250" fill="#020403"/>
   <circle cx="260" cy="260" r="238" fill="url(#bg)" stroke="#39FF14" stroke-opacity=".72" stroke-width="2"/>
-  <circle class="range-ring" cx="260" cy="260" r="232" fill="none" stroke="#39FF14" stroke-opacity=".22"/>
-  <circle class="range-ring" cx="260" cy="260" r="184" fill="none" stroke="#39FF14" stroke-opacity=".22"/>
-  <circle class="range-ring" cx="260" cy="260" r="136" fill="none" stroke="#39FF14" stroke-opacity=".2"/>
-  <circle class="range-ring" cx="260" cy="260" r="88" fill="none" stroke="#39FF14" stroke-opacity=".18"/>
-  <circle class="range-ring" cx="260" cy="260" r="40" fill="none" stroke="#39FF14" stroke-opacity=".16"/>
-  <circle id="azimuth-ticks" cx="260" cy="260" r="224" fill="none" stroke="#39FF14" stroke-opacity=".5" stroke-width="7" stroke-dasharray="1 10.72"/>
-  <g id="crosshair" stroke="#39FF14" fill="none">
-    <path d="M28 260H492M260 28V492" stroke-opacity=".36"/>
-    <path d="M260 18v22M260 480v22M18 260h22M480 260h22" stroke-opacity=".92" stroke-width="2"/>
-    <path d="M96 96l13 13M411 411l13 13M96 424l13-13M411 109l13-13" stroke-opacity=".35"/>
-  </g>
-  <g text-anchor="middle" aria-hidden="true">
-    <text class="bearing" x="260" y="17">000</text>
-    <text class="bearing" x="503" y="264">090</text>
-    <text class="bearing" x="260" y="516">180</text>
-    <text class="bearing" x="17" y="264">270</text>
-  </g>
-  <g text-anchor="start" aria-hidden="true">
-    <text class="range" x="269" y="221">RNG 25</text>
-    <text class="range" x="269" y="173">RNG 50</text>
-    <text class="range" x="269" y="125">RNG 75</text>
-    <text class="range" x="269" y="77">RNG 100</text>
-  </g>
-
+  <g fill="none" stroke="#39FF14"><circle cx="260" cy="260" r="232" stroke-opacity=".22"/><circle cx="260" cy="260" r="184" stroke-opacity=".22"/><circle cx="260" cy="260" r="136" stroke-opacity=".2"/><circle cx="260" cy="260" r="88" stroke-opacity=".18"/><circle cx="260" cy="260" r="40" stroke-opacity=".16"/><circle cx="260" cy="260" r="224" stroke-opacity=".5" stroke-width="7" stroke-dasharray="1 10.72"/></g>
+  <g id="crosshair" stroke="#39FF14" fill="none"><path d="M28 260H492M260 28V492" stroke-opacity=".36"/><path d="M96 96L424 424M424 96L96 424" stroke-opacity=".1"/><path d="M260 18v22M260 480v22M18 260h22M480 260h22" stroke-opacity=".92" stroke-width="2"/></g>
+  <g text-anchor="middle" aria-hidden="true"><text class="bearing" x="260" y="17">000</text><text class="bearing" x="503" y="264">090</text><text class="bearing" x="260" y="516">180</text><text class="bearing" x="17" y="264">270</text></g>
+  <g aria-hidden="true"><text class="range" x="269" y="221">RNG 25</text><text class="range" x="269" y="173">RNG 50</text><text class="range" x="269" y="125">RNG 75</text><text class="range" x="269" y="77">RNG 100</text></g>
   <g clip-path="url(#scope)">
-    <path d="M105 260a155 155 0 0 1 310 0" fill="none" stroke="#39FF14" stroke-opacity=".035" stroke-width="38" stroke-dasharray="4 10"/>
-
-    <path class="target-trail" d="M356 157l9-8 9-6" fill="none" stroke="#39FF14" stroke-opacity=".12" stroke-width="2"/>
-    <path class="target-trail" d="M151 330l9 6 8 4" fill="none" stroke="#39FF14" stroke-opacity=".11" stroke-width="2"/>
-    <path class="target-trail" d="M334 337l9 8 9 7" fill="none" stroke="#39FF14" stroke-opacity=".1" stroke-width="2"/>
-    <path class="target-trail" d="M378 295l7 4 7 4" fill="none" stroke="#FF2438" stroke-opacity=".12" stroke-width="2"/>
-
-    <circle class="target-return" cx="374" cy="143" r="4.5" fill="#39FF14"/>
-    <circle class="target-return" cx="168" cy="340" r="4" fill="#39FF14" fill-opacity=".82"/>
-    <circle class="target-return" cx="352" cy="352" r="3.8" fill="#39FF14" fill-opacity=".72"/>
-    <circle class="target-return" cx="306" cy="180" r="3.1" fill="#39FF14" fill-opacity=".65"/>
-    <circle class="target-return" cx="142" cy="214" r="2.8" fill="#39FF14" fill-opacity=".65"/>
-    <circle class="target-return" cx="198" cy="146" r="4.3" fill="#FF2438"/>
-    <circle class="target-return" cx="392" cy="303" r="3.5" fill="#FF2438" fill-opacity=".88"/>
-
-    <g id="ppi-sweep" class="motion" transform="translate(260 260)">
-      <path id="sweep-trail" d="M0 0L221-58A228 228 0 0 1 224 43Z" fill="url(#trail)"/>
-      <path d="M0 0H226" stroke="#39FF14" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M0 -1H226" stroke="#F7FFF6" stroke-opacity=".38" stroke-width=".8"/>
-      <animateTransform attributeName="transform" additive="sum" type="rotate" from="0" to="360" dur="4.8s" repeatCount="indefinite"/>
-    </g>
-    <g class="static-sweep" transform="translate(260 260) rotate(34)">
-      <path d="M0 0L221-58A228 228 0 0 1 224 43Z" fill="url(#trail)"/>
-      <path d="M0 0H226" stroke="#39FF14" stroke-width="2.6"/>
-    </g>
+    <g fill="#39FF14"><circle cx="374" cy="143" r="4.5"/><circle cx="168" cy="340" r="4" fill-opacity=".82"/><circle cx="352" cy="352" r="3.8" fill-opacity=".72"/><circle cx="306" cy="180" r="3.1" fill-opacity=".65"/><circle cx="142" cy="214" r="2.8" fill-opacity=".65"/></g>
+    <g fill="#FF2438"><circle cx="198" cy="146" r="4.3"/><circle cx="392" cy="303" r="3.5" fill-opacity=".88"/></g>
+    <g class="ppi-sweep" aria-hidden="true"><path d="M260 260L481 202A228 228 0 0 1 484 303Z" fill="url(#trail)"/><path d="M260 260H486" stroke="#39FF14" stroke-width="2.6" stroke-linecap="round"/><path d="M260 259H486" stroke="#F7FFF6" stroke-opacity=".38" stroke-width=".8"/></g>
   </g>
-
-  <circle cx="260" cy="260" r="8" fill="#020403" stroke="#F7FFF6" stroke-opacity=".62"/>
-  <circle cx="260" cy="260" r="2.5" fill="#39FF14"/>
+  <circle cx="260" cy="260" r="8" fill="#020403" stroke="#F7FFF6" stroke-opacity=".62"/><circle cx="260" cy="260" r="2.5" fill="#39FF14"/>
 </svg>
