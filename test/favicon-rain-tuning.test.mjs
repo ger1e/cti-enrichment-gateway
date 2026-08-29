@@ -13,9 +13,10 @@ test('WebUI runtime pins the same canonical SVG favicon as landing', () => {
   assert.match(runtime, /favicon\.type\s*=\s*['"]image\/svg\+xml['"]/i);
 });
 
-test('landing rain renderer is slower-looking and substantially denser without touching app rain', () => {
-  const css = read('landing-radar-motion.css');
-  assert.match(css, /\.matrix-rain[^}]*background-size:\s*56%\s+auto\s*!important/is);
-  assert.match(css, /\.matrix-rain[^}]*background-repeat:\s*repeat\s*!important/is);
-  assert.match(css, /@media\(max-width:640px\)[\s\S]*?\.matrix-rain[^}]*background-size:\s*auto\s+56%\s*!important/is);
+test('live landing rain is substantially denser without changing its speed', () => {
+  const landing = read('index.html');
+  const columns = [...landing.matchAll(/<span class="rain" style="left:/g)];
+  assert.ok(columns.length >= 28, `expected at least 28 live landing rain columns, got ${columns.length}`);
+  assert.match(landing, /\.rain\{[^}]*animation:fall var\(--d,6s\) linear infinite/is);
+  assert.doesNotMatch(landing, /landing-radar-motion\.css/i);
 });
