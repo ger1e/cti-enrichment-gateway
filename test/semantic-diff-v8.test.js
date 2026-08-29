@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { diffEvidenceSnapshots } from '../src/core/semantic-diff.js';
+import { diffEvidenceSnapshots, CATEGORY_PRIORITY } from '../src/core/semantic-diff.js';
 
 const fp = char => char.repeat(64);
 
-function ev(provider, fingerprint, verdict = 'context') {
+function ev(provider, fingerprint, verdict = 'context', kind = 'reputation') {
   return {
     provider,
     integrity: { fingerprint },
     semantics: { class: 'provider_claim', semanticClass: 'reputation', sourceRole: 'aggregator' },
-    observation: { kind: 'reputation', verdict, firstSeen: null, lastSeen: null, tags: [], attributes: {} },
+    observation: { kind, verdict, firstSeen: null, lastSeen: null, tags: [], attributes: {} },
   };
 }
 
@@ -55,15 +55,41 @@ test('timestamp, cache, duration, and source ordering noise produces no semantic
 test('absence remains distinct from explicit negative evidence', () => {
   const previous = base();
   const current = clone(previous);
-  previous.evidence = [ev('alpha', fp('a'), 'not_found')];
-  current.evidence = [ev('alpha', fp('b'), 'clean')];
+  previous.evidence = [ev('alpha', fp('a'), 'not_found', 'absence')];
+  current.evidence = [ev('alpha', fp('b'), 'clean', 'reputation')];
   const diff = diffEvidenceSnapshots(previous, current);
   assert.equal(diff.changed, true);
   assert.equal(categories(diff).has('evidence_removed'), true);
   assert.equal(categories(diff).has('evidence_added'), true);
 });
 
-test('typed semantic changes cover every Train 3 category', () => {
+test('an in-place provider claim mutation is one semantic_claim_changed record', () => {
+  const previous = base();
+  const current = clone(previous);
+  current.evidence[0] = ev('alpha', fp('b'), 'malicious');
+  const diff = diffEvidenceSnapshots(previous, current);
+  const claimChanges = diff.changes.filter(change => change.category === 'semantic_claim_changed');
+  assert.equal(claimChanges.length, 1);
+  assert.equal(claimChanges[0].key, 'alpha\u0000reputation');
+  assert.deepEqual(claimChanges[0].providers, ['alpha']);
+  assert.deepEqual(claimChanges[0].evidenceFingerprints, [fp('a'), fp('b')]);
+  assert.equal(categories(diff).has('evidence_added'), false);
+  assert.equal(categories(diff).has('evidence_removed'), false);
+});
+
+test('provider health transitions are explicit provider_state_changed records', () => {
+  const previous = base();
+  const current = clone(previous);
+  current.meta.providerHealth.alpha = 'timeout';
+  const diff = diffEvidenceSnapshots(previous, current);
+  const stateChange = diff.changes.find(change => change.category === 'provider_state_changed');
+  assert.equal(stateChange.key, 'alpha');
+  assert.deepEqual(stateChange.before, { provider: 'alpha', state: 'ok' });
+  assert.deepEqual(stateChange.after, { provider: 'alpha', state: 'timeout' });
+  assert.deepEqual(stateChange.providers, ['alpha']);
+});
+
+test('typed semantic changes cover every amended Train 3 category', () => {
   const previous = base();
   const current = clone(previous);
   current.evidence = [ev('beta', fp('b'), 'malicious')];
@@ -85,9 +111,27 @@ test('typed semantic changes cover every Train 3 category', () => {
   const diff = diffEvidenceSnapshots(previous, current);
   assert.equal(diff.changed, true);
   assert.deepEqual(categories(diff), new Set([
-    'evidence_added', 'evidence_removed', 'provider_coverage_changed', 'relationship_added', 'relationship_removed',
+    'evidence_added', 'evidence_removed', 'provider_state_changed', 'provider_coverage_changed', 'relationship_added', 'relationship_removed',
     'contradiction_changed', 'freshness_changed', 'attack_mapping_changed', 'decision_changed', 'huntability_changed', 'telemetry_changed',
   ]));
+});
+
+test('category priority matches the normative amended Train 3 ordering', () => {
+  assert.deepEqual(CATEGORY_PRIORITY, [
+    'decision_changed',
+    'contradiction_changed',
+    'semantic_claim_changed',
+    'evidence_added',
+    'evidence_removed',
+    'provider_state_changed',
+    'provider_coverage_changed',
+    'relationship_added',
+    'relationship_removed',
+    'attack_mapping_changed',
+    'huntability_changed',
+    'telemetry_changed',
+    'freshness_changed',
+  ]);
 });
 
 test('changes use fixed priority ordering and are bounded to 128 records', () => {

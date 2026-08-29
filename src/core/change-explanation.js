@@ -1,8 +1,10 @@
 const REASONS = Object.freeze({
   decision_changed: 'decision support changed',
   contradiction_changed: 'cross-provider contradiction state changed',
+  semantic_claim_changed: 'normalized evidence claim changed',
   evidence_added: 'new normalized evidence was observed',
   evidence_removed: 'normalized evidence is no longer present',
+  provider_state_changed: 'provider state changed',
   provider_coverage_changed: 'provider coverage changed',
   relationship_added: 'new evidence relationship was observed',
   relationship_removed: 'evidence relationship is no longer present',

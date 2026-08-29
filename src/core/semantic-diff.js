@@ -3,8 +3,10 @@ import { semanticSnapshot, stableValue } from './snapshot-semantics.js';
 const CATEGORY_PRIORITY = Object.freeze([
   'decision_changed',
   'contradiction_changed',
+  'semantic_claim_changed',
   'evidence_added',
   'evidence_removed',
+  'provider_state_changed',
   'provider_coverage_changed',
   'relationship_added',
   'relationship_removed',
@@ -31,7 +33,7 @@ function same(a, b) {
 }
 
 function evidenceKey(item) {
-  return `${item?.provider ?? ''}\u0000${item?.fingerprint ?? ''}`;
+  return `${item?.provider ?? ''}\u0000${item?.observation?.kind ?? ''}`;
 }
 
 function relationshipKey(item) {
@@ -96,10 +98,40 @@ function appendSetChanges(changes, previousValues, currentValues, keyFn, addedCa
   }
 }
 
+function appendEvidenceChanges(changes, previousValues, currentValues) {
+  const previous = mapBy(previousValues, evidenceKey);
+  const current = mapBy(currentValues, evidenceKey);
+  for (const [key, value] of current) {
+    if (!previous.has(key)) {
+      changes.push(makeChange('evidence_added', key, null, value));
+      continue;
+    }
+    const before = previous.get(key);
+    if (!same(before, value)) changes.push(makeChange('semantic_claim_changed', key, before, value));
+  }
+  for (const [key, value] of previous) {
+    if (!current.has(key)) changes.push(makeChange('evidence_removed', key, value, null));
+  }
+}
+
+function appendProviderStateChanges(changes, beforeHealth, afterHealth) {
+  const providers = new Set([...Object.keys(beforeHealth ?? {}), ...Object.keys(afterHealth ?? {})]);
+  for (const provider of [...providers].sort((a, b) => a.localeCompare(b))) {
+    const beforeState = Object.prototype.hasOwnProperty.call(beforeHealth ?? {}, provider) ? beforeHealth[provider] : null;
+    const afterState = Object.prototype.hasOwnProperty.call(afterHealth ?? {}, provider) ? afterHealth[provider] : null;
+    if (same(beforeState, afterState)) continue;
+    changes.push(makeChange(
+      'provider_state_changed',
+      provider,
+      beforeState === null ? null : { provider, state: beforeState },
+      afterState === null ? null : { provider, state: afterState },
+    ));
+  }
+}
+
 function coverageState(snapshot) {
   return {
     status: snapshot.status,
-    providerHealth: snapshot.providerHealth,
     coverage: snapshot.coverage,
     limitations: snapshot.limitations,
   };
@@ -125,7 +157,8 @@ export function diffEvidenceSnapshots(previous, current) {
   const after = semanticSnapshot(current);
   const changes = [];
 
-  appendSetChanges(changes, before.evidence, after.evidence, evidenceKey, 'evidence_added', 'evidence_removed');
+  appendEvidenceChanges(changes, before.evidence, after.evidence);
+  appendProviderStateChanges(changes, before.providerHealth, after.providerHealth);
   appendSetChanges(changes, before.relationships, after.relationships, relationshipKey, 'relationship_added', 'relationship_removed');
 
   const beforeCoverage = coverageState(before);
