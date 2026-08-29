@@ -49,21 +49,20 @@ test('active presentation sources use the canonical terminal palette only', () =
   assert.doesNotMatch(source, bannedPalette);
 });
 
-test('README uses minimal desktop and mobile hero assets while preserving CI badges and analyst entry below the banner', () => {
+test('README uses cache-busted desktop and mobile hero assets while preserving CI badges and analyst entry below the banner', () => {
   const readme = read('README.md');
-  assert.match(readme, /assets\/brand\/para11ax-terminal-hero\.svg/i);
-  assert.match(readme, /assets\/brand\/para11ax-terminal-hero-mobile\.svg/i);
-  assert.match(readme, /Tooling smoke/i);
-  assert.match(readme, /CodeQL/i);
-  assert.match(readme, /ENTER ANALYST UI/i);
-  assert.match(readme, /analyst@para11ax:~\$/i);
-  assert.equal(existsSync('assets/brand/para11ax-terminal-hero.svg'), true);
-  assert.equal(existsSync('assets/brand/para11ax-terminal-hero-mobile.svg'), true);
-  for (const path of ['assets/brand/para11ax-terminal-hero.svg', 'assets/brand/para11ax-terminal-hero-mobile.svg']) {
+  const heroes = ['assets/brand/para11ax-readme-hero-v3.svg', 'assets/brand/para11ax-readme-hero-mobile-v3.svg'];
+  for (const path of heroes) {
+    assert.match(readme, new RegExp(path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+    assert.equal(existsSync(path), true, `${path} must exist`);
     const svg = read(path);
     assert.doesNotMatch(svg, /analyst@para11ax:~\$/i, `${path} must keep terminal copy out of the banner`);
     assert.doesNotMatch(svg, /SEMANTIC FIREWALL|FIXED SOURCES|STIX|READ-ONLY|EVIDENCE GATEWAY/i, `${path} must stay visually minimal`);
   }
+  assert.match(readme, /Tooling smoke/i);
+  assert.match(readme, /CodeQL/i);
+  assert.match(readme, /ENTER ANALYST UI/i);
+  assert.match(readme, /analyst@para11ax:~\$/i);
 });
 
 test('brand system declares terminal frame primary and no new audio identity', () => {
