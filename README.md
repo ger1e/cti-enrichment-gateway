@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="assets/brand/para11ax-readme-hero-v4.gif" alt="PARA11AX — animated PPI radar" width="100%" />
+<picture>
+  <source media="(max-width: 720px)" srcset="assets/brand/para11ax-readme-hero-mobile-v5.gif">
+  <img src="assets/brand/para11ax-readme-hero-v5.gif" alt="PARA11AX — animated PPI radar" width="100%" />
+</picture>
 
 [![Tooling smoke](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml)
 [![CodeQL](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml)
