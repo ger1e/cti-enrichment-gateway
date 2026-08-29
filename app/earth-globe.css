@@ -1,9 +1,6 @@
-/* Natural Earth renderer: keep the globe frame fixed while the SVG track moves longitudinally. */
-.boot-globe{animation:none!important;transform:translate(-50%,-50%) rotate(0deg)!important}
-/* terminal-polish still creates its old coarse fallback; never paint it. The renderer removes it once loaded. */
-.boot-globe-landmasses{display:none!important}
-.boot-earth-window{pointer-events:none}
-.boot-earth-stage{opacity:.96}
-.boot-earth-track{transform-box:fill-box;transform-origin:0 0}
-.boot-earth-land{fill:rgba(57,255,20,.18);stroke:rgba(247,255,246,.92);stroke-width:1.15;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 1.5px rgba(57,255,20,.36))}
+/* Natural Earth renderer: the SVG frame is fixed; geography is reprojected per frame. */
+.boot-globe{animation:none!important;transform:translate(-50%,-50%) rotate(0deg)!important;will-change:auto!important}
+.boot-globe-landmasses,.boot-globe-scanner{display:none!important}
+.boot-earth-layer{pointer-events:none;opacity:.96}
+.boot-earth-land{fill:none;stroke:rgba(247,255,246,.94);stroke-width:1.15;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 1.5px rgba(57,255,20,.38))}
 @media(prefers-reduced-motion:reduce){.boot-globe{animation:none!important;transform:translate(-50%,-50%) rotate(0deg)!important}}
