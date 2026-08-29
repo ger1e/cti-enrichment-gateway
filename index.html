@@ -7,17 +7,66 @@
   <meta name="description" content="PARA11AX">
   <link rel="canonical" href="https://para11ax.vercel.app/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <meta http-equiv="refresh" content="0;url=/">
   <title>PARA11AX</title>
   <style>
-    :root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#020403;color:#f7fff6}body{min-height:100vh;display:grid;place-items:center;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.redirect{width:min(360px,82vw);text-align:center}.redirect img{display:block;width:100%;height:auto}.redirect a{display:inline-block;margin-top:18px;color:#39ff14;text-decoration:none;font-size:.72rem;letter-spacing:.08em}.redirect a:focus-visible{outline:2px solid #39ff14;outline-offset:4px}
+    :root{color-scheme:dark;--void:#020403;--phosphor:#39ff14;--white:#f7fff6;--muted:#8da391;--alert:#ff2438}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--void)}
+    body{min-height:100vh;overflow-x:hidden;color:var(--white);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;background:radial-gradient(circle at 32% 44%,rgba(57,255,20,.055),transparent 32%),#020403}
+    a{color:inherit;text-decoration:none}
+    a:focus-visible{outline:2px solid var(--phosphor);outline-offset:4px}
+    .matrix-rain{position:fixed;inset:0;z-index:0;pointer-events:none;background:url('/assets/brand/para11ax-rain.svg') center top/cover repeat-y;opacity:.42;mask-image:linear-gradient(to bottom,#000 0,#000 78%,transparent 100%)}
+    .page{position:relative;z-index:1;width:min(1440px,100%);min-height:100vh;margin:0 auto;display:grid;place-items:center;padding:clamp(24px,4vw,58px)}
+    .hero-grid{width:100%;display:grid;grid-template-columns:minmax(340px,.92fr) minmax(0,1.08fr);align-items:center;gap:clamp(32px,6vw,92px)}
+    .radar-stage{min-height:clamp(420px,46vw,620px);display:grid;place-items:center;position:relative}
+    .radar-stage img{display:block;width:min(610px,100%);height:auto;filter:drop-shadow(0 0 28px rgba(57,255,20,.12))}
+    .copy{min-width:0;align-self:center}
+    .wordmark{margin:0;font-family:Arial Black,Arial,sans-serif;font-size:clamp(4.2rem,7.4vw,8.2rem);font-weight:900;line-height:.86;letter-spacing:-.065em;white-space:nowrap;text-transform:uppercase;text-shadow:0 0 3px rgba(247,255,246,.45),0 18px 60px rgba(0,0,0,.72)}
+    .wordmark .white{color:var(--white)}
+    .wordmark .green{color:var(--phosphor);text-shadow:0 0 22px rgba(57,255,20,.38)}
+    blockquote{margin:clamp(34px,4vw,58px) 0 0;padding:24px 0 0;border-top:1px solid rgba(57,255,20,.3);max-width:660px;color:var(--white);font-size:clamp(1rem,1.45vw,1.32rem);line-height:1.8}
+    blockquote p{margin:0;position:relative;padding-left:48px}
+    blockquote p::before{content:'“';position:absolute;left:0;top:.05em;color:var(--phosphor);font-family:Arial Black,Arial,sans-serif;font-size:2.6em;line-height:.7}
+    blockquote cite{display:block;margin:14px 0 0 48px;color:var(--phosphor);font-size:.82em;font-style:normal}
+    .cta{min-height:44px;display:inline-flex;align-items:center;justify-content:center;margin-top:32px;padding:12px 18px;border:1px solid rgba(57,255,20,.5);border-radius:4px;background:rgba(57,255,20,.035);color:var(--phosphor);font-size:.76rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease,transform .16s ease}
+    .cta:hover{border-color:var(--phosphor);background:rgba(57,255,20,.075);box-shadow:0 0 24px rgba(57,255,20,.12);transform:translateY(-1px)}
+    .mobile-signal-bar{display:none;height:1px;width:100%;background:linear-gradient(90deg,transparent,var(--phosphor),transparent);opacity:.42}
+    @media(max-width:900px){.hero-grid{grid-template-columns:minmax(300px,.9fr) minmax(0,1.1fr);gap:24px}.radar-stage{min-height:clamp(360px,48vw,500px)}.wordmark{font-size:clamp(3.6rem,8.3vw,6.2rem)}}
+    @media(max-width:720px){
+      .page{padding:24px 18px 32px;align-items:start}
+      .hero-grid{grid-template-columns:1fr;grid-template-rows:auto auto;gap:2px}
+      .copy{grid-row:1;text-align:center;padding-top:10px}
+      .wordmark{font-size:clamp(3.25rem,15.5vw,5.25rem);white-space:nowrap}
+      .radar-stage{grid-row:2;min-height:clamp(330px,92vw,520px);margin-top:0}
+      .radar-stage img{width:min(520px,100%)}
+      blockquote{margin:2px auto 0;padding-top:20px;text-align:left;font-size:.9rem;line-height:1.72}
+      blockquote p{padding-left:38px}
+      blockquote cite{margin-left:38px}
+      .cta{min-height:44px;width:min(100%,320px);margin-top:24px}
+      .mobile-signal-bar{display:block;margin:24px auto 0}
+      .matrix-rain{opacity:.3;background-size:auto 100%;background-position:center top}
+    }
+    @media(max-width:430px){.page{padding-inline:14px}.wordmark{font-size:clamp(2.9rem,15vw,4rem)}.radar-stage{min-height:clamp(300px,94vw,410px)}blockquote{font-size:.84rem}}
+    @media(prefers-reduced-motion: reduce){.matrix-rain{opacity:.18}.radar-stage img{filter:none}.cta{transition:none}.cta:hover{transform:none}}
   </style>
-  <script>location.replace('/');</script>
 </head>
 <body>
-  <main class="redirect">
-    <img src="/assets/brand/para11ax-radar-lockup.svg" alt="PARA11AX">
-    <noscript><a href="/">ENTER PARA11AX</a></noscript>
+  <div class="matrix-rain" aria-hidden="true"></div>
+  <main class="page">
+    <section class="hero-grid" aria-labelledby="para11ax-wordmark">
+      <div class="radar-stage">
+        <img src="/assets/brand/para11ax-radar.svg" alt="Animated plan-position radar">
+      </div>
+      <div class="copy">
+        <h1 id="para11ax-wordmark" class="wordmark" data-wordmark="para11ax-angular-a" aria-label="PARA11AX"><span class="white">PΛRΛ</span><span class="green">11</span><span class="white">ΛX</span></h1>
+        <blockquote>
+          <p>You’ve got to follow the evidence…<br>That doesn’t make it fact.</p>
+          <cite>— John Kiriakou</cite>
+        </blockquote>
+        <a class="cta" href="/app/">ENTER PARA11AX</a>
+        <div class="mobile-signal-bar" aria-hidden="true"></div>
+      </div>
+    </section>
   </main>
 </body>
 </html>
