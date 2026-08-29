@@ -4,30 +4,22 @@ import test from 'node:test';
 
 const url = path => new URL(`../${path}`, import.meta.url);
 const read = path => readFile(url(path), 'utf8');
-const readBytes = path => readFile(url(path));
 
-function gifDimensions(bytes) {
-  assert.equal(bytes.subarray(0, 6).toString('ascii'), 'GIF89a');
-  return {
-    width: bytes.readUInt16LE(6),
-    height: bytes.readUInt16LE(8),
-  };
-}
-
-test('README serves one ger1e-style mobile-normalized animated hero', async () => {
+test('README serves one complete self-contained SVG hero', async () => {
   const [readme, hero] = await Promise.all([
     read('README.md'),
-    readBytes('assets/brand/para11ax-readme-hero-v6.gif'),
+    read('assets/brand/para11ax-readme-hero-v7.svg'),
   ]);
 
-  assert.match(readme, /<img\s+src="assets\/brand\/para11ax-readme-hero-v6\.gif"/i);
+  assert.match(readme, /<img\s+src="assets\/brand\/para11ax-readme-hero-v7\.svg"/i);
   assert.doesNotMatch(readme, /<picture>/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif/i);
   assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
-
-  assert.deepEqual(gifDimensions(hero), { width: 720, height: 360 });
-  assert.ok(hero.length > 8_000, 'v6 GIF must contain real animation/image data');
-  assert.match(hero.toString('latin1'), /NETSCAPE2\.0/, 'v6 GIF must loop');
+  assert.match(hero, /viewBox="0 0 720 360"/i);
+  assert.match(hero, /data-radar="ppi"/i);
+  assert.match(hero, /PARA11AX/i);
+  assert.match(hero, /CTI ENRICHMENT \/\/ ANALYST OPERATIONS/i);
+  assert.doesNotMatch(hero, /https?:\/\//i);
 });
 
 test('final CRT branding preserves the Natural Earth globe instead of replacing it with a radar disc', async () => {
