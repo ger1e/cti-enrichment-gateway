@@ -22,6 +22,23 @@ test('landing radar uses a self-contained rotational phosphor SVG sweep', () => 
   assert.doesNotMatch(js, /enhanceRadar|RADAR_CONTACTS/i);
 });
 
+test('landing PPI radar exposes real instrument geometry and target persistence', () => {
+  const svg = radar();
+  assert.match(svg, /id=["']azimuth-ticks["']/i, 'radar must include an azimuth tick ring');
+  assert.ok((svg.match(/class=["']range-ring["']/gi) ?? []).length >= 4, 'radar must expose at least four range rings');
+  for (const bearing of ['000', '090', '180', '270']) {
+    assert.match(svg, new RegExp(`>${bearing}<`, 'i'), `radar missing ${bearing} bearing label`);
+  }
+  assert.match(svg, /id=["']ppi-sweep["']/i, 'radar must expose a dedicated PPI sweep group');
+  assert.match(svg, /id=["']sweep-trail["']/i, 'radar must expose a fading sweep trail');
+  assert.ok((svg.match(/class=["']target-return["']/gi) ?? []).length >= 4, 'radar must include multiple target returns');
+  assert.ok((svg.match(/class=["']target-trail["']/gi) ?? []).length >= 3, 'radar must include persistence trails');
+  assert.match(svg, /RNG\s+25/i);
+  assert.match(svg, /RNG\s+50/i);
+  assert.match(svg, /RNG\s+75/i);
+  assert.match(svg, /RNG\s+100/i);
+});
+
 test('landing disables the full-height hero scanner and mounts radar without runtime construction', () => {
   const css = motion();
   assert.match(css, /\.terminal-hero:before\s*\{[^}]*content:\s*none!important[^}]*animation:\s*none!important/is);
@@ -53,15 +70,16 @@ test('mobile and reduced-motion radar contracts lower complexity without hiding 
   assert.match(rainSvg, /prefers-reduced-motion:\s*reduce/i);
 });
 
-test('medium desktop landing uses a bounded fit layer instead of large-desktop hero geometry', () => {
+test('medium desktop landing uses an in-flow two-column hero instead of an absolute radar overlay', () => {
   assert.equal(existsSync('landing-desktop-fit.css'), true, 'medium-desktop landing fit stylesheet must exist');
   const js = adapter();
   const css = desktopFit();
   assert.match(js, /DESKTOP_FIT_HREF\s*=\s*['"]\/landing-desktop-fit\.css['"]/i);
   assert.match(css, /@media\s*\(min-width:\s*901px\)\s*and\s*\(max-width:\s*1600px\)/i);
-  assert.match(css, /\.terminal-page\s*\{[^}]*width:\s*min\(1240px,calc\(100%\s*-\s*40px\)\)/i);
-  assert.match(css, /\.terminal-hero\s*\{[^}]*min-height:\s*480px/i);
-  assert.match(css, /\.hero-ghost\s*\{[^}]*width:\s*min\(33%,400px\)/i);
-  assert.match(css, /\.ascii-logo\s*\{[^}]*font-size:\s*clamp\([^}]*6\.4rem/i);
+  assert.match(css, /\.terminal-page\s*\{[^}]*width:\s*min\(1180px,calc\(100%\s*-\s*40px\)\)/i);
+  assert.match(css, /\.terminal-hero\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:/is);
+  assert.match(css, /\.terminal-hero\s*\{[^}]*min-height:\s*440px/i);
+  assert.match(css, /\.hero-ghost\s*\{[^}]*position:\s*relative!important[^}]*width:\s*min\(100%,360px\)[^}]*aspect-ratio:\s*1/is);
+  assert.match(css, /\.ascii-logo\s*\{[^}]*font-size:\s*clamp\([^}]*5\.8rem/i);
   assert.doesNotMatch(css, /transform:\s*scale\(|zoom\s*:/i, 'desktop fit must use real layout constraints, not page scaling');
 });
