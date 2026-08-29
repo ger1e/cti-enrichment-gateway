@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" role="img" aria-labelledby="title desc">
+  <title id="title">PARA11AX</title>
+  <desc id="desc">PARA11AX CTI enrichment and analyst operations banner with a PPI radar, Matrix rain, and a John Kiriakou quote.</desc>
+  <defs>
+    <radialGradient id="bgGlow" cx="28%" cy="52%" r="78%">
+      <stop offset="0" stop-color="#07140a"/>
+      <stop offset="0.48" stop-color="#020403"/>
+      <stop offset="1" stop-color="#000"/>
+    </radialGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.48" stop-color="#c8d0ca"/>
+      <stop offset="1" stop-color="#778078"/>
+    </linearGradient>
+    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#39FF14" stop-opacity="0"/>
+      <stop offset="0.68" stop-color="#39FF14" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#39FF14" stop-opacity="0.62"/>
+    </linearGradient>
+    <filter id="greenGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="radarClip"><circle cx="176" cy="190" r="119"/></clipPath>
+    <style>
+      .mono{font-family:"IBM Plex Mono","SFMono-Regular",Consolas,"Liberation Mono",monospace}
+      .rain{fill:#39FF14;font-size:8px;opacity:.18;letter-spacing:1px}
+      .grid{stroke:#39FF14;stroke-width:1;fill:none;opacity:.28}
+      .ring{stroke:#39FF14;stroke-width:1.25;fill:none;opacity:.72}
+      .tick{stroke:#39FF14;stroke-width:1;opacity:.52}
+      .ppi-sweep{transform-origin:176px 190px;animation:ppi-spin 4.8s linear infinite}
+      @keyframes ppi-spin{to{transform:rotate(360deg)}}
+      @media (prefers-reduced-motion:reduce){.ppi-sweep{animation-duration:24s}}
+    </style>
+  </defs>
+
+  <rect width="720" height="360" rx="16" fill="url(#bgGlow)"/>
+  <rect x="1" y="1" width="718" height="358" rx="15" fill="none" stroke="#17301b"/>
+
+  <!-- dense Matrix field -->
+  <g class="mono rain" aria-hidden="true">
+    <text x="20" y="18">01001101</text><text x="20" y="31">11010</text><text x="20" y="44">001101</text><text x="20" y="57">101</text>
+    <text x="80" y="13">110010</text><text x="80" y="26">01101</text><text x="80" y="39">101100</text><text x="80" y="52">011</text>
+    <text x="137" y="20">00110</text><text x="137" y="33">101011</text><text x="137" y="46">0110</text>
+    <text x="206" y="14">111001</text><text x="206" y="27">00101</text><text x="206" y="40">1011</text>
+    <text x="280" y="18">0101101</text><text x="280" y="31">001011</text><text x="280" y="44">110</text>
+    <text x="351" y="12">101001</text><text x="351" y="25">011101</text><text x="351" y="38">001</text>
+    <text x="425" y="18">001101</text><text x="425" y="31">110011</text><text x="425" y="44">010</text>
+    <text x="495" y="11">111000</text><text x="495" y="24">001101</text><text x="495" y="37">101</text>
+    <text x="568" y="17">010011</text><text x="568" y="30">101100</text><text x="568" y="43">011</text>
+    <text x="643" y="14">110101</text><text x="643" y="27">001011</text><text x="643" y="40">101</text>
+    <text x="690" y="20">011</text><text x="690" y="33">101</text><text x="690" y="46">001</text>
+
+    <text x="14" y="292">101101</text><text x="14" y="305">00101</text><text x="14" y="318">110</text><text x="14" y="331">0110</text><text x="14" y="344">101</text>
+    <text x="74" y="302">011001</text><text x="74" y="315">11010</text><text x="74" y="328">001</text><text x="74" y="341">1011</text>
+    <text x="525" y="292">010101</text><text x="525" y="305">110011</text><text x="525" y="318">001</text><text x="525" y="331">1010</text><text x="525" y="344">011</text>
+    <text x="592" y="301">111001</text><text x="592" y="314">00101</text><text x="592" y="327">101</text><text x="592" y="340">0101</text>
+    <text x="661" y="294">001101</text><text x="661" y="307">10101</text><text x="661" y="320">011</text><text x="661" y="333">110</text><text x="661" y="346">001</text>
+  </g>
+
+  <!-- PPI radar -->
+  <g data-radar="ppi" aria-label="PPI radar">
+    <circle cx="176" cy="190" r="123" fill="#020403" stroke="#39FF14" stroke-width="2" opacity=".96"/>
+    <circle class="ring" cx="176" cy="190" r="90"/>
+    <circle class="ring" cx="176" cy="190" r="60"/>
+    <circle class="ring" cx="176" cy="190" r="30"/>
+    <path class="grid" d="M53 190H299M176 67V313"/>
+    <path class="grid" d="M89 103l174 174M263 103L89 277" opacity=".13"/>
+
+    <g class="tick">
+      <path d="M176 67v9M176 304v9M53 190h9M290 190h9"/>
+      <path d="M114.5 83.5l4.5 7.8M233 288.7l4.5 7.8M282.5 128.5l-7.8 4.5M77.3 247l-7.8 4.5"/>
+      <path d="M237.5 83.5l-4.5 7.8M119 288.7l-4.5 7.8M282.5 251.5l-7.8-4.5M77.3 133l-7.8-4.5"/>
+    </g>
+
+    <g clip-path="url(#radarClip)" opacity=".26">
+      <path d="M72 229c29-7 42-25 62-19 24 7 34-7 52-26 19-19 47-18 79-9" fill="none" stroke="#39FF14" stroke-width="2" stroke-dasharray="2 4"/>
+      <path d="M102 156c19-11 39-18 58-11 15 6 28 3 42-8 15-12 30-10 47 0" fill="none" stroke="#39FF14" stroke-width="2" stroke-dasharray="2 5"/>
+    </g>
+
+    <g class="ppi-sweep" filter="url(#greenGlow)">
+      <path d="M176 190 L294 150 A123 123 0 0 1 299 190 Z" fill="url(#sweep)"/>
+      <path d="M176 190L299 190" stroke="#39FF14" stroke-width="2"/>
+    </g>
+
+    <g filter="url(#greenGlow)">
+      <circle cx="231" cy="132" r="4" fill="#39FF14"/>
+      <circle cx="117" cy="243" r="4" fill="#39FF14"/>
+      <circle cx="260" cy="232" r="4.5" fill="#FF2438"/>
+    </g>
+    <circle cx="176" cy="190" r="3.5" fill="#F7FFF6"/>
+    <text class="mono" x="170" y="61" fill="#8DA391" font-size="9">N</text>
+    <text class="mono" x="306" y="194" fill="#8DA391" font-size="8">090</text>
+    <text class="mono" x="164" y="328" fill="#8DA391" font-size="8">180</text>
+    <text class="mono" x="30" y="194" fill="#8DA391" font-size="8">270</text>
+  </g>
+
+  <!-- right-side identity -->
+  <g class="mono">
+    <text x="336" y="112" fill="url(#word)" font-size="54" font-weight="800" letter-spacing="-3">PARA</text>
+    <text x="491" y="112" fill="#39FF14" font-size="54" font-weight="900" letter-spacing="-3" filter="url(#greenGlow)">11</text>
+    <text x="556" y="112" fill="url(#word)" font-size="54" font-weight="800" letter-spacing="-3">AX</text>
+    <path d="M337 125H665" stroke="#39FF14" stroke-width="1.2" opacity=".55"/>
+    <text x="338" y="148" fill="#8DA391" font-size="12" font-weight="600" letter-spacing="1.1">CTI ENRICHMENT // ANALYST OPERATIONS</text>
+
+    <text x="338" y="203" fill="#F7FFF6" font-size="18" font-weight="600">“You’ve got to follow the evidence...</text>
+    <text x="338" y="229" fill="#F7FFF6" font-size="18" font-weight="600">That doesn’t make it fact.”</text>
+    <text x="338" y="260" fill="#39FF14" font-size="13" font-weight="700" letter-spacing=".5">— JOHN KIRIAKOU</text>
+
+    <text x="338" y="306" fill="#17301b" font-size="10" letter-spacing="2">PARA11AX // PROVENANCE FIRST</text>
+  </g>
+</svg>

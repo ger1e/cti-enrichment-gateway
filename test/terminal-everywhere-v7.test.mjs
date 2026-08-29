@@ -53,19 +53,20 @@ test('active presentation sources use the canonical terminal palette only', () =
   assert.doesNotMatch(source, bannedPalette);
 });
 
-test('README uses one ger1e-style animated GIF hero while preserving CI badges and analyst entry', () => {
+test('README uses one self-contained SVG hero while preserving CI badges and analyst entry', () => {
   const readme = read('README.md');
-  const hero = 'assets/brand/para11ax-readme-hero-v6.gif';
-  assert.match(readme, /<img[^>]+para11ax-readme-hero-v6\.gif/i);
+  const hero = 'assets/brand/para11ax-readme-hero-v7.svg';
+  assert.match(readme, /<img[^>]+para11ax-readme-hero-v7\.svg/i);
   assert.doesNotMatch(readme, /<picture>/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif/i);
   assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
   assert.equal(existsSync(hero), true, `${hero} must exist`);
-  const gif = readFileSync(hero);
-  assert.equal(gif.subarray(0, 6).toString('ascii'), 'GIF89a');
-  assert.match(gif.toString('latin1'), /NETSCAPE2\.0/);
-  assert.equal(gif.readUInt16LE(6), 720);
-  assert.equal(gif.readUInt16LE(8), 360);
+  const svg = read(hero);
+  assert.match(svg, /viewBox=["']0 0 720 360["']/i);
+  assert.match(svg, /data-radar=["']ppi["']/i);
+  assert.match(svg, /CTI ENRICHMENT\s*\/\/\s*ANALYST OPERATIONS/i);
+  assert.doesNotMatch(svg, /(?:href|xlink:href)=["']https?:\/\//i);
+  assert.doesNotMatch(svg, /url\(\s*["']?https?:\/\//i);
   assert.match(readme, /Tooling smoke/i);
   assert.match(readme, /CodeQL/i);
   assert.match(readme, /ENTER ANALYST UI/i);
