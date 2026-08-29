@@ -51,7 +51,10 @@ test('browser surfaces share one simplified phosphor radar favicon', () => {
 
   const ico = readFileSync('favicon.ico');
   assert.deepEqual([...ico.subarray(0, 4)], [0, 0, 1, 0], 'favicon.ico must be a valid ICO container');
-  assert.ok(ico.length > 128, 'favicon.ico must contain actual raster icon data');
+  const iconCount = ico.readUInt16LE(4);
+  assert.ok(iconCount >= 3, 'favicon.ico must contain 16px, 32px, and 64px radar images');
+  const widths = new Set(Array.from({ length: iconCount }, (_, index) => ico[6 + (index * 16)] || 256));
+  for (const width of [16, 32, 64]) assert.ok(widths.has(width), `favicon.ico missing ${width}px radar image`);
 
   for (const path of ['landing-maxx.html', 'app/index.html', '403.html', '404.html', '500.html']) {
     const html = read(path);
