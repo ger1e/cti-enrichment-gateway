@@ -43,8 +43,11 @@ export const cloudflareDnsProvider = Object.freeze({
     if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !Number.isInteger(raw.Status)) schemaInvalid();
     if (raw.Answer != null && !Array.isArray(raw.Answer)) schemaInvalid();
 
-    if (raw.Status !== 0) {
+    if (raw.Status === 3) {
       return result({ status: raw.Status, authenticatedData: raw.AD === true, addresses: [] });
+    }
+    if (raw.Status !== 0) {
+      throw Object.assign(new Error('provider_dns_error'), { status: 502 });
     }
 
     const addresses = [];
