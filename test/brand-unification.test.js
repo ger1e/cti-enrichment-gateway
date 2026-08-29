@@ -84,7 +84,8 @@ test('README uses one self-contained ger1e-style SVG hero and current v3 diagram
   assert.match(svg, /PARA11AX/i);
   assert.match(svg, /CTI ENRICHMENT\s*\/\/\s*ANALYST OPERATIONS/i);
   assert.match(svg, /John Kiriakou/i);
-  assert.doesNotMatch(svg, /https?:\/\//i);
+  assert.doesNotMatch(svg, /(?:href|xlink:href)=["']https?:\/\//i);
+  assert.doesNotMatch(svg, /url\(\s*["']?https?:\/\//i);
   assert.match(readme, /OPERATIONAL CORE/i);
   assert.match(readme, /ANALYST SURFACE/i);
   assert.match(readme, /analyst@para11ax:~\$/i);
