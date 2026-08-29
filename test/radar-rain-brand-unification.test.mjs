@@ -12,9 +12,7 @@ const BRAND_CSS = 'brand-unification.css';
 const ADAPTER = 'landing-terminal-v7.js';
 
 test('landing and analyst UI resolve the exact same compact radar lockup asset', () => {
-  for (const path of [LOCKUP, BRAND_RUNTIME, BRAND_CSS]) {
-    assert.equal(existsSync(path), true, `${path} must exist`);
-  }
+  for (const path of [LOCKUP, BRAND_RUNTIME, BRAND_CSS]) assert.equal(existsSync(path), true, `${path} must exist`);
   const runtime = read(BRAND_RUNTIME);
   const landing = read(ADAPTER);
   const app = read('app/terminal-main.js');
@@ -69,6 +67,21 @@ test('landing adapter no longer constructs radar or rain layers at runtime', () 
   assert.doesNotMatch(js, /function\s+enhanceRadar\s*\(/i);
   assert.doesNotMatch(js, /RADAR_CONTACTS|EXTRA_RAIN_COLUMNS|densifyRain/i);
   assert.doesNotMatch(js, /['"]radar-sweep['"]|['"]radar-trail['"]|['"]radar-pulse['"]/i);
+});
+
+test('active landing hero is reduced to wordmark, Kiriakou quote, and the single radar', () => {
+  const js = read(ADAPTER);
+  const css = read('landing-radar-motion.css');
+  assert.match(js, /function\s+mountMinimalHero\s*\(/i);
+  assert.match(js, /You’ve got to follow the evidence/i);
+  assert.match(js, /John Kiriakou/i);
+  assert.match(js, /\.hero-kicker/);
+  assert.match(js, /\.hero-doctrine/);
+  assert.match(js, /\.hero-actions/);
+  assert.match(css, /\.hero-kicker[^}]*display:\s*none/i);
+  assert.match(css, /\.hero-doctrine[^}]*display:\s*none/i);
+  assert.match(css, /\.hero-actions[^}]*display:\s*none/i);
+  assert.match(css, /\.hero-kiriakou/);
 });
 
 test('shared brand runtime stays visual-only and non-persistent', () => {
