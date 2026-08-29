@@ -13,7 +13,7 @@ from credential_store import CredentialStoreError, load_token
 DEFAULT_GATEWAY_URL = 'https://para11ax.vercel.app'
 DEFAULT_TIMEOUT_SECONDS = 15.0
 DEFAULT_MAX_RESPONSE_BYTES = 2_000_000
-SUPPORTED_INDICATOR_TYPES = frozenset({'ip', 'domain', 'url', 'hash', 'cve', 'attack', 'asn', 'cidr'})
+SUPPORTED_INDICATOR_TYPES = frozenset({'ip', 'domain', 'url', 'hash', 'certificate', 'cve', 'attack', 'asn', 'cidr'})
 
 
 class GatewayError(RuntimeError):
@@ -68,7 +68,10 @@ class GatewayClient:
             raise GatewayError('unsupported indicator type')
 
         endpoint = f'{_validate_base_url(self.base_url)}/api/para11ax/enrich'
-        payload = json.dumps({'indicator': indicator.strip(), 'type': indicator_type}, separators=(',', ':')).encode('utf-8')
+        transport_indicator = indicator.strip()
+        if indicator_type == 'certificate':
+            transport_indicator = f'cert-sha256:{transport_indicator}'
+        payload = json.dumps({'indicator': transport_indicator, 'type': indicator_type}, separators=(',', ':')).encode('utf-8')
         request = urllib.request.Request(
             endpoint,
             data=payload,
