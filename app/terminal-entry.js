@@ -4,7 +4,10 @@ import { createPara11axBootSequence } from './boot.js';
 import { createSession } from './session.js';
 import { mountAnalystShell } from './shell-ui.js';
 
-if (!document.querySelector('link[href="/app/shell.css"]')) {
+if (
+  document.documentElement.dataset.terminalFirst !== 'v7'
+  && !document.querySelector('link[href="/app/shell.css"]')
+) {
   const shellStyles = document.createElement('link');
   shellStyles.rel = 'stylesheet';
   shellStyles.href = '/app/shell.css';
