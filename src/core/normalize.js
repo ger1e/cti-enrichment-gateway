@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { semanticClass } from './semantics.js';
+import { evidenceRole } from './evidence-semantics.js';
 
 function array(value) {
   return Array.isArray(value) ? value : [];
@@ -41,6 +43,13 @@ export function normalizeEvidence(provider, indicator, type, data = {}, meta = {
     relationships,
     references,
   });
+  const semantic = semanticClass(observation.kind);
+  const sourceRole = meta.sourceRole ?? 'community';
+  const semantics = Object.freeze({
+    class: evidenceRole({ semanticClass: semantic, sourceRole }),
+    semanticClass: semantic,
+    sourceRole,
+  });
 
   return {
     provider,
@@ -57,5 +66,6 @@ export function normalizeEvidence(provider, indicator, type, data = {}, meta = {
       parserVersion,
       fingerprint: integrityFingerprint,
     },
+    semantics,
   };
 }
