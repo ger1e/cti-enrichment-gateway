@@ -1,27 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" role="img" aria-labelledby="title desc" data-radar="ppi">
   <title id="title">PARA11AX radar</title>
-  <desc id="desc">Moving plan-position indicator with range rings, azimuth grid, fixed target returns and rotating sweep.</desc>
+  <desc id="desc">Moving plan-position indicator with restrained range rings, azimuth grid, sparse target returns and a narrow phosphor sweep.</desc>
   <defs>
-    <radialGradient id="bg" cx="50%" cy="50%" r="52%"><stop offset="0" stop-color="#0A170C"/><stop offset=".7" stop-color="#061008"/><stop offset="1" stop-color="#020403"/></radialGradient>
-    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#39FF14" stop-opacity="0"/><stop offset=".68" stop-color="#39FF14" stop-opacity=".07"/><stop offset="1" stop-color="#39FF14" stop-opacity=".34"/></linearGradient>
+    <radialGradient id="bg" cx="50%" cy="50%" r="52%"><stop offset="0" stop-color="#08110A"/><stop offset=".68" stop-color="#050C07"/><stop offset="1" stop-color="#020403"/></radialGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F7FFF6" stop-opacity=".72"/><stop offset=".28" stop-color="#39FF14" stop-opacity="1"/><stop offset="1" stop-color="#39FF14" stop-opacity=".9"/></linearGradient>
     <clipPath id="scope"><circle cx="260" cy="260" r="232"/></clipPath>
+    <filter id="pipGlow" x="-250%" y="-250%" width="600%" height="600%"><feGaussianBlur stdDeviation="2.4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
   <style>
-    .bearing,.range{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#39FF14}.bearing{font-size:11px;opacity:.78}.range{font-size:9px;opacity:.38;letter-spacing:.06em}
+    .bearing,.range{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#39FF14}.bearing{font-size:11px;opacity:.52}.range{font-size:9px;opacity:.3;letter-spacing:.06em}
     .ppi-sweep{transform-box:view-box;transform-origin:260px 260px;animation:ppi-spin 4.8s linear infinite}
+    .return{animation:return-decay 4.8s linear infinite;opacity:.07}.r1{animation-delay:.62s}.r2{animation-delay:1.71s}.r3{animation-delay:3.08s}.r4{animation-delay:4.04s}.r5{animation-delay:2.36s}.r6{animation-delay:.18s}.r7{animation-delay:3.67s}
     @keyframes ppi-spin{to{transform:rotate(360deg)}}
-    @media(prefers-reduced-motion:reduce){.ppi-sweep{animation-duration:24s}}
+    @keyframes return-decay{0%,100%{opacity:.07}2%{opacity:1}10%{opacity:.52}24%{opacity:.18}48%{opacity:.08}}
+    @media(prefers-reduced-motion:reduce){.ppi-sweep{animation-duration:24s}.return{animation-duration:24s}}
   </style>
   <circle cx="260" cy="260" r="250" fill="#020403"/>
-  <circle cx="260" cy="260" r="238" fill="url(#bg)" stroke="#39FF14" stroke-opacity=".72" stroke-width="2"/>
-  <g fill="none" stroke="#39FF14"><circle cx="260" cy="260" r="232" stroke-opacity=".22"/><circle cx="260" cy="260" r="184" stroke-opacity=".22"/><circle cx="260" cy="260" r="136" stroke-opacity=".2"/><circle cx="260" cy="260" r="88" stroke-opacity=".18"/><circle cx="260" cy="260" r="40" stroke-opacity=".16"/><circle cx="260" cy="260" r="224" stroke-opacity=".5" stroke-width="7" stroke-dasharray="1 10.72"/></g>
-  <g id="crosshair" stroke="#39FF14" fill="none"><path d="M28 260H492M260 28V492" stroke-opacity=".36"/><path d="M96 96L424 424M424 96L96 424" stroke-opacity=".1"/><path d="M260 18v22M260 480v22M18 260h22M480 260h22" stroke-opacity=".92" stroke-width="2"/></g>
+  <circle cx="260" cy="260" r="238" fill="url(#bg)" stroke="#39FF14" stroke-opacity=".34" stroke-width="1.2"/>
+  <g fill="none" stroke="#39FF14"><circle cx="260" cy="260" r="232" stroke-opacity=".14"/><circle cx="260" cy="260" r="184" stroke-opacity=".13"/><circle cx="260" cy="260" r="136" stroke-opacity=".12"/><circle cx="260" cy="260" r="88" stroke-opacity=".11"/><circle cx="260" cy="260" r="40" stroke-opacity=".1"/><circle cx="260" cy="260" r="224" stroke-opacity=".26" stroke-width="5" stroke-dasharray=".8 10.92"/></g>
+  <g id="crosshair" stroke="#39FF14" fill="none"><path d="M28 260H492M260 28V492" stroke-opacity=".17"/><path d="M96 96L424 424M424 96L96 424" stroke-opacity=".045"/><path d="M260 18v22M260 480v22M18 260h22M480 260h22" stroke-opacity=".52" stroke-width="1.4"/></g>
   <g text-anchor="middle" aria-hidden="true"><text class="bearing" x="260" y="17">000</text><text class="bearing" x="503" y="264">090</text><text class="bearing" x="260" y="516">180</text><text class="bearing" x="17" y="264">270</text></g>
   <g aria-hidden="true"><text class="range" x="269" y="221">RNG 25</text><text class="range" x="269" y="173">RNG 50</text><text class="range" x="269" y="125">RNG 75</text><text class="range" x="269" y="77">RNG 100</text></g>
   <g clip-path="url(#scope)">
-    <g fill="#39FF14"><circle cx="374" cy="143" r="4.5"/><circle cx="168" cy="340" r="4" fill-opacity=".82"/><circle cx="352" cy="352" r="3.8" fill-opacity=".72"/><circle cx="306" cy="180" r="3.1" fill-opacity=".65"/><circle cx="142" cy="214" r="2.8" fill-opacity=".65"/></g>
-    <g fill="#FF2438"><circle cx="198" cy="146" r="4.3"/><circle cx="392" cy="303" r="3.5" fill-opacity=".88"/></g>
-    <g class="ppi-sweep" aria-hidden="true"><path d="M260 260L481 202A228 228 0 0 1 484 303Z" fill="url(#trail)"/><path d="M260 260H486" stroke="#39FF14" stroke-width="2.6" stroke-linecap="round"/><path d="M260 259H486" stroke="#F7FFF6" stroke-opacity=".38" stroke-width=".8"/></g>
+    <g fill="#39FF14" filter="url(#pipGlow)"><circle class="return r1" cx="374" cy="143" r="3.4"/><circle class="return r3" cx="168" cy="340" r="3.1"/><circle class="return r2" cx="352" cy="352" r="3"/><circle class="return r5" cx="306" cy="180" r="2.5"/><circle class="return r6" cx="142" cy="214" r="2.3"/></g>
+    <g fill="#FF2438" filter="url(#pipGlow)"><circle class="return r4" cx="198" cy="146" r="3.1"/><circle class="return r7" cx="392" cy="303" r="2.6"/></g>
+    <g class="ppi-sweep" aria-hidden="true">
+      <path d="M260 260L481 212A226 226 0 0 1 486 260Z" fill="#39FF14" fill-opacity=".075"/>
+      <path d="M260 260V34" stroke="url(#beam)" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M260 260V34" stroke="#F7FFF6" stroke-opacity=".28" stroke-width=".55"/>
+    </g>
   </g>
-  <circle cx="260" cy="260" r="8" fill="#020403" stroke="#F7FFF6" stroke-opacity=".62"/><circle cx="260" cy="260" r="2.5" fill="#39FF14"/>
+  <circle cx="260" cy="260" r="4" fill="#020403" stroke="#F7FFF6" stroke-opacity=".34" stroke-width=".8"/><circle cx="260" cy="260" r="1.8" fill="#D9FFD3" filter="url(#pipGlow)"/>
 </svg>
