@@ -53,16 +53,18 @@ test('production landing owns a browser-native PPI while standalone SVG remains 
   assert.match(svg, /@keyframes\s+ppi-spin/i);
 });
 
-test('landing rain remains staggered PARA11AX motion without runtime construction', () => {
+test('landing rain mirrors the GER1E vertical glyph-stream treatment at higher density', () => {
   assert.equal(existsSync(RAIN), true);
   const css = read('landing-radar-motion.css');
   const svg = read(RAIN);
   assert.match(css, /\.matrix-rain[^}]*para11ax-rain\.svg/i);
   assert.match(css, /\.matrix-rain\s*>\s*\.rain[^}]*display:\s*none/i);
   const animations = svg.match(/<animateTransform\b[^>]*type=["']translate["'][^>]*>/gi) ?? [];
-  assert.ok(animations.length >= 12, `expected at least 12 staggered rain tracks, got ${animations.length}`);
-  assert.match(svg, /#39FF14/i);
-  assert.match(svg, /#FF2438/i);
+  assert.ok(animations.length >= 40, `expected at least 40 staggered rain tracks, got ${animations.length}`);
+  for (const glyph of ['ヘ', 'カ', '尺', '乇', 'シ', 'キ']) assert.match(svg, new RegExp(glyph), `rain must preserve GER1E glyph ${glyph}`);
+  assert.match(svg, /class=["'][^"']*dim[^"']*["']/i, 'rain must retain a dim secondary depth layer');
+  assert.match(svg, /#39FF14/i, 'PARA11AX rain must remain phosphor green');
+  assert.doesNotMatch(svg, /[01]{24,}/, 'rain must use vertical glyph streams rather than long horizontal binary strings');
 });
 
 test('landing adapter constructs neither radar nor rain and reveals content before enhancement', () => {
@@ -98,4 +100,21 @@ test('there is one sweep per radar surface and no legacy CSS pseudo-radar overla
   assert.doesNotMatch(brandCss, /para11ax-lockup-radar-spin/i);
   assert.doesNotMatch(brandCss, /\.terminal-brand::after|\.terminal-mark::after|\.shell-brand::after|\.boot-brand-lockup::after/i);
   assert.equal((landingCss.match(/@keyframes\s+radar-live-spin/gi) ?? []).length, 1);
+});
+
+test('PPI sweep is narrow, range rings are restrained, and contacts have phosphor persistence', () => {
+  const html = read('index.html');
+  const css = read('landing-radar-motion.css');
+  const heroSvg = read(HERO_RADAR);
+  const lockupSvg = read(LOCKUP);
+
+  for (const source of [html, css]) {
+    assert.doesNotMatch(source, /306deg|318deg|342deg/, 'the old broad luminous sector must be gone');
+    assert.match(source, /radar-contact/i, 'landing radar must render explicit contacts instead of baking blips into the background');
+  }
+
+  assert.match(html, /@keyframes\s+radar-contact-echo/i, 'contacts must decay like phosphor returns');
+  assert.match(html, /\.radar-center[^}]*width:\s*4px[^}]*height:\s*4px/is, 'center pip must remain small');
+  assert.doesNotMatch(heroSvg, /M260 260L481 202A228 228 0 0 1 484 303Z/, 'standalone radar must not use the old wide wedge');
+  assert.doesNotMatch(lockupSvg, /M0 0 28-8A29 29 0 0 1 28 8Z/, 'compact lockup must not use the old wide wedge');
 });

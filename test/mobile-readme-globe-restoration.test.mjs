@@ -23,7 +23,7 @@ test('README serves one complete self-contained SVG hero', async () => {
   assert.doesNotMatch(hero, /url\(\s*["']?https?:\/\//i);
 });
 
-test('final CRT branding preserves the Natural Earth globe instead of replacing it with a radar disc', async () => {
+test('final CRT branding preserves a real rotating Natural Earth sphere instead of replacing it with a radar disc', async () => {
   const [brandCss, earthCss, earthJs] = await Promise.all([
     read('app/brand-final.css'),
     read('app/earth-globe.css'),
@@ -32,16 +32,24 @@ test('final CRT branding preserves the Natural Earth globe instead of replacing 
 
   assert.doesNotMatch(brandCss, /\.boot-globe>\*\{display:none!important\}/);
   assert.doesNotMatch(brandCss, /\.boot-globe\{[\s\S]*?conic-gradient\(from var\(--ppi-angle\)/);
-  assert.match(earthJs, /boot-earth-window/);
-  assert.match(earthJs, /boot-earth-track/);
-  assert.match(earthCss, /\.boot-earth-track\{[^}]*animation:\s*earth-longitude\s+36s\s+linear\s+infinite/);
-  assert.match(brandCss, /\.shell-brand::before/);
+  assert.match(earthJs, /parseEquirectangularPath/);
+  assert.match(earthJs, /projectOrthographic/);
+  assert.match(earthJs, /requestAnimationFrame/);
+  assert.doesNotMatch(earthJs, /animateTransform|boot-earth-track|translate\(-720/);
+  assert.match(earthCss, /\.boot-earth-layer\{/);
+  assert.match(earthCss, /\.boot-globe\{[^}]*animation:none!important/);
+  assert.doesNotMatch(brandCss, /\.shell-brand::before|\.terminal-mark::before/);
   assert.match(brandCss, /\.crt\{[\s\S]*repeating-linear-gradient/);
 });
 
-test('radar lockups keep moving while reduced-motion only disables CRT flicker', async () => {
-  const brandCss = await read('app/brand-final.css');
-  assert.match(brandCss, /\.terminal-mark::before,\.shell-brand::before\{[\s\S]*animation:ppi-sweep-angle\s+4\.8s\s+linear\s+infinite/);
-  assert.match(brandCss, /prefers-reduced-motion:reduce[\s\S]*\.terminal-mark::before,\.shell-brand::before\{animation:ppi-sweep-angle\s+24s\s+linear\s+infinite!important\}/);
+test('canonical SVG radar keeps moving while reduced-motion only disables CRT flicker', async () => {
+  const [brandCss, lockup] = await Promise.all([
+    read('app/brand-final.css'),
+    read('assets/brand/para11ax-radar-lockup.svg'),
+  ]);
+
+  assert.match(lockup, /data-radar=["']ppi["']/i);
+  assert.match(lockup, /<animateTransform\b[^>]*type=["']rotate["']/i);
+  assert.doesNotMatch(brandCss, /ppi-sweep-angle|\.shell-brand::before|\.terminal-mark::before/);
   assert.match(brandCss, /prefers-reduced-motion:reduce[\s\S]*\.crt\{animation:none!important\}/);
 });

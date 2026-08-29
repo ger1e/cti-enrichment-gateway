@@ -1,35 +1,13 @@
-@property --ppi-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
-
-/* Final production brand contract: preserve the Natural Earth globe and scope
-   PPI motion to compact brand lockups only. */
-@keyframes ppi-sweep-angle{to{--ppi-angle:360deg}}
+/* Final production brand contract: the canonical animated SVG lockup is the
+   only compact radar. The Natural Earth globe remains a separate boot surface. */
 
 #pepe-ascii,.boot-pepe{display:none!important}
 .boot-pepe-visible .boot-log{opacity:1!important}
 .glitch-pepe .boot-pepe{animation:none!important}
 
-/* The analyst shell uses the same compact radar lockup as the landing surface. */
 .para11ax-logo,.shell-logo{object-fit:contain}
 .shell-logo{width:138px!important}
 .terminal-mark{display:inline-flex;align-items:center;gap:7px}
-.terminal-mark::before,.shell-brand::before{
-  content:'';
-  --ppi-angle:0deg;
-  width:22px;
-  height:22px;
-  flex:0 0 22px;
-  border:1px solid rgba(57,255,20,.72);
-  border-radius:50%;
-  background:
-    conic-gradient(from var(--ppi-angle),transparent 0 318deg,rgba(57,255,20,.10) 338deg,rgba(57,255,20,.72) 358deg,#39ff14 360deg),
-    radial-gradient(circle,transparent 0 31%,rgba(57,255,20,.28) 32% 34%,transparent 35% 63%,rgba(57,255,20,.28) 64% 66%,transparent 67%),
-    linear-gradient(90deg,transparent 48%,rgba(57,255,20,.28) 50%,transparent 52%),
-    linear-gradient(transparent 48%,rgba(57,255,20,.28) 50%,transparent 52%),
-    #020403;
-  box-shadow:0 0 8px rgba(57,255,20,.14);
-  animation:ppi-sweep-angle 4.8s linear infinite;
-}
-.shell-brand::before{margin-right:1px}
 
 /* CRT glass: readable phosphor, scanlines, vignette, rounded tube and restrained flicker. */
 .app-shell{
@@ -70,8 +48,5 @@
 }
 
 @media(max-width:720px){.shell-logo{width:122px!important}.app-shell,.crt{border-radius:14px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:12px!important}}
-@media(max-width:430px){.shell-logo{width:112px!important}.terminal-mark::before,.shell-brand::before{width:19px;height:19px;flex-basis:19px}.app-shell,.crt{border-radius:11px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:9px!important}.crt{opacity:.08!important}}
-@media(prefers-reduced-motion:reduce){
-  .terminal-mark::before,.shell-brand::before{animation:ppi-sweep-angle 24s linear infinite!important}
-  .crt{animation:none!important}
-}
+@media(max-width:430px){.shell-logo{width:112px!important}.app-shell,.crt{border-radius:11px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:9px!important}.crt{opacity:.08!important}}
+@media(prefers-reduced-motion:reduce){.crt{animation:none!important}}

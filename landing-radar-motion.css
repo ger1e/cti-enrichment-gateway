@@ -11,21 +11,20 @@
 .ascii-logo{font-family:Arial Black,Arial,sans-serif!important;font-size:clamp(4.3rem,7.2vw,7.9rem)!important;line-height:.88!important;letter-spacing:-.055em!important;white-space:nowrap!important}
 
 /* Real browser-level PPI. No animated external SVG dependency. */
-.hero-ghost{position:relative!important;grid-column:1!important;grid-row:1!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:min(100%,520px)!important;aspect-ratio:1!important;height:auto!important;min-height:0!important;margin:auto!important;border:2px solid rgba(57,255,20,.72)!important;border-radius:50%!important;overflow:hidden!important;opacity:.96!important;pointer-events:none!important;background:
- radial-gradient(circle at 72% 29%,rgba(57,255,20,.95) 0 3px,transparent 4px),
- radial-gradient(circle at 28% 68%,rgba(57,255,20,.82) 0 3px,transparent 4px),
- radial-gradient(circle at 74% 69%,rgba(57,255,20,.72) 0 3px,transparent 4px),
- radial-gradient(circle at 24% 33%,rgba(255,36,56,.9) 0 3px,transparent 4px),
- radial-gradient(circle at 50% 50%,transparent 0 19%,rgba(57,255,20,.18) 19.3% 19.7%,transparent 20% 39%,rgba(57,255,20,.18) 39.3% 39.7%,transparent 40% 59%,rgba(57,255,20,.2) 59.3% 59.7%,transparent 60% 79%,rgba(57,255,20,.22) 79.3% 79.7%,transparent 80%),
- radial-gradient(circle at 50% 50%,#0a170c 0,#061008 70%,#020403 100%)!important;
-box-shadow:0 0 0 10px rgba(57,255,20,.035),inset 0 0 72px rgba(57,255,20,.05),0 0 44px rgba(57,255,20,.08)!important}
-.hero-ghost::before{content:""!important;position:absolute!important;inset:4%!important;border-radius:50%!important;background:linear-gradient(90deg,transparent 49.8%,rgba(57,255,20,.28) 50%,transparent 50.2%),linear-gradient(transparent 49.8%,rgba(57,255,20,.28) 50%,transparent 50.2%),linear-gradient(45deg,transparent 49.9%,rgba(57,255,20,.08) 50%,transparent 50.1%),linear-gradient(-45deg,transparent 49.9%,rgba(57,255,20,.08) 50%,transparent 50.1%)!important;opacity:1!important}
-.hero-ghost::after{content:""!important;position:absolute!important;left:50%!important;top:50%!important;width:8px!important;height:8px!important;transform:translate(-50%,-50%)!important;border-radius:50%!important;background:#39ff14!important;box-shadow:0 0 11px rgba(57,255,20,.8)!important}
-.hero-ghost>.ghost-grid{position:absolute!important;inset:4%!important;border-radius:50%!important;background:repeating-conic-gradient(from -90deg,rgba(57,255,20,.38) 0 .35deg,transparent .35deg 5deg)!important;mask:radial-gradient(circle,transparent 0 91%,#000 91.5% 96%,transparent 96.5%)!important;opacity:.48!important}
-.hero-ghost>.ghost-ring{display:block!important;position:absolute!important;inset:4%!important;width:auto!important;aspect-ratio:auto!important;left:auto!important;top:auto!important;border:0!important;border-radius:50%!important;transform:none!important;background:conic-gradient(from -90deg,transparent 0 306deg,rgba(57,255,20,.015) 318deg,rgba(57,255,20,.08) 342deg,rgba(57,255,20,.34) 357deg,#39ff14 360deg)!important;animation:radar-live-spin 4.8s linear infinite!important;transform-origin:50% 50%!important;mix-blend-mode:screen!important}
-.hero-ghost>.ghost-ring::before{content:""!important;position:absolute!important;left:50%!important;top:50%!important;width:48%!important;height:2px!important;inset:auto!important;border:0!important;border-radius:0!important;background:linear-gradient(90deg,#f7fff6,#39ff14)!important;box-shadow:0 0 8px rgba(57,255,20,.58)!important;transform-origin:left center!important;transform:translateY(-1px)!important}
+.hero-ghost{position:relative!important;grid-column:1!important;grid-row:1!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:min(100%,520px)!important;aspect-ratio:1!important;height:auto!important;min-height:0!important;margin:auto!important;border:1px solid rgba(57,255,20,.34)!important;border-radius:50%!important;overflow:hidden!important;opacity:.96!important;pointer-events:none!important;background:
+ radial-gradient(circle at 50% 50%,transparent 0 19%,rgba(57,255,20,.11) 19.3% 19.7%,transparent 20% 39%,rgba(57,255,20,.115) 39.3% 39.7%,transparent 40% 59%,rgba(57,255,20,.12) 59.3% 59.7%,transparent 60% 79%,rgba(57,255,20,.13) 79.3% 79.7%,transparent 80%),
+ radial-gradient(circle at 50% 50%,#08110a 0,#050c07 68%,#020403 100%)!important;
+box-shadow:0 0 0 7px rgba(57,255,20,.018),inset 0 0 58px rgba(57,255,20,.032),0 0 28px rgba(57,255,20,.045)!important}
+.hero-ghost::before{content:""!important;position:absolute!important;inset:4%!important;border-radius:50%!important;background:linear-gradient(90deg,transparent 49.88%,rgba(57,255,20,.17) 50%,transparent 50.12%),linear-gradient(transparent 49.88%,rgba(57,255,20,.17) 50%,transparent 50.12%),linear-gradient(45deg,transparent 49.94%,rgba(57,255,20,.045) 50%,transparent 50.06%),linear-gradient(-45deg,transparent 49.94%,rgba(57,255,20,.045) 50%,transparent 50.06%)!important;opacity:1!important}
+.hero-ghost::after{content:""!important;position:absolute!important;z-index:5!important;left:50%!important;top:50%!important;width:4px!important;height:4px!important;transform:translate(-50%,-50%)!important;border-radius:50%!important;background:#d9ffd3!important;box-shadow:0 0 5px rgba(57,255,20,.52)!important}
+.hero-ghost>.ghost-grid{position:absolute!important;inset:4%!important;border-radius:50%!important;background:repeating-conic-gradient(from -90deg,rgba(57,255,20,.28) 0 .22deg,transparent .22deg 5deg)!important;mask:radial-gradient(circle,transparent 0 92%,#000 92.4% 95.5%,transparent 96%)!important;opacity:.36!important}
+.hero-ghost>.ghost-ring{display:block!important;position:absolute!important;z-index:4!important;inset:4%!important;width:auto!important;aspect-ratio:auto!important;left:auto!important;top:auto!important;border:0!important;border-radius:50%!important;transform:none!important;background:conic-gradient(from -102deg,transparent 0deg,rgba(57,255,20,.018) 3deg,rgba(57,255,20,.055) 7deg,rgba(57,255,20,.13) 10deg,rgba(57,255,20,.25) 11.5deg,transparent 12deg 360deg)!important;animation:radar-live-spin 4.8s linear infinite!important;transform-origin:50% 50%!important;mix-blend-mode:screen!important}
+.hero-ghost>.ghost-ring::before{content:""!important;position:absolute!important;left:50%!important;top:50%!important;width:47%!important;height:1.5px!important;inset:auto!important;border:0!important;border-radius:0!important;background:linear-gradient(90deg,rgba(247,255,246,.72),#39ff14 30%,rgba(57,255,20,.92))!important;box-shadow:0 0 5px rgba(57,255,20,.42)!important;transform-origin:left center!important;transform:translateY(-.75px) rotate(-90deg)!important}
 .hero-ghost>.ghost-ring::after{content:none!important}
+.hero-ghost>.radar-contact{position:absolute!important;z-index:3!important;width:5px!important;height:5px!important;transform:translate(-50%,-50%)!important;border-radius:50%!important;background:#39ff14!important;opacity:.055!important;box-shadow:0 0 3px rgba(57,255,20,.18)!important;animation:radar-contact-echo 4.8s linear infinite!important;animation-delay:var(--echo-delay,0s)!important}
+.hero-ghost>.radar-contact.anomaly{background:#ff2438!important;box-shadow:0 0 3px rgba(255,36,56,.2)!important}
 @keyframes radar-live-spin{to{transform:rotate(360deg)}}
+@keyframes radar-contact-echo{0%,100%{opacity:.055}2%{opacity:1}10%{opacity:.52}24%{opacity:.18}48%{opacity:.075}}
 
 .terminal-button:hover,.terminal-button:focus-visible{animation:acquisition-pulse .26s steps(2,end) 1}
 @keyframes acquisition-pulse{0%{background:rgba(57,255,20,.025);box-shadow:0 0 0 rgba(57,255,20,0)}50%{background:rgba(57,255,20,.11);box-shadow:inset 0 0 0 1px rgba(57,255,20,.58),0 0 24px rgba(57,255,20,.18)}100%{background:rgba(57,255,20,.07);box-shadow:0 0 20px rgba(57,255,20,.1)}}
@@ -43,6 +42,7 @@ box-shadow:0 0 0 10px rgba(57,255,20,.035),inset 0 0 72px rgba(57,255,20,.05),0 
 @media(prefers-reduced-motion:reduce){
   .matrix-rain{opacity:.2!important}
   .hero-ghost>.ghost-ring{animation-duration:24s!important}
+  .hero-ghost>.radar-contact{animation-duration:24s!important}
   .terminal-button:hover,.terminal-button:focus-visible{animation:none!important}
   .session-line{animation:none!important}
 }
