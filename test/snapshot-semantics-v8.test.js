@@ -29,12 +29,13 @@ function fixture() {
     coverage: { selected: 2, executed: 2, succeeded: 2, failed: 0, skipped: 0, materialLoss: false },
     limitations: ['zeta', 'alpha'],
     correlation: {
-      contradictions: [], freshness: { overall: 'current' }, evidenceQuality: { level: 'high' }, huntability: { level: 'high' },
+      contradictions: [{ semanticClass: 'reputation', providers: ['b', 'a'], positiveProviders: ['b'], negativeProviders: ['a'] }],
+      freshness: { overall: 'current' }, evidenceQuality: { level: 'high' }, huntability: { level: 'high' },
     },
     decision: {
       disposition: 'investigate', confidence: 'high', reasons: ['b', 'a'],
-      telemetry: { status: 'ready', requiredTables: ['DeviceNetworkEvents'] },
-      attackMappings: [{ id: 'T1071.004', providers: ['b', 'a'], evidenceFingerprints: ['b'.repeat(64), 'a'.repeat(64)] }],
+      telemetry: { status: 'ready', requiredTables: ['CommonSecurityLog', 'DeviceNetworkEvents'], notes: ['verify', 'schema'] },
+      attackMappings: [{ id: 'T1071.004', bases: ['subject', 'evidence'], providers: ['b', 'a'], evidenceFingerprints: ['b'.repeat(64), 'a'.repeat(64)] }],
       huntPlan: [{ id: 'subject-ip-1', priority: 'high', hypothesis: 'hunt subject', telemetry: ['DeviceNetworkEvents'], evidenceFingerprints: ['a'.repeat(64)] }],
     },
     meta: { cache: { a: 'miss', b: 'hit' }, providerHealth: { b: 'ok', a: 'ok' } },
@@ -45,7 +46,7 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test('transport, cache, timing, object-key, and evidence ordering churn is ignored', () => {
+test('transport, cache, timing, object-key, and set-like ordering churn is ignored', () => {
   const a = fixture();
   const b = clone(a);
   b.requestId = 'req-b';
@@ -57,6 +58,12 @@ test('transport, cache, timing, object-key, and evidence ordering churn is ignor
   b.evidence[0].cacheState = 'hit';
   b.evidence[0].durationMs = 999;
   b.evidence[0].retrievedAt = '2026-08-29T02:00:00.000Z';
+  b.correlation.contradictions[0].providers.reverse();
+  b.decision.telemetry.requiredTables.reverse();
+  b.decision.telemetry.notes.reverse();
+  b.decision.attackMappings[0].bases.reverse();
+  b.decision.attackMappings[0].providers.reverse();
+  b.decision.attackMappings[0].evidenceFingerprints.reverse();
   assert.deepEqual(semanticSnapshot(a), semanticSnapshot(b));
 });
 
