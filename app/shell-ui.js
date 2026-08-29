@@ -7,6 +7,8 @@ import {
   buildCorrelation,
   buildRelationships,
   buildCoverage,
+  buildIpAnalystReport,
+  renderIpAnalystReportText,
   jsonLines,
   toFactRows,
 } from './view-model.js';
@@ -463,7 +465,19 @@ export function mountAnalystShell({
     }
     if (action.action === 'copy') {
       if (!currentResult) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
-      const value = action.target === 'observable' ? currentResult.indicator : action.target === 'request-id' ? currentResult.requestId : JSON.stringify(currentResult, null, 2);
+      let value;
+      if (action.target === 'observable') value = currentResult.indicator;
+      else if (action.target === 'request-id') value = currentResult.requestId;
+      else if (action.target === 'report') {
+        if (currentResult.type !== 'ip') { appendLine('copy report currently requires an IP enrichment result', 'amber'); return; }
+        value = renderIpAnalystReportText(buildIpAnalystReport({
+          overview: buildOverview(currentResult),
+          evidence: buildEvidence(currentResult),
+          correlation: buildCorrelation(currentResult),
+          relationships: buildRelationships(currentResult),
+          coverage: buildCoverage(currentResult),
+        }));
+      } else value = JSON.stringify(currentResult, null, 2);
       try { await navigator.clipboard.writeText(String(value)); audio.play('copy'); appendLine(`[ OK ] copied ${action.target}`, 'green'); }
       catch { appendLine('clipboard unavailable', 'red'); triggerGlitch('glitch-error', 180); }
       return;

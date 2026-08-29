@@ -1,3 +1,5 @@
+import { buildIpAnalystReport } from './view-model.js';
+
 if (typeof document !== 'undefined' && !document.querySelector('link[href="/app/analyst-facts.css"]')) {
   const styles = document.createElement('link');
   styles.rel = 'stylesheet';
@@ -23,6 +25,11 @@ function inline(value) {
   return String(value);
 }
 
+function displayFactValue(fact) {
+  const value = inline(fact?.value);
+  return fact?.sources?.length ? `${value}  // ${fact.sources.join(' + ')}` : value;
+}
+
 function appendFacts(target, facts, empty = '') {
   if (!facts?.length) {
     if (empty) target.append(el('p', 'empty-state', empty));
@@ -31,7 +38,7 @@ function appendFacts(target, facts, empty = '') {
   const grid = el('dl', 'fact-grid');
   for (const fact of facts) {
     const row = el('div', 'fact-row');
-    row.append(el('dt', 'fact-label', fact.label), el('dd', 'fact-value', fact.value));
+    row.append(el('dt', 'fact-label', fact.label), el('dd', 'fact-value', displayFactValue(fact)));
     grid.append(row);
   }
   target.append(grid);
@@ -199,6 +206,74 @@ function coverageContent(model) {
   return panel;
 }
 
+function ipSignalLine(item) {
+  const article = el('article', `fact-card ip-source-line semantic-${item.semanticClass || 'evidence'}`);
+  const head = el('header', 'signal-head');
+  head.append(el('strong', 'signal-provider', item.provider), el('span', 'signal-kind', item.kind));
+  article.append(head, el('strong', 'signal-verdict', item.verdict));
+  if (item.semanticNote) article.append(el('p', 'semantic-note', item.semanticNote));
+  appendFacts(article, item.facts || []);
+  return article;
+}
+
+function compactFailureLine(failure) {
+  const article = el('article', `coverage-failure ip-failure-line failure-${failure.state}`);
+  const header = el('header', 'failure-head');
+  header.append(el('strong', 'failure-provider', failure.provider), el('span', 'failure-state', failure.label));
+  article.append(header, el('p', 'failure-summary', failure.summary));
+  appendFacts(article, failure.details || []);
+  return article;
+}
+
+function ipReportContent(models) {
+  const report = buildIpAnalystReport(models);
+  const root = el('section', 'analyst-brief ip-intelligence-report');
+  root.setAttribute('aria-label', report.title || 'IP INTELLIGENCE REPORT');
+
+  const heading = el('header', 'brief-section ip-report-header');
+  heading.append(el('h1', 'fact-title ip-report-title', report.title || 'IP INTELLIGENCE REPORT'));
+  heading.append(el('p', 'coverage-line', `${String(report.status || 'unknown').toUpperCase()} · PROFILE ${String(report.profile || 'unknown').toUpperCase()} · ${report.durationMs ?? '—'} ms`));
+  root.append(heading);
+
+  const assessment = el('section', 'brief-section ip-report-assessment');
+  assessment.append(sectionLabel('EXECUTIVE ASSESSMENT'));
+  assessment.append(el('strong', 'signal-verdict ip-assessment-state', report.assessment.state));
+  assessment.append(el('p', 'failure-summary ip-assessment-summary', report.assessment.summary));
+  appendFacts(assessment, report.assessment.facts);
+  root.append(assessment);
+
+  for (const section of report.sections) {
+    const block = el('section', `brief-section ip-report-section ip-section-${section.id}`);
+    block.append(sectionLabel(section.title));
+    if (section.summary) block.append(el('p', 'coverage-summary', section.summary));
+    appendFacts(block, section.facts || []);
+
+    if (section.id === 'coverage') {
+      if (!section.failures?.length) block.append(el('p', 'empty-state', 'No provider failures reported.'));
+      for (const failure of section.failures || []) block.append(compactFailureLine(failure));
+      root.append(block);
+      continue;
+    }
+
+    if (section.id === 'related-infrastructure' || section.id === 'correlation') {
+      if (!section.items?.length) block.append(el('p', 'empty-state', section.id === 'related-infrastructure' ? 'No explicit related infrastructure emitted.' : 'No corroboration or contradiction records emitted.'));
+      for (const item of section.items || []) block.append(factCard(item, `fact-card ${item.tone || 'relationship'}`));
+      root.append(block);
+      continue;
+    }
+
+    if (section.items?.length) {
+      const sources = el('div', 'ip-source-list');
+      for (const item of section.items) sources.append(ipSignalLine(item));
+      block.append(sources);
+    } else if (!section.facts?.length && section.id !== 'huntability') {
+      block.append(el('p', 'empty-state', 'No reportable observations in this category.'));
+    }
+    root.append(block);
+  }
+  return root;
+}
+
 export function clear(target) {
   while (target.firstChild) target.removeChild(target.firstChild);
 }
@@ -238,6 +313,11 @@ export function renderFacts(target, title, facts, tone = '') {
 
 export function renderBrief(target, { overview, evidence, correlation, relationships, coverage }) {
   clear(target);
+  if (overview.type === 'ip') {
+    target.append(ipReportContent({ overview, evidence, correlation, relationships, coverage }));
+    return;
+  }
+
   const brief = el('section', 'analyst-brief');
 
   const summarySection = el('section', 'brief-section brief-summary');
