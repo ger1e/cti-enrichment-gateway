@@ -62,6 +62,23 @@ test('Maltego documentation covers every canonical workflow and certificate tran
   requireTokens(maltegoReadme, ['EnrichCertificate', 'cert-sha256:'], 'certificate Maltego semantics');
 });
 
+test('Maltego CI documentation matches the bounded Ubuntu workflow', () => {
+  const workflow = read('.github/workflows/tooling-smoke.yml');
+  const maltegoReadme = read('maltego/README.md');
+  const runsOn = [...workflow.matchAll(/runs-on:\s*([^\n]+)/g)].map(match => match[1].trim());
+  assert.deepEqual(runsOn, ['ubuntu-latest']);
+  assert.ok(maltegoReadme.includes('one bounded Ubuntu job'));
+  assert.doesNotMatch(maltegoReadme, /Ubuntu, macOS and Windows/i);
+});
+
+test('contribution and security docs describe the repository as public', () => {
+  const contributing = read('CONTRIBUTING.md');
+  const controls = read('docs/SECURITY-CONTROLS.md');
+  assert.match(contributing, /public personal-research\/lab PARA11AX project/);
+  assert.doesNotMatch(contributing, /private personal-research\/lab/i);
+  assert.doesNotMatch(controls, /private repository/i);
+});
+
 test('changelog records completed v8 consolidation capabilities', () => {
   const changelog = read('CHANGELOG.md');
   requireTokens(changelog, [
