@@ -8,6 +8,7 @@ import {
   buildRelationships,
   buildCoverage,
   jsonLines,
+  toFactRows,
 } from './view-model.js';
 import {
   renderOverview,
@@ -15,6 +16,8 @@ import {
   renderCorrelation,
   renderRelationships,
   renderCoverage,
+  renderFacts,
+  renderBrief,
   renderRaw,
 } from './renderers.js';
 
@@ -192,12 +195,49 @@ export function mountAnalystShell({
   const appendJson = (value, tone = '') => appendPre(JSON.stringify(value, null, 2), tone);
   const clearScrollback = () => scrollback.replaceChildren();
 
+  const appendStructuredFacts = (title, value, tone = '') => {
+    const block = document.createElement('section');
+    block.className = `shell-result shell-result-facts${tone ? ` shell-${tone}` : ''}`;
+    scrollback.append(block);
+    renderFacts(block, title, toFactRows(value, { limit: 64 }), tone);
+    scrollBottom();
+    return block;
+  };
+
+  const renderFactItems = (title, items, tone = '') => {
+    const block = document.createElement('section');
+    block.className = `shell-result shell-result-facts${tone ? ` shell-${tone}` : ''}`;
+    scrollback.append(block);
+    if (!items.length) {
+      renderFacts(block, title, [{ label: 'STATE', value: 'NONE' }], tone);
+    } else {
+      const heading = document.createElement('div');
+      heading.className = 'shell-fact-heading';
+      heading.textContent = title;
+      block.append(heading);
+      for (const item of items) {
+        const child = document.createElement('section');
+        renderFacts(child, item.title || title, item.facts || [], tone);
+        block.append(child);
+      }
+    }
+    scrollBottom();
+    return block;
+  };
+
   function renderResultView(viewName) {
     if (!currentResult) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
     const block = document.createElement('section');
     block.className = `shell-result shell-result-${viewName}`;
     scrollback.append(block);
-    if (viewName === 'overview') renderOverview(block, buildOverview(currentResult));
+    if (viewName === 'brief') renderBrief(block, {
+      overview: buildOverview(currentResult),
+      evidence: buildEvidence(currentResult),
+      correlation: buildCorrelation(currentResult),
+      relationships: buildRelationships(currentResult),
+      coverage: buildCoverage(currentResult),
+    });
+    else if (viewName === 'overview') renderOverview(block, buildOverview(currentResult));
     else if (viewName === 'evidence') renderEvidence(block, buildEvidence(currentResult));
     else if (viewName === 'correlation') renderCorrelation(block, buildCorrelation(currentResult));
     else if (viewName === 'relationships') renderRelationships(block, buildRelationships(currentResult));
@@ -208,8 +248,8 @@ export function mountAnalystShell({
 
   function resultFilter(filter) {
     if (!currentResult) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
-    if (filter === 'last') return renderResultView('overview');
-    if (filter === 'request') return appendJson({
+    if (filter === 'last') return renderResultView('brief');
+    if (filter === 'request') return appendStructuredFacts('REQUEST', {
       requestId: currentResult.requestId,
       indicator: currentResult.indicator,
       type: currentResult.type,
@@ -219,9 +259,9 @@ export function mountAnalystShell({
       durationMs: currentResult.durationMs,
       budget: currentResult.budget,
     });
-    if (filter === 'failures') return appendJson(currentResult.failures || [], 'red');
-    if (filter === 'contradictions') return appendJson(currentResult.correlation?.contradictions || [], 'red');
-    if (filter === 'corroboration') return appendJson(currentResult.correlation?.corroboration || [], 'green');
+    if (filter === 'failures') return renderResultView('coverage');
+    if (filter === 'contradictions') return renderFactItems('CONTRADICTIONS', buildCorrelation(currentResult).contradictions, 'red');
+    if (filter === 'corroboration') return renderFactItems('CORROBORATION', buildCorrelation(currentResult).corroboration, 'green');
     if (filter === 'references') {
       const refs = [...new Set((currentResult.evidence || []).flatMap(item => item.references || []).map(ref => typeof ref === 'string' ? ref : ref?.url).filter(Boolean))];
       return appendPre(refs.length ? refs.join('\n') : '(no references)');
@@ -261,13 +301,13 @@ export function mountAnalystShell({
   async function runGateway(action) {
     if (action.action === 'meta') {
       const controller = beginOperation(false);
-      try { appendJson(await client.meta(controller.signal)); }
+      try { appendStructuredFacts('GATEWAY META', await client.meta(controller.signal)); }
       finally { endOperation(); }
       return;
     }
     if (action.action === 'health' || action.action === 'status') {
       const controller = beginOperation(false);
-      try { appendJson(await client[action.action](controller.signal)); }
+      try { appendStructuredFacts(action.action.toUpperCase(), await client[action.action](controller.signal)); }
       finally { endOperation(); }
       return;
     }
@@ -294,7 +334,7 @@ export function mountAnalystShell({
         } else if (result.status === 'error') triggerGlitch('glitch-error', 260);
         else triggerGlitch('glitch-result', 240);
         appendLine(`[ ${String(result.status).toUpperCase()} ] ${result.indicator} · ${result.type} · ${result.durationMs ?? '?'}ms`, result.status === 'ok' ? 'green' : result.status === 'partial' ? 'amber' : 'red');
-        renderResultView('overview');
+        renderResultView('brief');
       } finally { endOperation(); }
       return;
     }
