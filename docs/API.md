@@ -1,6 +1,24 @@
 ### API
 
-All responses are JSON. Production clients should use HTTPS. The gateway bearer is `Authorization: Bearer <PARA11AX_TOKEN>`.
+All responses are JSON unless a documented human-facing error representation is explicitly negotiated. Production clients should use HTTPS. The gateway bearer is `Authorization: Bearer <PARA11AX_TOKEN>`.
+
+#### Supported indicator types
+
+The canonical gateway workflows are:
+
+- `ip`
+- `domain`
+- `url`
+- `hash`
+- `cve`
+- `attack`
+- `asn`
+- `cidr`
+- `certificate`
+
+Certificate input is explicit rather than inferred from a bare hash: `cert-sha256:<64-hex>`. A bare SHA-256 remains a file `hash`. Optional request `type` is accepted only when it exactly matches canonical classification.
+
+Fixed profiles are `fast`, `standard`, and `full`. Callers cannot select arbitrary providers.
 
 #### `GET /api/para11ax/meta`
 
@@ -28,9 +46,22 @@ Bearer required. JSON body:
 {"indicator":"evil.example","profile":"standard"}
 ```
 
+Certificate example:
+
+```json
+{"indicator":"cert-sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef","type":"certificate","profile":"standard"}
+```
+
 Optional `type` is accepted only when it exactly matches canonical classification. Optional `profile` is one of `fast`, `standard`, `full`. Provider overrides are not accepted.
 
 The response is the Evidence Schema v2 envelope described in `EVIDENCE-SCHEMA.md`.
+
+For normalized `status: "ok"` and `status: "partial"` enrichment responses, Train 5 adds two top-level projections without replacing existing fields:
+
+- `evidenceGraph` — deterministic Evidence Graph v1.0 built only from explicit normalized facts and relationships.
+- `guidance` — deterministic Guidance v1.0 that inherits the existing decision/correlation semantics and may include semantic-change attention context.
+
+These fields are additive. Error envelopes do not gain `evidenceGraph` or `guidance`, and the existing `decision` field remains authoritative for the bounded disposition vocabulary.
 
 #### `POST /api/para11ax/batch`
 
@@ -50,13 +81,15 @@ Hard limits:
 - invalid individual indicators are represented independently
 - no provider override field
 
+Successful individual results retain the same enrichment contract, including additive graph/guidance projections where applicable.
+
 #### `POST /api/para11ax/stix`
 
 Bearer required. JSON body is the same single-indicator request contract as `/api/para11ax/enrich`.
 
 The gateway performs normal enrichment first, then maps the result to a dependency-free STIX 2.1 Bundle. Max 100 objects. Caller-supplied enrichment objects are rejected.
 
-Defensible mappings include IP/domain/URL/hash/ASN Indicators, CVE Vulnerability SDOs and preserved MITRE ATT&CK source objects. CIDR is not fabricated into an unsupported pattern. Actor/malware SDOs require explicit supported relationships.
+Defensible mappings include IP/domain/URL/hash/ASN Indicators, CVE Vulnerability SDOs and preserved MITRE ATT&CK source objects. CIDR is not fabricated into an unsupported pattern. Certificate context is not fabricated into a STIX object when no defensible mapping exists. Actor/malware SDOs require explicit supported relationships.
 
 #### Common errors
 

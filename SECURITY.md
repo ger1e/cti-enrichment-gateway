@@ -1,10 +1,10 @@
 ### Security policy
 
-This repository is a public, read-only PARA11AX gateway. Security controls are intentionally conservative, and every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
+This repository is public. PARA11AX is a read-only CTI enrichment platform for personal research/lab use, and every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
 
 #### Supported use
 
-The current gateway is for personal research and lab use. Do not route commercial-client, internal-enterprise, restricted, or otherwise sensitive data through providers unless their licensing, data-handling terms, and the relevant client authorization have been explicitly reviewed. Provider enrichment is evidence, not attribution.
+Do not route commercial-client, internal-enterprise, restricted, or otherwise sensitive data through providers unless their licensing, data-handling terms, and the relevant client authorization have been explicitly reviewed. Provider enrichment is evidence, not attribution.
 
 #### Secrets
 
@@ -27,11 +27,27 @@ The current gateway is for personal research and lab use. Do not route commercia
 - Treat infrastructure proximity, certificate reuse, shared ASN/hosting, and graph pivots as investigative relationships rather than actor attribution.
 - `config/providers.json` is the canonical static provider policy. Runtime metadata, environment/bootstrap credential inventory, fixed transport policy and report distribution state must not drift from it.
 
+#### Evidence, graph and guidance boundary
+
+- Evidence Graph v1.0 and Guidance v1.0 are deterministic projections over existing normalized evidence/correlation/decision inputs; they do not perform provider calls, secret lookup, arbitrary network access, or persistence.
+- Guidance inherits the existing bounded disposition vocabulary and must not introduce a second universal threat/risk score.
+- Graph entities/edges come only from supported explicit facts/relationships. Free-form strings, shared hosting, certificate reuse or infrastructure proximity must not manufacture actor attribution.
+- Error enrichments do not manufacture top-level `evidenceGraph` or `guidance` fields.
+
+#### Browser-local case boundary
+
+- Train 4 case persistence is browser-local IndexedDB state, not server-side case/IOC storage.
+- Active case selection and gateway authentication remain runtime-only and must not be serialized into case metadata.
+- Case notes and semantic-diff prose must not be parsed into graph entities.
+- Case/index/graph modules must not introduce direct network persistence paths or credential/session properties.
+- Export/import bundles remain bounded, typed and secret-key screened before persistence.
+
 #### API and error boundary
 
 - `POST /api/para11ax/enrich`, `/api/para11ax/batch`, and `/api/para11ax/stix` require `Authorization: Bearer <PARA11AX_TOKEN>`.
+- `GET /api/para11ax/health` and `/api/para11ax/status` are bearer-protected; `/api/para11ax/meta` is intentionally public static metadata.
 - Explicit non-JSON request content types are rejected.
-- Indicator types and sizes are validated before provider calls.
+- Indicator types and sizes are validated before provider calls. Certificate SHA-256 requires explicit `cert-sha256:` classification and does not steal bare file hashes.
 - Authenticated responses use `Cache-Control: no-store` and defensive response headers.
 - Gateway bearer comparison remains constant-time.
 - Provider calls use bounded response sizes, explicit timeouts, structured rate-limit handling, and redirect restrictions.
@@ -58,6 +74,7 @@ The current gateway is for personal research and lab use. Do not route commercia
 - Generated `.mtz` packages are local artifacts and must not be committed.
 - MTZ verification derives vendor credential identifiers from the canonical provider manifest and rejects archive traversal, symlinks, duplicate entries, unsafe sizes, loopback/dev URLs and credential identifiers.
 - Graph expansion is bounded and deduplicated.
+- Certificate parity changes only the explicit client transport mapping: `EnrichCertificate` adds `cert-sha256:`. It does not expose provider credentials or change file-hash semantics.
 
 #### Supply chain and governance
 
@@ -65,12 +82,12 @@ The current gateway is for personal research and lab use. Do not route commercia
 - Runtime parity is Node.js 24.x across Vercel, CI, Codespaces, and local bootstrap flows.
 - `package-lock.json` is mandatory even with an empty dependency set; CI uses deterministic `npm ci --ignore-scripts` and runs a real `npm audit --omit=dev`.
 - The Windows Vercel bootstrap uses the repository-pinned CLI version rather than `vercel@latest`.
-- `Tooling smoke` is bounded to one Ubuntu runner and validates repository invariants, Node tests, Maltego standard-library tests, Python compilation, shell syntax/ShellCheck and PowerShell syntax. CodeQL performs JavaScript/TypeScript static analysis separately.
+- `Tooling smoke` is bounded to one Ubuntu runner and validates repository invariants, Node tests, Maltego tests, Python compilation, shell syntax/ShellCheck and PowerShell syntax. CodeQL performs JavaScript/TypeScript static analysis separately.
 - Authoritative `Tooling smoke` must fail closed if any summarized validation step fails, must publish status against the exact PR head SHA, and must attest the exact merged `main` SHA on push before production finalization.
-- `main` release policy requires PR-only changes, strict `Tooling smoke`, stale-review dismissal, admin enforcement, linear history, resolved review conversations, force-push denial and deletion denial.
-- `npm run verify:governance` is read-only and must fail nonzero when the authenticated GitHub branch-protection state drifts.
+- The intended `main` release policy includes PR-only changes, strict `Tooling smoke`, stale-review dismissal, admin enforcement, linear history, resolved review conversations, force-push denial and deletion denial.
+- Repository files describe that governance contract but do not prove current GitHub settings. `npm run verify:governance` is the read-only verification path and must fail nonzero on drift.
 - `scripts/finalize.ps1` is the authoritative admin write/read-back path and refuses production deployment if governance or exact-main identity is not satisfied.
-- Vercel Git deployment is fail-closed for every branch except protected `main`; preview/feature branches must not auto-build. A production build is accepted only when its Git metadata SHA equals the exact verified `main` SHA.
+- Vercel Git deployment is fail-closed for feature branches. A production build is accepted only when its Git metadata SHA equals the exact verified `main` SHA.
 
 #### Validation
 
@@ -84,10 +101,10 @@ cd maltego && python3 -m unittest discover -s tests -v
 cd .. && python3 -m compileall -q maltego
 ```
 
-When authenticated GitHub CLI access is available, also run:
+When authenticated GitHub access is available, also run:
 
 ```bash
 npm run verify:governance
 ```
 
-Production deployment additionally requires exact verified `main`, branch-protection readback, production source-SHA equality, safe health/authentication checks, controlled live provider smoke tests where credentials are configured, and confirmation that logs/responses contain no secret values.
+A public READY Vercel deployment does not by itself prove authenticated health/status or provider readiness. Those claims require an authorized bearer/provider probe against the exact deployed SHA.

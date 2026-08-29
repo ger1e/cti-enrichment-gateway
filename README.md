@@ -19,11 +19,12 @@ analyst@para11ax:~$ core --status
 
 PARA11AX is a bounded CTI enrichment and correlation platform for hunters and defenders. It takes one supported observable, routes it through a fixed provider workflow, preserves provider-native semantics, and returns provenance-rich evidence without pretending every signal is a verdict.
 
-- **Inputs:** IP · domain · URL · hash · CVE · ATT&CK ID · ASN · CIDR · certificate (`cert-sha256:<64-hex>`).
+- **Inputs:** `ip` · `domain` · `url` · `hash` · `cve` · `attack` · `asn` · `cidr` · `certificate` (`cert-sha256:<64-hex>`).
 - **Profiles:** `fast` · `standard` · `full`; callers cannot select arbitrary providers.
 - **Trust boundary:** `safeFetch` allows only declared HTTPS hosts, methods, protocols, body ceilings, and redirect behavior.
 - **Execution:** tiered provider scheduling, bounded concurrency, bounded cache, explicit timeout/circuit states.
-- **Outputs:** Evidence v2 · typed correlation · JSON · batch · STIX 2.1 · deterministic offline reports.
+- **Outputs:** Evidence v2 · Evidence Graph v1.0 · Guidance v1.0 · typed correlation · deterministic decision support · JSON · batch · STIX 2.1 · deterministic offline reports.
+- **Local workspace:** browser-local cases, snapshots/diffs, exact typed cross-case index, case graph and `.para11ax` bundles; no server-side case persistence.
 - **Identity:** repository/package `para11ax`, CLI `para11ax`, bearer `PARA11AX_TOKEN`, API base `/api/para11ax/*`.
 
 ![PARA11AX request path](assets/brand/para11ax-architecture-v3.svg)
@@ -37,7 +38,7 @@ analyst@para11ax:~$ surface --analyst
 > ANALYST SURFACE // https://para11ax.vercel.app/app/
 ```
 
-The production analyst terminal keeps the gateway bearer in volatile memory only, exposes bounded shell commands and evidence views, and preserves the same semantic model as the API.
+The production analyst terminal keeps the gateway bearer in volatile memory only, exposes bounded shell commands and evidence views, and preserves the same semantic model as the API. Train 4 adds an IndexedDB-backed local case workspace; active-case state and gateway authentication remain runtime-only.
 
 ### API
 
@@ -52,6 +53,8 @@ The production analyst terminal keeps the gateway bearer in volatile memory only
 ```json
 {"indicator":"203.0.113.10","profile":"standard"}
 ```
+
+Normalized `ok`/`partial` enrichments retain Evidence v2 and `decision` while additively exposing `evidenceGraph` (v1.0) and `guidance` (v1.0). Error envelopes do not manufacture those projections.
 
 Complete contract: [`docs/API.md`](docs/API.md).
 
@@ -78,11 +81,12 @@ analyst@para11ax:~$ semantics --enforce
 ![PARA11AX semantic firewall](assets/brand/para11ax-semantic-firewall-v3.svg)
 
 - **Absence ≠ benign:** `not_listed`, `not_found`, `no_result`, and `no_association` remain absence semantics.
-- **Context ≠ reputation:** registration, routing, exposure, Tor, scanners, Modat, and ATT&CK cannot vote an IOC malicious.
+- **Context ≠ reputation:** registration, routing, exposure, Tor, scanners, Modat, certificate metadata, and ATT&CK cannot vote an IOC malicious.
 - **Claims ≠ compromise proof:** community and ransomware reporting remain claim/report evidence.
 - **Infrastructure ≠ attribution:** hosting, ASN, DNS, certificates, or malware proximity do not manufacture actor attribution.
 - **KEV ≠ EPSS ≠ CVSS:** exploitation status, probability, and severity remain separate axes.
 - **Failure ≠ negative evidence:** timeout, 429, 5xx, parser failure, and circuit-open states remain explicit coverage failures.
+- **No universal maliciousness score:** correlation, decision support, graphs and guidance keep analytical dimensions separate.
 
 Full semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
 
@@ -118,6 +122,7 @@ Full semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
 - Provider failures are never cached as negative evidence.
 - Operational telemetry is allowlisted; raw indicators are excluded by default.
 - Error responses are `no-store`, correlation-safe, and do not expose raw provider exceptions.
+- Evidence Graph/Guidance projection modules add no provider egress, credential lookup or server persistence.
 
 Security detail: [`docs/SECURITY-CONTROLS.md`](docs/SECURITY-CONTROLS.md) · [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) · [`SECURITY.md`](SECURITY.md).
 
@@ -126,7 +131,7 @@ Security detail: [`docs/SECURITY-CONTROLS.md`](docs/SECURITY-CONTROLS.md) · [`d
 <details>
 <summary><strong>Maltego and deterministic reports</strong></summary>
 
-Maltego crosses one credential boundary only: `PARA11AX_TOKEN`. Vendor credentials never enter the MTZ or transform output. See [`maltego/README.md`](maltego/README.md).
+Maltego crosses one credential boundary only: `PARA11AX_TOKEN`. Vendor credentials never enter the MTZ or transform output. All nine gateway workflow types have intended transform coverage; certificate SHA-256 uses `EnrichCertificate` and explicit `cert-sha256:` transport while file hashes retain `EnrichHash` semantics. See [`maltego/README.md`](maltego/README.md).
 
 Report rendering never calls providers. It compiles frozen evidence through a canonical `ReportModel` and hard quality gate into deterministic HTML, PDF, text, JSON/STIX, CSV, KQL, ATT&CK Navigator, and SHA-256 manifest artifacts.
 
@@ -137,11 +142,11 @@ The gate rejects missing provenance, unsafe attribution, malformed ATT&CK IDs, i
 <details>
 <summary><strong>Verification and deployment</strong></summary>
 
-Protected `main` requires the bounded `Tooling smoke` gate; CodeQL runs alongside it. The tooling gate performs repository invariants, deterministic dependency install/audit, Node tests, Maltego regression tests, Python compilation, shell checks, and PowerShell parsing.
+Protected `main` requires the bounded `Tooling smoke` gate; CodeQL runs alongside it as release verification. Tooling smoke uses one bounded Ubuntu job for repository invariants, deterministic dependency install/audit, Node tests, Maltego regression tests, Python compilation, shell checks, and PowerShell syntax parsing.
 
-Vercel Git deployment is disabled for `**` and enabled only for `main`. Repository-complete, configured, and production-complete are distinct states; production acceptance requires the exact deployed source SHA.
+Vercel Git deployment is disabled for feature branches and enabled only for `main`. Repository-complete, configured, deployment-proven and credential/provider readiness are distinct states; production acceptance requires evidence for the exact claim being made.
 
-Full process: [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Release identity: [`release-manifest.json`](release-manifest.json).
+Full process: [`docs/OPERATIONS.md`](docs/OPERATIONS.md). Current QA evidence model: [`docs/QA-REPORT.md`](docs/QA-REPORT.md). Release identity: [`release-manifest.json`](release-manifest.json).
 
 </details>
 
@@ -152,13 +157,14 @@ analyst@para11ax:~$ docs --deep
 
 - [`docs/BRAND.md`](docs/BRAND.md) — PARA11AX identity and canonical surface rules.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — execution model and trust boundaries.
-- [`docs/END-TO-END-EXAMPLE.md`](docs/END-TO-END-EXAMPLE.md) — IOC → evidence → export walkthrough.
-- [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md) — Evidence v2 and correlation semantics.
+- [`docs/END-TO-END-EXAMPLE.md`](docs/END-TO-END-EXAMPLE.md) — IOC → evidence → decision/graph/guidance → export walkthrough.
+- [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md) — Evidence v2, Evidence Graph v1.0, Guidance v1.0 and correlation semantics.
 - [`docs/PROVIDERS.md`](docs/PROVIDERS.md) — source semantics and provider state model.
 - [`docs/API.md`](docs/API.md) — endpoint contracts and hard limits.
 - [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) — threats, residual risk, executable checks.
 - [`docs/SECURITY-CONTROLS.md`](docs/SECURITY-CONTROLS.md) — control-to-risk mapping.
 - [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — CI, production acceptance, incident behavior.
+- [`docs/QA-REPORT.md`](docs/QA-REPORT.md) — audit findings, proof boundaries and reproduction checks.
 - [`SECURITY.md`](SECURITY.md) — repository security policy.
 - [`docs/PUBLIC-RELEASE-CHECKLIST.md`](docs/PUBLIC-RELEASE-CHECKLIST.md) — public-extraction gate.
 - [`release-manifest.json`](release-manifest.json) — deterministic release identity.

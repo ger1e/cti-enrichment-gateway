@@ -1,6 +1,6 @@
 ### Maltego local transforms for PARA11AX
 
-Maltego Graph Desktop talks only to the private PARA11AX gateway. Vendor API credentials stay server-side; the workstation stores only `PARA11AX_TOKEN`.
+Maltego Graph Desktop talks only to the PARA11AX gateway. Vendor API credentials stay server-side; the workstation stores only `PARA11AX_TOKEN`.
 
 #### Install
 
@@ -69,29 +69,46 @@ PARA11AX client
 https://para11ax.vercel.app/api/para11ax/enrich
         |
         v
-Gateway provider router / normalized evidence v2
+Gateway provider router / Evidence v2
 ```
 
 The transform layer never receives provider secrets.
 
-#### Transforms
+#### Workflow parity
+
+The gateway has nine canonical workflow types and Maltego covers all nine:
+
+- `ip`
+- `domain`
+- `url`
+- `hash`
+- `cve`
+- `attack`
+- `asn`
+- `cidr`
+- `certificate`
 
 The versioned `transform-manifest.json` is the package inventory and is verified during MTZ generation.
 
-- PARA11AX Enrich IPv4 -> `maltego.IPv4Address`
-- PARA11AX Enrich IPv6 -> `maltego.IPv6Address`
-- PARA11AX Enrich Domain -> `maltego.Domain`
-- PARA11AX Enrich DNS Name -> `maltego.DNSName`
-- PARA11AX Enrich URL -> `maltego.URL`
-- PARA11AX Enrich Hash -> `maltego.Hash`
-- PARA11AX Enrich CVE -> `maltego.Phrase`
-- PARA11AX Enrich MITRE ATT&CK -> `maltego.Phrase`
-- PARA11AX Enrich ASN -> `maltego.Phrase` input such as `AS3333`; graph output uses `maltego.AS` where appropriate
-- PARA11AX Enrich CIDR -> `maltego.Phrase` input such as `192.0.2.0/24` or `2001:db8::/32`
+#### Transforms
+
+- PARA11AX Enrich IPv4 -> `EnrichIPv4` -> `maltego.IPv4Address`
+- PARA11AX Enrich IPv6 -> `EnrichIPv6` -> `maltego.IPv6Address`
+- PARA11AX Enrich Domain -> `EnrichDomain` -> `maltego.Domain`
+- PARA11AX Enrich DNS Name -> `EnrichDNSName` -> `maltego.DNSName`
+- PARA11AX Enrich URL -> `EnrichURL` -> `maltego.URL`
+- PARA11AX Enrich Hash -> `EnrichHash` -> `maltego.Hash`
+- PARA11AX Enrich Certificate -> `EnrichCertificate` -> `maltego.Hash`
+- PARA11AX Enrich CVE -> `EnrichCVE` -> `maltego.Phrase`
+- PARA11AX Enrich MITRE ATT&CK -> `EnrichATTACK` -> `maltego.Phrase`
+- PARA11AX Enrich ASN -> `EnrichASN` -> `maltego.Phrase` input such as `AS3333`; graph output uses `maltego.AS` where appropriate
+- PARA11AX Enrich CIDR -> `EnrichCIDR` -> `maltego.Phrase` input such as `192.0.2.0/24` or `2001:db8::/32`
+
+Certificate semantics are explicit. A raw SHA-256 selected through `EnrichCertificate` is transported to the gateway as `cert-sha256:<fingerprint>`. The same raw value selected through `EnrichHash` remains a file-hash lookup. The client does not guess certificate semantics from a bare hash.
 
 Transforms map normalized relationships, malware-family/actor context and graphable provider attributes. Evidence v2 additionally renders bounded Phrase nodes for provider provenance, corroboration, contradictions, freshness, huntability and separate KEV/EPSS/CVSS axes. Integrity fingerprints and parser versions are graphable; raw upstream hashes are deliberately not emitted as Maltego properties.
 
-ATT&CK TAXII results are knowledge/mapping context, not IOC reputation or a maliciousness vote. CIDR remains a Phrase because no stable built-in network-prefix entity is assumed. ASN uses the stable AS entity when the mapper can do so without changing the input contract.
+ATT&CK TAXII results are knowledge/mapping context, not IOC reputation or a maliciousness vote. Certificate metadata is contextual evidence, not an automatic malicious verdict. CIDR remains a Phrase because no stable built-in network-prefix entity is assumed. ASN uses the stable AS entity when the mapper can do so without changing the input contract.
 
 #### Non-secret configuration
 
@@ -121,9 +138,9 @@ No provider API secret is stored in this directory or in the generated MTZ.
 - MTZ validation rejects path traversal, symlinks, duplicate entries, excessive archive sizes, loopback/dev gateway references, missing transform inventory and credential identifiers.
 - Vendor API credentials never cross the gateway boundary.
 
-#### Cross-platform CI
+#### CI verification
 
-`Tooling smoke` runs the Maltego suite on Ubuntu, macOS and Windows. It also validates bash, zsh, ShellCheck and PowerShell syntax and aggregates those platform results into the authoritative `Tooling smoke` commit status.
+The authoritative repository `Tooling smoke` workflow runs one bounded Ubuntu job. It executes the Maltego Python regression suite, compiles the Python package, validates the Unix installer with bash/ShellCheck, and parses the Windows PowerShell installer syntax. Platform-specific installer behavior remains covered by the repository's static/regression contract without claiming recurring hosted macOS/Windows runners.
 
 #### Developer commands
 
