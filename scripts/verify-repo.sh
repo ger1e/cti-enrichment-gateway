@@ -76,7 +76,7 @@ bootstrap_secrets_ok() {
   ! grep -Fq 'SECURITYTRAILS_API_KEY' "${script}"
 }
 
-docs_runtime_ok() { grep -Eq 'Node\.js 24\.x' README.md && ! grep -Eq 'Node(\.js)?[[:space:]]+22' README.md; }
+docs_runtime_ok() { [[ "$(jq -r '.engines.node // empty' package.json)" == "24.x" ]] && ! grep -Eq 'Node(\.js)?[[:space:]]+22' README.md; }
 security_policy_ok() { [[ -s SECURITY.md ]] && grep -Fq 'GitHub Actions must remain pinned to immutable commit SHAs.' SECURITY.md && grep -Fq 'Runtime parity is Node.js 24.x' SECURITY.md && grep -Fq 'read-only' SECURITY.md; }
 
 sensitive_files_untracked() {
