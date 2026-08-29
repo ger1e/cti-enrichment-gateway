@@ -152,7 +152,7 @@ function createFooter(version) {
 
   const desktop = document.createElement('span');
   desktop.className = 'shell-footer-desktop';
-  desktop.textContent = 'PARA11AX // EVIDENCE GATEWAY';
+  desktop.textContent = 'PARA11AX // CTI ENRICHMENT';
 
   const center = document.createElement('span');
   center.className = 'shell-footer-center';
@@ -173,7 +173,7 @@ function createFooter(version) {
 
   const mobile = document.createElement('span');
   mobile.className = 'shell-footer-mobile';
-  mobile.textContent = `EVIDENCE GATEWAY · 37 SRC · v${version}`;
+  mobile.textContent = `CTI ENRICHMENT · 37 SRC · v${version}`;
 
   footer.append(desktop, center, leds, build, mobile);
   return footer;

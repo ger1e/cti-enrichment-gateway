@@ -17,7 +17,7 @@ analyst@para11ax:~$ core --status
 > OPERATIONAL CORE
 ```
 
-PARA11AX is a bounded CTI evidence gateway for hunters and defenders. It takes one supported observable, routes it through a fixed provider workflow, preserves provider-native semantics, and returns provenance-rich evidence without pretending every signal is a verdict.
+PARA11AX is a bounded CTI enrichment and correlation platform for hunters and defenders. It takes one supported observable, routes it through a fixed provider workflow, preserves provider-native semantics, and returns provenance-rich evidence without pretending every signal is a verdict.
 
 - **Inputs:** IP · domain · URL · hash · CVE · ATT&CK ID · ASN · CIDR · certificate (`cert-sha256:<64-hex>`).
 - **Profiles:** `fast` · `standard` · `full`; callers cannot select arbitrary providers.
