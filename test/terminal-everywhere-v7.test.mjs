@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const read = (path) => readFileSync(path, 'utf8');
+const read = path => readFileSync(path, 'utf8');
 const bannedPalette = /#00e5ff|#f6c945|#39ff88|#00ffff|#ff1e2d|#ff4050/i;
 
 const activePresentationFiles = [
   'landing-maxx.html',
+  'landing-radar-motion.css',
   'app/app.css',
   'app/shell.css',
   'app/shell-polish.css',
@@ -14,28 +15,31 @@ const activePresentationFiles = [
   'app/tactical-maxx.css',
 ];
 
-test('landing is a terminal-first v7 surface with live visual motion hooks', () => {
+test('landing is a terminal-first v7 surface with full source content', () => {
   const landing = read('landing-maxx.html');
   const adapter = read('landing-terminal-v7.js');
   assert.match(landing, /class="terminal-hero"/i);
   assert.match(landing, /class="terminal-topline"/i);
   assert.match(landing, /class="terminal-overview"/i);
   assert.match(landing, /class="terminal-integrations"/i);
+  assert.match(landing, /class="terminal-grid"/i);
   assert.match(adapter, /PROMPT_TEXT\s*=\s*['"]analyst@para11ax:~\$['"]/i);
   assert.match(landing, /PROVENANCE-FIRST CTI PLATFORM/i);
   assert.match(landing, /EVIDENCE FIRST\./i);
   assert.match(landing, /BOUNDED ALWAYS\./i);
   assert.match(landing, /OPERATIONAL WHEN SUPPORTED\./i);
   assert.match(landing, /landing-terminal-v7\.js/i);
-  assert.match(landing, /prefers-reduced-motion:\s*reduce/i);
 });
 
-test('landing motion adapter is visual-only and non-persistent', () => {
-  assert.equal(existsSync('landing-terminal-v7.js'), true, 'landing-terminal-v7.js must exist');
+test('landing runtime reveals content before optional visual enhancement', () => {
+  assert.equal(existsSync('landing-terminal-v7.js'), true);
   const source = read('landing-terminal-v7.js');
+  const revealIndex = source.indexOf('revealAll();');
+  const importIndex = source.indexOf("import('./brand-unification.js')");
+  assert.ok(revealIndex >= 0);
+  assert.ok(importIndex > revealIndex);
   assert.match(source, /terminalMotion\s*=\s*['"]v7['"]/i);
-  assert.match(source, /IntersectionObserver/);
-  assert.match(source, /prefers-reduced-motion:\s*reduce/i);
+  assert.doesNotMatch(source, /IntersectionObserver/);
   assert.doesNotMatch(source, /AudioContext|webkitAudioContext|new\s+Audio\s*\(|\.mp3|\.wav|\.ogg/i);
   assert.doesNotMatch(source, /localStorage|sessionStorage|indexedDB|document\.cookie/i);
   assert.doesNotMatch(source, /fetch\s*\(|XMLHttpRequest/i);
@@ -49,20 +53,27 @@ test('active presentation sources use the canonical terminal palette only', () =
   assert.doesNotMatch(source, bannedPalette);
 });
 
-test('README uses cache-busted desktop and mobile hero assets while preserving CI badges and analyst entry below the banner', () => {
+test('README uses animated GIF hero while preserving CI badges and analyst entry', () => {
   const readme = read('README.md');
-  const heroes = ['assets/brand/para11ax-readme-hero-v3.svg', 'assets/brand/para11ax-readme-hero-mobile-v3.svg'];
-  for (const path of heroes) {
-    assert.match(readme, new RegExp(path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-    assert.equal(existsSync(path), true, `${path} must exist`);
-    const svg = read(path);
-    assert.doesNotMatch(svg, /analyst@para11ax:~\$/i, `${path} must keep terminal copy out of the banner`);
-    assert.doesNotMatch(svg, /SEMANTIC FIREWALL|FIXED SOURCES|STIX|READ-ONLY|EVIDENCE GATEWAY/i, `${path} must stay visually minimal`);
-  }
+  const hero = 'assets/brand/para11ax-readme-hero-v4.gif';
+  assert.match(readme, /para11ax-readme-hero-v4\.gif/i);
+  assert.equal(existsSync(hero), true, `${hero} must exist`);
+  const gif = readFileSync(hero);
+  assert.equal(gif.subarray(0, 6).toString('ascii'), 'GIF89a');
+  assert.match(gif.toString('latin1'), /NETSCAPE2\.0/);
   assert.match(readme, /Tooling smoke/i);
   assert.match(readme, /CodeQL/i);
   assert.match(readme, /ENTER ANALYST UI/i);
   assert.match(readme, /analyst@para11ax:~\$/i);
+});
+
+test('landing PPI is browser-native motion and never freezes under reduced motion', () => {
+  const css = read('landing-radar-motion.css');
+  assert.match(css, /@keyframes\s+radar-live-spin/i);
+  assert.match(css, /ghost-ring[^}]*animation:\s*radar-live-spin\s+4\.8s/is);
+  assert.match(css, /prefers-reduced-motion:\s*reduce[\s\S]*animation-duration:\s*24s/is);
+  assert.doesNotMatch(css, /background\s*:\s*url\([^)]*para11ax-radar\.svg/i);
+  assert.match(css, /\[data-reveal\][^{]*\{[^}]*opacity:\s*1\s*!important/is);
 });
 
 test('brand system declares terminal frame primary and no new audio identity', () => {
@@ -90,10 +101,12 @@ test('authenticated app preserves native shell flow and canonical analyst prompt
 test('mobile and reduced-motion terminal contracts remain explicit', () => {
   const appCss = read('app/analyst-deck.css');
   const landing = read('landing-maxx.html');
+  const radarCss = read('landing-radar-motion.css');
   assert.match(appCss, /@media\s*\(max-width:\s*430px\)/i);
   assert.match(appCss, /prefers-reduced-motion:\s*reduce/i);
   assert.match(appCss, /\.raw-console|\.code-line/i);
   assert.match(landing, /@media\s*\(max-width:\s*430px\)|@media\s*\(max-width:\s*480px\)/i);
+  assert.match(radarCss, /@media\s*\(max-width:\s*640px\)/i);
 });
 
 test('boot and auth compatibility markers remain untouched', () => {

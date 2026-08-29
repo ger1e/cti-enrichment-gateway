@@ -4,69 +4,99 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#020403">
-  <meta name="description" content="PARA11AX">
+  <meta name="description" content="PARA11AX — provenance-first CTI evidence gateway.">
   <link rel="canonical" href="https://para11ax.vercel.app/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <title>PARA11AX</title>
   <style>
-    :root{color-scheme:dark;--void:#020403;--phosphor:#39ff14;--white:#f7fff6;--muted:#8da391;--alert:#ff2438}
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:var(--void)}
-    body{min-height:100vh;overflow-x:hidden;color:var(--white);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;background:radial-gradient(circle at 32% 44%,rgba(57,255,20,.055),transparent 32%),#020403}
-    a{color:inherit;text-decoration:none}
-    a:focus-visible{outline:2px solid var(--phosphor);outline-offset:4px}
-    .matrix-rain{position:fixed;inset:0;z-index:0;pointer-events:none;background:url('/assets/brand/para11ax-rain.svg') center top/cover repeat-y;opacity:.42;mask-image:linear-gradient(to bottom,#000 0,#000 78%,transparent 100%)}
-    .page{position:relative;z-index:1;width:min(1440px,100%);min-height:100vh;margin:0 auto;display:grid;place-items:center;padding:clamp(24px,4vw,58px)}
-    .hero-grid{width:100%;display:grid;grid-template-columns:minmax(340px,.92fr) minmax(0,1.08fr);align-items:center;gap:clamp(32px,6vw,92px)}
-    .radar-stage{min-height:clamp(420px,46vw,620px);display:grid;place-items:center;position:relative}
-    .radar-stage img{display:block;width:min(610px,100%);height:auto;filter:drop-shadow(0 0 28px rgba(57,255,20,.12))}
-    .copy{min-width:0;align-self:center}
-    .wordmark{margin:0;font-family:Arial Black,Arial,sans-serif;font-size:clamp(4.2rem,7.4vw,8.2rem);font-weight:900;line-height:.86;letter-spacing:-.065em;white-space:nowrap;text-transform:uppercase;text-shadow:0 0 3px rgba(247,255,246,.45),0 18px 60px rgba(0,0,0,.72)}
-    .wordmark .white{color:var(--white)}
-    .wordmark .green{color:var(--phosphor);text-shadow:0 0 22px rgba(57,255,20,.38)}
-    blockquote{margin:clamp(34px,4vw,58px) 0 0;padding:24px 0 0;border-top:1px solid rgba(57,255,20,.3);max-width:660px;color:var(--white);font-size:clamp(1rem,1.45vw,1.32rem);line-height:1.8}
-    blockquote p{margin:0;position:relative;padding-left:48px}
-    blockquote p::before{content:'“';position:absolute;left:0;top:.05em;color:var(--phosphor);font-family:Arial Black,Arial,sans-serif;font-size:2.6em;line-height:.7}
-    blockquote cite{display:block;margin:14px 0 0 48px;color:var(--phosphor);font-size:.82em;font-style:normal}
-    .cta{min-height:44px;display:inline-flex;align-items:center;justify-content:center;margin-top:32px;padding:12px 18px;border:1px solid rgba(57,255,20,.5);border-radius:4px;background:rgba(57,255,20,.035);color:var(--phosphor);font-size:.76rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease,transform .16s ease}
-    .cta:hover{border-color:var(--phosphor);background:rgba(57,255,20,.075);box-shadow:0 0 24px rgba(57,255,20,.12);transform:translateY(-1px)}
-    .mobile-signal-bar{display:none;height:1px;width:100%;background:linear-gradient(90deg,transparent,var(--phosphor),transparent);opacity:.42}
-    @media(max-width:900px){.hero-grid{grid-template-columns:minmax(300px,.9fr) minmax(0,1.1fr);gap:24px}.radar-stage{min-height:clamp(360px,48vw,500px)}.wordmark{font-size:clamp(3.6rem,8.3vw,6.2rem)}}
-    @media(max-width:720px){
-      .page{padding:24px 18px 32px;align-items:start}
-      .hero-grid{grid-template-columns:1fr;grid-template-rows:auto auto;gap:2px}
-      .copy{grid-row:1;text-align:center;padding-top:10px}
-      .wordmark{font-size:clamp(3.25rem,15.5vw,5.25rem);white-space:nowrap}
-      .radar-stage{grid-row:2;min-height:clamp(330px,92vw,520px);margin-top:0}
-      .radar-stage img{width:min(520px,100%)}
-      blockquote{margin:2px auto 0;padding-top:20px;text-align:left;font-size:.9rem;line-height:1.72}
-      blockquote p{padding-left:38px}
-      blockquote cite{margin-left:38px}
-      .cta{min-height:44px;width:min(100%,320px);margin-top:24px}
-      .mobile-signal-bar{display:block;margin:24px auto 0}
-      .matrix-rain{opacity:.3;background-size:auto 100%;background-position:center top}
-    }
-    @media(max-width:430px){.page{padding-inline:14px}.wordmark{font-size:clamp(2.9rem,15vw,4rem)}.radar-stage{min-height:clamp(300px,94vw,410px)}blockquote{font-size:.84rem}}
-    @media(prefers-reduced-motion: reduce){.matrix-rain{opacity:.18}.radar-stage img{filter:none}.cta{transition:none}.cta:hover{transform:none}}
+    :root{color-scheme:dark;--bg:#020403;--green:#39ff14;--white:#f7fff6;--muted:#8da391;--red:#ff2438;--line:rgba(57,255,20,.20);--strong:rgba(57,255,20,.46);--panel:rgba(2,4,3,.94)}
+    *{box-sizing:border-box;max-width:100%}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--white)}html{scroll-behavior:smooth}body{overflow-x:hidden;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;line-height:1.5}a{color:inherit;text-decoration:none}a:focus-visible{outline:1px solid var(--green);outline-offset:4px}
+    body:after{content:"";position:fixed;inset:0;z-index:20;pointer-events:none;opacity:.08;background:repeating-linear-gradient(180deg,transparent 0 3px,rgba(247,255,246,.025) 4px 5px);box-shadow:inset 0 0 18vw rgba(0,0,0,.9)}
+    .matrix{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;opacity:.30;mask-image:linear-gradient(to bottom,#000 0,#000 84%,transparent 100%)}.rain{position:absolute;top:-160%;width:.72rem;color:var(--green);font-size:.54rem;line-height:.68rem;word-break:break-all;opacity:.33;text-shadow:0 0 6px rgba(57,255,20,.55);animation:fall var(--d,6s) linear infinite;animation-delay:var(--delay,0s)}.rain:nth-child(5n){color:var(--red);opacity:.12}@keyframes fall{to{transform:translateY(300vh)}}
+    .page{position:relative;z-index:2;width:min(1400px,calc(100% - 28px));margin:auto;padding:10px 0 36px}.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:52px;padding:8px 14px;border:1px solid var(--line);background:rgba(2,4,3,.96);backdrop-filter:blur(5px)}.brand{font-family:Arial Black,Arial,sans-serif;font-size:1.3rem;font-weight:900;letter-spacing:.02em}.brand .w{color:var(--white)}.brand .g{color:var(--green)}.enter{padding:9px 13px;border:1px solid var(--strong);color:var(--green);font-size:.68rem;font-weight:800;letter-spacing:.08em}.enter:hover{background:rgba(57,255,20,.06);box-shadow:0 0 18px rgba(57,255,20,.1)}
+    .hero{display:grid;grid-template-columns:minmax(360px,.92fr) minmax(0,1.08fr);align-items:center;gap:clamp(30px,5vw,78px);min-height:590px;margin-top:14px;padding:clamp(30px,5vw,72px);border:1px solid var(--line);background:linear-gradient(90deg,rgba(2,4,3,.985),rgba(2,4,3,.91));box-shadow:inset 0 0 80px rgba(57,255,20,.018),0 30px 80px rgba(0,0,0,.52)}
+    .radar{position:relative;width:min(100%,520px);aspect-ratio:1;margin:auto;border:2px solid rgba(57,255,20,.72);border-radius:50%;overflow:hidden;background:radial-gradient(circle at 72% 29%,rgba(57,255,20,.95) 0 3px,transparent 4px),radial-gradient(circle at 28% 68%,rgba(57,255,20,.82) 0 3px,transparent 4px),radial-gradient(circle at 74% 69%,rgba(57,255,20,.72) 0 3px,transparent 4px),radial-gradient(circle at 24% 33%,rgba(255,36,56,.9) 0 3px,transparent 4px),radial-gradient(circle at 50% 50%,transparent 0 19%,rgba(57,255,20,.18) 19.3% 19.7%,transparent 20% 39%,rgba(57,255,20,.18) 39.3% 39.7%,transparent 40% 59%,rgba(57,255,20,.2) 59.3% 59.7%,transparent 60% 79%,rgba(57,255,20,.22) 79.3% 79.7%,transparent 80%),radial-gradient(circle at 50% 50%,#0a170c 0,#061008 70%,#020403 100%);box-shadow:0 0 0 10px rgba(57,255,20,.03),inset 0 0 70px rgba(57,255,20,.05),0 0 42px rgba(57,255,20,.08)}
+    .radar-grid{position:absolute;inset:4%;border-radius:50%;background:linear-gradient(90deg,transparent 49.8%,rgba(57,255,20,.28) 50%,transparent 50.2%),linear-gradient(transparent 49.8%,rgba(57,255,20,.28) 50%,transparent 50.2%),linear-gradient(45deg,transparent 49.9%,rgba(57,255,20,.08) 50%,transparent 50.1%),linear-gradient(-45deg,transparent 49.9%,rgba(57,255,20,.08) 50%,transparent 50.1%)}.radar-ticks{position:absolute;inset:4%;border-radius:50%;background:repeating-conic-gradient(from -90deg,rgba(57,255,20,.38) 0 .35deg,transparent .35deg 5deg);mask:radial-gradient(circle,transparent 0 91%,#000 91.5% 96%,transparent 96.5%);opacity:.48}.radar-center{position:absolute;left:50%;top:50%;width:8px;height:8px;transform:translate(-50%,-50%);border-radius:50%;background:var(--green);box-shadow:0 0 11px rgba(57,255,20,.8)}
+    .radar-sweep{position:absolute;inset:4%;border-radius:50%;background:conic-gradient(from -90deg,transparent 0 306deg,rgba(57,255,20,.015) 318deg,rgba(57,255,20,.08) 342deg,rgba(57,255,20,.34) 357deg,#39ff14 360deg);animation:radar-spin 4.8s linear infinite;transform-origin:50% 50%;mix-blend-mode:screen}.radar-sweep:before{content:"";position:absolute;left:50%;top:50%;width:48%;height:2px;background:linear-gradient(90deg,#f7fff6,#39ff14);box-shadow:0 0 8px rgba(57,255,20,.58);transform-origin:left center;transform:translateY(-1px)}@keyframes radar-spin{to{transform:rotate(360deg)}}
+    .copy{min-width:0}.wordmark{margin:0;font-family:Arial Black,Arial,sans-serif;font-size:clamp(4.3rem,7.3vw,8rem);font-weight:900;line-height:.88;letter-spacing:-.055em;white-space:nowrap}.wordmark .w{color:var(--white)}.wordmark .g{color:var(--green);text-shadow:0 0 22px rgba(57,255,20,.32)}blockquote{margin:clamp(32px,4vw,54px) 0 0;padding:22px 0 0;border-top:1px solid rgba(57,255,20,.28);max-width:660px;font-size:clamp(.96rem,1.3vw,1.18rem);line-height:1.8}blockquote p{margin:0;position:relative;padding-left:44px}blockquote p:before{content:'“';position:absolute;left:0;top:.04em;color:var(--green);font:900 2.5em/.7 Arial,sans-serif}blockquote cite{display:block;margin:12px 0 0 44px;color:var(--green);font-size:.84em;font-style:normal}.hero .enter{display:inline-flex;margin-top:28px}
+    .section,.overview{margin-top:18px;border:1px solid var(--line);background:var(--panel);box-shadow:inset 0 0 55px rgba(57,255,20,.012)}.head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px;padding:8px 18px;border-bottom:1px solid var(--line);color:var(--green);font-size:.72rem;letter-spacing:.07em}.head .muted{color:var(--muted)}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr)}.metric{min-height:112px;padding:21px;border-right:1px solid var(--line)}.metric:last-child{border-right:0}.metric small{display:block;color:var(--muted);font-size:.67rem}.metric strong{display:block;margin-top:7px;color:var(--green);font-size:clamp(1.5rem,3vw,2.45rem);font-weight:500}.metric span{display:block;margin-top:8px;color:var(--green);font-size:.61rem}
+    .grid{display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr);gap:18px;margin-top:18px}.grid .section{margin-top:0}.caps{padding:12px 22px 18px}.cap{position:relative;padding:15px 4px 15px 32px;border-bottom:1px dotted rgba(57,255,20,.18)}.cap:last-child{border-bottom:0}.cap:before{content:"◇";position:absolute;left:4px;top:15px;color:var(--green)}.cap b{display:block;font-size:.84rem}.cap p{margin:6px 0 0;color:var(--muted);font-size:.76rem;line-height:1.55}.session{min-height:360px;padding:23px 25px;color:var(--green);font-size:clamp(.78rem,1.05vw,.96rem);line-height:1.9}.session .muted{color:var(--muted)}.cursor{display:inline-block;width:.62em;height:1.05em;margin-left:4px;vertical-align:-.14em;background:var(--green);animation:blink .9s steps(1,end) infinite}@keyframes blink{50%{opacity:0}}
+    .integrations{display:grid;grid-template-columns:repeat(4,1fr)}.integration{min-height:82px;padding:17px 18px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.integration:nth-child(4n){border-right:0}.integration b{display:block;color:var(--green);font-size:.74rem}.integration span{display:block;margin-top:7px;color:var(--muted);font-size:.64rem}.integration.more{display:flex;align-items:center;justify-content:center;color:var(--green);font-size:1rem}
+    footer{display:grid;grid-template-columns:1fr auto;gap:18px;margin-top:18px;padding:18px 4px;border-top:1px solid var(--line);color:var(--muted);font-size:.67rem}footer strong,footer .ready{color:var(--green)}footer span{display:block;margin-bottom:6px}.ready{align-self:end;white-space:nowrap}
+    @media(max-width:900px){.hero{grid-template-columns:minmax(300px,.9fr) minmax(0,1.1fr);gap:24px}.radar{width:min(100%,430px)}.wordmark{font-size:clamp(3.8rem,8.5vw,6.3rem)}.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.metric:nth-child(2){border-right:0}.metric:nth-child(-n+2){border-bottom:1px solid var(--line)}.integrations{grid-template-columns:repeat(2,1fr)}.integration:nth-child(2n){border-right:0}}
+    @media(max-width:640px){.page{width:calc(100% - 14px);padding-top:7px}.top{padding:7px 10px}.brand{font-size:1rem}.enter{font-size:.58rem;padding:8px 9px}.hero{grid-template-columns:1fr;grid-template-rows:auto auto;gap:14px;min-height:auto;padding:28px 18px 30px}.copy{grid-row:1;text-align:center}.wordmark{font-size:clamp(3.2rem,16vw,5rem)}.radar{grid-row:2;width:min(82vw,430px)}blockquote{margin:0 auto;padding-top:18px;text-align:left;font-size:.86rem}.hero .enter{width:min(100%,320px);justify-content:center}.metrics{grid-template-columns:1fr}.metric{border-right:0!important;border-bottom:1px solid var(--line)!important;min-height:94px;padding:17px}.metric:last-child{border-bottom:0!important}.integrations{grid-template-columns:1fr}.integration{border-right:0!important}.session{min-height:300px;padding:17px;overflow-x:auto}footer{grid-template-columns:1fr}.matrix{opacity:.2}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.radar-sweep{animation-duration:24s}.cursor{animation:none}.matrix{opacity:.16}.rain{animation-duration:18s!important}}
   </style>
 </head>
 <body>
-  <div class="matrix-rain" aria-hidden="true"></div>
+  <div class="matrix" aria-hidden="true">
+    <span class="rain" style="left:2%;--d:5.2s;--delay:-1s">PΛRΛ11ΛX001101EVIDENCE</span><span class="rain" style="left:7%;--d:7.1s;--delay:-4s">OBSERVED1100INFERRED</span><span class="rain" style="left:12%;--d:4.8s;--delay:-2s">PROVENANCE001101</span><span class="rain" style="left:18%;--d:6.4s;--delay:-5s">VERIFY11001101</span><span class="rain" style="left:24%;--d:5.7s;--delay:-3s">PΛRΛ11ΛX110010</span><span class="rain" style="left:30%;--d:7.3s;--delay:-1s">CONTEXT00110101</span><span class="rain" style="left:37%;--d:4.9s;--delay:-4s">EVIDENCE11001011</span><span class="rain" style="left:44%;--d:6.8s;--delay:-2s">OBSERVE001101</span><span class="rain" style="left:51%;--d:5.3s;--delay:-5s">PΛRΛ11ΛX001101</span><span class="rain" style="left:58%;--d:7s;--delay:-3s">ANOMALY110011</span><span class="rain" style="left:65%;--d:4.7s;--delay:-1s">CORRELATE001101</span><span class="rain" style="left:72%;--d:6.2s;--delay:-4s">VERIFICATION1100</span><span class="rain" style="left:79%;--d:5.5s;--delay:-2s">PΛRΛ11ΛX110011</span><span class="rain" style="left:86%;--d:7.2s;--delay:-5s">HUNTABILITY001101</span><span class="rain" style="left:93%;--d:5s;--delay:-3s">EVIDENCE110010</span><span class="rain" style="left:98%;--d:6.5s;--delay:-1s">VERIFY0011</span>
+  </div>
+
   <main class="page">
-    <section class="hero-grid" aria-labelledby="para11ax-wordmark">
-      <div class="radar-stage">
-        <img src="/assets/brand/para11ax-radar.svg" alt="Animated plan-position radar">
-      </div>
+    <header class="top">
+      <a class="brand" href="/" aria-label="PARA11AX"><span class="w">PΛRΛ</span><span class="g">11</span><span class="w">ΛX</span></a>
+      <a class="enter" href="/app/">&gt; ENTER TERMINAL</a>
+    </header>
+
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="radar" data-radar="ppi" aria-label="animated PPI radar"><div class="radar-grid"></div><div class="radar-ticks"></div><div class="radar-sweep"></div><div class="radar-center"></div></div>
       <div class="copy">
-        <h1 id="para11ax-wordmark" class="wordmark" data-wordmark="para11ax-angular-a" aria-label="PARA11AX"><span class="white">PΛRΛ</span><span class="green">11</span><span class="white">ΛX</span></h1>
-        <blockquote>
-          <p>You’ve got to follow the evidence…<br>That doesn’t make it fact.</p>
-          <cite>— John Kiriakou</cite>
-        </blockquote>
-        <a class="cta" href="/app/">ENTER PARA11AX</a>
-        <div class="mobile-signal-bar" aria-hidden="true"></div>
+        <h1 id="hero-title" class="wordmark" data-wordmark="para11ax-angular-a" aria-label="PARA11AX"><span class="w">PΛRΛ</span><span class="g">11</span><span class="w">ΛX</span></h1>
+        <blockquote><p>You’ve got to follow the evidence…<br>That doesn’t make it fact.</p><cite>— John Kiriakou</cite></blockquote>
+        <a class="enter" href="/app/">ENTER PARA11AX</a>
       </div>
     </section>
+
+    <section class="overview">
+      <div class="head"><span>&gt; SYSTEM OVERVIEW</span><span class="muted">OBSERVED ≠ INFERRED ≠ CONTEXTUAL</span></div>
+      <div class="metrics">
+        <div class="metric"><small>fixed sources</small><strong>38</strong><span>FIXED · READ-ONLY</span></div>
+        <div class="metric"><small>schema</small><strong>V2</strong><span>PROVENANCE-RICH</span></div>
+        <div class="metric"><small>egress</small><strong>FIXED</strong><span>FAIL CLOSED</span></div>
+        <div class="metric"><small>export</small><strong>STIX 2.1</strong><span>OPERATIONAL</span></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="section">
+        <div class="head"><span>&gt; CAPABILITIES</span><span class="muted">BOUNDARY-AWARE</span></div>
+        <div class="caps">
+          <div class="cap"><b>CORRELATE</b><p>Keep reputation, context, claims and risk axes semantically separate.</p></div>
+          <div class="cap"><b>ANALYZE</b><p>Convert provider-native observations into provenance-rich evidence.</p></div>
+          <div class="cap"><b>EXPORT</b><p>JSON, batch and STIX 2.1 without changing the meaning of upstream evidence.</p></div>
+          <div class="cap"><b>VERIFY</b><p>Make provenance, uncertainty, coverage failure and contradiction visible.</p></div>
+        </div>
+      </section>
+      <section class="section">
+        <div class="head"><span>&gt; LIVE TERMINAL</span><span class="muted">READ-ONLY GATEWAY</span></div>
+        <div class="session">
+          <div>analyst@para11ax:~$ core --status</div>
+          <div>&gt; OPERATIONAL CORE</div>
+          <div class="muted">&gt; semantics: provider-native</div>
+          <div class="muted">&gt; provenance: preserved</div>
+          <div class="muted">&gt; arbitrary egress: disabled</div>
+          <div>analyst@para11ax:~$ <span class="cursor" aria-hidden="true"></span></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="section">
+      <div class="head"><span>&gt; FIXED SOURCE WORKFLOW</span><span class="muted">CURATED PROVIDER SET</span></div>
+      <div class="integrations">
+        <div class="integration"><b>IDENTITY / ROUTING</b><span>IPinfo · RDAP · RIPEstat · Cloudflare Radar</span></div>
+        <div class="integration"><b>EXPOSURE</b><span>Shodan · Censys · Modat · Tor Exit</span></div>
+        <div class="integration"><b>THREAT / IOC</b><span>GreyNoise · AbuseIPDB · VirusTotal · OTX</span></div>
+        <div class="integration"><b>VULNERABILITY</b><span>CISA KEV · FIRST EPSS · NVD · OSV</span></div>
+        <div class="integration"><b>MALWARE</b><span>MalwareBazaar · Malpedia · Hybrid Analysis</span></div>
+        <div class="integration"><b>RANSOMWARE</b><span>RansomLook · Ransomware.live</span></div>
+        <div class="integration"><b>KNOWLEDGE</b><span>MITRE ATT&amp;CK TAXII · CIRCL Vulnerability-Lookup</span></div>
+        <div class="integration more">+ MORE FIXED SOURCES</div>
+      </div>
+    </section>
+
+    <footer><div><span><strong>PΛRΛ11ΛX</strong> // PROVENANCE-FIRST CTI</span><span>OBSERVE · VERIFY · PRESERVE PROVENANCE</span><span>para11ax.vercel.app</span></div><div class="ready">&gt; READY.</div></footer>
   </main>
 </body>
 </html>

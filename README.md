@@ -1,9 +1,6 @@
 <div align="center">
 
-<picture>
-  <source media="(max-width: 640px)" srcset="assets/brand/para11ax-readme-hero-mobile-v3.svg">
-  <img src="assets/brand/para11ax-readme-hero-v3.svg" alt="PARA11AX — provenance-first CTI terminal" width="100%" />
-</picture>
+<img src="assets/brand/para11ax-readme-hero-v4.gif" alt="PARA11AX — animated PPI radar" width="100%" />
 
 [![Tooling smoke](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml)
 [![CodeQL](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml)
