@@ -2,14 +2,34 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
+const url = path => new URL(`../${path}`, import.meta.url);
+const read = path => readFile(url(path), 'utf8');
+const readBytes = path => readFile(url(path));
+
+function gifDimensions(bytes) {
+  assert.equal(bytes.subarray(0, 6).toString('ascii'), 'GIF89a');
+  return {
+    width: bytes.readUInt16LE(6),
+    height: bytes.readUInt16LE(8),
+  };
+}
 
 test('README serves a dedicated animated mobile hero instead of shrinking the desktop banner', async () => {
-  const readme = await read('README.md');
+  const [readme, desktop, mobile] = await Promise.all([
+    read('README.md'),
+    readBytes('assets/brand/para11ax-readme-hero-v5.gif'),
+    readBytes('assets/brand/para11ax-readme-hero-mobile-v5.gif'),
+  ]);
+
   assert.match(readme, /<picture>/i);
   assert.match(readme, /<source\s+media="\(max-width:\s*720px\)"\s+srcset="assets\/brand\/para11ax-readme-hero-mobile-v5\.gif"/i);
   assert.match(readme, /<img\s+src="assets\/brand\/para11ax-readme-hero-v5\.gif"[^>]*alt="PARA11AX — animated PPI radar"/i);
   assert.doesNotMatch(readme, /para11ax-readme-hero-v4\.gif/);
+
+  assert.deepEqual(gifDimensions(desktop), { width: 960, height: 347 });
+  assert.deepEqual(gifDimensions(mobile), { width: 480, height: 520 });
+  assert.ok(desktop.length > 8_000, 'desktop GIF must contain real animation/image data');
+  assert.ok(mobile.length > 8_000, 'mobile GIF must contain real animation/image data');
 });
 
 test('final CRT branding preserves the Natural Earth globe instead of replacing it with a radar disc', async () => {
