@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 
 const adapter = Object.freeze({
-  name: 'source-role-fixture',
+  name: 'rdap',
   types: ['ip'],
   observationTypes: ['dns_resolution'],
   sourceRole: 'first_party',
