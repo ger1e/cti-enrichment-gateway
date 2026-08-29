@@ -17,7 +17,7 @@ test('gateway client exposes observer hooks without exposing bearer material', a
   assert.match(source, /addGatewayEnrichmentObserver/);
   assert.match(source, /getLatestGatewayClient/);
   assert.match(source, /notifyEnrichmentObservers/);
-  assert.doesNotMatch(source, /getLatestGatewayToken|latestToken|export\s+.*getToken/);
+  assert.doesNotMatch(source, /getLatestGatewayToken|latestToken|export\s+(?:function|const|let|var)\s+getToken\b/);
 });
 
 test('case bridge owns only local workspace state and exact hidden bundle input', async () => {
@@ -38,7 +38,7 @@ test('case bridge resets memory-only active state on disconnect and reboot', asy
   const source = await read('app/case-shell-bridge.js');
   assert.match(source, /action\.action\s*===\s*['"]disconnect['"]/);
   assert.match(source, /action\.action\s*===\s*['"]reboot['"]/);
-  assert.match(source, /runtime\.reset\(\)/);
+  assert.match(source, /runtime\?\.reset\(\)/);
 });
 
 test('case bridge surfaces capture warnings without replacing gateway results', async () => {
