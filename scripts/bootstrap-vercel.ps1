@@ -19,8 +19,6 @@ $RepoRoot                = Split-Path -Parent $PSScriptRoot
 
 $SecretNames = @(
     'PARA11AX_TOKEN',
-    'PARA11AX_USER_SCANNER_URL',
-    'PARA11AX_USER_SCANNER_TOKEN',
     'ABUSECH_API_KEY',
     'ABUSEIPDB_API_KEY',
     'GREYNOISE_API_KEY',
