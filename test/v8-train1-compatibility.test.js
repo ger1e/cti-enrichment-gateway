@@ -55,14 +55,26 @@ test('Train 1 keeps public meta shape backward-compatible and does not expose in
   assert.equal(serialized.includes('executionPolicy'), false);
 });
 
-test('Train 1 keeps Evidence v2 output free of internal registry and admission fields', async () => {
+test('Train 1 compatibility remains stable except Train 3 additive evidence semantics', async () => {
   const app = createApp({ env: { PARA11AX_TOKEN: 'test-token' }, adapters: [adapter] });
   const out = await app.handleEnrich(authRequest({ indicator: '203.0.113.7' }));
   assert.equal(out.status, 200);
   assert.equal(out.body.schemaVersion, '2.0');
   assert.equal(out.body.gatewayVersion, '2.0.0');
+  assert.deepEqual(out.body.evidence[0].semantics, {
+    class: 'observed_fact',
+    semanticClass: 'network_context',
+    sourceRole: 'first_party',
+  });
+
   const serialized = JSON.stringify(out.body);
-  for (const field of ['sourceRole', 'freshnessClass', 'executionPolicy', 'capabilities']) {
+  for (const field of ['freshnessClass', 'executionPolicy', 'capabilities', 'distribution']) {
     assert.equal(serialized.includes(field), false, field);
   }
+
+  const withoutEvidenceSourceRole = structuredClone(out.body);
+  for (const item of withoutEvidenceSourceRole.evidence ?? []) {
+    if (item?.semantics) delete item.semantics.sourceRole;
+  }
+  assert.equal(JSON.stringify(withoutEvidenceSourceRole).includes('sourceRole'), false);
 });
