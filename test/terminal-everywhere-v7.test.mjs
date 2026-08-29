@@ -53,22 +53,19 @@ test('active presentation sources use the canonical terminal palette only', () =
   assert.doesNotMatch(source, bannedPalette);
 });
 
-test('README uses responsive animated GIF heroes while preserving CI badges and analyst entry', () => {
+test('README uses one ger1e-style animated GIF hero while preserving CI badges and analyst entry', () => {
   const readme = read('README.md');
-  const heroes = [
-    'assets/brand/para11ax-readme-hero-v5.gif',
-    'assets/brand/para11ax-readme-hero-mobile-v5.gif',
-  ];
-  assert.match(readme, /<picture>/i);
-  assert.match(readme, /para11ax-readme-hero-v5\.gif/i);
-  assert.match(readme, /para11ax-readme-hero-mobile-v5\.gif/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-v4\.gif/i);
-  for (const hero of heroes) {
-    assert.equal(existsSync(hero), true, `${hero} must exist`);
-    const gif = readFileSync(hero);
-    assert.equal(gif.subarray(0, 6).toString('ascii'), 'GIF89a');
-    assert.match(gif.toString('latin1'), /NETSCAPE2\.0/);
-  }
+  const hero = 'assets/brand/para11ax-readme-hero-v6.gif';
+  assert.match(readme, /<img[^>]+para11ax-readme-hero-v6\.gif/i);
+  assert.doesNotMatch(readme, /<picture>/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif/i);
+  assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
+  assert.equal(existsSync(hero), true, `${hero} must exist`);
+  const gif = readFileSync(hero);
+  assert.equal(gif.subarray(0, 6).toString('ascii'), 'GIF89a');
+  assert.match(gif.toString('latin1'), /NETSCAPE2\.0/);
+  assert.equal(gif.readUInt16LE(6), 720);
+  assert.equal(gif.readUInt16LE(8), 360);
   assert.match(readme, /Tooling smoke/i);
   assert.match(readme, /CodeQL/i);
   assert.match(readme, /ENTER ANALYST UI/i);
