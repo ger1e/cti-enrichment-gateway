@@ -20,14 +20,17 @@ test('analyst shell renders exactly one radar lockup with no CSS pseudo-radar be
 });
 
 test('boot globe never paints placeholder continent blobs before Natural Earth geometry', async () => {
-  const [polish, earth] = await Promise.all([
-    read('app/terminal-polish.js'),
+  const [prepaint, earthCss, earth] = await Promise.all([
+    read('app/prepaint-v7.css'),
+    read('app/earth-globe.css'),
     read('app/earth-globe.js'),
   ]);
 
-  assert.doesNotMatch(polish, /GLOBE_LANDMASSES/);
-  assert.doesNotMatch(polish, /boot-globe-landmass/);
+  assert.match(prepaint, /@import url\('\/app\/earth-globe\.css'\);/);
+  assert.match(earthCss, /\.boot-globe-landmasses\{[^}]*display:none!important/);
   assert.match(earth, /NATURAL_EARTH_LAND_PATHS/);
+  assert.match(earth, /boot-globe-landmasses/);
+  assert.match(earth, /\.remove\(\)/);
 });
 
 test('Natural Earth globe uses coordinate-based SVG motion and is loaded before polish layers', async () => {
