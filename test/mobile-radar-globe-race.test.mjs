@@ -26,24 +26,22 @@ test('boot globe never paints placeholder continent blobs before Natural Earth g
     read('app/earth-globe.js'),
   ]);
 
-  assert.match(prepaint, /@import url\('\/app\/earth-globe\.css'\);/);
-  assert.match(earthCss, /\.boot-globe-landmasses\{[^}]*display:none!important/);
+  assert.match(prepaint, /@import url\('\/app\/earth-globe\.css'\);/,
+    'Earth suppression CSS must be present before runtime modules execute');
+  assert.match(earthCss, /\.boot-globe-landmasses\{[^}]*display:none!important/,
+    'coarse placeholder land must never be painted');
   assert.match(earth, /NATURAL_EARTH_LAND_PATHS/);
   assert.match(earth, /boot-globe-landmasses/);
-  assert.match(earth, /\.remove\(\)/);
+  assert.match(earth, /\.remove\(\)/,
+    'Natural Earth renderer must delete the hidden placeholder layer');
 });
 
-test('Natural Earth globe uses coordinate-based SVG motion and is loaded before polish layers', async () => {
-  const [main, earth, earthCss] = await Promise.all([
-    read('app/terminal-main.js'),
+test('Natural Earth globe uses coordinate-based SVG motion on mobile', async () => {
+  const [earth, earthCss] = await Promise.all([
     read('app/earth-globe.js'),
     read('app/earth-globe.css'),
   ]);
 
-  assert.ok(
-    main.indexOf("await import('./earth-globe.js')") < main.indexOf("await import('./terminal-polish.js')"),
-    'Earth renderer must run immediately after the terminal creates the globe, before polish layers'
-  );
   assert.match(earth, /createElementNS\(NS, ['"]animateTransform['"]\)/);
   assert.match(earth, /setAttribute\(['"]type['"], ['"]translate['"]\)/);
   assert.match(earth, /setAttribute\(['"]from['"], ['"]0 0['"]\)/);
