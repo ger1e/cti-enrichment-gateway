@@ -36,7 +36,7 @@ test('canonical public copy identifies PARA11AX as CTI enrichment', async () => 
     readFile(new URL('app/shell-ui.js', root), 'utf8'),
   ]);
 
-  assert.match(landing, /CTI enrichment and correlation platform/i);
+  assert.match(landing, /CTI enrichment, correlation and bounded identity OSINT/i);
   assert.match(readme, /CTI enrichment and correlation platform/i);
   assert.match(shell, /CTI Enrichment \/\/ session unauthenticated/);
   assert.match(shell, /CTI Enrichment client v2/);
