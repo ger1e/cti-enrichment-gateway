@@ -6,6 +6,24 @@ function section(title, body) {
   return [title.toUpperCase(), '-'.repeat(title.length), ...body, ''];
 }
 
+function label(value) {
+  return String(value).replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function factValue(value) {
+  if (value == null) return 'unknown';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return value.map(factValue).join(', ') || 'none';
+  if (typeof value === 'object') return Object.entries(value).map(([key, item]) => `${label(key)}=${factValue(item)}`).join(' · ');
+  return String(value);
+}
+
+function structured(item) {
+  if (typeof item === 'string') return item;
+  if (!item || typeof item !== 'object') return factValue(item);
+  return Object.entries(item).map(([key, value]) => `${label(key)}: ${factValue(value)}`).join(' · ');
+}
+
 function assessment(model) {
   const state = model.executiveAssessment?.state ?? 'insufficient';
   const confidence = model.executiveAssessment?.confidence ?? 'unknown';
@@ -36,7 +54,7 @@ export function renderText(model) {
     `Malware/tooling: ${model.threatContext.malware.join(', ') || 'None evidenced.'}`,
     ...lines(model.threatContext.infrastructure, item => `- Infrastructure: ${item.type}:${item.value}`, 'Infrastructure: none.'),
   ]));
-  out.push(...section('Correlation & Relationships', lines(model.relationships, item => `- ${item.provider ?? 'gateway'}: ${item.relationship ?? item.type ?? 'related'} -> ${item.value ?? item.target ?? 'unknown'}`)));
+  out.push(...section('Correlation & Relationships', lines(model.relationships, item => `- ${item.provider ?? 'gateway'}: ${item.relationship ?? item.type ?? 'related'} -> ${item.value ?? item.target ?? structured(item)}`)));
   out.push(...section('Timeline', lines(model.timeline, item => `- ${item.at} ${item.kind} ${item.evidenceId}`)));
   out.push(...section('Analytical Frameworks', [
     ...lines(model.frameworks.attack, item => `- MITRE ATT&CK ${item.id} [${item.mappingState}] (${item.evidenceIds.join(', ')})`, 'MITRE ATT&CK: no defensible mappings.'),
@@ -45,12 +63,12 @@ export function renderText(model) {
     `Diamond Model: ${model.frameworks.diamondModel.length ? model.frameworks.diamondModel.join(', ') : 'No defensible mapping.'}`,
   ]));
   out.push(...section('Hunt Opportunities', lines(model.huntOpportunities, item => `- ${item.id}: ${item.hypothesis} | telemetry=${item.telemetry.join(',')} | evidence=${item.evidenceIds.join(',')}`)));
-  out.push(...section('Contradictions & Alternative Explanations', lines(model.contradictions, item => `- ${typeof item === 'string' ? item : JSON.stringify(item)}`)));
-  out.push(...section('Recommended Actions', lines(model.actions, item => `- ${typeof item === 'string' ? item : JSON.stringify(item)}`)));
-  out.push(...section('Intelligence & Telemetry Gaps', lines(model.gaps, item => `- ${typeof item === 'string' ? item : JSON.stringify(item)}`)));
+  out.push(...section('Contradictions & Alternative Explanations', lines(model.contradictions, item => `- ${structured(item)}`)));
+  out.push(...section('Recommended Actions', lines(model.actions, item => `- ${structured(item)}`)));
+  out.push(...section('Intelligence & Telemetry Gaps', lines(model.gaps, item => `- ${structured(item)}`)));
   out.push(...section('Confidence & Limitations', [
     `Confidence: ${model.executiveAssessment?.confidence ?? 'unknown'}`,
-    ...lines(model.limitations, item => `- ${item}`),
+    ...lines(model.limitations, item => `- ${structured(item)}`),
   ]));
   out.push(...section('Sources & Evidence Provenance', [
     ...lines(model.evidence, item => `- ${item.id}: ${item.provider} parser=${item.integrity.parserVersion} retrieved=${item.retrievedAt}`),
