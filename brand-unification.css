@@ -3,5 +3,10 @@
 .terminal-brand .shared-radar-lockup,.terminal-mark .shared-radar-lockup{width:172px!important;max-width:172px!important}
 .shell-brand-label{display:none!important}
 .shell-brand .para11ax-logo,.boot-brand-lockup .para11ax-logo{width:172px!important;max-width:172px!important}
-@media(max-width:640px){.shared-radar-lockup,.para11ax-logo,.terminal-brand .shared-radar-lockup,.terminal-mark .shared-radar-lockup,.shell-brand .para11ax-logo,.boot-brand-lockup .para11ax-logo{width:132px!important;max-width:132px!important}.terminal-brand,.terminal-mark{min-width:132px;min-height:30px}}
-@media(prefers-reduced-motion:reduce){.shared-radar-lockup,.para11ax-logo{filter:none}}
+
+.terminal-brand,.terminal-mark,.shell-brand,.boot-brand-lockup{position:relative}
+.terminal-brand::after,.terminal-mark::after,.shell-brand::after,.boot-brand-lockup::after{content:"";position:absolute;z-index:4;left:16px;top:50%;width:14px;height:1.5px;pointer-events:none;background:linear-gradient(90deg,#39ff14 0 68%,rgba(57,255,20,.12) 100%);box-shadow:0 0 5px rgba(57,255,20,.9),0 0 12px rgba(57,255,20,.36);transform-origin:0 50%;animation:para11ax-lockup-radar-spin 2.8s linear infinite}
+@keyframes para11ax-lockup-radar-spin{from{transform:translateY(-50%) rotate(0deg)}to{transform:translateY(-50%) rotate(360deg)}}
+
+@media(max-width:640px){.shared-radar-lockup,.para11ax-logo,.terminal-brand .shared-radar-lockup,.terminal-mark .shared-radar-lockup,.shell-brand .para11ax-logo,.boot-brand-lockup .para11ax-logo{width:132px!important;max-width:132px!important}.terminal-brand,.terminal-mark{min-width:132px;min-height:30px}.terminal-brand::after,.terminal-mark::after,.shell-brand::after,.boot-brand-lockup::after{left:12.3px;width:10.5px}}
+@media(prefers-reduced-motion:reduce){.shared-radar-lockup,.para11ax-logo{filter:none}.terminal-brand::after,.terminal-mark::after,.shell-brand::after,.boot-brand-lockup::after{animation-duration:9s}}
