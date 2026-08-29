@@ -26,8 +26,9 @@ test('landing and analyst UI resolve the exact same compact radar lockup asset',
   assert.match(app, /import\s+['"]\.\.\/brand-unification\.js['"]/i);
 });
 
-test('shared compact lockup is a native animated radar plus PARA11AX wordmark', () => {
+test('shared compact lockup is one native animated PPI radar plus PARA11AX wordmark', () => {
   const svg = read(LOCKUP);
+  assert.equal((svg.match(/data-radar=["']ppi["']/gi) ?? []).length, 1);
   assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["']/i);
   assert.match(svg, /PARA/i);
   assert.match(svg, /11/i);
@@ -43,6 +44,7 @@ test('landing hero radar is self-contained native SVG motion mounted without run
   const svg = read(HERO_RADAR);
   assert.match(css, /\.hero-ghost[^}]*para11ax-radar\.svg/i);
   assert.match(css, /\.hero-ghost[^}]*opacity:/i);
+  assert.equal((svg.match(/data-radar=["']ppi["']/gi) ?? []).length, 1);
   assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["']/i);
   assert.match(svg, /repeatCount=["']indefinite["']/i);
   assert.match(svg, /prefers-reduced-motion:\s*reduce/i);
@@ -83,13 +85,11 @@ test('reduced motion keeps static rain and radar visible', () => {
   assert.match(css, /\.hero-ghost[^}]*opacity:/i);
 });
 
-test('radar sweep has a page-level CSS fallback instead of depending on SVG image animation', () => {
+test('native SVG owns the only radar sweep without a second CSS overlay', () => {
   const brandCss = read(BRAND_CSS);
   const landingCss = read('landing-radar-motion.css');
-  assert.match(brandCss, /@keyframes\s+para11ax-lockup-radar-spin/i);
-  assert.match(brandCss, /\.terminal-brand::after|\.terminal-mark::after|\.shell-brand::after|\.boot-brand-lockup::after/i);
-  assert.match(brandCss, /animation:\s*para11ax-lockup-radar-spin/i);
-  assert.match(landingCss, /@keyframes\s+para11ax-hero-radar-spin/i);
-  assert.match(landingCss, /\.hero-ghost::after/i);
-  assert.match(landingCss, /animation:\s*para11ax-hero-radar-spin/i);
+  assert.doesNotMatch(brandCss, /para11ax-lockup-radar-spin/i);
+  assert.doesNotMatch(brandCss, /\.terminal-brand::after|\.terminal-mark::after|\.shell-brand::after|\.boot-brand-lockup::after/i);
+  assert.doesNotMatch(landingCss, /para11ax-hero-radar-spin|para11ax-hero-radar-trail-spin/i);
+  assert.doesNotMatch(landingCss, /\.hero-ghost::before[^}]*animation|\.hero-ghost::after[^}]*animation/i);
 });
