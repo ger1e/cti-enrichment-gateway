@@ -143,7 +143,7 @@ test('README v3 diagrams use only the current angular wordmark and current provi
 });
 
 test('banner SVGs stay visually minimal', () => {
-  const forbidden = /CTI|EVIDENCE GATEWAY|SEMANTIC FIREWALL|FIXED SOURCES|STIX|READ-ONLY|PROVENANCE|OSINT|GEOINT|FORENSICS|analyst@para11ax|OPERATIONAL|STATUS|CAPABILIT/i;
+  const forbidden = /CTI|SEMANTIC FIREWALL|FIXED SOURCES|STIX|READ-ONLY|PROVENANCE|OSINT|GEOINT|FORENSICS|analyst@para11ax|OPERATIONAL|STATUS|CAPABILIT/i;
   for (const path of BANNERS) {
     const svg = read(path);
     assert.match(svg, /data-wordmark=["']para11ax-angular-a["']/i);

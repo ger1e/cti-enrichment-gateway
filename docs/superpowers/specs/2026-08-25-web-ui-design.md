@@ -2,7 +2,7 @@
 
 #### Status
 
-Approved architecture and approved maximum visual/audio direction. This document defines a user-facing analyst UI for the existing bearer-protected CTI Evidence Gateway without changing the gateway's upstream credential model, fixed-egress security boundary, or Evidence v2 semantics.
+Approved architecture and approved maximum visual/audio direction. This document defines a user-facing analyst UI for the existing bearer-protected PARA11AX CTI enrichment platform without changing the gateway's upstream credential model, fixed-egress security boundary, or Evidence v2 semantics.
 
 #### Goal
 

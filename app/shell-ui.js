@@ -407,7 +407,7 @@ export function mountAnalystShell({
     if (action.action === 'local') {
       if (action.name === 'whoami') appendLine(authenticated() ? 'analyst // authenticated volatile session' : 'analyst // unauthenticated');
       else if (action.name === 'uptime') appendLine(formatDuration(monotonicNow() - mountedAt));
-      else if (action.name === 'version') appendLine(`PARA11AX Gateway Terminal ${version}\nEvidence Gateway client v2`);
+      else if (action.name === 'version') appendLine(`PARA11AX Gateway Terminal ${version}\nCTI Enrichment client v2`);
       else if (action.name === 'theme') appendPre(PALETTE_TEXT);
       else if (action.name === 'pwd') appendLine('/home/analyst');
       else if (action.name === 'hostname') appendLine('gateway');
@@ -494,7 +494,7 @@ export function mountAnalystShell({
   });
 
   appendLine(`PARA11AX Gateway Terminal ${version}`);
-  appendLine('Evidence Gateway // session unauthenticated', 'muted');
+  appendLine('CTI Enrichment // session unauthenticated', 'muted');
   appendLine("type 'help' for commands; run 'login' to authenticate", 'cyan');
   updatePrompt();
   focusInput();
