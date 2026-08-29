@@ -58,6 +58,10 @@ The final QA report must distinguish:
 
 No documentation may blur these states into a single “production verified” claim.
 
+### Commit identity is runtime evidence, not self-authored prose
+
+A tracked Markdown file cannot safely hard-code the SHA of the commit that contains itself. `docs/QA-REPORT.md` therefore must not claim to embed its own final merge SHA. It records the immutable audit baseline, test/run identifiers where available, the verification procedure, discovered issues, and proof boundaries. The current exact repository SHA is obtained from Git/GitHub at verification time; the deployed exact SHA is obtained from Vercel metadata. Post-merge closure evidence is reported in the PR/release verification record and can be independently reproduced from those systems.
+
 ### No opportunistic product redesign
 
 The pass must not change provider semantics, scoring, API compatibility, evidence meaning, security boundaries, UI visual design, routing model, or persistence architecture unless QA identifies a genuine correctness/security defect that cannot be fixed by documentation or tests alone.
@@ -262,16 +266,17 @@ Upgrade the walkthrough to show current response shape and explain how an analys
 Add `docs/QA-REPORT.md` as a durable current-state report. It must contain:
 
 - audit date
-- baseline and final exact SHAs
-- tested surfaces
+- immutable audit baseline SHA
+- tested surfaces and exact-SHA verification method
 - discovered issues and dispositions
 - repository test evidence
-- CI evidence
-- deployment/live evidence
+- CI evidence available at report-authoring time
+- deployment/live evidence available at report-authoring time
+- instructions for resolving the current exact Git and deployed SHAs
 - explicitly unverified credential-dependent surfaces
 - residual risks / deliberate gaps
 
-The report is evidence-oriented, not marketing copy.
+It must not hard-code a self-referential “final SHA”. The report is evidence-oriented, not marketing copy.
 
 ## Drift-Prevention Tests
 
@@ -299,7 +304,7 @@ Do not make documentation tests so brittle that normal wording edits require tes
 
 ## Production QA
 
-After exact-head PR verification and merge, validate the exact merged SHA:
+After exact-head PR verification and merge, validate the exact merged SHA externally from the tracked QA report:
 
 - protected `main` equals expected merge SHA
 - Tooling smoke passes on that SHA
@@ -343,7 +348,7 @@ The pass is complete only when all of the following are true:
 - post-merge CodeQL passes
 - Vercel production deployment is READY on the exact merge SHA
 - live public production checks pass
-- `docs/QA-REPORT.md` clearly distinguishes proven from unverified states
+- `docs/QA-REPORT.md` clearly distinguishes proven from unverified states without self-referential commit claims
 
 ## Explicit Non-Goals
 
@@ -360,4 +365,4 @@ The pass is complete only when all of the following are true:
 
 ## Expected Outcome
 
-After this pass, PARA11AX documentation becomes a maintained contract rather than a historical narrative: the major externally meaningful facts are either sourced from canonical code/configuration or protected by drift tests, and the QA report provides a defensible evidence trail for the exact repository and production state.
+After this pass, PARA11AX documentation becomes a maintained contract rather than a historical narrative: the major externally meaningful facts are either sourced from canonical code/configuration or protected by drift tests, and the QA report provides a defensible evidence trail for the repository and production state without pretending a tracked document can certify its own commit identity.
