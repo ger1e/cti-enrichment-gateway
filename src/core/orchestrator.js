@@ -201,6 +201,7 @@ export async function enrich({
       const item = normalizeEvidence(name, indicator, type, result.data, {
         retrievedAt: result.retrievedAt, rawHash: result.rawHash, parserVersion: adapter?.parserVersion ?? '1',
         cacheState: record.cacheState, durationMs: record.cacheState === 'hit' ? 0 : result.durationMs,
+        sourceRole: adapter?.sourceRole ?? 'community',
       });
       evidence.push(item);
       relationships.push(...item.relationships.map(rel => ({ ...rel, provider: rel.provider ?? name })));
