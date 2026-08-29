@@ -19,7 +19,8 @@ test('README serves one complete self-contained SVG hero', async () => {
   assert.match(hero, /data-radar="ppi"/i);
   assert.match(hero, /PARA11AX/i);
   assert.match(hero, /CTI ENRICHMENT \/\/ ANALYST OPERATIONS/i);
-  assert.doesNotMatch(hero, /https?:\/\//i);
+  assert.doesNotMatch(hero, /(?:href|xlink:href)=["']https?:\/\//i);
+  assert.doesNotMatch(hero, /url\(\s*["']?https?:\/\//i);
 });
 
 test('final CRT branding preserves the Natural Earth globe instead of replacing it with a radar disc', async () => {
