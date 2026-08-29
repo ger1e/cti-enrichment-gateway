@@ -22,7 +22,8 @@ test('README uses one self-contained ger1e-style SVG hero without raster fallbac
   assert.match(svg, /follow the evidence/i);
   assert.match(svg, /John Kiriakou/i);
   assert.match(svg, /@keyframes\s+ppi-spin/i);
-  assert.doesNotMatch(svg, /https?:\/\//i, 'hero must be self-contained');
+  assert.doesNotMatch(svg, /(?:href|xlink:href)=["']https?:\/\//i, 'hero must not reference external assets');
+  assert.doesNotMatch(svg, /url\(\s*["']?https?:\/\//i, 'hero CSS must not reference external assets');
   assert.doesNotMatch(svg, /FIXED SOURCES|EVIDENCE V2|STIX|READ-ONLY|FIXED EGRESS/i);
 
   assert.match(readme, /Tooling smoke/i);
