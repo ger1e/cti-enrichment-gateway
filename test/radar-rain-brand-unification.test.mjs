@@ -104,5 +104,5 @@ test('native SVG owns the only radar sweep without a second CSS overlay', () => 
   assert.doesNotMatch(brandCss, /para11ax-lockup-radar-spin/i);
   assert.doesNotMatch(brandCss, /\.terminal-brand::after|\.terminal-mark::after|\.shell-brand::after|\.boot-brand-lockup::after/i);
   assert.doesNotMatch(landingCss, /para11ax-hero-radar-spin|para11ax-hero-radar-trail-spin/i);
-  assert.doesNotMatch(landingCss, /\.hero-ghost::before[^}]*animation|\.hero-ghost::after[^}]*animation/i);
+  assert.match(landingCss, /\.hero-ghost::before,\.hero-ghost::after\{[^}]*content:none!important;[^}]*animation:none!important/i);
 });
