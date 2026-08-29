@@ -1,59 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 480" role="img" aria-labelledby="title desc">
-<title id="title">PARA11AX — CTI Evidence Gateway</title>
-<desc id="desc">Tactical PARA11AX repository hero with dense phosphor Matrix rain, a gunmetal sentinel helmet and visor, rotating-style HUD geometry, and restrained red anomaly signals.</desc>
-<defs>
-  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#010302"/><stop offset=".54" stop-color="#061008"/><stop offset="1" stop-color="#020403"/></linearGradient>
-  <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#343E36"/><stop offset=".48" stop-color="#111713"/><stop offset="1" stop-color="#050806"/></linearGradient>
-  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#39FF14" stroke-opacity=".035"/></pattern>
-  <filter id="greenGlow" x="-100%" y="-130%" width="300%" height="360%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  <filter id="redGlow" x="-140%" y="-140%" width="380%" height="380%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  <clipPath id="clip"><rect x="2" y="2" width="1436" height="476" rx="26"/></clipPath>
-  <g id="gcol" fill="#39FF14" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" font-weight="700"><text y="0">P</text><text y="15">A</text><text y="30">R</text><text y="45">A</text><text y="60">1</text><text y="75">1</text><text y="90">A</text><text y="105">X</text><text y="120">0</text><text y="135">1</text><text y="150">E</text><text y="165">V</text><text y="180">2</text><text y="195">0</text><text y="210">1</text><text y="225">S</text><text y="240">T</text><text y="255">I</text><text y="270">X</text><text y="285">1</text><text y="300">1</text></g>
-  <g id="rcol" fill="#FF2438" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11" font-weight="800"><text y="0">A</text><text y="15">N</text><text y="30">O</text><text y="45">M</text><text y="60">A</text><text y="75">L</text><text y="90">Y</text><text y="105">1</text><text y="120">1</text><text y="135">0</text><text y="150">1</text><text y="165">0</text><text y="180">1</text><text y="195">1</text></g>
-</defs>
-<rect width="1440" height="480" rx="28" fill="url(#bg)"/><rect width="1440" height="480" rx="28" fill="url(#grid)"/>
-<g clip-path="url(#clip)" opacity=".27">
-  <use href="#gcol" x="18" y="42"/><use href="#gcol" x="58" y="-82" opacity=".46"/><use href="#gcol" x="98" y="92"/><use href="#gcol" x="138" y="-24" opacity=".55"/><use href="#rcol" x="178" y="28" opacity=".48"/><use href="#gcol" x="218" y="-118"/><use href="#gcol" x="258" y="56" opacity=".58"/><use href="#gcol" x="298" y="-42"/><use href="#gcol" x="338" y="110" opacity=".45"/><use href="#rcol" x="378" y="-12" opacity=".34"/><use href="#gcol" x="418" y="38"/><use href="#gcol" x="458" y="-98" opacity=".48"/><use href="#gcol" x="498" y="72"/><use href="#gcol" x="538" y="-34" opacity=".54"/><use href="#rcol" x="578" y="96" opacity=".30"/><use href="#gcol" x="618" y="-74"/><use href="#gcol" x="658" y="22" opacity=".50"/><use href="#gcol" x="698" y="-124"/><use href="#gcol" x="738" y="82" opacity=".47"/><use href="#rcol" x="778" y="-8" opacity=".32"/><use href="#gcol" x="818" y="48"/><use href="#gcol" x="858" y="-90" opacity=".52"/><use href="#gcol" x="898" y="106"/><use href="#gcol" x="938" y="-28" opacity=".46"/><use href="#rcol" x="978" y="62" opacity=".34"/><use href="#gcol" x="1018" y="-112"/><use href="#gcol" x="1058" y="18" opacity=".48"/><use href="#gcol" x="1098" y="-54"/><use href="#gcol" x="1138" y="94" opacity=".54"/><use href="#rcol" x="1178" y="-18" opacity=".34"/><use href="#gcol" x="1218" y="54"/><use href="#gcol" x="1258" y="-102" opacity=".49"/><use href="#gcol" x="1298" y="84"/><use href="#gcol" x="1338" y="-36" opacity=".54"/><use href="#rcol" x="1378" y="34" opacity=".36"/>
-</g>
-<g clip-path="url(#clip)" opacity=".34">
-  <use href="#gcol" x="74"><animateTransform attributeName="transform" type="translate" values="0 -330;0 540" dur="2.8s" begin="-1.7s" repeatCount="indefinite"/></use>
-  <use href="#gcol" x="274"><animateTransform attributeName="transform" type="translate" values="0 -350;0 540" dur="3.6s" begin="-.9s" repeatCount="indefinite"/></use>
-  <use href="#rcol" x="474" opacity=".46"><animateTransform attributeName="transform" type="translate" values="0 -250;0 540" dur="3.1s" begin="-2.1s" repeatCount="indefinite"/></use>
-  <use href="#gcol" x="674"><animateTransform attributeName="transform" type="translate" values="0 -360;0 540" dur="2.6s" begin="-1.2s" repeatCount="indefinite"/></use>
-  <use href="#gcol" x="874"><animateTransform attributeName="transform" type="translate" values="0 -340;0 540" dur="3.4s" begin="-2.4s" repeatCount="indefinite"/></use>
-  <use href="#rcol" x="1074" opacity=".42"><animateTransform attributeName="transform" type="translate" values="0 -260;0 540" dur="2.9s" begin="-.6s" repeatCount="indefinite"/></use>
-  <use href="#gcol" x="1274"><animateTransform attributeName="transform" type="translate" values="0 -355;0 540" dur="3.2s" begin="-1.9s" repeatCount="indefinite"/></use>
-</g>
-<rect x="2" y="2" width="1436" height="476" rx="26" fill="none" stroke="#39FF14" stroke-opacity=".25" stroke-width="3"/>
-<g transform="translate(56 38)">
-  <circle cx="190" cy="202" r="173" fill="none" stroke="#39FF14" stroke-opacity=".18" stroke-width="2" stroke-dasharray="7 13"/>
-  <circle cx="190" cy="202" r="141" fill="none" stroke="#39FF14" stroke-opacity=".12"/>
-  <path d="M190 16v42M190 346v42M4 202h42M334 202h42" stroke="#39FF14" stroke-opacity=".45" stroke-width="2"/>
-  <circle cx="190" cy="202" r="5" fill="#FF2438" filter="url(#redGlow)"/>
-  <g id="sentinel-helmet" transform="translate(94 53)">
-    <path d="M96 0 177 38v128l-81 87-81-87V38z" fill="#061008" stroke="#39FF14" stroke-opacity=".62" stroke-width="3"/>
-    <path d="M96 18 149 41l20 65-19 90-54 46-54-46-19-90 20-65z" fill="url(#armor)" stroke="#F7FFF6" stroke-opacity=".38" stroke-width="2"/>
-    <path d="M96 22v208M49 55l47 25 47-25M35 101l61 31 61-31M50 192l46-31 46 31" fill="none" stroke="#F7FFF6" stroke-opacity=".12" stroke-width="2"/>
-    <path id="visor" d="M43 105 75 116l21 19 21-19 32-11-14 29-28 23H85l-28-23z" fill="#39FF14" filter="url(#greenGlow)"/>
-    <path d="M65 138l20 19h22l20-19-16 40-15 13-15-13z" fill="#080D09" stroke="#39FF14" stroke-opacity=".42"/>
-    <circle cx="160" cy="25" r="4" fill="#FF2438"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 520" role="img" aria-labelledby="title desc">
+  <title id="title">PARA11AX</title>
+  <desc id="desc">Dark Matrix-style PARA11AX banner with one animated radar and the John Kiriakou quote.</desc>
+  <defs>
+    <radialGradient id="scope-bg" cx="50%" cy="50%" r="52%"><stop offset="0" stop-color="#0A170C"/><stop offset=".72" stop-color="#061008"/><stop offset="1" stop-color="#020403"/></radialGradient>
+    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#39FF14" stop-opacity="0"/><stop offset=".7" stop-color="#39FF14" stop-opacity=".06"/><stop offset="1" stop-color="#39FF14" stop-opacity=".34"/></linearGradient>
+    <linearGradient id="fade" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#39FF14" stop-opacity=".32"/><stop offset="1" stop-color="#39FF14" stop-opacity="0"/></linearGradient>
+  </defs>
+  <style>
+    .motion{display:block}.static-sweep{display:none}.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;fill:#39FF14;opacity:.14;letter-spacing:3px}
+    @media(prefers-reduced-motion: reduce){.motion{display:none}.static-sweep{display:block}.rain-move{display:none}}
+  </style>
+  <rect width="1440" height="520" fill="#020403"/>
+  <rect width="1440" height="520" fill="url(#fade)" opacity=".09"/>
+  <g class="code" aria-hidden="true">
+    <g><text x="34" y="0">010011010110101101001101101010</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -140" to="0 560" dur="18s" repeatCount="indefinite"/></g>
+    <g opacity=".72"><text x="160" y="0">110101100101110010101101001101</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -280" to="0 560" dur="21s" repeatCount="indefinite"/></g>
+    <g><text x="292" y="0">001101011010011010110010110100</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -80" to="0 560" dur="17s" repeatCount="indefinite"/></g>
+    <g opacity=".65"><text x="428" y="0">101100101101001110100110101001</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -360" to="0 560" dur="23s" repeatCount="indefinite"/></g>
+    <g><text x="568" y="0">011010010110110101001011010110</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -190" to="0 560" dur="19s" repeatCount="indefinite"/></g>
+    <g opacity=".7"><text x="706" y="0">100101101001101100101101001011</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -310" to="0 560" dur="22s" repeatCount="indefinite"/></g>
+    <g><text x="842" y="0">011001011010010110110010101101</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -120" to="0 560" dur="16s" repeatCount="indefinite"/></g>
+    <g opacity=".62"><text x="982" y="0">101011001101001011010010110101</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -390" to="0 560" dur="23s" repeatCount="indefinite"/></g>
+    <g><text x="1118" y="0">001101101001011010011011001010</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -220" to="0 560" dur="20s" repeatCount="indefinite"/></g>
+    <g opacity=".72"><text x="1260" y="0">110010110100101101001101011001</text><animateTransform class="rain-move" attributeName="transform" type="translate" from="0 -60" to="0 560" dur="17.5s" repeatCount="indefinite"/></g>
   </g>
-  <text x="190" y="397" text-anchor="middle" fill="#8CA08F" font-size="11" font-weight="700" letter-spacing="2.5" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">SENTINEL // EVIDENCE NODE</text>
-</g>
-<g transform="translate(455 82)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
-  <text x="0" y="88" font-size="94" font-weight="900" letter-spacing="5"><tspan fill="#F7FFF6">PARA</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">AX</tspan></text>
-  <text x="5" y="128" fill="#39FF14" font-size="19" font-weight="800" letter-spacing="5">CTI // EVIDENCE GATEWAY</text>
-  <text x="5" y="164" fill="#A6B5A9" font-size="14" font-weight="700" letter-spacing="2.8">INTELLIGENCE. ENRICHED. OPERATIONAL.</text>
-  <path d="M5 188h776" stroke="#39FF14" stroke-opacity=".24"/>
-  <g transform="translate(5 215)">
-    <rect width="760" height="94" rx="12" fill="#020603" fill-opacity=".88" stroke="#39FF14" stroke-opacity=".18"/>
-    <text x="22" y="31" fill="#39FF14" font-size="12" font-weight="800" letter-spacing="2">PROVENANCE-FIRST // SEMANTIC FIREWALL ACTIVE</text>
-    <text x="22" y="59" fill="#B5C4B8" font-size="13">“You’ve got to follow the evidence… That doesn’t make it fact.”</text>
-    <text x="22" y="80" fill="#8CA08F" font-size="11" letter-spacing="1.8">— JOHN KIRIAKOU</text>
+  <g transform="translate(330 260)" data-radar="ppi" aria-label="radar">
+    <circle r="222" fill="url(#scope-bg)" stroke="#39FF14" stroke-width="2" stroke-opacity=".72"/>
+    <circle r="211" fill="none" stroke="#39FF14" stroke-opacity=".42" stroke-width="7" stroke-dasharray="1 11.3"/>
+    <circle r="172" fill="none" stroke="#39FF14" stroke-opacity=".24"/>
+    <circle r="129" fill="none" stroke="#39FF14" stroke-opacity=".22"/>
+    <circle r="86" fill="none" stroke="#39FF14" stroke-opacity=".2"/>
+    <circle r="43" fill="none" stroke="#39FF14" stroke-opacity=".18"/>
+    <g id="crosshair" stroke="#39FF14"><path d="M-222 0H222M0-222V222" stroke-opacity=".36"/><path d="M0-222v16M0 206v16M-222 0h16M206 0h16" stroke-opacity=".92" stroke-width="2"/></g>
+    <g fill="#39FF14"><circle cx="104" cy="-116" r="4.6"/><circle cx="-128" cy="85" r="4" fill-opacity=".84"/><circle cx="132" cy="106" r="3.8" fill-opacity=".74"/><circle cx="-61" cy="-139" r="3" fill-opacity=".66"/></g>
+    <g fill="#FF2438"><circle cx="-134" cy="-83" r="4.5"/><circle cx="154" cy="43" r="3.7"/></g>
+    <g class="motion"><path d="M0 0 205-55A212 212 0 0 1 208 40Z" fill="url(#sweep)"/><path d="M0 0H211" stroke="#39FF14" stroke-width="2.7" stroke-linecap="round"/><path d="M0-1H211" stroke="#F7FFF6" stroke-opacity=".36" stroke-width=".8"/><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="4.8s" repeatCount="indefinite"/></g>
+    <g class="static-sweep" transform="rotate(34)"><path d="M0 0 205-55A212 212 0 0 1 208 40Z" fill="url(#sweep)"/><path d="M0 0H211" stroke="#39FF14" stroke-width="2.7"/></g>
+    <circle r="7" fill="#020403" stroke="#F7FFF6" stroke-opacity=".6"/><circle r="2.5" fill="#39FF14"/>
   </g>
-  <g transform="translate(5 336)" font-size="12" font-weight="800" letter-spacing="2.2">
-    <text fill="#39FF14">37 FIXED SOURCES</text><text x="224" fill="#F7FFF6">EVIDENCE V2</text><text x="414" fill="#F7FFF6">STIX 2.1</text><text x="563" fill="#8CA08F">READ-ONLY</text>
+  <g transform="translate(730 112)">
+    <text data-wordmark="para11ax-angular-a" aria-label="PARA11AX" font-family="Arial Black,Arial,sans-serif" font-size="96" font-weight="900" letter-spacing="1"><tspan fill="#F7FFF6">PΛRΛ</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">ΛX</tspan></text>
+    <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"><text x="0" y="150" fill="#39FF14" font-size="52" font-weight="900">“</text><text x="64" y="146" fill="#F7FFF6" font-size="27">You’ve got to follow the evidence…</text><text x="64" y="192" fill="#F7FFF6" font-size="27">That doesn’t make it fact.</text><text x="64" y="235" fill="#39FF14" font-size="21">— John Kiriakou</text></g>
+    <path d="M64 272H610" stroke="#39FF14" stroke-opacity=".38"/><circle cx="336" cy="272" r="3" fill="#39FF14"/>
   </g>
-</g>
-<g transform="translate(1310 50)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" font-weight="700" letter-spacing="1.5"><text fill="#39FF14">LINK // UP</text><text y="20" fill="#8CA08F">FIXED EGRESS</text><circle cx="101" cy="-4" r="3" fill="#FF2438"/></g>
 </svg>

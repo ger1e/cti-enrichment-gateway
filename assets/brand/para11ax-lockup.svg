@@ -1,26 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 190" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 90" role="img" aria-labelledby="title desc">
   <title id="title">PARA11AX</title>
-  <desc id="desc">Horizontal PARA11AX tactical lockup with a gunmetal sentinel helmet, phosphor visor, white wordmark, and green 11.</desc>
-  <defs>
-    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#303A32"/><stop offset=".5" stop-color="#111713"/><stop offset="1" stop-color="#050806"/></linearGradient>
-    <filter id="glow" x="-80%" y="-120%" width="260%" height="340%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>
-  <rect width="980" height="190" rx="18" fill="#020403"/>
-  <rect x="1.5" y="1.5" width="977" height="187" rx="16.5" fill="none" stroke="#39FF14" stroke-opacity=".22" stroke-width="3"/>
-  <g id="sentinel-helmet" transform="translate(28 17)">
-    <path d="M78 2 145 35v79l-67 56-67-56V35z" fill="#061008" stroke="#39FF14" stroke-opacity=".58" stroke-width="2.5"/>
-    <path d="M78 17 119 34l15 40-14 53-42 32-42-32-14-53 15-40z" fill="url(#armor)" stroke="#F7FFF6" stroke-opacity=".32" stroke-width="2"/>
-    <path d="M78 22v127M43 51l35 18 35-18M32 75l46 23 46-23" fill="none" stroke="#F7FFF6" stroke-opacity=".12" stroke-width="1.5"/>
-    <path id="visor" d="M40 74 64 82l14 13 14-13 24-8-11 20-20 16H71L51 94z" fill="#39FF14" filter="url(#glow)"/>
-    <path d="M56 95l15 15h14l15-15-13 28-9 8-9-8z" fill="#080D09" stroke="#39FF14" stroke-opacity=".42"/>
-    <circle cx="139" cy="25" r="3.5" fill="#FF2438"/>
+  <desc id="desc">PARA11AX angular wordmark with a compact phosphor radar.</desc>
+  <style>.motion{display:block}.static-sweep{display:none}@media(prefers-reduced-motion: reduce){.motion{display:none}.static-sweep{display:block}}</style>
+  <g transform="translate(45 45)" data-radar="ppi">
+    <circle r="38" fill="#020403" stroke="#39FF14" stroke-opacity=".76" stroke-width="1.6"/>
+    <circle r="27" fill="none" stroke="#39FF14" stroke-opacity=".34"/>
+    <circle r="16" fill="none" stroke="#39FF14" stroke-opacity=".25"/>
+    <circle r="6" fill="none" stroke="#39FF14" stroke-opacity=".18"/>
+    <g id="crosshair" stroke="#39FF14"><path d="M-38 0H38M0-38V38" stroke-opacity=".28"/><path d="M0-38v7M0 31v7M-38 0h7M31 0h7" stroke-opacity=".86" stroke-width="1.4"/></g>
+    <g class="motion"><path d="M0 0 35-10A36 36 0 0 1 35 10Z" fill="#39FF14" fill-opacity=".14"/><path d="M0 0H36" stroke="#39FF14" stroke-width="2"/><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="4.8s" repeatCount="indefinite"/></g>
+    <g class="static-sweep" transform="rotate(34)"><path d="M0 0 35-10A36 36 0 0 1 35 10Z" fill="#39FF14" fill-opacity=".14"/><path d="M0 0H36" stroke="#39FF14" stroke-width="2"/></g>
+    <circle cx="18" cy="-17" r="2.5" fill="#39FF14"/><circle cx="-19" cy="15" r="2" fill="#39FF14"/><circle cx="24" cy="20" r="2.2" fill="#FF2438"/>
   </g>
-  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
-    <text x="205" y="92" font-size="70" font-weight="900" letter-spacing="5"><tspan fill="#F7FFF6">PARA</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">AX</tspan></text>
-    <text x="210" y="126" fill="#39FF14" font-size="17" font-weight="800" letter-spacing="5">CTI // EVIDENCE GATEWAY</text>
-    <text x="210" y="153" fill="#8CA08F" font-size="13" font-weight="700" letter-spacing="2.5">BOUNDED · READ-ONLY · PROVENANCE-FIRST</text>
-  </g>
-  <path d="M210 166h682" stroke="#39FF14" stroke-opacity=".22"/>
-  <path d="M892 166h42" stroke="#FF2438" stroke-width="2" stroke-opacity=".72"/>
-  <circle cx="940" cy="166" r="3" fill="#FF2438"/>
+  <text x="102" y="60" data-wordmark="para11ax-angular-a" aria-label="PARA11AX" font-family="Arial Black,Arial,sans-serif" font-size="46" font-weight="900" letter-spacing="1"><tspan fill="#F7FFF6">PΛRΛ</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">ΛX</tspan></text>
 </svg>

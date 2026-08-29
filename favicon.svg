@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="PARA11AX radar favicon">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="PARA11AX radar favicon" data-radar="ppi">
   <title>PARA11AX radar</title>
   <rect width="64" height="64" rx="8" fill="#020403"/>
   <circle cx="32" cy="32" r="24" fill="none" stroke="#39FF14" stroke-width="3"/>
   <circle cx="32" cy="32" r="16" fill="none" stroke="#39FF14" stroke-opacity=".52" stroke-width="2"/>
   <circle cx="32" cy="32" r="8" fill="none" stroke="#39FF14" stroke-opacity=".34" stroke-width="1.5"/>
-  <path d="M8 32H56M32 8V56" stroke="#39FF14" stroke-opacity=".28" stroke-width="1.5"/>
+  <path id="crosshair" d="M8 32H56M32 8V56" stroke="#39FF14" stroke-opacity=".3" stroke-width="1.5"/>
   <path d="M32 32 52 20" stroke="#39FF14" stroke-width="3" stroke-linecap="round"/>
   <circle cx="45" cy="24" r="2.5" fill="#39FF14"/>
   <circle cx="24" cy="43" r="2" fill="#39FF14" fill-opacity=".72"/>
