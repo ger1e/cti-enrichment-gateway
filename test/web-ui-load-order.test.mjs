@@ -6,9 +6,10 @@ const url = path => new URL(`../${path}`, import.meta.url);
 const read = path => readFile(url(path), 'utf8');
 
 test('Web UI enters directly into one prepainted v7 visual stack', async () => {
-  const [html, main, vercel] = await Promise.all([
+  const [html, main, analystCss, vercel] = await Promise.all([
     read('app/index.html'),
     read('app/terminal-main.js'),
+    read('app/analyst-deck.css'),
     read('vercel.json').then(JSON.parse),
   ]);
 
@@ -35,5 +36,7 @@ test('Web UI enters directly into one prepainted v7 visual stack', async () => {
   assert.match(html, /<script type="module" src="\/app\/terminal-main\.js"><\/script>/);
   assert.doesNotMatch(main, /visual-maxx\.js/);
   assert.doesNotMatch(main, /desktop-layout-v7\.js/);
+  assert.match(analystCss, /data-terminal-first="v7"/);
+  assert.doesNotMatch(analystCss, /data-terminal-first="v6"/);
   assert.equal(vercel.routes.some(route => route.src === '/app/app.js'), false, 'legacy app.js rewrite must be removed');
 });
