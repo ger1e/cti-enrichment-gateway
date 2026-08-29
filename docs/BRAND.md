@@ -139,14 +139,15 @@ Landing pages, README assets and documentation remain silent. Existing `/app` sy
 
 ## README and documentation
 
-The README hero uses:
+The GitHub README uses one normalized 720 px SVG family modeled on the GER1E profile README geometry while retaining the PARA11AX terminal palette and identity:
 
-- `assets/brand/para11ax-terminal-hero.svg`
-- `assets/brand/para11ax-terminal-hero-mobile.svg`
+- `assets/brand/para11ax-readme-hero-v8.svg` — `720 × 360` hero;
+- `assets/brand/para11ax-readme-architecture-v4.svg` — `720 × 760` request-path panel;
+- `assets/brand/para11ax-readme-semantics-v4.svg` — `720 × 820` semantic-firewall panel.
 
-Both are terminal frames, not poster art. Major README sections may use concise shell-style text fences to reinforce the operating model, but technical prose must remain readable and searchable.
+README SVGs use 12 px rounded outer framing, the canonical mono stack, black/phosphor/white/red semantics, and self-contained vector content with no raster/mobile fallback or remote asset dependency. The README follows a compact numbered `01 // …` through `07 // …` information hierarchy; technical prose remains searchable and exact.
 
-Architecture and semantic diagrams use square terminal framing, monospaced labels, black/phosphor/white/red palette and visible semantic boundaries. Do not use semantic color as a substitute for exact labels.
+Architecture and semantic panels may be taller than the hero, but all remain 720 px wide and use the same framing, typography and semantic boundaries. Do not use semantic color as a substitute for exact labels, and do not add a second decorative radar outside the hero.
 
 ## Matrix rain
 
