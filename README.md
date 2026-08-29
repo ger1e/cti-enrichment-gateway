@@ -160,5 +160,6 @@ No TLS/JA3 without a bounded source that passes the source gate. No deprecated S
 <p align="center">
   <code>analyst@para11ax:~$ _</code><br/><br/>
   <strong>OBSERVED ≠ INFERRED ≠ CONTEXTUAL</strong><br/><br/>
-  <sub>Preserve provenance · keep semantics separate · fail closed · make uncertainty visible</sub>
+  <sub>Preserve provenance · keep semantics separate · fail closed · make uncertainty visible</sub><br/><br/>
+  <img src="assets/brand/para11ax-radar-lockup.svg" alt="PARA11AX" width="320">
 </p>
