@@ -6,13 +6,31 @@ const url = path => new URL(`../${path}`, import.meta.url);
 const read = path => readFile(url(path), 'utf8');
 
 test('Web UI resolves the compatibility entry into one render-blocking v7 cascade', async () => {
-  const [html, appCss, baseCss, prepaint, main, analystCss, vercel] = await Promise.all([
+  const [
+    html,
+    appCss,
+    baseCss,
+    prepaint,
+    main,
+    terminalEntry,
+    terminalPolish,
+    analystJs,
+    analystCss,
+    earthJs,
+    brandJs,
+    vercel,
+  ] = await Promise.all([
     read('app/index.html'),
     read('app/app.css'),
     read('app/app-base.css'),
     read('app/prepaint-v7.css'),
     read('app/terminal-main.js'),
+    read('app/terminal-entry.js'),
+    read('app/terminal-polish.js'),
+    read('app/analyst-deck.js'),
     read('app/analyst-deck.css'),
+    read('app/earth-globe.js'),
+    read('brand-unification.js'),
     read('vercel.json').then(JSON.parse),
   ]);
 
@@ -50,13 +68,25 @@ test('Web UI resolves the compatibility entry into one render-blocking v7 cascad
 
   const stateMarker = "document.documentElement.dataset.terminalFirst = 'v7';";
   assert.ok(main.indexOf(stateMarker) >= 0, 'runtime must declare v7 state');
-  assert.ok(main.indexOf(stateMarker) < main.indexOf('const PREPAINT_STYLES'), 'v7 state must be declared before compatibility imports or markers');
-  assert.match(main, /PREPAINT_STYLES/);
-  assert.match(main, /marker\.rel = 'preload'/);
-  assert.match(main, /marker\.as = 'style'/);
+  assert.doesNotMatch(main, /PREPAINT_STYLES|prepaintMarker|\.css['"`]/, 'runtime entry must not schedule a second stylesheet cascade');
   assert.match(main, /await import\('\.\/terminal-entry\.js'\)/);
   assert.doesNotMatch(main, /visual-maxx\.js/);
   assert.doesNotMatch(main, /desktop-layout-v7\.js/);
+
+  for (const [name, source] of [
+    ['terminal-entry', terminalEntry],
+    ['terminal-polish', terminalPolish],
+    ['analyst-deck', analystJs],
+    ['earth-globe', earthJs],
+    ['brand-unification', brandJs],
+  ]) {
+    assert.match(
+      source,
+      /document\.documentElement\.dataset\.terminalFirst\s*(?:===|!==)\s*'v7'/,
+      `${name} must suppress dynamic stylesheet insertion when the v7 prepaint cascade is active`,
+    );
+  }
+
   assert.match(analystCss, /data-terminal-first="v7"/);
   assert.doesNotMatch(analystCss, /data-terminal-first="v6"/);
 });

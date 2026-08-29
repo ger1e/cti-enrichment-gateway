@@ -2,6 +2,7 @@ const LOCKUP_URL = '/assets/brand/para11ax-radar-lockup.svg';
 const STYLESHEET_URL = '/brand-unification.css';
 
 function ensureBrandStylesheet() {
+  if (document.documentElement.dataset.terminalFirst === 'v7') return;
   if (document.querySelector(`link[href="${STYLESHEET_URL}"]`)) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
