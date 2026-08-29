@@ -48,15 +48,16 @@ export function createCaseRuntime({
     }
   }
 
-  async function requireActiveCase() {
+  async function requireActiveCaseTarget() {
     requireWorkspace();
-    if (!activeCaseId) throw new Error('no active case');
-    const value = await repositoryCall(() => cases.get(activeCaseId));
+    const caseId = activeCaseId;
+    if (!caseId) throw new Error('no active case');
+    const value = await repositoryCall(() => cases.get(caseId));
     if (!value) {
-      activeCaseId = null;
+      if (activeCaseId === caseId) activeCaseId = null;
       throw new Error('case_not_found');
     }
-    return value;
+    return { caseId, value };
   }
 
   function reset() {
@@ -68,8 +69,9 @@ export function createCaseRuntime({
       return { captured: false, warning: null };
     }
     if (!cases) return { captured: false, warning: CAPTURE_WARNING };
+    const targetCaseId = activeCaseId;
     try {
-      await cases.capture(activeCaseId, clone(result));
+      await cases.capture(targetCaseId, clone(result));
       return { captured: true, warning: null };
     } catch {
       return { captured: false, warning: CAPTURE_WARNING };
@@ -87,7 +89,7 @@ export function createCaseRuntime({
   }
 
   async function refreshCase(action, { profile = 'standard', signal } = {}) {
-    const caseValue = await requireActiveCase();
+    const { caseId: targetCaseId, value: caseValue } = await requireActiveCaseTarget();
     const threshold = now().getTime() - STALE_AFTER_MS;
     const selected = action.staleOnly
       ? caseValue.pins.filter(pin => {
@@ -117,7 +119,7 @@ export function createCaseRuntime({
           continue;
         }
         try {
-          await repositoryCall(() => cases.capture(activeCaseId, clone(enrichment)));
+          await repositoryCall(() => cases.capture(targetCaseId, clone(enrichment)));
           captured += 1;
         } catch (error) {
           failures.push({ index: item.index, input: item.input, status: 'error', reason: error?.message || 'case_capture_failed' });
@@ -149,26 +151,27 @@ export function createCaseRuntime({
       return { cases: clone(await repositoryCall(() => cases.list())) };
     }
     if (name === 'case-show') {
-      return { case: clone(await requireActiveCase()) };
+      const { value } = await requireActiveCaseTarget();
+      return { case: clone(value) };
     }
     if (name === 'case-pin') {
       if (!currentResult || typeof currentResult.type !== 'string' || typeof currentResult.indicator !== 'string') throw new Error('no enrichment result loaded');
-      await requireActiveCase();
-      const value = await repositoryCall(() => cases.addPin(activeCaseId, { type: currentResult.type, value: currentResult.indicator }));
+      const { caseId } = await requireActiveCaseTarget();
+      const value = await repositoryCall(() => cases.addPin(caseId, { type: currentResult.type, value: currentResult.indicator }));
       return { case: clone(value) };
     }
     if (name === 'case-unpin') {
-      await requireActiveCase();
-      const value = await repositoryCall(() => cases.removePin(activeCaseId, action.observable));
+      const { caseId } = await requireActiveCaseTarget();
+      const value = await repositoryCall(() => cases.removePin(caseId, action.observable));
       return { case: clone(value) };
     }
     if (name === 'case-note') {
-      await requireActiveCase();
-      const value = await repositoryCall(() => cases.addNote(activeCaseId, action.text));
+      const { caseId } = await requireActiveCaseTarget();
+      const value = await repositoryCall(() => cases.addNote(caseId, action.text));
       return { case: clone(value) };
     }
     if (name === 'case-diff') {
-      const value = await requireActiveCase();
+      const { value } = await requireActiveCaseTarget();
       const candidates = currentResult
         ? value.diffs.filter(diff => diff?.type === currentResult.type && diff?.indicator === currentResult.indicator)
         : value.diffs;
@@ -182,7 +185,7 @@ export function createCaseRuntime({
     }
     if (name === 'case-refresh') return refreshCase(action, { profile, signal });
     if (name === 'case-export') {
-      const value = await requireActiveCase();
+      const { value } = await requireActiveCaseTarget();
       const text = serializeCaseBundle(value, { now: () => now().toISOString() });
       const filename = safeCaseFilename(value);
       downloadText(text, CASE_BUNDLE_MEDIA_TYPE, filename);
