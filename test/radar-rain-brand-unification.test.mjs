@@ -99,3 +99,20 @@ test('there is one sweep per radar surface and no legacy CSS pseudo-radar overla
   assert.doesNotMatch(brandCss, /\.terminal-brand::after|\.terminal-mark::after|\.shell-brand::after|\.boot-brand-lockup::after/i);
   assert.equal((landingCss.match(/@keyframes\s+radar-live-spin/gi) ?? []).length, 1);
 });
+
+test('PPI sweep is narrow, range rings are restrained, and contacts have phosphor persistence', () => {
+  const html = read('index.html');
+  const css = read('landing-radar-motion.css');
+  const heroSvg = read(HERO_RADAR);
+  const lockupSvg = read(LOCKUP);
+
+  for (const source of [html, css]) {
+    assert.doesNotMatch(source, /306deg|318deg|342deg/, 'the old broad luminous sector must be gone');
+    assert.match(source, /radar-contact/i, 'landing radar must render explicit contacts instead of baking blips into the background');
+  }
+
+  assert.match(html, /@keyframes\s+radar-contact-echo/i, 'contacts must decay like phosphor returns');
+  assert.match(html, /\.radar-center[^}]*width:\s*4px[^}]*height:\s*4px/is, 'center pip must remain small');
+  assert.doesNotMatch(heroSvg, /M260 260L481 202A228 228 0 0 1 484 303Z/, 'standalone radar must not use the old wide wedge');
+  assert.doesNotMatch(lockupSvg, /M0 0 28-8A29 29 0 0 1 28 8Z/, 'compact lockup must not use the old wide wedge');
+});
