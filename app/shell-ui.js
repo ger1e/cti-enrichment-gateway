@@ -59,7 +59,7 @@ function downloadText(text, type, filename) {
 }
 
 function groupHelp() {
-  const categories = ['core', 'auth', 'gateway', 'enrichment', 'result', 'export', 'terminal'];
+  const categories = ['core', 'auth', 'gateway', 'enrichment', 'osint', 'result', 'export', 'terminal'];
   const lines = ['PARA11AX COMMAND INDEX', ''];
   for (const category of categories) {
     const items = COMMANDS.filter(item => item.category === category);
@@ -295,6 +295,37 @@ export function mountAnalystShell({
         else triggerGlitch('glitch-result', 240);
         appendLine(`[ ${String(result.status).toUpperCase()} ] ${result.indicator} · ${result.type} · ${result.durationMs ?? '?'}ms`, result.status === 'ok' ? 'green' : result.status === 'partial' ? 'amber' : 'red');
         renderResultView('overview');
+      } finally { endOperation(); }
+      return;
+    }
+    if (action.action === 'user-scanner') {
+      const controller = beginOperation(false);
+      const scope = action.module ? `module=${action.module}` : action.category ? `category=${action.category}` : 'scope=full';
+      appendLine(`user-scanner: ${action.scanType} ${action.target} [${scope}${action.crossScan ? ' · cross-scan' : ''}]`, 'cyan');
+      audio.play('scan');
+      triggerGlitch('glitch-scan', 260);
+      try {
+        const scan = await client.userScanner({
+          scanType: action.scanType,
+          target: action.target,
+          category: action.category,
+          module: action.module,
+          crossScan: action.crossScan,
+          noNsfw: action.noNsfw,
+        }, controller.signal);
+        const summary = scan.summary;
+        const tone = summary.errors > 0 ? 'amber' : 'green';
+        appendLine(`[ OK ] USER-SCANNER ${scan.scanId} · scanned=${summary.totalScanned} · found=${summary.found} · errors=${summary.errors} · ${scan.durationMs}ms`, tone);
+        for (const item of scan.results.slice(0, 100)) {
+          const label = item.siteName || '(unknown site)';
+          const category = item.category ? ` [${item.category}]` : '';
+          const url = item.url ? ` · ${item.url}` : '';
+          appendLine(`FOUND  ${label}${category}${url}`, 'green');
+        }
+        if (scan.results.length > 100) appendLine(`… ${scan.results.length - 100} additional hits omitted from terminal scrollback`, 'muted');
+        if (scan.erroredSites.length) appendLine(`errors: ${scan.erroredSites.slice(0, 24).join(', ')}${scan.erroredSites.length > 24 ? ', …' : ''}`, 'amber');
+        appendLine('OSINT enumeration is isolated from Evidence v2 correlation and the current enrichment result.', 'muted');
+        triggerGlitch('glitch-result', 240);
       } finally { endOperation(); }
       return;
     }
