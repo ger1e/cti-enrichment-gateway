@@ -26,9 +26,8 @@
     .terminal-hero:before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--red),#fff,var(--red),transparent);opacity:.65;animation:hero-scan 4.2s ease-in-out infinite}
     @keyframes hero-scan{0%,100%{transform:translateY(0);opacity:.08}50%{transform:translateY(588px);opacity:.7}}
     .hero-copy{position:relative;z-index:4;max-width:800px}.ascii-logo{margin:0;color:var(--green);font-size:clamp(3.5rem,8.5vw,8.8rem);font-weight:900;line-height:.78;letter-spacing:-.08em;text-shadow:0 0 8px rgba(57,255,20,.38),0 0 28px rgba(57,255,20,.12);filter:contrast(1.08)}
-    .hero-kicker{margin:25px 0 0;color:var(--green);font-size:clamp(.75rem,1.2vw,1.05rem);letter-spacing:.17em}.hero-doctrine{margin:30px 0 0;color:var(--green);font-size:clamp(1rem,1.55vw,1.35rem);line-height:1.55}.hero-doctrine span{display:block;opacity:0;transform:translateX(-8px);animation:line-reveal .34s ease forwards}.hero-doctrine span:nth-child(1){animation-delay:.2s}.hero-doctrine span:nth-child(2){animation-delay:.38s}.hero-doctrine span:nth-child(3){animation-delay:.56s}@keyframes line-reveal{to{opacity:1;transform:none}}
-    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px}.terminal-button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 18px;border:1px solid var(--line-strong);color:var(--green);font-weight:700;letter-spacing:.06em;background:rgba(57,255,20,.025)}.terminal-button.secondary{color:var(--white);border-color:rgba(247,255,246,.16)}.terminal-button:hover{background:rgba(57,255,20,.07);box-shadow:0 0 20px rgba(57,255,20,.1)}
-    .hero-ghost{position:absolute;right:4%;top:12%;bottom:8%;width:min(39%,520px);pointer-events:none;opacity:.36}.ghost-grid{position:absolute;inset:0;background:radial-gradient(circle at 50% 48%,rgba(57,255,20,.11),transparent 42%),linear-gradient(90deg,transparent 49.8%,rgba(57,255,20,.12) 50%,transparent 50.2%),linear-gradient(transparent 49.8%,rgba(57,255,20,.12) 50%,transparent 50.2%)}.ghost-ring{position:absolute;left:50%;top:50%;width:88%;aspect-ratio:1;border:1px solid rgba(57,255,20,.25);border-radius:50%;transform:translate(-50%,-50%);animation:ring-spin 18s linear infinite}.ghost-ring:before{content:"";position:absolute;inset:13%;border:1px dashed rgba(57,255,20,.19);border-radius:50%}.ghost-ring:after{content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;transform:translate(-50%,-50%);border:1px solid var(--red);box-shadow:0 0 14px rgba(255,36,56,.8)}@keyframes ring-spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+    .terminal-button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 18px;border:1px solid var(--line-strong);color:var(--green);font-weight:700;letter-spacing:.06em;background:rgba(57,255,20,.025)}.terminal-button.secondary{color:var(--white);border-color:rgba(247,255,246,.16)}.terminal-button:hover{background:rgba(57,255,20,.07);box-shadow:0 0 20px rgba(57,255,20,.1)}
+    .hero-ghost{position:absolute;right:4%;top:12%;bottom:8%;width:min(39%,520px);pointer-events:none;opacity:.36}
     .terminal-overview,.terminal-section,.terminal-integrations{margin-top:18px;border:1px solid var(--line);background:var(--glass);box-shadow:inset 0 0 58px rgba(57,255,20,.012)}
     .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px;padding:8px 18px;border-bottom:1px solid var(--line);color:var(--green);font-size:.72rem;letter-spacing:.07em}.section-head .muted{color:var(--muted)}
     .overview-grid{display:grid;grid-template-columns:repeat(4,1fr)}.metric{min-height:116px;padding:22px;border-right:1px solid var(--line)}.metric:last-child{border-right:0}.metric-label{display:block;color:var(--muted);font-size:.68rem}.metric-value{display:block;margin-top:7px;color:var(--green);font-size:clamp(1.6rem,3vw,2.6rem);font-variant-numeric:tabular-nums}.metric-note{display:block;margin-top:8px;color:var(--green);font-size:.62rem;letter-spacing:.05em}
@@ -38,10 +37,14 @@
     .terminal-footer{display:grid;grid-template-columns:1fr auto;gap:18px;margin-top:18px;padding:18px 4px;border-top:1px solid var(--line);color:var(--muted);font-size:.68rem}.terminal-footer strong{color:var(--green)}.footer-lines span{display:block;margin-bottom:7px}.footer-ready{align-self:end;color:var(--green);white-space:nowrap}
     [data-reveal]{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}[data-reveal].is-visible{opacity:1;transform:none}.is-glitching .ascii-logo{animation:hero-glitch .28s steps(3,end) 1}@keyframes hero-glitch{0%,100%{transform:none;text-shadow:0 0 8px rgba(57,255,20,.38)}33%{transform:translateX(-2px);text-shadow:2px 0 var(--red),-2px 0 var(--green)}66%{transform:translateX(2px);text-shadow:-2px 0 var(--red),2px 0 var(--green)}}
     @media(max-width:900px){.terminal-state{font-size:.62rem}.terminal-grid{grid-template-columns:1fr}.overview-grid{grid-template-columns:repeat(2,1fr)}.metric:nth-child(2){border-right:0}.metric:nth-child(-n+2){border-bottom:1px solid var(--line)}.integration-grid{grid-template-columns:repeat(2,1fr)}.integration:nth-child(2n){border-right:0}.hero-ghost{width:46%;opacity:.24}}
-    @media(max-width:640px){.terminal-page{width:calc(100% - 14px);padding-top:7px}.terminal-topline{grid-template-columns:1fr auto;gap:8px;padding:7px 10px}.terminal-state{grid-column:1/-1;grid-row:2;justify-self:start;white-space:normal;font-size:.56rem}.terminal-brand{font-size:1rem}.terminal-enter{padding:8px 9px;font-size:.58rem}.terminal-hero{min-height:520px;padding:42px 22px 34px}.ascii-logo{font-size:clamp(3.2rem,18vw,5.6rem)}.hero-ghost{right:-18%;top:18%;width:70%;opacity:.15}.hero-actions{display:grid;grid-template-columns:1fr}.terminal-button{width:100%}.overview-grid{grid-template-columns:1fr}.metric{border-right:0!important;border-bottom:1px solid var(--line)!important;min-height:96px;padding:17px}.metric:last-child{border-bottom:0!important}.integration-grid{grid-template-columns:1fr}.integration{border-right:0!important}.terminal-session{min-height:320px;padding:18px;font-size:.78rem;overflow-x:auto}.terminal-footer{grid-template-columns:1fr}.footer-ready{justify-self:start}.matrix-rain{opacity:.33}.rain:nth-child(2n){opacity:.18}}
-    @media(max-width:430px){.terminal-page{width:calc(100% - 10px)}.terminal-hero{min-height:500px;padding:36px 16px 28px}.section-head{padding:8px 12px;font-size:.64rem}.cap-list{padding:8px 14px 14px}.cap-row{padding-left:28px}.terminal-session{padding:16px 14px;font-size:.75rem}.hero-kicker{font-size:.68rem}.hero-doctrine{font-size:.95rem}.terminal-state .hide-mobile{display:none}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rain,.status-dot,.terminal-hero:before,.ghost-ring,.hero-doctrine span,.session-line,.cursor,.is-glitching .ascii-logo{animation:none!important}.hero-doctrine span,.session-line{opacity:1!important;transform:none!important}[data-reveal]{opacity:1!important;transform:none!important;transition:none!important}.matrix-rain{opacity:.2}}
+    @media(max-width:640px){.terminal-page{width:calc(100% - 14px);padding-top:7px}.terminal-topline{grid-template-columns:1fr auto;gap:8px;padding:7px 10px}.terminal-state{grid-column:1/-1;grid-row:2;justify-self:start;white-space:normal;font-size:.56rem}.terminal-brand{font-size:1rem}.terminal-enter{padding:8px 9px;font-size:.58rem}.terminal-hero{min-height:520px;padding:42px 22px 34px}.ascii-logo{font-size:clamp(3.2rem,18vw,5.6rem)}.hero-ghost{right:-18%;top:18%;width:70%;opacity:.15}.overview-grid{grid-template-columns:1fr}.metric{border-right:0!important;border-bottom:1px solid var(--line)!important;min-height:96px;padding:17px}.metric:last-child{border-bottom:0!important}.integration-grid{grid-template-columns:1fr}.integration{border-right:0!important}.terminal-session{min-height:320px;padding:18px;font-size:.78rem;overflow-x:auto}.terminal-footer{grid-template-columns:1fr}.footer-ready{justify-self:start}.matrix-rain{opacity:.33}.rain:nth-child(2n){opacity:.18}}
+    @media(max-width:430px){.terminal-page{width:calc(100% - 10px)}.terminal-hero{min-height:500px;padding:36px 16px 28px}.section-head{padding:8px 12px;font-size:.64rem}.cap-list{padding:8px 14px 14px}.cap-row{padding-left:28px}.terminal-session{padding:16px 14px;font-size:.75rem}.terminal-state .hide-mobile{display:none}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rain,.status-dot,.terminal-hero:before,.session-line,.cursor,.is-glitching .ascii-logo{animation:none!important}.session-line{opacity:1!important;transform:none!important}[data-reveal]{opacity:1!important;transform:none!important;transition:none!important}.matrix-rain{opacity:.2}}
   </style>
+  <link rel="stylesheet" href="/brand-unification.css">
+  <link rel="stylesheet" href="/landing-radar-motion.css">
+  <link rel="stylesheet" href="/landing-desktop-fit.css">
+  <link rel="stylesheet" href="/site-cursor.css">
 </head>
 <body>
   <div class="matrix-rain" aria-hidden="true">
@@ -50,26 +53,17 @@
 
   <main class="terminal-page">
     <header class="terminal-topline">
-      <a class="terminal-brand" href="/">PARA11AX</a>
+      <a class="terminal-brand" href="/" aria-label="PARA11AX home"><img class="shared-radar-lockup" src="/assets/brand/para11ax-radar-lockup.svg" alt="PARA11AX"></a>
       <div class="terminal-state">LINK: UP <span class="state-sep">|</span> AUTH: UP <span class="state-sep">|</span> SYS: NOMINAL <span class="state-sep hide-mobile">|</span> <span class="hide-mobile">v2.0.0</span><span class="status-dot" aria-label="operational"></span></div>
       <a class="terminal-enter" href="/app/">&gt; ENTER TERMINAL</a>
     </header>
 
     <section class="terminal-hero" data-reveal aria-labelledby="hero-title">
       <div class="hero-copy">
-        <h1 id="hero-title" class="ascii-logo">PARA11AX</h1>
-        <p class="hero-kicker">PROVENANCE-FIRST CTI PLATFORM</p>
-        <div class="hero-doctrine" aria-label="PARA11AX doctrine">
-          <span>EVIDENCE FIRST.</span>
-          <span>BOUNDED ALWAYS.</span>
-          <span>OPERATIONAL WHEN SUPPORTED.</span>
-        </div>
-        <div class="hero-actions">
-          <a class="terminal-button" href="/app/">&gt; ACCESS TERMINAL</a>
-          <a class="terminal-button secondary" href="https://github.com/ger1e/para11ax">&gt; SOURCE / DOCS</a>
-        </div>
+        <h1 id="hero-title" class="ascii-logo" data-wordmark="para11ax-angular-a" aria-label="PARA11AX"><span class="logo-white">PΛRΛ</span><span class="logo-green">11</span><span class="logo-white">ΛX</span></h1>
       </div>
-      <div class="hero-ghost" aria-hidden="true"><div class="ghost-grid"></div><div class="ghost-ring"></div></div>
+      <div class="hero-ghost" aria-hidden="true"></div>
+      <blockquote class="hero-kiriakou">You’ve got to follow the evidence… That doesn’t make it fact.<cite>— John Kiriakou</cite></blockquote>
     </section>
 
     <section class="terminal-overview" data-reveal>
@@ -96,12 +90,12 @@
       <section class="terminal-section">
         <div class="section-head"><span>&gt; PARA11AX TERMINAL v2.0.0</span><span>● OPERATIONAL</span></div>
         <div class="terminal-session" aria-label="terminal example">
-          <div class="session-line">user@para11ax:~$ whoami</div>
+          <div class="session-line">analyst@para11ax:~$ whoami</div>
           <div class="session-line">Threat Hunter</div>
-          <div class="session-line">user@para11ax:~$ mission</div>
+          <div class="session-line">analyst@para11ax:~$ mission</div>
           <div class="session-line">Evidence first. Bounded always.</div>
           <div class="session-line">Operational when supported.</div>
-          <div class="session-line">user@para11ax:~$ <span class="cursor" aria-hidden="true"></span></div>
+          <div class="session-line">analyst@para11ax:~$ <span class="cursor" aria-hidden="true"></span></div>
         </div>
       </section>
     </div>
