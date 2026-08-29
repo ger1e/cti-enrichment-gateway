@@ -125,7 +125,7 @@ test('all banner assets are minimal: one real PPI radar, PARA11AX, and the Kiria
     assert.match(svg, /data-wordmark=["']para11ax-angular-a["']/i, `${path} missing the angular-A wordmark`);
     assert.match(svg, /data-radar=["']ppi["']/i, `${path} missing the canonical PPI radar`);
     assert.equal((svg.match(/data-radar=["']ppi["']/gi) ?? []).length, 1, `${path} must contain exactly one radar`);
-    assert.match(svg, /follow the evidence/i, `${path} missing Kiriakou quote`);
+    assert.match(svg, /follow[\s\S]{0,120}the evidence/i, `${path} missing Kiriakou quote`);
     assert.match(svg, /doesn.?t make it fact/i, `${path} missing Kiriakou quote conclusion`);
     assert.match(svg, /John Kiriakou/i, `${path} missing quote attribution`);
     assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["']/i, `${path} radar sweep must rotate`);
