@@ -4,8 +4,8 @@ import test from 'node:test';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('production terminal keeps compact PPI branding, CRT glass, and the Natural Earth globe', async () => {
-  const [prepaint, main, brandCss, brandJs, boot, earthCss, earthJs] = await Promise.all([
+test('production terminal keeps one compact PPI lockup, CRT glass, and the Natural Earth globe', async () => {
+  const [prepaint, main, brandCss, brandJs, boot, earthCss, earthJs, lockup] = await Promise.all([
     read('app/prepaint-v7.css'),
     read('app/terminal-main.js'),
     read('app/brand-final.css'),
@@ -13,6 +13,7 @@ test('production terminal keeps compact PPI branding, CRT glass, and the Natural
     read('app/boot.js'),
     read('app/earth-globe.css'),
     read('app/earth-globe.js'),
+    read('assets/brand/para11ax-radar-lockup.svg'),
   ]);
 
   assert.match(prepaint, /@import url\('\/app\/brand-final\.css'\);/);
@@ -23,16 +24,20 @@ test('production terminal keeps compact PPI branding, CRT glass, and the Natural
   assert.match(main, /await import\('\.\/brand-final\.js'\);/);
   assert.match(main, /earth-globe\.js/);
 
-  assert.match(brandCss, /\.terminal-mark::before,\.shell-brand::before\{[\s\S]*conic-gradient\(from var\(--ppi-angle\)/);
+  assert.doesNotMatch(brandCss, /\.terminal-mark::before|\.shell-brand::before/,
+    'the canonical SVG already contains the PPI; CSS must not prepend another radar');
+  assert.match(lockup, /data-radar=["']ppi["']/i);
+  assert.match(lockup, /<animateTransform\b[^>]*type=["']rotate["']/i);
   assert.doesNotMatch(brandCss, /\.boot-globe>\*\{display:none!important\}/);
   assert.doesNotMatch(brandCss, /\.boot-globe\{[\s\S]*conic-gradient\(from var\(--ppi-angle\)/);
   assert.match(earthJs, /boot-earth-window/);
   assert.match(earthJs, /boot-earth-track/);
-  assert.match(earthCss, /\.boot-earth-track\{[^}]*animation:\s*earth-longitude\s+36s\s+linear\s+infinite/);
+  assert.match(earthJs, /animateTransform/);
+  assert.match(earthJs, /setAttribute\(['"]to['"], ['"]-720 0['"]\)/);
+  assert.doesNotMatch(earthCss, /\.boot-earth-track\{[^}]*animation:/);
 
   assert.match(brandCss, /\.crt\{[\s\S]*repeating-linear-gradient/);
   assert.match(brandCss, /@keyframes crt-phosphor-flicker/);
-  assert.match(brandCss, /prefers-reduced-motion:reduce[\s\S]*\.terminal-mark::before,\.shell-brand::before\{animation:ppi-sweep-angle\s+24s\s+linear\s+infinite!important\}/);
   assert.match(brandCss, /prefers-reduced-motion:reduce[\s\S]*\.crt\{animation:none!important\}/);
   assert.match(brandCss, /#pepe-ascii,\.boot-pepe\{display:none!important\}/);
 
