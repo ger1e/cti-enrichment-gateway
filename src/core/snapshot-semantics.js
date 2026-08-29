@@ -1,3 +1,15 @@
+const SET_ARRAY_KEYS = new Set([
+  'bases',
+  'evidenceFingerprints',
+  'negativeProviders',
+  'notes',
+  'positiveProviders',
+  'providers',
+  'requiredTables',
+  'semanticClasses',
+  'sources',
+]);
+
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   for (const child of Object.values(value)) deepFreeze(child);
@@ -12,14 +24,27 @@ function stableValue(value) {
   return value;
 }
 
+function stableSetValue(value, parentKey = null) {
+  if (Array.isArray(value)) {
+    const items = value.map(item => stableSetValue(item));
+    if (!SET_ARRAY_KEYS.has(parentKey)) return items;
+    const byJson = new Map(items.map(item => [JSON.stringify(item), item]));
+    return [...byJson.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, item]) => item);
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.keys(value).sort().map(key => [key, stableSetValue(value[key], key)]));
+  }
+  return value;
+}
+
 function sortedStrings(values, limit = Infinity) {
   return [...new Set((Array.isArray(values) ? values : []).filter(value => typeof value === 'string'))]
     .sort((a, b) => a.localeCompare(b))
     .slice(0, limit);
 }
 
-function sortedStable(values, limit) {
-  const items = (Array.isArray(values) ? values : []).map(stableValue);
+function sortedStable(values, limit, normalizer = stableValue) {
+  const items = (Array.isArray(values) ? values : []).map(normalizer);
   const byJson = new Map(items.map(item => [JSON.stringify(item), item]));
   return [...byJson.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
@@ -95,7 +120,7 @@ export function semanticSnapshot(enrichment) {
     limitations: sortedStrings(enrichment.limitations ?? correlation.limitations),
     evidence,
     relationships,
-    contradictions: sortedStable(correlation.contradictions, 64),
+    contradictions: sortedStable(correlation.contradictions, 64, stableSetValue),
     freshness: correlation.freshness?.overall ?? null,
     evidenceQuality: correlation.evidenceQuality?.level ?? null,
     huntability: correlation.huntability?.level ?? null,
@@ -103,8 +128,8 @@ export function semanticSnapshot(enrichment) {
       disposition: decision.disposition ?? null,
       confidence: decision.confidence ?? null,
       reasons: sortedStrings(decision.reasons, 16),
-      telemetry: stableValue(decision.telemetry ?? null),
-      attackMappings: sortedStable(decision.attackMappings, 64),
+      telemetry: stableSetValue(decision.telemetry ?? null),
+      attackMappings: sortedStable(decision.attackMappings, 64, stableSetValue),
       huntPlan: (Array.isArray(decision.huntPlan) ? decision.huntPlan : []).slice(0, 8).map(projectHunt),
     },
   };
