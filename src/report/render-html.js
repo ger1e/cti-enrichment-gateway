@@ -15,6 +15,24 @@ function pill(value, cls = '') {
   return `<span class="pill ${esc(cls)}">${esc(value)}</span>`;
 }
 
+function label(value) {
+  return String(value).replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function factValue(value) {
+  if (value == null) return 'unknown';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return value.map(factValue).join(', ') || 'none';
+  if (typeof value === 'object') return Object.entries(value).map(([key, item]) => `${label(key)}=${factValue(item)}`).join(' · ');
+  return String(value);
+}
+
+function structured(item) {
+  if (typeof item === 'string') return item;
+  if (!item || typeof item !== 'object') return factValue(item);
+  return Object.entries(item).map(([key, value]) => `${label(key)}: ${factValue(value)}`).join(' · ');
+}
+
 export function renderHtml(model) {
   const assessment = model.executiveAssessment ?? {};
   const body = [
@@ -24,14 +42,14 @@ export function renderHtml(model) {
     section('Suspicious Behavior to Look Out For', list(model.suspiciousBehavior, item => `${pill(item.state, item.state.toLowerCase())} ${pill(item.mappingState, 'mapping')} ${esc(item.title)} <span class="evidence">${esc(item.evidenceIds.join(', '))}</span>`)),
     section('Indicators & Observables', `<table><thead><tr><th>Type</th><th>Value</th></tr></thead><tbody>${model.observables.map(item => `<tr><td>${esc(item.type)}</td><td class="mono">${esc(item.value)}</td></tr>`).join('')}</tbody></table>`),
     section('Threat Context', `<p><strong>Actors:</strong> ${esc(model.threatContext.actors.join(', ') || 'None evidenced.')}</p><p><strong>Malware / tooling:</strong> ${esc(model.threatContext.malware.join(', ') || 'None evidenced.')}</p>${list(model.threatContext.infrastructure, item => `${esc(item.type)}: <span class="mono">${esc(item.value)}</span>`, 'No related infrastructure.')}`),
-    section('Correlation & Relationships', list(model.relationships, item => `${esc(item.provider ?? 'gateway')}: ${esc(item.relationship ?? item.type ?? 'related')} - <span class="mono">${esc(item.value ?? item.target ?? 'unknown')}</span>`)),
+    section('Correlation & Relationships', list(model.relationships, item => `${esc(item.provider ?? 'gateway')}: ${esc(item.relationship ?? item.type ?? 'related')} - <span class="mono">${esc(item.value ?? item.target ?? structured(item))}</span>`)),
     section('Timeline', list(model.timeline, item => `<time>${esc(item.at)}</time> ${esc(item.kind)} <span class="evidence">${esc(item.evidenceId)}</span>`)),
     section('Analytical Frameworks', `<h3>MITRE ATT&CK</h3>${list(model.frameworks.attack, item => `${pill(item.mappingState, 'mapping')} <span class="mono">${esc(item.id)}</span> <span class="evidence">${esc(item.evidenceIds.join(', '))}</span>`, 'No defensible ATT&CK mappings.')}<h3>Cyber Kill Chain</h3><p class="muted">${esc(model.frameworks.killChain.join(', ') || 'No defensible mapping.')}</p><h3>Pyramid of Pain</h3><p class="muted">${esc(model.frameworks.pyramidOfPain.join(', ') || 'No defensible mapping.')}</p><h3>Diamond Model</h3><p class="muted">${esc(model.frameworks.diamondModel.join(', ') || 'No defensible mapping.')}</p>`),
     section('Hunt Opportunities', list(model.huntOpportunities, item => `<strong>${esc(item.id)}</strong><p>${esc(item.hypothesis)}</p><p><strong>Telemetry:</strong> ${esc(item.telemetry.join(', '))}</p>${item.kql ? `<pre>${esc(item.kql)}</pre>` : ''}`)),
-    section('Contradictions & Alternative Explanations', list(model.contradictions, item => esc(typeof item === 'string' ? item : JSON.stringify(item)))),
-    section('Recommended Actions', list(model.actions, item => esc(typeof item === 'string' ? item : JSON.stringify(item)))),
-    section('Intelligence & Telemetry Gaps', list(model.gaps, item => esc(typeof item === 'string' ? item : JSON.stringify(item)))),
-    section('Confidence & Limitations', `<p><strong>Confidence:</strong> ${esc(assessment.confidence ?? 'unknown')}</p>${list(model.limitations, item => esc(item))}`),
+    section('Contradictions & Alternative Explanations', list(model.contradictions, item => esc(structured(item)))),
+    section('Recommended Actions', list(model.actions, item => esc(structured(item)))),
+    section('Intelligence & Telemetry Gaps', list(model.gaps, item => esc(structured(item)))),
+    section('Confidence & Limitations', `<p><strong>Confidence:</strong> ${esc(assessment.confidence ?? 'unknown')}</p>${list(model.limitations, item => esc(structured(item)))}`),
     section('Sources & Evidence Provenance', `${list(model.evidence, item => `<span class="mono">${esc(item.id)}</span> ${esc(item.provider)} parser=${esc(item.integrity.parserVersion)} retrieved=${esc(item.retrievedAt)}`)}${list(model.sources, item => `<span class="mono">${esc(item)}</span>`, 'No external references.')}`),
     section('Reproducibility / Integrity', `<dl><dt>Report schema</dt><dd>${esc(model.reportSchemaVersion)}</dd><dt>Snapshot SHA-256</dt><dd class="mono">${esc(model.reproducibility.snapshotSha256)}</dd><dt>Source SHA</dt><dd class="mono">${esc(model.reproducibility.sourceSha ?? 'unavailable')}</dd><dt>Generated</dt><dd>${esc(model.reproducibility.generatedAt)}</dd></dl>`),
   ].join('');
