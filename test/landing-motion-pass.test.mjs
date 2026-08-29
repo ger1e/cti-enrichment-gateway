@@ -53,15 +53,16 @@ test('mobile and reduced-motion radar contracts lower complexity without hiding 
   assert.match(rainSvg, /prefers-reduced-motion:\s*reduce/i);
 });
 
-test('medium desktop landing uses a bounded fit layer instead of large-desktop hero geometry', () => {
+test('medium desktop landing uses an in-flow two-column hero instead of an absolute radar overlay', () => {
   assert.equal(existsSync('landing-desktop-fit.css'), true, 'medium-desktop landing fit stylesheet must exist');
   const js = adapter();
   const css = desktopFit();
   assert.match(js, /DESKTOP_FIT_HREF\s*=\s*['"]\/landing-desktop-fit\.css['"]/i);
   assert.match(css, /@media\s*\(min-width:\s*901px\)\s*and\s*\(max-width:\s*1600px\)/i);
-  assert.match(css, /\.terminal-page\s*\{[^}]*width:\s*min\(1240px,calc\(100%\s*-\s*40px\)\)/i);
-  assert.match(css, /\.terminal-hero\s*\{[^}]*min-height:\s*480px/i);
-  assert.match(css, /\.hero-ghost\s*\{[^}]*width:\s*min\(33%,400px\)/i);
-  assert.match(css, /\.ascii-logo\s*\{[^}]*font-size:\s*clamp\([^}]*6\.4rem/i);
+  assert.match(css, /\.terminal-page\s*\{[^}]*width:\s*min\(1180px,calc\(100%\s*-\s*40px\)\)/i);
+  assert.match(css, /\.terminal-hero\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:/is);
+  assert.match(css, /\.terminal-hero\s*\{[^}]*min-height:\s*440px/i);
+  assert.match(css, /\.hero-ghost\s*\{[^}]*position:\s*relative!important[^}]*width:\s*min\(100%,360px\)[^}]*aspect-ratio:\s*1/is);
+  assert.match(css, /\.ascii-logo\s*\{[^}]*font-size:\s*clamp\([^}]*5\.8rem/i);
   assert.doesNotMatch(css, /transform:\s*scale\(|zoom\s*:/i, 'desktop fit must use real layout constraints, not page scaling');
 });
