@@ -4,15 +4,13 @@ import test from 'node:test';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('browser cuts legacy app asset over to PARA11AX terminal wrapper before filesystem resolution', async () => {
+test('browser enters the PARA11AX terminal wrapper directly without a compatibility rewrite', async () => {
   const html = await read('app/index.html');
   const vercel = JSON.parse(await read('vercel.json'));
   const main = await read('app/terminal-main.js');
   const entry = await read('app/terminal-entry.js');
-  assert.match(html, /<script\s+type="module"\s+src="\/app\/app\.js"/);
-  const rewriteIndex = vercel.routes.findIndex(route => route.src === '/app/app.js' && route.dest === '/app/terminal-main.js');
-  const filesystemIndex = vercel.routes.findIndex(route => route.handle === 'filesystem');
-  assert.ok(rewriteIndex >= 0 && rewriteIndex < filesystemIndex, 'terminal asset rewrite must run before filesystem');
+  assert.match(html, /<script\s+type="module"\s+src="\/app\/terminal-main\.js"/);
+  assert.equal(vercel.routes.some(route => route.src === '/app/app.js'), false, 'legacy app.js rewrite must stay removed');
   assert.match(main, /import ['"]\.\/terminal-entry\.js['"]/);
   assert.match(main, /import ['"]\.\/terminal-polish\.js['"]/);
   assert.match(entry, /\/app\/shell\.css/);
