@@ -2,7 +2,7 @@
 [data-reveal]{opacity:1!important;transform:none!important}
 .terminal-hero:before{content:none!important;animation:none!important}
 
-.matrix-rain{opacity:.58!important;background-image:url('/assets/brand/para11ax-rain.svg')!important;background-position:center top!important;background-size:72% auto!important;background-repeat:repeat!important}
+.matrix-rain{opacity:.58!important;background-image:url('/assets/brand/para11ax-rain.svg')!important;background-position:center top!important;background-size:56% auto!important;background-repeat:repeat!important}
 .matrix-rain>.rain{display:none!important}
 
 .terminal-hero{display:grid!important;grid-template-columns:minmax(360px,.92fr) minmax(0,1.08fr)!important;grid-template-rows:auto!important;align-items:center!important;column-gap:clamp(28px,5vw,78px)!important;min-height:590px!important}
@@ -32,7 +32,7 @@ box-shadow:0 0 0 7px rgba(57,255,20,.018),inset 0 0 58px rgba(57,255,20,.032),0 
 
 @media(max-width:900px){.terminal-hero{grid-template-columns:minmax(300px,.9fr) minmax(0,1.1fr)!important;column-gap:24px!important}.hero-ghost{width:min(100%,440px)!important}.ascii-logo{font-size:clamp(3.8rem,8.5vw,6.3rem)!important}}
 @media(max-width:640px){
-  .matrix-rain{opacity:.38!important;background-size:auto 72%!important}
+  .matrix-rain{opacity:.38!important;background-size:auto 56%!important}
   .terminal-hero{grid-template-columns:1fr!important;grid-template-rows:auto auto!important;gap:14px!important;min-height:auto!important;padding:28px 18px 30px!important}
   .hero-copy{grid-column:1!important;grid-row:1!important;align-self:center!important;padding:4px 0 0!important;text-align:center!important}
   .ascii-logo{font-size:clamp(3.25rem,16vw,5rem)!important;white-space:nowrap!important}
