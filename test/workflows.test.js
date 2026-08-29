@@ -77,7 +77,8 @@ test('active workflows preserve MAX routing order', () => {
   assert.deepEqual(WORKFLOWS.asn, ['rdap', 'ripestat', 'spamhaus-drop']);
   assert.deepEqual(WORKFLOWS.cidr, ['rdap', 'ripestat', 'spamhaus-drop']);
   assert.deepEqual(WORKFLOWS.certificate, ['censys', 'virustotal']);
-  assert.equal(WORKFLOW_CALL_LIMITS.certificate, 4);
-  assert.equal(WORKFLOW_CALL_LIMITS.domain, 15);
+  for (const [type, providers] of Object.entries(WORKFLOWS)) {
+    assert.equal(WORKFLOW_CALL_LIMITS[type], providers.length * 2, `${type} workflow must reserve two bounded attempts per provider`);
+  }
   assert.equal(WORKFLOW_BLUEPRINTS, WORKFLOWS);
 });
