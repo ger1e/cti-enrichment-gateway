@@ -9,32 +9,20 @@ const radar = () => read('assets/brand/para11ax-radar.svg');
 const rain = () => read('assets/brand/para11ax-rain.svg');
 const desktopFit = () => read('landing-desktop-fit.css');
 
-test('production landing carries the final one-radar identity before runtime', () => {
-  const html = read('landing-maxx.html');
-  const scriptIndex = html.indexOf('<script type="module" src="/landing-terminal-v7.js"></script>');
-  assert.ok(scriptIndex > 0, 'production landing module must remain explicit');
+test('production landing is source-finalized and bypasses the runtime-mutated legacy artifact', () => {
+  const html = read('index.html');
+  const vercel = JSON.parse(read('vercel.json'));
+  const root = vercel.routes.find(route => route.src === '/');
+  const legacy = vercel.routes.find(route => route.src === '/landing-maxx.html');
 
-  const styles = [
-    '/brand-unification.css',
-    '/site-cursor.css',
-    '/landing-radar-motion.css',
-    '/landing-desktop-fit.css',
-  ];
-  let previous = -1;
-  for (const href of styles) {
-    const marker = `<link rel="stylesheet" href="${href}">`;
-    const index = html.indexOf(marker);
-    assert.ok(index > previous, `${href} must load in deterministic prepaint order`);
-    assert.ok(index < scriptIndex, `${href} must load before the landing runtime`);
-    previous = index;
-  }
-
-  assert.match(html, /class="terminal-brand"[^>]*>\s*<img[^>]*class="shared-radar-lockup"[^>]*src="\/assets\/brand\/para11ax-radar-lockup\.svg"/i);
-  assert.match(html, /class="ascii-logo"[^>]*data-brand-split="true"[^>]*data-wordmark="para11ax-angular-a"[^>]*aria-label="PARA11AX"[^>]*>\s*<span class="logo-white">PΛRΛ<\/span><span class="logo-green">11<\/span><span class="logo-white">ΛX<\/span>/i);
-  assert.match(html, /class="hero-kiriakou"/i);
-  assert.doesNotMatch(html, /class="hero-kicker"|class="hero-doctrine"|class="hero-actions"/i);
-  assert.match(html, /analyst@para11ax:~\$/);
-  assert.doesNotMatch(html, /user@para11ax:~\$/);
+  assert.equal(root?.dest, '/index.html');
+  assert.equal(legacy?.dest, '/index.html');
+  assert.doesNotMatch(html, /<script\b[^>]*\bsrc=/i, 'production landing must not depend on structural runtime mutation');
+  assert.match(html, /<img\s+src="\/assets\/brand\/para11ax-radar\.svg"/i);
+  assert.match(html, /class="wordmark"[^>]*data-wordmark="para11ax-angular-a"[^>]*aria-label="PARA11AX"[^>]*>\s*<span class="white">PΛRΛ<\/span><span class="green">11<\/span><span class="white">ΛX<\/span>/i);
+  assert.match(html, /You’ve got to follow the evidence/i);
+  assert.match(html, /John Kiriakou/i);
+  assert.match(html, /href="\/app\/"[^>]*>ENTER PARA11AX/i);
 });
 
 test('landing radar uses a self-contained rotational phosphor SVG sweep', () => {
