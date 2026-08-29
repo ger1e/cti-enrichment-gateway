@@ -1,7 +1,7 @@
+import './brand-unification.js';
+
 const media = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
 const reduced = Boolean(media?.matches);
-const EXTRA_RAIN_COLUMNS = 16;
-const RADAR_CONTACTS = 4;
 const CURSOR_HREF = '/site-cursor.css';
 const MOTION_HREF = '/landing-radar-motion.css';
 const PROMPT_TEXT = 'analyst@para11ax:~$';
@@ -25,23 +25,6 @@ function ensureMotionStylesheet() {
   ensureStylesheet(MOTION_HREF);
 }
 
-function enhanceRadar() {
-  const radar = document.querySelector('.hero-ghost');
-  if (!radar || radar.querySelector('.radar-sweep')) return;
-
-  for (const className of ['radar-trail', 'radar-sweep', 'radar-pulse']) {
-    const layer = document.createElement('div');
-    layer.className = className;
-    radar.append(layer);
-  }
-
-  for (let index = 0; index < RADAR_CONTACTS; index += 1) {
-    const contact = document.createElement('i');
-    contact.className = `radar-contact radar-contact-${index + 1}`;
-    radar.append(contact);
-  }
-}
-
 function normalizePromptIdentity() {
   for (const node of document.querySelectorAll('.terminal-session .session-line')) {
     let value = node.textContent || '';
@@ -50,30 +33,9 @@ function normalizePromptIdentity() {
   }
 }
 
-function densifyRain() {
-  const rain = document.querySelector('.matrix-rain');
-  if (!rain || rain.dataset.dense === 'v7') return;
-  rain.dataset.dense = 'v7';
-  const glyphs = [
-    'PARA11AX001101', 'PROVENANCE1100', 'EVIDENCEV20011', 'FIXEDEGRESS1011',
-    'OBSERVED110011', 'INFERRED001101', 'CONTEXTUAL1100', 'FAILCLOSED0011',
-  ];
-  for (let index = 0; index < EXTRA_RAIN_COLUMNS; index += 1) {
-    const column = document.createElement('span');
-    column.className = 'rain';
-    column.textContent = glyphs[index % glyphs.length];
-    column.style.left = `${2 + ((index * 6.1) % 96)}%`;
-    column.style.setProperty('--d', `${3.1 + ((index * 0.41) % 3.8)}s`);
-    column.style.setProperty('--delay', `${-0.6 - ((index * 0.57) % 5.2)}s`);
-    rain.append(column);
-  }
-}
-
 ensureCursorStylesheet();
 ensureMotionStylesheet();
-enhanceRadar();
 normalizePromptIdentity();
-densifyRain();
 
 const reveal = (node) => node?.classList.add('is-visible');
 const sections = [...document.querySelectorAll('[data-reveal]')];
@@ -122,11 +84,7 @@ media?.addEventListener?.('change', (event) => {
 });
 
 export {
-  EXTRA_RAIN_COLUMNS,
-  RADAR_CONTACTS,
   clearMotionTimers,
-  densifyRain,
-  enhanceRadar,
   ensureCursorStylesheet,
   ensureMotionStylesheet,
   normalizePromptIdentity,

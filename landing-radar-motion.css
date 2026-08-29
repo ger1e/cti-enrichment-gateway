@@ -1,7 +1,10 @@
 .terminal-hero:before{content:none!important;animation:none!important}
 
-.rain:nth-child(5n){opacity:.34;filter:brightness(.76);animation-duration:5.9s}
-.rain:nth-child(9n){opacity:.54;filter:brightness(1.16);animation-duration:4.15s}
+.matrix-rain{opacity:.58!important;background-image:url('/assets/brand/para11ax-rain.svg')!important;background-position:center top!important;background-size:cover!important;background-repeat:repeat-y!important}
+.matrix-rain>.rain{display:none!important}
+
+.hero-ghost{isolation:isolate;opacity:.46!important;background:url('/assets/brand/para11ax-radar.svg') center/contain no-repeat!important}
+.hero-ghost>.ghost-grid,.hero-ghost>.ghost-ring{display:none!important}
 
 .terminal-button:hover,.terminal-button:focus-visible{animation:acquisition-pulse .26s steps(2,end) 1}
 @keyframes acquisition-pulse{
@@ -10,49 +13,18 @@
   100%{background:rgba(57,255,20,.07);box-shadow:0 0 20px rgba(57,255,20,.1)}
 }
 
-.hero-ghost{isolation:isolate}
-.radar-trail,.radar-sweep,.radar-pulse{position:absolute;left:50%;top:50%;pointer-events:none}
-.radar-trail{z-index:1;width:88%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%) rotate(0deg);background:conic-gradient(from 0deg,transparent 0 314deg,rgba(57,255,20,.015) 326deg,rgba(57,255,20,.065) 344deg,rgba(57,255,20,.2) 358deg,transparent 360deg);mix-blend-mode:screen;animation:radar-sweep 4.8s linear infinite}
-.radar-sweep{z-index:3;width:88%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%) rotate(0deg);animation:radar-sweep 4.8s linear infinite}
-.radar-sweep:before{content:"";position:absolute;left:50%;top:50%;width:47%;height:1px;transform-origin:left center;background:linear-gradient(90deg,rgba(57,255,20,.95),rgba(57,255,20,.42) 58%,transparent);box-shadow:0 0 7px rgba(57,255,20,.72),0 0 18px rgba(57,255,20,.2)}
-@keyframes radar-sweep{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
-
-.radar-pulse{z-index:2;width:23%;aspect-ratio:1;border:1px solid rgba(57,255,20,.42);border-radius:50%;transform:translate(-50%,-50%) scale(.7);opacity:0;animation:radar-ring-pulse 3.3s ease-out infinite}
-@keyframes radar-ring-pulse{
-  0%{opacity:.42;transform:translate(-50%,-50%) scale(.7)}
-  72%{opacity:.08}
-  100%{opacity:0;transform:translate(-50%,-50%) scale(3.72)}
-}
-
-.radar-contact{position:absolute;z-index:4;width:6px;height:6px;border:1px solid var(--green);background:rgba(57,255,20,.62);box-shadow:0 0 8px rgba(57,255,20,.9),0 0 18px rgba(57,255,20,.24);opacity:.08;transform:scale(.58);animation:radar-contact-ping 3.6s steps(1,end) infinite}
-.radar-contact-1{left:69%;top:28%;animation-delay:-.35s}
-.radar-contact-2{left:31%;top:63%;animation-delay:-1.55s}
-.radar-contact-3{left:73%;top:67%;animation-delay:-2.35s}
-.radar-contact-4{left:43%;top:31%;animation-delay:-2.95s}
-@keyframes radar-contact-ping{
-  0%,18%,100%{opacity:.07;transform:scale(.58)}
-  19%,27%{opacity:1;transform:scale(1.22);box-shadow:0 0 8px rgba(57,255,20,.95),0 0 24px rgba(57,255,20,.4)}
-  28%,39%{opacity:.55;transform:scale(.88)}
-  40%{opacity:.08;transform:scale(.58)}
-}
-
 .session-line{animation:terminal-print .16s steps(2,end) forwards!important}
 [data-reveal]{transform:translateY(6px);transition:opacity .18s steps(2,end),transform .18s steps(2,end)!important}
 [data-reveal].is-visible{transform:none}
 
 @media(max-width:640px){
-  .radar-trail,.radar-sweep{width:82%;opacity:.7}
-  .radar-pulse{width:20%;opacity:.7}
-  .radar-contact:nth-of-type(n+3){display:none}
-  .radar-contact{width:5px;height:5px}
+  .matrix-rain{opacity:.38!important;background-size:auto 100%!important}
+  .hero-ghost{right:-12%!important;top:17%!important;width:68%!important;opacity:.24!important}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .radar-sweep,.radar-trail,.radar-pulse,.radar-contact{animation:none!important}
-  .radar-trail{opacity:.12!important;transform:translate(-50%,-50%) rotate(18deg)!important}
-  .radar-sweep{opacity:.32!important;transform:translate(-50%,-50%) rotate(28deg)!important}
-  .radar-pulse{opacity:.16!important;transform:translate(-50%,-50%) scale(2.2)!important}
-  .radar-contact{opacity:.52!important;transform:scale(.82)!important}
+  .matrix-rain{opacity:.2!important}
+  .hero-ghost{opacity:.24!important}
   .terminal-button:hover,.terminal-button:focus-visible{animation:none!important}
   .session-line{animation:none!important}
   [data-reveal]{transition:none!important;transform:none!important}
