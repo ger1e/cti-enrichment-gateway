@@ -1,21 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 56" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 72" role="img" aria-labelledby="title desc">
   <title id="title">PARA11AX</title>
-  <desc id="desc">Compact PARA11AX analyst header logo with a gunmetal sentinel helmet and phosphor visor.</desc>
-  <defs>
-    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#303A32"/><stop offset=".5" stop-color="#111713"/><stop offset="1" stop-color="#050806"/></linearGradient>
-    <filter id="visorGlow" x="-100%" y="-160%" width="300%" height="420%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>
-  <g id="sentinel-helmet" transform="translate(2 2)">
-    <path d="M26 1 49 12v28L26 53 3 40V12z" fill="#061008" stroke="#39FF14" stroke-opacity=".7" stroke-width="1.4"/>
-    <path d="M26 7 40 13l5 14-5 16-14 8-14-8-5-16 5-14z" fill="url(#armor)" stroke="#F7FFF6" stroke-opacity=".35"/>
-    <path d="M26 8v39M14 17l12 6 12-6" stroke="#F7FFF6" stroke-opacity=".13" fill="none"/>
-    <path id="visor" d="M12 25 21 28l5 5 5-5 9-3-4 7-8 6h-4l-8-6z" fill="#39FF14" filter="url(#visorGlow)"/>
-    <circle cx="45" cy="9" r="1.8" fill="#FF2438"/>
+  <desc id="desc">Compact PARA11AX radar logo.</desc>
+  <style>.motion{display:block}.static-sweep{display:none}@media(prefers-reduced-motion: reduce){.motion{display:none}.static-sweep{display:block}}</style>
+  <g transform="translate(36 36)" data-radar="ppi">
+    <circle r="31" fill="#020403" stroke="#39FF14" stroke-opacity=".74" stroke-width="1.5"/>
+    <circle r="21" fill="none" stroke="#39FF14" stroke-opacity=".34"/>
+    <circle r="11" fill="none" stroke="#39FF14" stroke-opacity=".24"/>
+    <g id="crosshair" stroke="#39FF14"><path d="M-31 0H31M0-31V31" stroke-opacity=".26"/><path d="M0-31v6M0 25v6M-31 0h6M25 0h6" stroke-opacity=".8"/></g>
+    <g class="motion"><path d="M0 0 28-8A29 29 0 0 1 28 8Z" fill="#39FF14" fill-opacity=".14"/><path d="M0 0H29" stroke="#39FF14" stroke-width="1.8"/><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="4.8s" repeatCount="indefinite"/></g>
+    <g class="static-sweep" transform="rotate(34)"><path d="M0 0 28-8A29 29 0 0 1 28 8Z" fill="#39FF14" fill-opacity=".14"/><path d="M0 0H29" stroke="#39FF14" stroke-width="1.8"/></g>
+    <circle cx="14" cy="-13" r="2.2" fill="#39FF14"/><circle cx="-15" cy="12" r="1.8" fill="#39FF14"/><circle cx="19" cy="15" r="2" fill="#FF2438"/>
   </g>
-  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-weight="900" letter-spacing="2.2">
-    <text x="64" y="36" font-size="25"><tspan fill="#F7FFF6">PARA</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">AX</tspan></text>
-  </g>
-  <path d="M65 44h222" stroke="#39FF14" stroke-opacity=".34"/>
-  <path d="M287 44h17" stroke="#FF2438" stroke-width="1.5" stroke-opacity=".7"/>
-  <circle cx="308" cy="44" r="2" fill="#FF2438"/>
+  <text x="82" y="48" data-wordmark="para11ax-angular-a" aria-label="PARA11AX" font-family="Arial Black,Arial,sans-serif" font-size="35" font-weight="900" letter-spacing="1"><tspan fill="#F7FFF6">PΛRΛ</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">ΛX</tspan></text>
 </svg>
