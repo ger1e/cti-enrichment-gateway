@@ -38,29 +38,10 @@ function normalizePromptIdentity() {
   }
 }
 
-function mountMinimalHero() {
-  const hero = document.querySelector('.terminal-hero');
-  if (!hero) return;
-
-  for (const selector of ['.hero-kicker', '.hero-doctrine', '.hero-actions']) {
-    hero.querySelector(selector)?.remove();
-  }
-
-  if (hero.querySelector('.hero-kiriakou')) return;
-  const quote = document.createElement('blockquote');
-  quote.className = 'hero-kiriakou';
-  quote.append(document.createTextNode('You’ve got to follow the evidence… That doesn’t make it fact.'));
-  const cite = document.createElement('cite');
-  cite.textContent = '— John Kiriakou';
-  quote.append(cite);
-  hero.append(quote);
-}
-
 ensureCursorStylesheet();
 ensureMotionStylesheet();
 ensureDesktopFitStylesheet();
 normalizePromptIdentity();
-mountMinimalHero();
 
 const reveal = (node) => node?.classList.add('is-visible');
 const sections = [...document.querySelectorAll('[data-reveal]')];
@@ -113,6 +94,5 @@ export {
   ensureCursorStylesheet,
   ensureDesktopFitStylesheet,
   ensureMotionStylesheet,
-  mountMinimalHero,
   normalizePromptIdentity,
 };
