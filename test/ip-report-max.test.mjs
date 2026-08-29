@@ -153,3 +153,13 @@ test('default brief renderer switches IP results to the coherent IP report', () 
   assert.match(renderers, /buildIpAnalystReport/);
   assert.match(renderers, /IP INTELLIGENCE REPORT/);
 });
+
+test('IP analyst report has explicit dense desktop and mobile readability rules', () => {
+  const css = readFileSync('app/analyst-facts.css', 'utf8');
+  assert.match(css, /\.ip-intelligence-report\s*\{/);
+  assert.match(css, /\.ip-report-assessment\s*\{/);
+  assert.match(css, /\.ip-source-list\s*\{/);
+  assert.match(css, /\.ip-source-line\s*\{/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.ip-report-title/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.ip-source-line/);
+});
