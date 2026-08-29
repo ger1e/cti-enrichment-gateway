@@ -30,7 +30,11 @@ test('architecture and API document all canonical workflow types', () => {
 test('README provider count and production identity match canonical policy', () => {
   const readme = read('README.md');
   assert.ok(readme.includes(`${providerCount} upstream APIs and feeds`), 'README provider count drifted');
-  assert.ok(readme.includes('https://para11ax.vercel.app'), 'README canonical production identity drifted');
+  assert.match(
+    readme,
+    /https:\/\/para11ax\.vercel\.app(?:\/(?=[)\s`])|(?=[)\s`]))/,
+    'README canonical production identity drifted',
+  );
 });
 
 test('current evidence projection versions are first-class documented contracts', () => {
