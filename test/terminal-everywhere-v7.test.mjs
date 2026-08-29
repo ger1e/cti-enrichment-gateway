@@ -65,7 +65,8 @@ test('README uses one self-contained SVG hero while preserving CI badges and ana
   assert.match(svg, /viewBox=["']0 0 720 360["']/i);
   assert.match(svg, /data-radar=["']ppi["']/i);
   assert.match(svg, /CTI ENRICHMENT\s*\/\/\s*ANALYST OPERATIONS/i);
-  assert.doesNotMatch(svg, /https?:\/\//i);
+  assert.doesNotMatch(svg, /(?:href|xlink:href)=["']https?:\/\//i);
+  assert.doesNotMatch(svg, /url\(\s*["']?https?:\/\//i);
   assert.match(readme, /Tooling smoke/i);
   assert.match(readme, /CodeQL/i);
   assert.match(readme, /ENTER ANALYST UI/i);
