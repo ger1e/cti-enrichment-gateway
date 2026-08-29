@@ -30,11 +30,23 @@ function createEarthCopy(offset = 0) {
   return copy;
 }
 
+function createLongitudeMotion() {
+  const motion = document.createElementNS(NS, 'animateTransform');
+  motion.setAttribute('attributeName', 'transform');
+  motion.setAttribute('type', 'translate');
+  motion.setAttribute('from', '0 0');
+  motion.setAttribute('to', '-720 0');
+  motion.setAttribute('dur', '36s');
+  motion.setAttribute('repeatCount', 'indefinite');
+  return motion;
+}
+
 function renderNaturalEarthGlobe() {
   const globe = document.querySelector('.boot-globe');
   if (!globe || globe.dataset.earth === 'true') return;
 
-  // Remove the superseded hand-drawn landmass layer added by terminal-polish.js.
+  // The prepaint stylesheet hides the superseded hand-drawn fallback before it
+  // can flash; remove it completely once the real local Natural Earth data lands.
   globe.querySelector('.boot-globe-landmasses')?.remove();
 
   const defs = svgNode('defs');
@@ -54,7 +66,7 @@ function renderNaturalEarthGlobe() {
   stage.setAttribute('transform', 'translate(32 32) scale(0.4888889)');
 
   const track = svgNode('g', 'boot-earth-track');
-  track.append(createEarthCopy(0), createEarthCopy(720));
+  track.append(createEarthCopy(0), createEarthCopy(720), createLongitudeMotion());
   stage.append(track);
   windowGroup.append(stage);
 
