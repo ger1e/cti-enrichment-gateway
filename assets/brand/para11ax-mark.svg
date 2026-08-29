@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc" data-radar="ppi">
   <title id="title">PARA11AX radar mark</title>
-  <desc id="desc">Compact phosphor radar mark.</desc>
-  <style>.motion{display:block}.static-sweep{display:none}@media(prefers-reduced-motion: reduce){.motion{display:none}.static-sweep{display:block}}</style>
+  <desc id="desc">Compact moving phosphor radar mark.</desc>
+  <style>.motion{display:block}.static-sweep{display:none}@media(prefers-reduced-motion: reduce){.motion{display:block}.static-sweep{display:none}}</style>
   <circle cx="48" cy="48" r="43" fill="#020403" stroke="#39FF14" stroke-width="2" stroke-opacity=".8"/>
   <circle cx="48" cy="48" r="31" fill="none" stroke="#39FF14" stroke-opacity=".34"/>
   <circle cx="48" cy="48" r="19" fill="none" stroke="#39FF14" stroke-opacity=".25"/>
