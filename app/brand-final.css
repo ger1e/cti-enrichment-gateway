@@ -1,31 +1,7 @@
 @property --ppi-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
 
-/* Final production brand contract: one moving PPI, no legacy ASCII/globe art. */
-.boot-globe{
-  --ppi-angle:0deg;
-  width:min(48vw,500px)!important;
-  aspect-ratio:1!important;
-  height:auto!important;
-  opacity:.34!important;
-  border:1px solid rgba(57,255,20,.74)!important;
-  border-radius:50%!important;
-  overflow:hidden!important;
-  transform:translate(-50%,-50%)!important;
-  filter:drop-shadow(0 0 18px rgba(57,255,20,.18))!important;
-  background:
-    radial-gradient(circle at 72% 29%,rgba(57,255,20,.95) 0 2px,transparent 3px),
-    radial-gradient(circle at 28% 68%,rgba(57,255,20,.82) 0 2px,transparent 3px),
-    radial-gradient(circle at 74% 69%,rgba(57,255,20,.72) 0 2px,transparent 3px),
-    radial-gradient(circle at 24% 33%,rgba(255,36,56,.94) 0 2px,transparent 3px),
-    conic-gradient(from var(--ppi-angle),transparent 0 306deg,rgba(57,255,20,.015) 318deg,rgba(57,255,20,.08) 342deg,rgba(57,255,20,.34) 357deg,#39ff14 360deg),
-    repeating-conic-gradient(from -90deg,rgba(57,255,20,.34) 0 .35deg,transparent .35deg 5deg),
-    linear-gradient(90deg,transparent 49.8%,rgba(57,255,20,.20) 50%,transparent 50.2%),
-    linear-gradient(transparent 49.8%,rgba(57,255,20,.20) 50%,transparent 50.2%),
-    radial-gradient(circle at 50% 50%,transparent 0 19%,rgba(57,255,20,.18) 19.3% 19.7%,transparent 20% 39%,rgba(57,255,20,.18) 39.3% 39.7%,transparent 40% 59%,rgba(57,255,20,.20) 59.3% 59.7%,transparent 60% 79%,rgba(57,255,20,.22) 79.3% 79.7%,transparent 80%),
-    radial-gradient(circle at 50% 50%,#0a170c 0,#061008 70%,#020403 100%)!important;
-  animation:ppi-sweep-angle 4.8s linear infinite!important;
-}
-.boot-globe>*{display:none!important}
+/* Final production brand contract: preserve the Natural Earth globe and scope
+   PPI motion to compact brand lockups only. */
 @keyframes ppi-sweep-angle{to{--ppi-angle:360deg}}
 
 #pepe-ascii,.boot-pepe{display:none!important}
@@ -38,6 +14,7 @@
 .terminal-mark{display:inline-flex;align-items:center;gap:7px}
 .terminal-mark::before,.shell-brand::before{
   content:'';
+  --ppi-angle:0deg;
   width:22px;
   height:22px;
   flex:0 0 22px;
@@ -74,24 +51,27 @@
   text-shadow:0 0 4px rgba(255,36,56,.22);
 }
 .crt{
-  opacity:.13!important;
+  opacity:.10!important;
   border-radius:18px;
   background:
-    radial-gradient(ellipse at center,transparent 0 61%,rgba(0,0,0,.08) 76%,rgba(0,0,0,.42) 100%),
-    repeating-linear-gradient(180deg,rgba(247,255,246,.018) 0 1px,transparent 1px 3px),
-    repeating-linear-gradient(90deg,rgba(255,36,56,.010) 0 1px,rgba(57,255,20,.010) 1px 2px,rgba(247,255,246,.008) 2px 3px)!important;
+    radial-gradient(ellipse at center,transparent 0 61%,rgba(0,0,0,.07) 76%,rgba(0,0,0,.36) 100%),
+    repeating-linear-gradient(180deg,rgba(247,255,246,.014) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,rgba(255,36,56,.008) 0 1px,rgba(57,255,20,.008) 1px 2px,rgba(247,255,246,.006) 2px 3px)!important;
   box-shadow:
-    inset 0 0 24px rgba(57,255,20,.04),
-    inset 0 0 110px rgba(0,0,0,.88)!important;
+    inset 0 0 20px rgba(57,255,20,.03),
+    inset 0 0 96px rgba(0,0,0,.82)!important;
   animation:crt-phosphor-flicker 7.2s steps(1,end) infinite;
 }
 @keyframes crt-phosphor-flicker{
-  0%,8%,12%,31%,34%,61%,66%,100%{opacity:.13}
-  9%{opacity:.105}
-  32%{opacity:.145}
-  63%{opacity:.118}
+  0%,8%,12%,31%,34%,61%,66%,100%{opacity:.10}
+  9%{opacity:.085}
+  32%{opacity:.115}
+  63%{opacity:.092}
 }
 
-@media(max-width:720px){.boot-globe{left:50%!important;top:52%!important;width:min(78vw,430px)!important}.shell-logo{width:122px!important}.app-shell,.crt{border-radius:14px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:12px!important}}
-@media(max-width:430px){.boot-globe{width:min(82vw,360px)!important}.shell-logo{width:112px!important}.terminal-mark::before,.shell-brand::before{width:19px;height:19px;flex-basis:19px}.app-shell,.crt{border-radius:11px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:9px!important}.crt{opacity:.10!important}}
-@media(prefers-reduced-motion:reduce){.boot-globe,.terminal-mark::before,.shell-brand::before,.crt{animation:none!important}}
+@media(max-width:720px){.shell-logo{width:122px!important}.app-shell,.crt{border-radius:14px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:12px!important}}
+@media(max-width:430px){.shell-logo{width:112px!important}.terminal-mark::before,.shell-brand::before{width:19px;height:19px;flex-basis:19px}.app-shell,.crt{border-radius:11px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:9px!important}.crt{opacity:.08!important}}
+@media(prefers-reduced-motion:reduce){
+  .terminal-mark::before,.shell-brand::before{animation:ppi-sweep-angle 24s linear infinite!important}
+  .crt{animation:none!important}
+}
