@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256Hex } from './sha256.js';
 
 export const EVIDENCE_GRAPH_SCHEMA_VERSION = '1.0';
 
@@ -30,10 +30,6 @@ function stableJson(value) {
   return JSON.stringify(canonicalize(value));
 }
 
-function sha256(value) {
-  return createHash('sha256').update(String(value)).digest('hex');
-}
-
 function deepFreeze(value, seen = new Set()) {
   if (!value || typeof value !== 'object' || seen.has(value)) return value;
   seen.add(value);
@@ -50,7 +46,7 @@ function observableNode(type, value) {
   const normalizedValue = String(value ?? '');
   if (!normalizedType || !normalizedValue) fail('evidence_graph_observable_invalid');
   return {
-    id: `observable:${normalizedType}:${sha256(`${normalizedType}\u0000${normalizedValue}`).slice(0, 24)}`,
+    id: `observable:${normalizedType}:${sha256Hex(`${normalizedType}\u0000${normalizedValue}`).slice(0, 24)}`,
     type: 'observable',
     observableType: normalizedType,
     value: normalizedValue,
@@ -58,11 +54,11 @@ function observableNode(type, value) {
 }
 
 function actorNode(name) {
-  return { id: `actor:${sha256(name).slice(0, 24)}`, type: 'actor', name };
+  return { id: `actor:${sha256Hex(name).slice(0, 24)}`, type: 'actor', name };
 }
 
 function malwareNode(name) {
-  return { id: `malware:${sha256(name).slice(0, 24)}`, type: 'malware', name };
+  return { id: `malware:${sha256Hex(name).slice(0, 24)}`, type: 'malware', name };
 }
 
 function attackNode(id) {
@@ -83,7 +79,7 @@ function relationTargetType(relation) {
 }
 
 function edgeIdentity(type, source, target, data) {
-  return `edge:${sha256(`${type}\u0000${source}\u0000${target}\u0000${stableJson(data ?? {})}`).slice(0, 24)}`;
+  return `edge:${sha256Hex(`${type}\u0000${source}\u0000${target}\u0000${stableJson(data ?? {})}`).slice(0, 24)}`;
 }
 
 export function buildEvidenceGraph({
