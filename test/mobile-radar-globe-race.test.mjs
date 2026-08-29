@@ -19,35 +19,39 @@ test('analyst shell renders exactly one radar lockup with no CSS pseudo-radar be
     'legacy terminal mark must not prepend a second radar to the canonical lockup');
 });
 
-test('boot globe never paints placeholder continent blobs before Natural Earth geometry', async () => {
-  const [prepaint, earthCss, earth] = await Promise.all([
-    read('app/prepaint-v7.css'),
-    read('app/earth-globe.css'),
+test('boot globe has one renderer and no hand-drawn fallback geometry', async () => {
+  const [polish, earth] = await Promise.all([
+    read('app/terminal-polish.js'),
     read('app/earth-globe.js'),
   ]);
 
-  assert.match(prepaint, /@import url\('\/app\/earth-globe\.css'\);/,
-    'Earth suppression CSS must be present before runtime modules execute');
-  assert.match(earthCss, /\.boot-globe-landmasses\{[^}]*display:none!important/,
-    'coarse placeholder land must never be painted');
+  assert.doesNotMatch(polish, /GLOBE_LANDMASSES|enhanceBootGlobe|boot-globe-landmasses/,
+    'terminal polish must not create a second fake geography layer');
   assert.match(earth, /NATURAL_EARTH_LAND_PATHS/);
-  assert.match(earth, /boot-globe-landmasses/);
-  assert.match(earth, /\.remove\(\)/,
-    'Natural Earth renderer must delete the hidden placeholder layer');
 });
 
-test('Natural Earth globe uses coordinate-based SVG motion on mobile', async () => {
-  const [earth, earthCss] = await Promise.all([
+test('Natural Earth is reprojected as a rotating orthographic sphere instead of sliding a flat map', async () => {
+  const [earth, earthCss, shell, polishCss] = await Promise.all([
     read('app/earth-globe.js'),
     read('app/earth-globe.css'),
+    read('app/shell.css'),
+    read('app/shell-polish.css'),
   ]);
 
-  assert.match(earth, /createElementNS\(NS, ['"]animateTransform['"]\)/);
-  assert.match(earth, /setAttribute\(['"]type['"], ['"]translate['"]\)/);
-  assert.match(earth, /setAttribute\(['"]from['"], ['"]0 0['"]\)/);
-  assert.match(earth, /setAttribute\(['"]to['"], ['"]-720 0['"]\)/);
-  assert.match(earth, /setAttribute\(['"]dur['"], ['"]36s['"]\)/);
-  assert.match(earth, /setAttribute\(['"]repeatCount['"], ['"]indefinite['"]\)/);
-  assert.doesNotMatch(earthCss, /\.boot-earth-track\{[^}]*animation:/,
-    'CSS percentage transforms on SVG groups are not the motion source on mobile');
+  assert.match(earth, /function\s+parseEquirectangularPath/,
+    'renderer must recover geographic coordinates from the generated equirectangular source');
+  assert.match(earth, /function\s+projectOrthographic/,
+    'renderer must use an orthographic sphere projection');
+  assert.match(earth, /requestAnimationFrame/,
+    'longitude rotation must be driven by browser-native animation frames');
+  assert.match(earth, /Math\.cos\(lat\).*Math\.cos\(deltaLon\)/s,
+    'renderer must perform front-hemisphere visibility testing');
+  assert.doesNotMatch(earth, /animateTransform|translate\(-?720|createEarthCopy\(720\)/,
+    'flat-map translation is not globe rotation');
+  assert.doesNotMatch(earthCss, /boot-earth-track/,
+    'the orthographic renderer does not need a sliding track');
+  assert.doesNotMatch(shell, /\.boot-globe\{[^}]*animation:globe-spin/s,
+    'the SVG frame itself must never spin like a flat disc');
+  assert.doesNotMatch(polishCss, /\.boot-globe\{[^}]*animation:globe-spin/s,
+    'polish must not reintroduce whole-disc rotation');
 });
