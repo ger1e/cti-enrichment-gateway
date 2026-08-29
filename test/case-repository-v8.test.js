@@ -76,6 +76,21 @@ test('every domain mutation performs exactly one persistence write', async () =>
   assert.equal(current.pins.length, 0);
 });
 
+test('concurrent read-modify-write mutations are serialized so neither update is lost', async () => {
+  const storage = createStorage();
+  const repo = createCaseRepository({ storage, now: () => NOW, uuid: uuidSequence('case-1', 'note-1') });
+  const created = await repo.create('Fixture');
+
+  await Promise.all([
+    repo.addNote(created.id, 'preserve this note'),
+    repo.addPin(created.id, { type: 'ip', value: '203.0.113.7' }),
+  ]);
+
+  const current = await repo.get(created.id);
+  assert.deepEqual(current.notes.map(note => note.text), ['preserve this note']);
+  assert.deepEqual(current.pins.map(pin => ({ type: pin.type, value: pin.value })), [{ type: 'ip', value: '203.0.113.7' }]);
+});
+
 test('case repository never introduces auth/session/credential properties at case root', async () => {
   const storage = createStorage();
   const repo = createCaseRepository({ storage, now: () => NOW, uuid: uuidSequence('case-1') });
