@@ -111,7 +111,7 @@ test('IP enrichment compiles into one ordered deterministic analyst report', () 
   assert.deepEqual(report.sections.map(section => section.id), [
     'identity', 'registration-routing', 'geo-network', 'exposure', 'reputation-abuse',
     'malware-c2-ransomware', 'tor-scanner', 'related-infrastructure',
-    'correlation', 'huntability', 'coverage',
+    'correlation', 'temporal-context', 'attack-behavior', 'analyst-actions', 'huntability', 'coverage',
   ]);
   assert.equal(report.assessment.state, 'ACTIONABLE THREAT EVIDENCE');
   assert.match(report.assessment.summary, /AS15169/i);

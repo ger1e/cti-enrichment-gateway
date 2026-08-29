@@ -207,12 +207,27 @@ function coverageContent(model) {
 }
 
 function ipSignalLine(item) {
-  const article = el('article', `fact-card ip-source-line semantic-${item.semanticClass || 'evidence'}`);
-  const head = el('header', 'signal-head');
-  head.append(el('strong', 'signal-provider', item.provider), el('span', 'signal-kind', item.kind));
-  article.append(head, el('strong', 'signal-verdict', item.verdict));
-  if (item.semanticNote) article.append(el('p', 'semantic-note', item.semanticNote));
+  const details = el('details', `fact-card ip-source-line ip-source-details semantic-${item.semanticClass || 'evidence'}`);
+  const summary = el('summary', 'ip-source-summary');
+  summary.append(
+    el('strong', 'signal-provider', item.provider),
+    el('span', 'signal-kind', item.kind),
+    el('strong', 'signal-verdict', item.verdict),
+  );
+  details.append(summary);
+  if (item.semanticNote) details.append(el('p', 'semantic-note', item.semanticNote));
+  appendFacts(details, item.facts || []);
+  return details;
+}
+
+function ipActionLine(item) {
+  const article = el('article', 'fact-card ip-action-line');
+  if (item.title) article.append(el('h3', 'fact-title ip-action-title', item.title));
   appendFacts(article, item.facts || []);
+  const details = el('details', 'ip-action-details');
+  details.append(el('summary', null, 'HUNT DETAIL / TUNING / KQL'));
+  appendFacts(details, item.detailFacts || []);
+  article.append(details);
   return article;
 }
 
@@ -235,7 +250,7 @@ function ipReportContent(models) {
   heading.append(el('p', 'coverage-line', `${String(report.status || 'unknown').toUpperCase()} · PROFILE ${String(report.profile || 'unknown').toUpperCase()} · ${report.durationMs ?? '—'} ms`));
   root.append(heading);
 
-  const assessment = el('section', 'brief-section ip-report-assessment');
+  const assessment = el('section', 'brief-section ip-report-assessment ip-at-a-glance');
   assessment.append(sectionLabel('EXECUTIVE ASSESSMENT'));
   assessment.append(el('strong', 'signal-verdict ip-assessment-state', report.assessment.state));
   assessment.append(el('p', 'failure-summary ip-assessment-summary', report.assessment.summary));
@@ -255,7 +270,14 @@ function ipReportContent(models) {
       continue;
     }
 
-    if (section.id === 'related-infrastructure' || section.id === 'correlation') {
+    if (section.id === 'analyst-actions') {
+      if (!section.items?.length) block.append(el('p', 'empty-state', 'No deterministic analyst actions emitted.'));
+      for (const item of section.items || []) block.append(ipActionLine(item));
+      root.append(block);
+      continue;
+    }
+
+    if (section.id === 'related-infrastructure' || section.id === 'correlation' || section.id === 'attack-behavior') {
       if (!section.items?.length) block.append(el('p', 'empty-state', section.id === 'related-infrastructure' ? 'No explicit related infrastructure emitted.' : 'No corroboration or contradiction records emitted.'));
       for (const item of section.items || []) block.append(factCard(item, `fact-card ${item.tone || 'relationship'}`));
       root.append(block);
