@@ -12,10 +12,6 @@
       "dest": "/landing-maxx.html"
     },
     {
-      "src": "/app/app.js",
-      "dest": "/app/terminal-main.js"
-    },
-    {
       "handle": "filesystem"
     },
     {
