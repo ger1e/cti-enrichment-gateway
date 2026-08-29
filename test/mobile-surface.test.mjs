@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const read = (path) => readFileSync(path, 'utf8');
 const LEGACY_PROJECT = ['cti', 'enrichment', 'gateway'].join('-');
+// Keep public Web QA contracts in the protected Tooling smoke path.
 
 test('public root has a static PARA11AX landing page', () => {
   assert.equal(existsSync('index.html'), true, 'index.html must exist at repository root for Vercel static serving');
