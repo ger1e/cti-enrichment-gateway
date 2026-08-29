@@ -7,6 +7,7 @@
     {"class": "EnrichDNSName", "indicatorType": "domain", "inputEntity": "maltego.DNSName"},
     {"class": "EnrichURL", "indicatorType": "url", "inputEntity": "maltego.URL"},
     {"class": "EnrichHash", "indicatorType": "hash", "inputEntity": "maltego.Hash"},
+    {"class": "EnrichCertificate", "indicatorType": "certificate", "inputEntity": "maltego.Hash"},
     {"class": "EnrichCVE", "indicatorType": "cve", "inputEntity": "maltego.Phrase"},
     {"class": "EnrichATTACK", "indicatorType": "attack", "inputEntity": "maltego.Phrase"},
     {"class": "EnrichASN", "indicatorType": "asn", "inputEntity": "maltego.Phrase"},
