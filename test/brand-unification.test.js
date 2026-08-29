@@ -68,23 +68,23 @@ test('browser surfaces share one simplified phosphor PPI radar favicon', () => {
   assert.doesNotMatch(favicon, /sentinel|helmet|shield|#00E5FF|#F6C945|#39FF88/i);
 });
 
-test('README uses one ger1e-style animated GIF hero and current v3 diagrams', () => {
+test('README uses one self-contained ger1e-style SVG hero and current v3 diagrams', () => {
   const readme = read('README.md');
-  const gifPath = 'assets/brand/para11ax-readme-hero-v6.gif';
-  assert.match(readme, /<img[^>]+para11ax-readme-hero-v6\.gif/i);
+  const svgPath = 'assets/brand/para11ax-readme-hero-v7.svg';
+  assert.match(readme, /<img[^>]+para11ax-readme-hero-v7\.svg/i);
   assert.doesNotMatch(readme, /<picture>/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-v4\.gif/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v3\.svg/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif/i);
   assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
   assert.match(readme, /para11ax-architecture-v3\.svg/i);
   assert.match(readme, /para11ax-semantic-firewall-v3\.svg/i);
-  assert.equal(existsSync(gifPath), true, 'README GIF must exist');
-  const gif = readFileSync(gifPath);
-  assert.equal(gif.subarray(0, 6).toString('ascii'), 'GIF89a');
-  assert.match(gif.toString('latin1'), /NETSCAPE2\.0/, 'GIF must declare an infinite animation loop');
-  assert.equal(gif.readUInt16LE(6), 720);
-  assert.equal(gif.readUInt16LE(8), 360);
+  assert.equal(existsSync(svgPath), true, 'README SVG must exist');
+  const svg = read(svgPath);
+  assert.match(svg, /viewBox=["']0 0 720 360["']/i);
+  assert.match(svg, /data-radar=["']ppi["']/i);
+  assert.match(svg, /PARA11AX/i);
+  assert.match(svg, /CTI ENRICHMENT\s*\/\/\s*ANALYST OPERATIONS/i);
+  assert.match(svg, /John Kiriakou/i);
+  assert.doesNotMatch(svg, /https?:\/\//i);
   assert.match(readme, /OPERATIONAL CORE/i);
   assert.match(readme, /ANALYST SURFACE/i);
   assert.match(readme, /analyst@para11ax:~\$/i);
