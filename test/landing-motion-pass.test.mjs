@@ -22,6 +22,23 @@ test('landing radar uses a self-contained rotational phosphor SVG sweep', () => 
   assert.doesNotMatch(js, /enhanceRadar|RADAR_CONTACTS/i);
 });
 
+test('landing PPI radar exposes real instrument geometry and target persistence', () => {
+  const svg = radar();
+  assert.match(svg, /id=["']azimuth-ticks["']/i, 'radar must include an azimuth tick ring');
+  assert.ok((svg.match(/class=["']range-ring["']/gi) ?? []).length >= 4, 'radar must expose at least four range rings');
+  for (const bearing of ['000', '090', '180', '270']) {
+    assert.match(svg, new RegExp(`>${bearing}<`, 'i'), `radar missing ${bearing} bearing label`);
+  }
+  assert.match(svg, /id=["']ppi-sweep["']/i, 'radar must expose a dedicated PPI sweep group');
+  assert.match(svg, /id=["']sweep-trail["']/i, 'radar must expose a fading sweep trail');
+  assert.ok((svg.match(/class=["']target-return["']/gi) ?? []).length >= 4, 'radar must include multiple target returns');
+  assert.ok((svg.match(/class=["']target-trail["']/gi) ?? []).length >= 3, 'radar must include persistence trails');
+  assert.match(svg, /RNG\s+25/i);
+  assert.match(svg, /RNG\s+50/i);
+  assert.match(svg, /RNG\s+75/i);
+  assert.match(svg, /RNG\s+100/i);
+});
+
 test('landing disables the full-height hero scanner and mounts radar without runtime construction', () => {
   const css = motion();
   assert.match(css, /\.terminal-hero:before\s*\{[^}]*content:\s*none!important[^}]*animation:\s*none!important/is);
