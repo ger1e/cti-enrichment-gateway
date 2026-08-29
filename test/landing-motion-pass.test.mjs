@@ -9,6 +9,32 @@ const radar = () => read('assets/brand/para11ax-radar.svg');
 const rain = () => read('assets/brand/para11ax-rain.svg');
 const desktopFit = () => read('landing-desktop-fit.css');
 
+test('production landing source carries final visual identity before runtime', () => {
+  const html = read('landing-maxx.html');
+  const scriptIndex = html.indexOf('<script type="module" src="/landing-terminal-v7.js"></script>');
+  assert.ok(scriptIndex > 0, 'production landing module must remain explicit');
+
+  const styles = [
+    '/brand-unification.css',
+    '/site-cursor.css',
+    '/landing-radar-motion.css',
+    '/landing-desktop-fit.css',
+  ];
+  let previous = -1;
+  for (const href of styles) {
+    const marker = `<link rel="stylesheet" href="${href}">`;
+    const index = html.indexOf(marker);
+    assert.ok(index > previous, `${href} must load in deterministic prepaint order`);
+    assert.ok(index < scriptIndex, `${href} must load before the landing runtime`);
+    previous = index;
+  }
+
+  assert.match(html, /class="terminal-brand"[^>]*>\s*<img[^>]*class="shared-radar-lockup"[^>]*src="\/assets\/brand\/para11ax-radar-lockup\.svg"/i);
+  assert.match(html, /class="ascii-logo"[^>]*data-brand-split="true"[^>]*>\s*<span class="logo-white">PARA<\/span><span class="logo-green">11<\/span><span class="logo-white">AX<\/span>/i);
+  assert.match(html, /analyst@para11ax:~\$/);
+  assert.doesNotMatch(html, /user@para11ax:~\$/);
+});
+
 test('landing radar uses a self-contained rotational phosphor SVG sweep', () => {
   assert.equal(existsSync('landing-radar-motion.css'), true, 'landing radar motion stylesheet must exist');
   assert.equal(existsSync('assets/brand/para11ax-radar.svg'), true, 'native radar asset must exist');
