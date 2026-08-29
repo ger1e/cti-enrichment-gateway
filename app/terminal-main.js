@@ -1,3 +1,5 @@
+document.documentElement.dataset.terminalFirst = 'v7';
+
 const PREPAINT_STYLES = Object.freeze([
   '/app/shell.css',
   '/app/shell-polish.css',
