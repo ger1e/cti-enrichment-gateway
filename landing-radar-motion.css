@@ -5,8 +5,10 @@
 
 .hero-ghost{isolation:isolate;opacity:.46!important;background:url('/assets/brand/para11ax-radar.svg') center/contain no-repeat!important}
 .hero-ghost>.ghost-grid,.hero-ghost>.ghost-ring{display:none!important}
-.hero-ghost::after{content:"";position:absolute;z-index:2;left:50%;top:50%;width:88%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:conic-gradient(from -8deg,rgba(57,255,20,.2) 0deg,rgba(57,255,20,.07) 18deg,transparent 44deg 360deg);mask:radial-gradient(circle,transparent 0 2.5%,#000 3.5% 98.5%,transparent 99.5%);filter:drop-shadow(0 0 7px rgba(57,255,20,.28));transform-origin:50% 50%;animation:para11ax-hero-radar-spin 3.6s linear infinite}
-@keyframes para11ax-hero-radar-spin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+.hero-ghost::before{content:"";position:absolute;z-index:3;left:50%;top:50%;width:43%;height:2px;pointer-events:none;background:linear-gradient(90deg,#39ff14 0 72%,rgba(247,255,246,.72) 86%,rgba(57,255,20,.08) 100%);box-shadow:0 0 6px rgba(57,255,20,.86),0 0 14px rgba(57,255,20,.32);transform-origin:0 50%;animation:para11ax-hero-radar-spin 4.8s linear infinite}
+.hero-ghost::after{content:"";position:absolute;z-index:2;left:50%;top:50%;width:92%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:conic-gradient(from -18deg,rgba(57,255,20,.26) 0deg,rgba(57,255,20,.13) 12deg,rgba(57,255,20,.045) 28deg,transparent 58deg 360deg);mask:radial-gradient(circle,transparent 0 2.5%,#000 3.5% 96.5%,transparent 98%);filter:drop-shadow(0 0 7px rgba(57,255,20,.25));transform-origin:50% 50%;animation:para11ax-hero-radar-trail-spin 4.8s linear infinite}
+@keyframes para11ax-hero-radar-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes para11ax-hero-radar-trail-spin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
 
 .terminal-button:hover,.terminal-button:focus-visible{animation:acquisition-pulse .26s steps(2,end) 1}
 @keyframes acquisition-pulse{
@@ -22,12 +24,14 @@
 @media(max-width:640px){
   .matrix-rain{opacity:.38!important;background-size:auto 100%!important}
   .hero-ghost{right:-12%!important;top:17%!important;width:68%!important;opacity:.24!important}
+  .hero-ghost::before{width:41%;height:1.5px}
+  .hero-ghost::after{width:88%;background:conic-gradient(from -16deg,rgba(57,255,20,.22) 0deg,rgba(57,255,20,.07) 18deg,transparent 44deg 360deg)}
 }
 
 @media(prefers-reduced-motion:reduce){
   .matrix-rain{opacity:.2!important}
   .hero-ghost{opacity:.24!important}
-  .hero-ghost::after{animation-duration:12s}
+  .hero-ghost::before,.hero-ghost::after{animation-duration:14s}
   .terminal-button:hover,.terminal-button:focus-visible{animation:none!important}
   .session-line{animation:none!important}
   [data-reveal]{transition:none!important;transform:none!important}
