@@ -82,3 +82,14 @@ test('reduced motion keeps static rain and radar visible', () => {
   assert.match(css, /\.matrix-rain[^}]*opacity:/i);
   assert.match(css, /\.hero-ghost[^}]*opacity:/i);
 });
+
+test('radar sweep has a page-level CSS fallback instead of depending on SVG image animation', () => {
+  const brandCss = read(BRAND_CSS);
+  const landingCss = read('landing-radar-motion.css');
+  assert.match(brandCss, /@keyframes\s+para11ax-lockup-radar-spin/i);
+  assert.match(brandCss, /\.terminal-brand::after|\.terminal-mark::after|\.shell-brand::after|\.boot-brand-lockup::after/i);
+  assert.match(brandCss, /animation:\s*para11ax-lockup-radar-spin/i);
+  assert.match(landingCss, /@keyframes\s+para11ax-hero-radar-spin/i);
+  assert.match(landingCss, /\.hero-ghost::after/i);
+  assert.match(landingCss, /animation:\s*para11ax-hero-radar-spin/i);
+});
