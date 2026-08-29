@@ -365,6 +365,59 @@ export function buildIpAnalystReport({ overview, evidence, correlation, relation
   };
 }
 
+function textFact(fact, prefix = '') {
+  const sources = fact?.sources?.length ? ` [${fact.sources.join(' + ')}]` : '';
+  return `${prefix}${fact?.label ?? 'FACT'}: ${fact?.value ?? '—'}${sources}`;
+}
+
+function textSection(title, lines) {
+  const body = lines.filter(Boolean);
+  return [title, '-'.repeat(title.length), ...(body.length ? body : ['No reportable observations.']), ''];
+}
+
+export function renderIpAnalystReportText(report) {
+  if (!report || typeof report !== 'object' || !String(report.title || '').startsWith('IP INTELLIGENCE REPORT //')) {
+    throw new TypeError('valid IP analyst report required');
+  }
+  const out = [
+    report.title,
+    `STATUS: ${labelize(report.status ?? 'unknown')}`,
+    `PROFILE: ${labelize(report.profile ?? 'unknown')}`,
+    `DURATION: ${report.durationMs == null ? '—' : `${report.durationMs} ms`}`,
+    '',
+    ...textSection('EXECUTIVE ASSESSMENT', [
+      `DISPOSITION: ${report.assessment?.state ?? 'UNKNOWN'}`,
+      `CONFIDENCE: ${report.assessment?.confidence ?? 'UNKNOWN'}`,
+      report.assessment?.summary ?? '',
+      ...(report.assessment?.facts || []).filter(fact => !['DISPOSITION', 'CONFIDENCE'].includes(fact.label)).map(fact => textFact(fact)),
+    ]),
+  ];
+
+  for (const section of report.sections || []) {
+    const lines = [];
+    if (section.summary) lines.push(section.summary);
+    for (const fact of section.facts || []) lines.push(textFact(fact));
+    for (const item of section.items || []) {
+      if (item.provider) {
+        lines.push(`${item.provider}: ${item.verdict ?? item.kind ?? 'OBSERVED'}${item.kind ? ` // ${item.kind}` : ''}`);
+        if (item.semanticNote) lines.push(`  ${item.semanticNote}`);
+        for (const fact of item.facts || []) lines.push(textFact(fact, '  '));
+      } else {
+        if (item.title) lines.push(item.title);
+        for (const fact of item.facts || []) lines.push(textFact(fact, '  '));
+      }
+    }
+    for (const failure of section.failures || []) {
+      lines.push(`${failure.provider}: ${failure.label}`);
+      if (failure.summary) lines.push(`  ${failure.summary}`);
+      for (const fact of failure.details || []) lines.push(textFact(fact, '  '));
+    }
+    out.push(...textSection(section.title, lines));
+  }
+
+  return `${out.join('\n').trimEnd()}\n`;
+}
+
 export function jsonLines(envelope) {
   return JSON.stringify(envelope, null, 2)
     .split('\n')
