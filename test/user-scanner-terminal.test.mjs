@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { COMMANDS, completeCommand, interpretCommand } from '../app/shell.js';
 import { createGatewayClient, GatewayHttpError } from '../app/api-client.js';
-import { createApp } from '../src/app.js';
+import { createUserScannerHandler } from '../src/user-scanner.js';
 
 const jsonResponse = (status, body) => new Response(JSON.stringify(body), {
   status,
@@ -104,7 +104,7 @@ test('gateway client fails closed on malformed user-scanner response', async () 
 
 test('gateway user-scanner proxy is authenticated, fixed-destination, and bounded', async () => {
   const calls = [];
-  const app = createApp({
+  const handleUserScanner = createUserScannerHandler({
     env: {
       PARA11AX_TOKEN: 'gateway-token',
       PARA11AX_USER_SCANNER_URL: 'https://worker.example/scan',
@@ -121,7 +121,7 @@ test('gateway user-scanner proxy is authenticated, fixed-destination, and bounde
     nowMs: (() => { let value = 1000; return () => value += 25; })(),
   });
 
-  const result = await app.handleUserScanner(request({
+  const result = await handleUserScanner(request({
     scanType: 'username', target: 'kaifcodec', module: 'github', crossScan: false, noNsfw: true,
   }));
   assert.equal(result.status, 200);
@@ -136,15 +136,15 @@ test('gateway user-scanner proxy is authenticated, fixed-destination, and bounde
   assert.equal(result.body.results[0].siteName, 'Github');
   assert.equal(result.body.summary.found, 1);
 
-  assert.equal((await app.handleUserScanner(request({ scanType: 'username', target: 'x' }, 'wrong'))).status, 401);
-  assert.equal((await app.handleUserScanner(request({ scanType: 'phone', target: 'x' }))).status, 400);
-  assert.equal((await app.handleUserScanner(request({ scanType: 'username', target: 'x', category: 'dev', module: 'github' }))).status, 400);
-  assert.equal((await app.handleUserScanner(request({ scanType: 'username', target: 'x', proxy: 'https://evil.example' }))).status, 400);
+  assert.equal((await handleUserScanner(request({ scanType: 'username', target: 'x' }, 'wrong'))).status, 401);
+  assert.equal((await handleUserScanner(request({ scanType: 'phone', target: 'x' }))).status, 400);
+  assert.equal((await handleUserScanner(request({ scanType: 'username', target: 'x', category: 'dev', module: 'github' }))).status, 400);
+  assert.equal((await handleUserScanner(request({ scanType: 'username', target: 'x', proxy: 'https://evil.example' }))).status, 400);
 });
 
 test('gateway reports user-scanner worker as unavailable when not configured', async () => {
-  const app = createApp({ env: { PARA11AX_TOKEN: 'gateway-token' } });
-  const result = await app.handleUserScanner(request({ scanType: 'username', target: 'kaifcodec' }));
+  const handleUserScanner = createUserScannerHandler({ env: { PARA11AX_TOKEN: 'gateway-token' } });
+  const result = await handleUserScanner(request({ scanType: 'username', target: 'kaifcodec' }));
   assert.equal(result.status, 503);
   assert.equal(result.body.error, 'user_scanner_unconfigured');
 });
