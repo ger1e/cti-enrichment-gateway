@@ -1,3 +1,10 @@
+if (typeof document !== 'undefined' && !document.querySelector('link[href="/app/analyst-facts.css"]')) {
+  const styles = document.createElement('link');
+  styles.rel = 'stylesheet';
+  styles.href = '/app/analyst-facts.css';
+  document.head.append(styles);
+}
+
 function el(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
