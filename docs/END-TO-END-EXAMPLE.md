@@ -14,9 +14,11 @@ curl --fail-with-body \
 
 The caller supplies only an indicator and a fixed profile. It cannot select an upstream provider, host, method, header or provider credential.
 
+The same classifier supports nine explicit workflow types: `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`, and `certificate`. Certificate SHA-256 is explicit as `cert-sha256:<64-hex>`; a bare SHA-256 remains a file hash.
+
 #### 2. Classification and routing
 
-The gateway canonicalizes the input as:
+The gateway canonicalizes the example input as:
 
 ```json
 {
@@ -26,7 +28,7 @@ The gateway canonicalizes the input as:
 }
 ```
 
-The IP workflow then selects only the statically registered providers allowed by the `standard` profile. Missing credentials reduce coverage explicitly; they do not cause hidden fallback to an unregistered source.
+The IP workflow then selects only statically registered providers allowed by the `standard` profile. Missing credentials reduce coverage explicitly; they do not cause hidden fallback to an unregistered source.
 
 #### 3. Fixed-egress provider execution
 
@@ -41,9 +43,9 @@ Each selected adapter executes through the central `safeFetch` boundary. The bou
 
 Upstream responses remain untrusted until the provider parser validates and normalizes them.
 
-#### 4. Evidence-v2 normalization
+#### 4. Evidence v2, correlation and decision support
 
-A successful response has the Evidence Schema v2 envelope. The trimmed example below is illustrative; provider availability, observations, timings, hashes and counts vary by request.
+A successful response uses the Evidence Schema v2 envelope. The trimmed example below is illustrative; provider availability, observations, timings, hashes and counts vary by request.
 
 ```json
 {
@@ -92,13 +94,53 @@ A successful response has the Evidence Schema v2 envelope. The trimmed example b
       "level": "<bounded-level>",
       "rationale": []
     }
+  },
+  "decision": {
+    "disposition": "context_only",
+    "confidence": "low",
+    "reasons": ["<machine-readable reason>"],
+    "huntPlan": []
+  },
+  "evidenceGraph": {
+    "schemaVersion": "1.0",
+    "nodes": [],
+    "edges": []
+  },
+  "guidance": {
+    "schemaVersion": "1.0",
+    "disposition": "context_only",
+    "confidence": "low"
   }
 }
 ```
 
-The important analytical property is what the gateway **does not** do: routing/registration context, scanner activity, Tor-exit status, reputation, ransomware claims and ATT&CK knowledge are not collapsed into a universal maliciousness score.
+The graph/guidance fragments are intentionally abbreviated. Their important contract is additive and provenance-preserving:
 
-#### 5. Optional STIX export
+```text
+evidence
+  -> typed correlation
+  -> bounded decision support
+  -> Evidence Graph v1.0 + Guidance v1.0 projections
+  -> analyst interpretation/export
+```
+
+`decision`, `evidenceGraph`, and `guidance` answer different questions:
+
+- `decision` provides the existing bounded operational disposition, confidence, limitations, telemetry needs and hunt-plan templates.
+- `evidenceGraph` provides deterministic explicit investigation facts/relationships with stable identities; it does not infer entities from arbitrary prose or infrastructure proximity.
+- `guidance` explains the existing decision/evidence context and approved semantic changes; it does not create a second score or decision engine.
+
+For `status: "error"`, the graph/guidance projections are absent and the legacy error envelope remains unchanged.
+
+The important analytical property is what the gateway **does not** do: routing/registration context, certificate metadata, scanner activity, Tor-exit status, reputation, ransomware claims and ATT&CK knowledge are not collapsed into a universal maliciousness score. Generated KQL or `hunt_now` guidance is a hunting hypothesis, not proof that the asset is compromised.
+
+#### 5. Browser-local case workspace
+
+The analyst UI can capture successful Evidence v2 results into a local case. Case snapshots, semantic diffs, exact typed cross-case sightings and `.para11ax` bundles live in the browser-local workspace. IndexedDB is the case persistence adapter; the gateway does not become a server-side case database.
+
+Free-form case notes are not parsed into graph entities. Certificate snapshots retain explicit certificate identity and restore `cert-sha256:` when replayed through the gateway.
+
+#### 6. Optional STIX export
 
 The same input can be sent to the bounded STIX surface:
 
@@ -112,7 +154,7 @@ curl --fail-with-body \
 
 The gateway enriches first and then maps only defensible evidence into a STIX 2.1 Bundle. Callers cannot inject their own enrichment object into the exporter. The bundle is capped at 100 objects.
 
-#### 6. Offline report path
+#### 7. Offline report path
 
 A frozen gateway evidence snapshot can be compiled without any network calls:
 
@@ -122,7 +164,7 @@ para11ax report compile snapshot.json --out ./report --preset all
 
 The report quality gate runs before artifacts are written. The resulting bundle can contain deterministic HTML/PDF/text, evidence JSON, STIX, observables CSV, KQL hunt material, ATT&CK Navigator data and a SHA-256 manifest.
 
-This gives a complete auditable path:
+Complete auditable path:
 
 ```text
 indicator
@@ -130,8 +172,11 @@ indicator
   -> fixed workflow/profile
   -> bounded provider fanout
   -> provider-specific parsing
-  -> evidence-v2 provenance
+  -> Evidence v2 provenance
   -> typed correlation
+  -> bounded decision support
+  -> Evidence Graph v1.0 + Guidance v1.0
   -> JSON/STIX
+  -> optional browser-local case capture
   -> optional frozen offline report
 ```
