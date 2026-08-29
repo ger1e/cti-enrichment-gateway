@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as viewModel from '../app/view-model.js';
+import { interpretCommand } from '../app/shell.js';
 
 const sample = {
   indicator: '8.8.8.8',
@@ -162,4 +163,19 @@ test('IP analyst report has explicit dense desktop and mobile readability rules'
   assert.match(css, /\.ip-source-line\s*\{/);
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.ip-report-title/);
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.ip-source-line/);
+});
+
+test('copy report command produces analyst-readable text instead of JSON', () => {
+  assert.equal(typeof viewModel.renderIpAnalystReportText, 'function', 'view-model must expose renderIpAnalystReportText');
+  const text = viewModel.renderIpAnalystReportText(build());
+  assert.match(text, /^IP INTELLIGENCE REPORT \/\/ 8\.8\.8\.8/m);
+  assert.match(text, /EXECUTIVE ASSESSMENT/);
+  assert.match(text, /IDENTITY & ASN/);
+  assert.match(text, /ASN:\s+AS15169\s+\[ipinfo \+ ripestat\]/i);
+  assert.match(text, /WEBAMON:\s+UPSTREAM TIMEOUT/i);
+  assert.doesNotMatch(text, /^\s*[{}]\s*$/m);
+  assert.deepEqual(interpretCommand('copy report', { authenticated: true, profile: 'full' }), { action: 'copy', target: 'report', historySafe: true });
+  const shellUi = readFileSync('app/shell-ui.js', 'utf8');
+  assert.match(shellUi, /renderIpAnalystReportText/);
+  assert.match(shellUi, /action\.target\s*===\s*['"]report['"]/);
 });
