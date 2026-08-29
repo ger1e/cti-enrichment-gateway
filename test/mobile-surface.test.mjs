@@ -22,16 +22,22 @@ test('landing page is mobile-first, self-contained, and reduced-motion safe', ()
   assert.doesNotMatch(html, /https?:\/\/[^"']+\.(?:js|css)(?:[?"'])/i, 'landing page must not load remote JS/CSS');
 });
 
-test('landing page implements the approved tactical hero identity', () => {
+test('landing page implements the approved one-radar PARA11AX hero identity', () => {
   const html = read('index.html');
   assert.match(html, /--phosphor:\s*#39ff14/i);
   assert.match(html, /class="hero-grid"/i);
-  assert.match(html, /class="knight-stage"/i);
-  assert.match(html, /class="knight"/i);
-  assert.match(html, /INTELLIGENCE\.\s*ENRICHED\.\s*<strong>OPERATIONAL\.<\/strong>/i);
-  assert.match(html, /ACCESS TERMINAL/i);
-  assert.match(html, /@keyframes\s+hud-spin/i);
-  assert.match(html, /@keyframes\s+visor-pulse/i);
+  assert.match(html, /class="radar-stage"/i);
+  assert.equal((html.match(/src="\/assets\/brand\/para11ax-radar\.svg"/gi) ?? []).length, 1, 'static landing must mount exactly one radar');
+  assert.match(html, /data-wordmark="para11ax-angular-a"/i);
+  assert.match(html, /PΛRΛ/i);
+  assert.match(html, />11</i);
+  assert.match(html, /ΛX/i);
+  assert.match(html, /You’ve got to follow the evidence/i);
+  assert.match(html, /That doesn’t make it fact/i);
+  assert.match(html, /John Kiriakou/i);
+  assert.match(html, /href="\/app\/?"[^>]*>[^<]*ENTER PARA11AX/i);
+  assert.doesNotMatch(html, /knight-stage|class="knight"|sentinel|helmet|visor/i);
+  assert.doesNotMatch(html, /INTELLIGENCE\.\s*ENRICHED|SEMANTIC FIREWALL|FIXED SOURCES|STIX|OSINT|GEOINT|FORENSICS/i);
 });
 
 test('landing page has an explicit phone composition instead of desktop shrinkage', () => {
@@ -39,7 +45,7 @@ test('landing page has an explicit phone composition instead of desktop shrinkag
   assert.match(html, /@media\s*\(max-width:\s*720px\)/i);
   assert.match(html, /\.hero-grid\s*\{[^}]*grid-template-columns:\s*1fr/i);
   assert.match(html, /\.cta\s*\{[^}]*min-height:\s*44px/i);
-  assert.match(html, /\.knight-stage\s*\{[^}]*min-height:\s*clamp\(/i);
+  assert.match(html, /\.radar-stage\s*\{[^}]*min-height:\s*clamp\(/i);
   assert.match(html, /\.mobile-signal-bar/i);
 });
 
