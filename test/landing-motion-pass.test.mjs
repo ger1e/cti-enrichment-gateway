@@ -14,7 +14,6 @@ test('production landing is source-finalized, full, and independent of runtime m
   const vercel = JSON.parse(read('vercel.json'));
   const root = vercel.routes.find(route => route.src === '/');
   const legacy = vercel.routes.find(route => route.src === '/landing-maxx.html');
-
   assert.equal(root?.dest, '/index.html');
   assert.equal(legacy?.dest, '/index.html');
   assert.doesNotMatch(html, /<script\b[^>]*\bsrc=/i, 'production landing must render without JavaScript');
@@ -49,7 +48,8 @@ test('standalone PPI radar remains a real instrument-style moving asset', () => 
   assert.match(svg, /\.ppi-sweep[^}]*animation:\s*ppi-spin\s+4\.8s/is);
   for (const bearing of ['000', '090', '180', '270']) assert.match(svg, new RegExp(`>${bearing}<`, 'i'));
   for (const range of ['RNG 25', 'RNG 50', 'RNG 75', 'RNG 100']) assert.match(svg, new RegExp(range, 'i'));
-  assert.ok((svg.match(/fill="#39FF14"/gi) ?? []).length >= 4, 'radar must expose multiple fixed returns');
+  const returnCoords = ['374', '168', '352', '306', '142'];
+  for (const cx of returnCoords) assert.match(svg, new RegExp(`<circle cx=["']${cx}["']`, 'i'), `radar missing fixed return at x=${cx}`);
   assert.match(svg, /prefers-reduced-motion:\s*reduce[\s\S]*animation-duration:\s*24s/is);
 });
 
