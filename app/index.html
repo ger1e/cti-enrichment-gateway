@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#020403">
   <meta name="robots" content="noindex,nofollow">
-  <title>PARA11AX // Gateway Terminal</title>
+  <title>PARA11AX // Evidence Terminal</title>
   <link rel="stylesheet" href="/app/app.css">
   <link rel="stylesheet" href="/app/shell.css">
   <link rel="stylesheet" href="/app/shell-polish.css">
@@ -38,8 +38,8 @@
 
   <main class="app-shell">
     <section id="boot-panel" class="boot-panel" aria-labelledby="boot-title">
-      <div class="boot-standby"><span class="boot-led" aria-hidden="true"></span><span>PARA11AX GATEWAY // COLD START</span></div>
-      <h1 id="boot-title" class="boot-title">GATEWAY TERMINAL</h1>
+      <div class="boot-standby"><span class="boot-led" aria-hidden="true"></span><span>PARA11AX BIOS // COLD START</span></div>
+      <h1 id="boot-title" class="boot-title">EVIDENCE TERMINAL</h1>
       <div class="boot-screen">
         <div id="boot-status" class="boot-status">STANDBY // USER INPUT REQUIRED</div>
         <div id="boot-log" class="boot-log" aria-live="polite"></div>
@@ -91,8 +91,67 @@
       <p class="boot-note">AUDIO UNLOCKS ON USER GESTURE · BOOT STATE IS NOT PERSISTED</p>
     </section>
 
-    <section id="access-panel" class="access" hidden aria-hidden="true"></section>
-    <section id="workspace" class="terminal-stage" hidden></section>
+    <section id="access-panel" class="access" aria-labelledby="access-title" hidden>
+      <p class="micro" id="access-title">PARA11AX // ANALYST ACCESS</p>
+      <p class="access-wait">WAITING FOR OPERATOR AUTHENTICATION...</p>
+      <form id="access-form" autocomplete="off">
+        <label for="token">BEARER &gt;</label>
+        <input id="token" type="password" autocomplete="off" spellcheck="false" required aria-label="Gateway bearer">
+        <button type="submit">[ ENTER ]</button>
+      </form>
+      <p class="memory-note">TOKEN HELD IN MEMORY ONLY · NOT SAVED · NOT LOGGED · CLEARED ON REFRESH</p>
+    </section>
+
+    <section id="workspace" class="terminal-stage" hidden>
+      <header id="terminal-status-line" class="terminal-status-line">
+        <a class="terminal-mark" href="/">PARA<span>11</span>AX v2.0.0</a>
+        <span id="connection-state" class="connection">LINK:UP</span>
+        <button id="sound-toggle" type="button" aria-pressed="true">SND:ON</button>
+        <label class="volume-label" for="volume">VOL</label>
+        <input id="volume" type="range" min="0" max="1" step="0.05" value="0.35" aria-label="Volume">
+        <button id="disconnect" type="button">:DISC</button>
+      </header>
+
+      <form id="terminal-input-line" class="terminal-input-line" autocomplete="off">
+        <label for="indicator">OBSERVABLE &gt;</label>
+        <input id="indicator" autocomplete="off" spellcheck="false" required aria-label="Observable">
+        <label for="profile">PROFILE &gt;</label>
+        <select id="profile" aria-label="Profile">
+          <option value="fast">FAST</option>
+          <option value="standard" selected>STANDARD</option>
+          <option value="full">FULL</option>
+        </select>
+        <button id="enrich" type="submit">[ ENRICH ]</button>
+      </form>
+
+      <div class="scanner-track" aria-hidden="true"><i></i></div>
+
+      <section id="terminal-output" class="terminal-output" aria-label="Analysis output">
+        <section id="result-status" class="result-status" hidden></section>
+        <label id="raw-search-label" class="raw-search-label" for="raw-search" hidden>FILTER RAW JSON &gt;</label>
+        <input id="raw-search" class="raw-search" type="search" autocomplete="off" hidden>
+        <section id="view" class="view raw-terminal"></section>
+      </section>
+
+      <div id="terminal-command-bar" class="terminal-command-bar">
+        <nav id="tabs" class="command-views" aria-label="Analysis views" hidden>
+          <button type="button" data-view="overview" aria-pressed="true">:OVR</button>
+          <button type="button" data-view="evidence" aria-pressed="false">:EVD</button>
+          <button type="button" data-view="correlation" aria-pressed="false">:COR</button>
+          <button type="button" data-view="relationships" aria-pressed="false">:REL</button>
+          <button type="button" data-view="coverage" aria-pressed="false">:COV</button>
+          <button type="button" data-view="raw" aria-pressed="false">:RAW</button>
+        </nav>
+        <div id="result-actions" class="command-actions" hidden>
+          <button id="copy-ioc" type="button">:COPY IOC</button>
+          <button id="copy-json" type="button">:COPY JSON</button>
+          <button id="download-json" type="button">:JSON</button>
+          <button id="download-stix" type="button">:STIX</button>
+          <button id="reset" type="button">:CLEAR</button>
+        </div>
+      </div>
+    </section>
+
     <div id="live-status" class="sr-only" aria-live="polite"></div>
   </main>
   <script type="module" src="/app/terminal-main.js"></script>
