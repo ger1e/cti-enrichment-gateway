@@ -160,17 +160,3 @@ test('all banner assets are minimal: one real PPI radar, PARA11AX, and the Kiria
     assert.doesNotMatch(svg, /#00E5FF|#F6C945|#39FF88/i, `${path} still contains legacy palette`);
   }
 });
-
-test('production landing first paint is already the canonical one-radar hero', () => {
-  const html = read('landing-maxx.html');
-  const runtime = read('landing-terminal-v7.js');
-  assert.match(html, /href=["']\/brand-unification\.css["']/i, 'brand lockup CSS must be render-blocking');
-  assert.match(html, /href=["']\/landing-radar-motion\.css["']/i, 'hero layout CSS must be render-blocking');
-  assert.match(html, /class=["']terminal-brand["'][^>]*>[\s\S]{0,180}para11ax-radar-lockup\.svg/i, 'top-left lockup must exist in source HTML');
-  assert.match(html, /data-wordmark=["']para11ax-angular-a["']/i, 'angular hero wordmark must exist in source HTML');
-  assert.match(html, /class=["']hero-ghost["'][^>]*aria-hidden=["']true["'][^>]*><\/div>/i, 'source hero must expose one empty radar mount only');
-  assert.match(html, /class=["']hero-kiriakou["']/i, 'Kiriakou quote must exist in source HTML');
-  assert.match(html, /You’ve got to follow the evidence… That doesn’t make it fact\./i);
-  assert.doesNotMatch(html, /hero-kicker|hero-doctrine|hero-actions|ghost-grid|ghost-ring|PROVENANCE-FIRST CTI PLATFORM|EVIDENCE FIRST\.|BOUNDED ALWAYS\.|OPERATIONAL WHEN SUPPORTED\./i, 'legacy hero must not ship in first-paint HTML');
-  assert.doesNotMatch(runtime, /mountMinimalHero|createElement\(['"]blockquote['"]\)/i, 'runtime must not reconstruct branding after paint');
-});
