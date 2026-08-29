@@ -49,17 +49,21 @@ test('active presentation sources use the canonical terminal palette only', () =
   assert.doesNotMatch(source, bannedPalette);
 });
 
-test('README uses terminal-native desktop and mobile hero assets while preserving CI badges', () => {
+test('README uses minimal desktop and mobile hero assets while preserving CI badges and analyst entry below the banner', () => {
   const readme = read('README.md');
   assert.match(readme, /assets\/brand\/para11ax-terminal-hero\.svg/i);
   assert.match(readme, /assets\/brand\/para11ax-terminal-hero-mobile\.svg/i);
   assert.match(readme, /Tooling smoke/i);
   assert.match(readme, /CodeQL/i);
   assert.match(readme, /ENTER ANALYST UI/i);
+  assert.match(readme, /analyst@para11ax:~\$/i);
   assert.equal(existsSync('assets/brand/para11ax-terminal-hero.svg'), true);
   assert.equal(existsSync('assets/brand/para11ax-terminal-hero-mobile.svg'), true);
-  assert.match(read('assets/brand/para11ax-terminal-hero.svg'), /analyst@para11ax:~\$/i);
-  assert.match(read('assets/brand/para11ax-terminal-hero-mobile.svg'), /analyst@para11ax:~\$/i);
+  for (const path of ['assets/brand/para11ax-terminal-hero.svg', 'assets/brand/para11ax-terminal-hero-mobile.svg']) {
+    const svg = read(path);
+    assert.doesNotMatch(svg, /analyst@para11ax:~\$/i, `${path} must keep terminal copy out of the banner`);
+    assert.doesNotMatch(svg, /SEMANTIC FIREWALL|FIXED SOURCES|STIX|READ-ONLY|EVIDENCE GATEWAY/i, `${path} must stay visually minimal`);
+  }
 });
 
 test('brand system declares terminal frame primary and no new audio identity', () => {
