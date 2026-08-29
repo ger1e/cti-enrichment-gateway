@@ -66,6 +66,15 @@ test('mobile header keeps the PARA11AX lockup readable while reserving space for
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-status\{[^}]*min-height:\s*50px/);
 });
 
+test('desktop analyst layout scope matches the active terminal-first v7 runtime', async () => {
+  const [runtime, css] = await Promise.all([read('app/analyst-deck.js'), read('app/analyst-deck.css')]);
+  assert.match(runtime, /dataset\.terminalFirst\s*=\s*['"]v7['"]/);
+  assert.match(css, /html\[data-terminal-first=["']v7["']\] \.app-shell\{[^}]*width:\s*min\(1380px,calc\(100% - 18px\)\)/);
+  assert.match(css, /\.unix-shell\{[^}]*grid-template-rows:\s*auto\s+minmax\(0,1fr\)\s+auto/);
+  assert.match(css, /\.shell-scrollback\{[^}]*max-height:\s*none!important/);
+  assert.doesNotMatch(css, /data-terminal-first=["']v6["']/, 'stale v6 layout scope must not survive in the active v7 deck');
+});
+
 test('Vercel cuts the legacy app script over to terminal main wrapper before filesystem resolution', async () => {
   const vercel = JSON.parse(await read('vercel.json'));
   const appScriptRoute = vercel.routes.find(route => route.src === '/app/app.js');
