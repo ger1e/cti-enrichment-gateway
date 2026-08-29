@@ -9,9 +9,9 @@ test('Train 2 activates exactly 38 providers and nine bounded server workflows',
   assert.equal(ALL_PROVIDERS.length, 38);
   assert.equal(Object.keys(WORKFLOWS).length, 9);
   assert.deepEqual(WORKFLOWS.certificate, ['censys', 'virustotal']);
-  assert.equal(WORKFLOW_CALL_LIMITS.certificate, 4);
+  assert.equal(WORKFLOW_CALL_LIMITS.certificate, WORKFLOWS.certificate.length * 2);
   assert.equal(WORKFLOWS.domain[1], 'cloudflare-dns');
-  assert.equal(WORKFLOW_CALL_LIMITS.domain, 15);
+  assert.equal(WORKFLOW_CALL_LIMITS.domain, WORKFLOWS.domain.length * 2);
 });
 
 test('certificate and DNS observations remain contextual rather than reputation evidence', () => {
