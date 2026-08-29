@@ -90,11 +90,12 @@ test('pure Train 5 projection modules add no network credential environment or p
   }
 });
 
-test('Train 5 adds no package dependency and leaves certificate Maltego parity for Train 6', () => {
+test('Train 5 adds no package dependency and Train 6 certificate parity remains isolated to Maltego', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.deepEqual(pkg.dependencies ?? {}, {});
   const init = read('maltego/transforms/__init__.py');
-  assert.equal(init.includes('EnrichCertificate'), false);
+  assert.equal(init.includes('EnrichCertificate'), true);
+  for (const path of PURE_TRAIN5_SOURCES) assert.equal(read(path).includes('EnrichCertificate'), false, `${path}: Train 6 coupling`);
 });
 
 test('gateway integration is additive and does not replace the existing decision field', () => {
