@@ -13,9 +13,9 @@ test('public landing provider count follows the canonical provider registry', ()
   assert.ok(landing.includes(`${providerCount} FIXED SOURCES // READ-ONLY // FIXED EGRESS`), 'landing footer source-count drift');
 });
 
-test('README provider count and supported inputs follow Train 2 source truth', () => {
+test('README provider summary and supported inputs follow Train 2 source truth without forcing header metrics', () => {
   const readme = text('README.md');
-  assert.ok(readme.includes(`\`${providerCount} FIXED SOURCES\``), 'README source-count badge drift');
   assert.ok(readme.includes(`<summary><strong>${providerCount} upstream APIs and feeds</strong></summary>`), 'README provider-summary count drift');
   assert.match(readme, /\*\*Inputs:\*\*[^\n]*certificate/i, 'README must expose the certificate observable');
+  assert.doesNotMatch(readme, /`38 FIXED SOURCES`\s*·\s*`EVIDENCE V2`/i, 'README hero/header must not restore the old metric-chip wall');
 });
