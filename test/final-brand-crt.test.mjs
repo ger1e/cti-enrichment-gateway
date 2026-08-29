@@ -22,7 +22,10 @@ test('production terminal keeps one compact PPI lockup, CRT glass, and the Natur
     'final brand CSS must win the compatibility cascade before first paint',
   );
   assert.match(main, /await import\('\.\/brand-final\.js'\);/);
-  assert.match(main, /earth-globe\.js/);
+  assert.ok(
+    main.indexOf("await import('./earth-globe.js')") < main.indexOf("await import('./terminal-polish.js')"),
+    'Natural Earth must claim the boot globe before legacy polish runs',
+  );
 
   assert.doesNotMatch(brandCss, /\.terminal-mark::before|\.shell-brand::before/,
     'the canonical SVG already contains the PPI; CSS must not prepend another radar');
@@ -30,11 +33,12 @@ test('production terminal keeps one compact PPI lockup, CRT glass, and the Natur
   assert.match(lockup, /<animateTransform\b[^>]*type=["']rotate["']/i);
   assert.doesNotMatch(brandCss, /\.boot-globe>\*\{display:none!important\}/);
   assert.doesNotMatch(brandCss, /\.boot-globe\{[\s\S]*conic-gradient\(from var\(--ppi-angle\)/);
-  assert.match(earthJs, /boot-earth-window/);
-  assert.match(earthJs, /boot-earth-track/);
-  assert.match(earthJs, /animateTransform/);
-  assert.match(earthJs, /setAttribute\(['"]to['"], ['"]-720 0['"]\)/);
-  assert.doesNotMatch(earthCss, /\.boot-earth-track\{[^}]*animation:/);
+  assert.match(earthJs, /projectOrthographic/);
+  assert.match(earthJs, /requestAnimationFrame/);
+  assert.match(earthJs, /globe\.dataset\.enhanced = ['"]true['"]/);
+  assert.doesNotMatch(earthJs, /animateTransform|boot-earth-track|translate\(-720/);
+  assert.match(earthCss, /\.boot-globe\{[^}]*animation:none!important/);
+  assert.doesNotMatch(earthCss, /boot-earth-track/);
 
   assert.match(brandCss, /\.crt\{[\s\S]*repeating-linear-gradient/);
   assert.match(brandCss, /@keyframes crt-phosphor-flicker/);
