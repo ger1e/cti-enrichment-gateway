@@ -1,16 +1,9 @@
 <div align="center">
 
-<picture>
-  <source media="(max-width: 720px)" srcset="assets/brand/para11ax-readme-hero-mobile-v5.gif">
-  <img src="assets/brand/para11ax-readme-hero-v5.gif" alt="PARA11AX — animated PPI radar" width="100%" />
-</picture>
+<img src="assets/brand/para11ax-readme-hero-v6.gif" alt="PARA11AX — animated PPI radar, Matrix rain, analyst operations and John Kiriakou quote" width="100%" />
 
 [![Tooling smoke](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml)
 [![CodeQL](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml)
-
-**INTELLIGENCE. ENRICHED. OPERATIONAL.**
-
-`38 FIXED SOURCES` · `EVIDENCE V2` · `STIX 2.1` · `READ-ONLY` · `FIXED EGRESS` · `Node.js 24.x`
 
 [**ENTER ANALYST UI**](https://para11ax.vercel.app/app/) · [Landing](https://para11ax.vercel.app/) · [API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md) · [Providers](docs/PROVIDERS.md) · [Security](SECURITY.md)
 

@@ -14,22 +14,20 @@ function gifDimensions(bytes) {
   };
 }
 
-test('README serves a dedicated animated mobile hero instead of shrinking the desktop banner', async () => {
-  const [readme, desktop, mobile] = await Promise.all([
+test('README serves one ger1e-style mobile-normalized animated hero', async () => {
+  const [readme, hero] = await Promise.all([
     read('README.md'),
-    readBytes('assets/brand/para11ax-readme-hero-v5.gif'),
-    readBytes('assets/brand/para11ax-readme-hero-mobile-v5.gif'),
+    readBytes('assets/brand/para11ax-readme-hero-v6.gif'),
   ]);
 
-  assert.match(readme, /<picture>/i);
-  assert.match(readme, /<source\s+media="\(max-width:\s*720px\)"\s+srcset="assets\/brand\/para11ax-readme-hero-mobile-v5\.gif"/i);
-  assert.match(readme, /<img\s+src="assets\/brand\/para11ax-readme-hero-v5\.gif"[^>]*alt="PARA11AX — animated PPI radar"/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-v4\.gif/);
+  assert.match(readme, /<img\s+src="assets\/brand\/para11ax-readme-hero-v6\.gif"/i);
+  assert.doesNotMatch(readme, /<picture>/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif/i);
+  assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
 
-  assert.deepEqual(gifDimensions(desktop), { width: 960, height: 347 });
-  assert.deepEqual(gifDimensions(mobile), { width: 480, height: 520 });
-  assert.ok(desktop.length > 8_000, 'desktop GIF must contain real animation/image data');
-  assert.ok(mobile.length > 8_000, 'mobile GIF must contain real animation/image data');
+  assert.deepEqual(gifDimensions(hero), { width: 720, height: 360 });
+  assert.ok(hero.length > 8_000, 'v6 GIF must contain real animation/image data');
+  assert.match(hero.toString('latin1'), /NETSCAPE2\.0/, 'v6 GIF must loop');
 });
 
 test('final CRT branding preserves the Natural Earth globe instead of replacing it with a radar disc', async () => {
