@@ -17,6 +17,7 @@ test('Web UI resolves the compatibility entry into one render-blocking v7 cascad
   ]);
 
   assert.equal(baseCss, appCss, 'prepaint base must remain byte-identical to the canonical app stylesheet');
+  assert.match(html, /<html\s+lang="en"\s+data-terminal-first="v7">/i, 'v7 state must exist in source HTML before first paint');
   assert.match(html, /<link rel="stylesheet" href="\/app\/app\.css">/);
   assert.match(html, /<script type="module" src="\/app\/app\.js"><\/script>/);
 
