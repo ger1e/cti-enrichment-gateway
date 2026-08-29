@@ -5,31 +5,36 @@ import test from 'node:test';
 const url = path => new URL(`../${path}`, import.meta.url);
 const read = path => readFile(url(path), 'utf8');
 
-test('Gateway Terminal restores one canonical PARA11AX logo on boot and shell surfaces', async () => {
-  const logoExists = await access(url('app/para11ax-mark.svg')).then(() => true, () => false);
+test('Gateway Terminal and landing resolve one canonical radar lockup', async () => {
+  const logoExists = await access(url('assets/brand/para11ax-radar-lockup.svg')).then(() => true, () => false);
   const polishExists = await access(url('app/terminal-polish.js')).then(() => true, () => false);
-  assert.equal(logoExists, true, 'canonical PARA11AX SVG logo must exist');
+  assert.equal(logoExists, true, 'canonical PARA11AX radar SVG must exist');
   assert.equal(polishExists, true, 'terminal polish module must exist');
-  const [polish, css] = await Promise.all([read('app/terminal-polish.js'), read('app/shell-polish.css')]);
-  assert.match(polish, /\/app\/para11ax-mark\.svg/);
+  const [main, brand, brandCss, polish, css] = await Promise.all([
+    read('app/terminal-main.js'), read('brand-unification.js'), read('brand-unification.css'), read('app/terminal-polish.js'), read('app/shell-polish.css'),
+  ]);
+  assert.match(main, /\.\.\/brand-unification\.js/);
+  assert.match(brand, /\/assets\/brand\/para11ax-radar-lockup\.svg/);
+  assert.match(brand, /\.terminal-brand/);
+  assert.match(brand, /\.terminal-mark/);
+  assert.match(brand, /\.para11ax-logo/);
+  assert.match(brandCss, /\.shared-radar-lockup/);
   assert.match(polish, /boot-brand-lockup/);
   assert.match(polish, /shell-logo/);
   assert.match(css, /\.para11ax-logo\{/);
-  assert.match(css, /\.boot-brand-lockup\{/);
-  assert.match(css, /\.shell-logo\{/);
 });
 
-test('PARA11AX logo asset uses the phosphor sentinel tactical palette', async () => {
-  const logoExists = await access(url('app/para11ax-mark.svg')).then(() => true, () => false);
-  assert.equal(logoExists, true, 'canonical PARA11AX SVG logo must exist');
-  const svg = await read('app/para11ax-mark.svg');
+test('canonical PARA11AX logo asset is a phosphor animated radar, not the legacy sentinel', async () => {
+  const svg = await read('assets/brand/para11ax-radar-lockup.svg');
   assert.match(svg, /viewBox=/);
   assert.match(svg, /#39FF14/i);
   assert.match(svg, /#FF2438/i);
   assert.match(svg, /#F7FFF6/i);
-  assert.match(svg, /sentinel|helmet|visor/i);
-  assert.doesNotMatch(svg, /#00E5FF/i);
-  assert.match(svg, /PARA11AX/);
+  assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["']/i);
+  assert.match(svg, /PARA/);
+  assert.match(svg, /11/);
+  assert.match(svg, /AX/);
+  assert.doesNotMatch(svg, /sentinel|helmet|visor/i);
   assert.doesNotMatch(svg, /(?:href|src)\s*=\s*["']https?:\/\//i, 'logo must not load external resources');
 });
 

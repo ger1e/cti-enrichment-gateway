@@ -4,18 +4,18 @@ import { readFileSync } from 'node:fs';
 
 const read = (path) => readFileSync(path, 'utf8');
 
-test('production landing artifact runs heavy rain density without external assets', () => {
+test('production landing artifact runs heavy README-style native SVG rain', () => {
   const html = read('landing-maxx.html');
-  const motion = read('landing-terminal-v7.js');
+  const css = read('landing-radar-motion.css');
+  const rain = read('assets/brand/para11ax-rain.svg');
   const config = JSON.parse(read('vercel.json'));
-  const staticColumns = (html.match(/class="rain"/g) || []).length;
-  const extraMatch = motion.match(/EXTRA_RAIN_COLUMNS\s*=\s*(\d+)/);
-  const extraColumns = Number(extraMatch?.[1] || 0);
-  assert.ok(staticColumns + extraColumns >= 40, `expected at least 40 effective landing rain columns, got ${staticColumns + extraColumns}`);
+  const movingColumns = (rain.match(/<animateTransform\b[^>]*type=["']translate["']/gi) || []).length;
+  assert.ok(movingColumns >= 12, `expected at least 12 animated landing rain columns, got ${movingColumns}`);
   assert.match(html, /data-rain-density="heavy"/i);
-  assert.match(html, /\.matrix-rain[^}]*opacity:\s*\.55/i);
-  assert.match(html, /prefers-reduced-motion:\s*reduce/i);
-  assert.match(motion, /densifyRain/);
+  assert.match(css, /\.matrix-rain[^}]*para11ax-rain\.svg/i);
+  assert.match(css, /\.matrix-rain\s*>\s*\.rain[^}]*display:\s*none/i);
+  assert.match(rain, /dur=["'](?:1[6-9]|2[0-3])(?:\.\d+)?s["']/i);
+  assert.match(rain, /prefers-reduced-motion:\s*reduce/i);
   assert.ok(config.routes.some((route) => route.src === '/' && route.dest === '/landing-maxx.html'));
 });
 
