@@ -10,16 +10,11 @@ export const WORKFLOWS = Object.freeze({
   certificate: Object.freeze(['censys', 'virustotal']),
 });
 
-export const WORKFLOW_CALL_LIMITS = Object.freeze({
-  ip: 25,
-  domain: 15,
-  url: 15,
-  hash: 15,
-  cve: 12,
-  attack: 2,
-  asn: 4,
-  cidr: 4,
-  certificate: 4,
-});
+// The scheduler permits at most two attempts per admitted provider. Reserve enough
+// request-local call tokens for that bounded retry policy across the entire fixed
+// workflow so an early timeout cannot starve later providers in the same profile.
+export const WORKFLOW_CALL_LIMITS = Object.freeze(
+  Object.fromEntries(Object.entries(WORKFLOWS).map(([type, providers]) => [type, providers.length * 2])),
+);
 
 export const WORKFLOW_BLUEPRINTS = WORKFLOWS;
