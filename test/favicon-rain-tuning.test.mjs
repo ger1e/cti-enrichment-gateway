@@ -13,9 +13,9 @@ test('WebUI runtime pins the same canonical SVG favicon as landing', () => {
   assert.match(runtime, /favicon\.type\s*=\s*['"]image\/svg\+xml['"]/i);
 });
 
-test('landing rain renderer is slower-looking and denser without touching app rain', () => {
+test('landing rain renderer is slower-looking and substantially denser without touching app rain', () => {
   const css = read('landing-radar-motion.css');
-  assert.match(css, /\.matrix-rain[^}]*background-size:\s*72%\s+auto\s*!important/is);
+  assert.match(css, /\.matrix-rain[^}]*background-size:\s*56%\s+auto\s*!important/is);
   assert.match(css, /\.matrix-rain[^}]*background-repeat:\s*repeat\s*!important/is);
-  assert.match(css, /@media\(max-width:640px\)[\s\S]*?\.matrix-rain[^}]*background-size:\s*auto\s+72%\s*!important/is);
+  assert.match(css, /@media\(max-width:640px\)[\s\S]*?\.matrix-rain[^}]*background-size:\s*auto\s+56%\s*!important/is);
 });
