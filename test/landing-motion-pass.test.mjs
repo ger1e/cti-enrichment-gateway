@@ -5,44 +5,49 @@ import test from 'node:test';
 const read = (path) => readFileSync(path, 'utf8');
 const adapter = () => read('landing-terminal-v7.js');
 const motion = () => read('landing-radar-motion.css');
+const radar = () => read('assets/brand/para11ax-radar.svg');
+const rain = () => read('assets/brand/para11ax-rain.svg');
 
-test('landing radar uses a rotational phosphor sweep with trail pulse and bounded contacts', () => {
+test('landing radar uses a self-contained rotational phosphor SVG sweep', () => {
   assert.equal(existsSync('landing-radar-motion.css'), true, 'landing radar motion stylesheet must exist');
+  assert.equal(existsSync('assets/brand/para11ax-radar.svg'), true, 'native radar asset must exist');
   const css = motion();
   const js = adapter();
+  const svg = radar();
   assert.match(js, /MOTION_HREF\s*=\s*['"]\/landing-radar-motion\.css['"]/i);
-  assert.match(js, /function\s+enhanceRadar\s*\(/i);
-  assert.match(js, /RADAR_CONTACTS\s*=\s*4/i);
-  assert.match(js, /['"]radar-sweep['"]/i);
-  assert.match(js, /['"]radar-trail['"]/i);
-  assert.match(js, /['"]radar-pulse['"]/i);
-  assert.match(css, /@keyframes\s+radar-sweep[\s\S]*rotate\(360deg\)/i);
-  assert.match(css, /@keyframes\s+radar-contact-ping/i);
-  assert.match(css, /@keyframes\s+radar-ring-pulse/i);
+  assert.match(css, /\.hero-ghost[^}]*para11ax-radar\.svg/i);
+  assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["'][^>]*repeatCount=["']indefinite["']/i);
+  assert.match(svg, /#39FF14/i);
+  assert.doesNotMatch(js, /enhanceRadar|RADAR_CONTACTS/i);
 });
 
-test('landing disables the full-height hero scanner and keeps radar motion circular', () => {
+test('landing disables the full-height hero scanner and mounts radar without runtime construction', () => {
   const css = motion();
   assert.match(css, /\.terminal-hero:before\s*\{[^}]*content:\s*none!important[^}]*animation:\s*none!important/is);
   assert.doesNotMatch(css, /translateY\(588px\)/i);
-  assert.match(css, /\.radar-sweep[^}]*animation:\s*radar-sweep/i);
+  assert.match(css, /\.hero-ghost[^}]*background:[^}]*para11ax-radar\.svg/is);
 });
 
-test('bounded landing polish uses terminal-native snap cues without new runtime capability', () => {
+test('bounded landing polish uses terminal-native snap cues and README-style native rain without new runtime capability', () => {
   const css = motion();
   const js = adapter();
+  const rainSvg = rain();
   assert.match(css, /@keyframes\s+acquisition-pulse/i);
   assert.match(css, /\.terminal-button:hover[^}]*animation:\s*acquisition-pulse/i);
   assert.match(css, /\.session-line[^}]*steps\(/i);
   assert.match(css, /\[data-reveal\][^}]*steps\(/i);
-  assert.match(css, /\.rain:nth-child\(5n\)/i);
+  assert.match(css, /\.matrix-rain[^}]*para11ax-rain\.svg/i);
+  assert.ok((rainSvg.match(/<animateTransform\b[^>]*type=["']translate["']/gi) ?? []).length >= 12);
   assert.doesNotMatch(js, /AudioContext|webkitAudioContext|new\s+Audio\s*\(|fetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB/i);
 });
 
 test('mobile and reduced-motion radar contracts lower complexity without hiding content', () => {
   const css = motion();
-  assert.match(css, /@media\s*\(max-width:\s*640px\)[\s\S]*\.radar-contact:nth-of-type\(n\+3\)\s*\{\s*display:\s*none/is);
-  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.radar-sweep[\s\S]*animation:\s*none!important/is);
-  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.radar-contact[\s\S]*animation:\s*none!important/is);
-  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.radar-pulse[\s\S]*animation:\s*none!important/is);
+  const radarSvg = radar();
+  const rainSvg = rain();
+  assert.match(css, /@media\s*\(max-width:\s*640px\)[\s\S]*\.hero-ghost[^}]*opacity:/is);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.hero-ghost[^}]*opacity:/is);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.matrix-rain[^}]*opacity:/is);
+  assert.match(radarSvg, /prefers-reduced-motion:\s*reduce/i);
+  assert.match(rainSvg, /prefers-reduced-motion:\s*reduce/i);
 });

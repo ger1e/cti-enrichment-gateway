@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" role="img" aria-labelledby="title desc">
+  <title id="title">PARA11AX radar</title>
+  <desc id="desc">Phosphor threat radar with a continuous sweep and bounded contacts.</desc>
+  <defs>
+    <radialGradient id="radarBg"><stop stop-color="#0A170D" stop-opacity=".72"/><stop offset="1" stop-color="#020403" stop-opacity=".08"/></radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <style>
+    .motion{display:block}.static-sweep{display:none}
+    @media(prefers-reduced-motion: reduce){.motion{display:none}.static-sweep{display:block}}
+  </style>
+  <circle cx="260" cy="260" r="244" fill="url(#radarBg)" stroke="#39FF14" stroke-opacity=".42" stroke-width="2"/>
+  <g transform="translate(260 260)">
+    <circle r="190" fill="none" stroke="#39FF14" stroke-opacity=".25" stroke-width="1.5"/>
+    <circle r="130" fill="none" stroke="#39FF14" stroke-opacity=".19"/>
+    <circle r="70" fill="none" stroke="#39FF14" stroke-opacity=".16"/>
+    <path d="M-244 0H244M0-244V244M-173-173 173 173M173-173-173 173" stroke="#39FF14" stroke-opacity=".12"/>
+    <g class="motion" filter="url(#glow)">
+      <path d="M0 0 238-38A241 241 0 0 1 238 38Z" fill="#39FF14" fill-opacity=".07"/>
+      <path d="M0 0H240" stroke="#39FF14" stroke-width="2.6" stroke-linecap="round"/>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="8s" repeatCount="indefinite"/>
+    </g>
+    <g class="static-sweep" transform="rotate(34)">
+      <path d="M0 0 238-38A241 241 0 0 1 238 38Z" fill="#39FF14" fill-opacity=".07"/>
+      <path d="M0 0H240" stroke="#39FF14" stroke-width="2.6"/>
+    </g>
+    <g filter="url(#glow)">
+      <circle cx="118" cy="-124" r="5" fill="#39FF14"/><circle cx="-102" cy="92" r="4" fill="#39FF14" fill-opacity=".82"/>
+      <circle cx="156" cy="116" r="4.5" fill="#39FF14" fill-opacity=".68"/><circle cx="-64" cy="-142" r="4" fill="#FF2438"/>
+    </g>
+    <circle r="5" fill="#020403" stroke="#FF2438" stroke-width="1.5"/>
+  </g>
+  <circle cx="260" cy="260" r="244" fill="none" stroke="#F7FFF6" stroke-opacity=".08"/>
+</svg>

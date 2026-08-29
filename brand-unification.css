@@ -1,0 +1,7 @@
+.shared-radar-lockup,.para11ax-logo{display:block;width:172px!important;height:auto!important;max-width:172px!important;object-fit:contain;filter:drop-shadow(0 0 9px rgba(57,255,20,.16))}
+.terminal-brand,.terminal-mark{display:inline-flex!important;align-items:center;min-width:172px;min-height:34px;font-size:0!important;line-height:0!important;color:transparent!important;text-shadow:none!important}
+.terminal-brand .shared-radar-lockup,.terminal-mark .shared-radar-lockup{width:172px!important;max-width:172px!important}
+.shell-brand-label{display:none!important}
+.shell-brand .para11ax-logo,.boot-brand-lockup .para11ax-logo{width:172px!important;max-width:172px!important}
+@media(max-width:640px){.shared-radar-lockup,.para11ax-logo,.terminal-brand .shared-radar-lockup,.terminal-mark .shared-radar-lockup,.shell-brand .para11ax-logo,.boot-brand-lockup .para11ax-logo{width:132px!important;max-width:132px!important}.terminal-brand,.terminal-mark{min-width:132px;min-height:30px}}
+@media(prefers-reduced-motion:reduce){.shared-radar-lockup,.para11ax-logo{filter:none}}
