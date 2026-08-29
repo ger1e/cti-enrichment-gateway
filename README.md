@@ -1,8 +1,8 @@
 <div align="center">
 
 <picture>
-  <source media="(max-width: 640px)" srcset="assets/brand/para11ax-terminal-hero-mobile.svg">
-  <img src="assets/brand/para11ax-terminal-hero.svg" alt="PARA11AX — provenance-first CTI terminal" width="100%" />
+  <source media="(max-width: 640px)" srcset="assets/brand/para11ax-readme-hero-mobile-v3.svg">
+  <img src="assets/brand/para11ax-readme-hero-v3.svg" alt="PARA11AX — provenance-first CTI terminal" width="100%" />
 </picture>
 
 [![Tooling smoke](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml)
@@ -33,7 +33,7 @@ PARA11AX is a bounded CTI evidence gateway for hunters and defenders. It takes o
 - **Outputs:** Evidence v2 · typed correlation · JSON · batch · STIX 2.1 · deterministic offline reports.
 - **Identity:** repository/package `para11ax`, CLI `para11ax`, bearer `PARA11AX_TOKEN`, API base `/api/para11ax/*`.
 
-![PARA11AX request path](assets/brand/para11ax-architecture.svg)
+![PARA11AX request path](assets/brand/para11ax-architecture-v3.svg)
 
 `safeFetch` is the hard egress boundary. Callers cannot choose arbitrary destinations, protocols, methods, headers, redirects, provider credentials, or custom proxy routes. Upstream responses remain untrusted until a provider parser validates and normalizes them.
 
@@ -82,7 +82,7 @@ analyst@para11ax:~$ semantics --enforce
 > SEMANTIC FIREWALL
 ```
 
-![PARA11AX semantic firewall](assets/brand/para11ax-semantic-firewall.svg)
+![PARA11AX semantic firewall](assets/brand/para11ax-semantic-firewall-v3.svg)
 
 - **Absence ≠ benign:** `not_listed`, `not_found`, `no_result`, and `no_association` remain absence semantics.
 - **Context ≠ reputation:** registration, routing, exposure, Tor, scanners, Modat, and ATT&CK cannot vote an IOC malicious.
