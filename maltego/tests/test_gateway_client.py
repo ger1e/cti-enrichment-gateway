@@ -39,8 +39,8 @@ class GatewayClientTests(unittest.TestCase):
         self.assertEqual(seen['body'], {'indicator': '8.8.8.8', 'type': 'ip'})
         self.assertEqual(seen['timeout'], 15.0)
 
-    def test_v2_type_set_matches_transform_surface(self):
-        self.assertEqual(SUPPORTED_INDICATOR_TYPES, frozenset({'ip', 'domain', 'url', 'hash', 'cve', 'attack', 'asn', 'cidr'}))
+    def test_v8_type_set_matches_transform_surface(self):
+        self.assertEqual(SUPPORTED_INDICATOR_TYPES, frozenset({'ip', 'domain', 'url', 'hash', 'certificate', 'cve', 'attack', 'asn', 'cidr'}))
         seen = []
         def opener(request, timeout):
             seen.append(json.loads(request.data)['type'])
@@ -48,7 +48,7 @@ class GatewayClientTests(unittest.TestCase):
         client = GatewayClient('https://gateway.example', 'secret-token', opener=opener)
         fixtures = {
             'ip': '8.8.8.8', 'domain': 'example.com', 'url': 'https://example.com/',
-            'hash': 'a' * 64, 'cve': 'CVE-2026-12345', 'attack': 'T1059.001',
+            'hash': 'a' * 64, 'certificate': 'b' * 64, 'cve': 'CVE-2026-12345', 'attack': 'T1059.001',
             'asn': 'AS3333', 'cidr': '192.0.2.0/24',
         }
         for indicator_type, indicator in fixtures.items():
@@ -56,6 +56,20 @@ class GatewayClientTests(unittest.TestCase):
         self.assertEqual(set(seen), set(fixtures))
         with self.assertRaises(GatewayError):
             client.enrich('x', 'unsupported')
+
+    def test_certificate_transport_is_explicitly_prefixed_without_changing_file_hash(self):
+        seen = []
+        def opener(request, timeout):
+            seen.append(json.loads(request.data))
+            return FakeResponse(b'{"status":"ok","evidence":[]}')
+        client = GatewayClient('https://gateway.example', 'secret-token', opener=opener)
+        fingerprint = 'c' * 64
+        self.assertEqual(client.enrich(fingerprint, 'hash')['status'], 'ok')
+        self.assertEqual(client.enrich(fingerprint, 'certificate')['status'], 'ok')
+        self.assertEqual(seen, [
+            {'indicator': fingerprint, 'type': 'hash'},
+            {'indicator': f'cert-sha256:{fingerprint}', 'type': 'certificate'},
+        ])
 
     def test_environment_token_takes_precedence_without_touching_dpapi(self):
         with patch.dict(os.environ, {'PARA11AX_TOKEN': 'env-secret'}, clear=False):

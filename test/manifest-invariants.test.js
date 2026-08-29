@@ -67,15 +67,15 @@ test('gateway package major version and evidence schema major stay aligned', () 
   assert.equal(pkg.engines.node, '24.x');
 });
 
-test('Maltego covers the legacy eight workflow types and certificate is the sole staged Train 6 gap', () => {
+test('Maltego covers all nine active workflow types after Train 6 certificate parity', () => {
   const init = readFileSync(new URL('../maltego/transforms/__init__.py', import.meta.url), 'utf8');
   const requirements = {
     ip: ['EnrichIPv4','EnrichIPv6'], domain: ['EnrichDomain'], url: ['EnrichURL'], hash: ['EnrichHash'],
-    cve: ['EnrichCVE'], attack: ['EnrichATTACK'], asn: ['EnrichASN'], cidr: ['EnrichCIDR'],
+    certificate: ['EnrichCertificate'], cve: ['EnrichCVE'], attack: ['EnrichATTACK'], asn: ['EnrichASN'], cidr: ['EnrichCIDR'],
   };
   const supported = Object.keys(requirements).sort();
-  assert.deepEqual(supported, ['asn','attack','cidr','cve','domain','hash','ip','url']);
-  assert.deepEqual(Object.keys(WORKFLOWS).filter(type => !supported.includes(type)), ['certificate']);
-  for (const [type, names] of Object.entries(requirements)) for (const name of names) assert.ok(init.includes(name), `${type}: missing Maltego ${name}`);
-  assert.equal(init.includes('EnrichCertificate'), false, 'certificate Maltego parity is intentionally deferred to Train 6');
+  assert.deepEqual(supported, Object.keys(WORKFLOWS).sort());
+  for (const [type, names] of Object.entries(requirements)) {
+    for (const name of names) assert.ok(init.includes(name), `${type}: missing Maltego ${name}`);
+  }
 });

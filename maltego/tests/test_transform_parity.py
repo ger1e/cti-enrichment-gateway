@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 
@@ -12,6 +13,7 @@ class TransformParityTests(unittest.TestCase):
             'domain': ['EnrichDomain', 'EnrichDNSName'],
             'url': ['EnrichURL'],
             'hash': ['EnrichHash'],
+            'certificate': ['EnrichCertificate'],
             'cve': ['EnrichCVE'],
             'attack': ['EnrichATTACK'],
             'asn': ['EnrichASN'],
@@ -27,6 +29,17 @@ class TransformParityTests(unittest.TestCase):
                 if class_name in {'EnrichASN', 'EnrichCIDR'}:
                     self.assertIn("input_entity='maltego.Phrase'", text)
                     self.assertIn(f"execute_gateway_transform(request, response, '{indicator_type}')", text)
+                if class_name == 'EnrichCertificate':
+                    self.assertIn("input_entity='maltego.Hash'", text)
+                    self.assertIn("execute_gateway_transform(request, response, 'certificate')", text)
+
+        manifest = json.loads((ROOT / 'transform-manifest.json').read_text(encoding='utf-8'))
+        entries = {item['class']: item for item in manifest['transforms']}
+        self.assertEqual(entries['EnrichCertificate'], {
+            'class': 'EnrichCertificate',
+            'indicatorType': 'certificate',
+            'inputEntity': 'maltego.Hash',
+        })
 
     def test_maltego_artifacts_contain_no_vendor_secret_names(self):
         forbidden = [
@@ -47,7 +60,7 @@ class TransformParityTests(unittest.TestCase):
         self.assertIn('PARA11AX_TOKEN', combined)
         self.assertIn('DPAPI', combined.upper())
         self.assertIn('SUPPORTED_INDICATOR_TYPES', client)
-        for indicator_type in ['ip', 'domain', 'url', 'hash', 'cve', 'attack', 'asn', 'cidr']:
+        for indicator_type in ['ip', 'domain', 'url', 'hash', 'certificate', 'cve', 'attack', 'asn', 'cidr']:
             self.assertIn(repr(indicator_type), client)
 
 if __name__ == '__main__':
