@@ -1,0 +1,33 @@
+.shell-result{overflow-x:hidden!important}
+.analyst-brief{display:grid;gap:14px}
+.brief-section{display:grid;gap:7px;padding-bottom:11px;border-bottom:1px dotted var(--terminal-line)}
+.brief-section:last-child{border-bottom:0}
+.analyst-section-label,.shell-fact-heading{margin:0 0 5px;color:var(--terminal-phosphor);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.fact-grid{display:grid;gap:0;margin:4px 0}
+.fact-row{display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:10px;padding:4px 0;border-bottom:1px dotted rgba(57,255,20,.12)}
+.fact-row:last-child{border-bottom:0}
+.fact-label{color:var(--terminal-muted);font-size:10px;letter-spacing:.075em;text-transform:uppercase}
+.fact-value{margin:0;color:var(--terminal-text);font-size:13px;font-weight:500;overflow-wrap:anywhere;word-break:break-word}
+.fact-card,.signal,.coverage-failure{margin:5px 0;padding:8px 9px;border:1px solid var(--terminal-line);border-left:2px solid var(--terminal-line-strong);background:rgba(57,255,20,.016)}
+.fact-card.corroboration{border-left-color:var(--terminal-phosphor)}
+.fact-card.contradiction,.coverage-failure.failure-failed{border-left-color:var(--terminal-alert)}
+.coverage-failure.failure-skipped{border-left-color:var(--terminal-muted)}
+.fact-title,.fact-subtitle{margin:0 0 5px;color:var(--terminal-text);font-size:11px;font-weight:800;letter-spacing:.055em;text-transform:uppercase}
+.fact-subtitle{margin-top:8px;color:var(--terminal-muted);font-size:10px}
+.signal-head,.failure-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.failure-provider{color:var(--terminal-text);font-weight:800}
+.failure-state,.failure-label{color:var(--terminal-alert);font-size:11px;font-weight:800;letter-spacing:.055em;text-transform:uppercase}
+.failure-skipped .failure-state,.failure-skipped .failure-label{color:var(--terminal-muted)}
+.failure-summary{margin:4px 0 6px;color:var(--terminal-text);font-size:12px;line-height:1.42}
+.coverage-summary,.coverage-line{margin:5px 0;color:var(--terminal-phosphor);font-size:11px;font-weight:800;letter-spacing:.035em}
+.analyst-limitations{grid-column:1/-1;margin-top:5px;padding:6px 0 2px 8px;border-left:2px solid var(--terminal-muted)}
+.analyst-limitations-label{color:var(--terminal-muted);font-size:10px;letter-spacing:.08em}
+.risk-axes{display:grid;gap:2px}
+.risk-axis{display:grid;grid-template-columns:100px minmax(0,1fr);gap:10px;padding:5px 0;border-bottom:1px dotted rgba(57,255,20,.12)}
+.risk-axis-label{color:var(--terminal-muted);font-size:10px;letter-spacing:.08em}
+.risk-axis-value{color:var(--terminal-text);font:inherit;font-size:13px;font-weight:700;background:none;padding:0}
+.risk-kev .risk-axis-value,.risk-epss .risk-axis-value,.risk-cvss .risk-axis-value{color:var(--terminal-phosphor)}
+.reference-line{margin:3px 0;overflow-wrap:anywhere}.reference{color:var(--terminal-phosphor);text-decoration:underline;text-decoration-color:rgba(57,255,20,.28);text-underline-offset:2px}
+.signal-details{margin-top:8px;padding-top:4px;border-top:1px dotted var(--terminal-line)}.signal-details summary{color:var(--terminal-muted);font-size:10px;letter-spacing:.07em;cursor:pointer}
+.shell-result-facts .fact-section{padding:2px 0 7px}
+@media(max-width:430px){.analyst-brief{gap:11px}.brief-section{gap:5px;padding-bottom:9px}.fact-row{grid-template-columns:92px minmax(0,1fr);gap:6px;padding:3px 0}.fact-label{font-size:8.5px;letter-spacing:.035em}.fact-value{font-size:11.5px;line-height:1.35}.analyst-section-label,.shell-fact-heading{font-size:10px}.fact-card,.signal,.coverage-failure{padding:7px 6px;margin:4px 0}.fact-title,.failure-label{font-size:10px}.failure-summary{font-size:11px}.risk-axis{grid-template-columns:74px minmax(0,1fr);gap:6px}.risk-axis-label{font-size:9px}.risk-axis-value{font-size:11.5px}.coverage-summary,.coverage-line{font-size:10px}}
