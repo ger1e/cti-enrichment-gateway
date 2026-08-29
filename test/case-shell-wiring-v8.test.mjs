@@ -4,10 +4,12 @@ import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('terminal main loads the local case bridge after the shell entrypoint', async () => {
+test('terminal main preserves prepaint loading and attaches the local case bridge after terminal entry', async () => {
   const source = await read('app/terminal-main.js');
-  const entryIndex = source.indexOf("import './terminal-entry.js'");
-  const bridgeIndex = source.indexOf("import './case-shell-bridge.js'");
+  const entryIndex = source.indexOf("await import('./terminal-entry.js')");
+  const bridgeIndex = source.indexOf("await import('./case-shell-bridge.js')");
+  assert.match(source, /PREPAINT_STYLES/);
+  assert.match(source, /marker\.rel\s*=\s*['"]preload['"]/);
   assert.ok(entryIndex >= 0);
   assert.ok(bridgeIndex > entryIndex, 'case bridge must attach after terminal-entry creates the gateway client');
 });
