@@ -4,6 +4,7 @@ const media = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
 const reduced = Boolean(media?.matches);
 const CURSOR_HREF = '/site-cursor.css';
 const MOTION_HREF = '/landing-radar-motion.css';
+const DESKTOP_FIT_HREF = '/landing-desktop-fit.css';
 const PROMPT_TEXT = 'analyst@para11ax:~$';
 const LEGACY_PROMPTS = ['user@para11ax:~$', 'user@para11ax: ~', 'para11ax@gateway:~$'];
 
@@ -25,6 +26,10 @@ function ensureMotionStylesheet() {
   ensureStylesheet(MOTION_HREF);
 }
 
+function ensureDesktopFitStylesheet() {
+  ensureStylesheet(DESKTOP_FIT_HREF);
+}
+
 function normalizePromptIdentity() {
   for (const node of document.querySelectorAll('.terminal-session .session-line')) {
     let value = node.textContent || '';
@@ -35,6 +40,7 @@ function normalizePromptIdentity() {
 
 ensureCursorStylesheet();
 ensureMotionStylesheet();
+ensureDesktopFitStylesheet();
 normalizePromptIdentity();
 
 const reveal = (node) => node?.classList.add('is-visible');
@@ -86,6 +92,7 @@ media?.addEventListener?.('change', (event) => {
 export {
   clearMotionTimers,
   ensureCursorStylesheet,
+  ensureDesktopFitStylesheet,
   ensureMotionStylesheet,
   normalizePromptIdentity,
 };
