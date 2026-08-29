@@ -9,6 +9,22 @@ const radar = () => read('assets/brand/para11ax-radar.svg');
 const rain = () => read('assets/brand/para11ax-rain.svg');
 const desktopFit = () => read('landing-desktop-fit.css');
 
+test('production landing is source-finalized and bypasses the runtime-mutated legacy artifact', () => {
+  const html = read('index.html');
+  const vercel = JSON.parse(read('vercel.json'));
+  const root = vercel.routes.find(route => route.src === '/');
+  const legacy = vercel.routes.find(route => route.src === '/landing-maxx.html');
+
+  assert.equal(root?.dest, '/index.html');
+  assert.equal(legacy?.dest, '/index.html');
+  assert.doesNotMatch(html, /<script\b[^>]*\bsrc=/i, 'production landing must not depend on structural runtime mutation');
+  assert.match(html, /<img\s+src="\/assets\/brand\/para11ax-radar\.svg"/i);
+  assert.match(html, /class="wordmark"[^>]*data-wordmark="para11ax-angular-a"[^>]*aria-label="PARA11AX"[^>]*>\s*<span class="white">PΛRΛ<\/span><span class="green">11<\/span><span class="white">ΛX<\/span>/i);
+  assert.match(html, /You’ve got to follow the evidence/i);
+  assert.match(html, /John Kiriakou/i);
+  assert.match(html, /href="\/app\/"[^>]*>ENTER PARA11AX/i);
+});
+
 test('landing radar uses a self-contained rotational phosphor SVG sweep', () => {
   assert.equal(existsSync('landing-radar-motion.css'), true, 'landing radar motion stylesheet must exist');
   assert.equal(existsSync('assets/brand/para11ax-radar.svg'), true, 'native radar asset must exist');

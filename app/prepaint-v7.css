@@ -6,3 +6,11 @@
 @import url('/brand-unification.css');
 @import url('/app/desktop-layout-v7.css');
 @import url('/site-cursor.css');
+
+html,body{height:100dvh;min-height:0;overflow:hidden;background:var(--terminal-bg);color:var(--terminal-text)}
+body{background:radial-gradient(circle at 50% 12%,rgba(57,255,20,.035),transparent 32%),var(--terminal-bg)}
+.app-shell{width:min(1380px,calc(100% - 18px));height:100dvh;min-height:0;margin:0 auto;padding:7px 0;overflow:hidden}
+.boot-panel,.access,.terminal-stage{background:var(--terminal-bg)!important;border:1px solid var(--terminal-line)!important;box-shadow:inset 0 0 70px rgba(57,255,20,.015),0 0 32px rgba(0,0,0,.7)!important}
+.tactical-hud,.tactical-readout{display:none!important}
+@media(max-width:720px){.app-shell{width:calc(100% - 12px);padding-top:5px;padding-bottom:5px}}
+@media(max-width:430px){.app-shell{width:calc(100% - 8px);padding:4px 0}}

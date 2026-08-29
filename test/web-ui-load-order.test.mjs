@@ -38,11 +38,18 @@ test('Web UI resolves the compatibility entry into one render-blocking v7 cascad
     previous = index;
   }
 
+  assert.match(prepaint, /html,body\{[^}]*height:100dvh[^}]*overflow:hidden[^}]*background:var\(--terminal-bg\)/s, 'boot geometry must not wait for the v7 data attribute');
+  assert.match(prepaint, /\.app-shell\{[^}]*width:min\(1380px,calc\(100% - 18px\)\)[^}]*height:100dvh/s);
+  assert.match(prepaint, /\.boot-panel,\.access,\.terminal-stage\{[^}]*background:var\(--terminal-bg\)!important/s);
+
   const cssRoute = vercel.routes.find(route => route.src === '/app/app.css');
   const jsRoute = vercel.routes.find(route => route.src === '/app/app.js');
   assert.equal(cssRoute?.dest, '/app/prepaint-v7.css');
   assert.equal(jsRoute?.dest, '/app/terminal-main.js');
 
+  const stateMarker = "document.documentElement.dataset.terminalFirst = 'v7';";
+  assert.ok(main.indexOf(stateMarker) >= 0, 'runtime must declare v7 state');
+  assert.ok(main.indexOf(stateMarker) < main.indexOf('const PREPAINT_STYLES'), 'v7 state must be declared before compatibility imports or markers');
   assert.match(main, /PREPAINT_STYLES/);
   assert.match(main, /marker\.rel = 'preload'/);
   assert.match(main, /marker\.as = 'style'/);
