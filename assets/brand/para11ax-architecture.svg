@@ -1,11 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 410" role="img" aria-labelledby="title desc">
 <title id="title">PARA11AX request path</title>
 <desc id="desc">Terminal-style architecture diagram from client through fixed egress and fixed sources to evidence and STIX output.</desc>
+<style>
+  .diagram-radar-sweep{transform-box:view-box;transform-origin:26px 27px;animation:diagram-radar-spin 5.6s linear infinite}
+  @keyframes diagram-radar-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.diagram-radar-sweep{animation-duration:28s}}
+</style>
 <rect width="720" height="410" fill="#020403"/>
 <rect x="1" y="1" width="718" height="408" fill="none" stroke="#39FF14" stroke-opacity=".34" stroke-width="2"/>
 <line x1="1" y1="52" x2="719" y2="52" stroke="#39FF14" stroke-opacity=".24"/>
-<text x="24" y="33" fill="#39FF14" font-size="21" font-weight="700" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" letter-spacing="2">&gt; PARA11AX // REQUEST PATH</text>
-<circle cx="664" cy="27" r="4" fill="#39FF14"/><text x="680" y="32" fill="#8DA391" font-size="11" text-anchor="end" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">FIXED EGRESS</text>
+<g data-radar="ppi" aria-label="radar" transform="translate(26 27)" fill="none" stroke="#39FF14">
+  <circle r="15" fill="#020403" stroke-opacity=".76"/>
+  <circle r="10" stroke-opacity=".32"/><circle r="5" stroke-opacity=".22"/>
+  <path id="crosshair" d="M-15 0H15M0-15V15" stroke-opacity=".28"/>
+  <circle cx="7" cy="-6" r="1.4" fill="#39FF14" stroke="none"/>
+</g>
+<g class="diagram-radar-sweep" aria-hidden="true"><path d="M26 27H40" stroke="#39FF14" stroke-width="1.7"/><path d="M26 27l13-4a14 14 0 0 1 1 7z" fill="#39FF14" fill-opacity=".12" stroke="none"/></g>
+<text x="50" y="34" data-wordmark="para11ax-angular-a" aria-label="PARA11AX" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900"><tspan fill="#F7FFF6">PΛRΛ</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">ΛX</tspan></text>
+<text x="167" y="33" fill="#39FF14" font-size="16" font-weight="700" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" letter-spacing="1">// REQUEST PATH</text>
+<text x="696" y="32" fill="#8DA391" font-size="11" text-anchor="end" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">FIXED EGRESS</text>
 <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="16">
   <rect x="24" y="68" width="672" height="46" fill="#020403" stroke="#39FF14" stroke-opacity=".22"/>
   <text x="42" y="97" fill="#F7FFF6">01  CLIENT / CLI / MALTEGO</text><text x="670" y="97" fill="#8DA391" text-anchor="end">caller</text>
@@ -20,7 +33,7 @@
   <path d="M360 246v18" stroke="#FF2438"/><path d="M355 258l5 6 5-6" fill="none" stroke="#FF2438"/>
 
   <rect x="24" y="266" width="672" height="46" fill="#020403" stroke="#39FF14" stroke-opacity=".28"/>
-  <text x="42" y="295" fill="#39FF14">04  37 FIXED SOURCES</text><text x="670" y="295" fill="#F7FFF6" text-anchor="end">PARSERS → BOUNDED CACHE</text>
+  <text x="42" y="295" fill="#39FF14">04  38 FIXED SOURCES</text><text x="670" y="295" fill="#F7FFF6" text-anchor="end">PARSERS → BOUNDED CACHE</text>
   <path d="M360 312v18" stroke="#39FF14"/><path d="M355 324l5 6 5-6" fill="none" stroke="#39FF14"/>
 
   <rect x="24" y="332" width="672" height="54" fill="#020403" stroke="#39FF14" stroke-opacity=".55"/>

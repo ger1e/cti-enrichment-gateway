@@ -1,10 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="title desc">
 <title id="title">PARA11AX semantic firewall</title>
 <desc id="desc">Terminal-style semantic separation diagram keeping contextual, reputation, claims and vulnerability evidence distinct.</desc>
+<style>
+  .diagram-radar-sweep{transform-box:view-box;transform-origin:26px 27px;animation:diagram-radar-spin 5.6s linear infinite}
+  @keyframes diagram-radar-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.diagram-radar-sweep{animation-duration:28s}}
+</style>
 <rect width="720" height="420" fill="#020403"/>
 <rect x="1" y="1" width="718" height="418" fill="none" stroke="#39FF14" stroke-opacity=".34" stroke-width="2"/>
 <line x1="1" y1="52" x2="719" y2="52" stroke="#39FF14" stroke-opacity=".24"/>
-<text x="24" y="33" fill="#39FF14" font-size="20" font-weight="700" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" letter-spacing="2">&gt; PARA11AX // SEMANTIC FIREWALL</text>
+<g data-radar="ppi" aria-label="radar" transform="translate(26 27)" fill="none" stroke="#39FF14">
+  <circle r="15" fill="#020403" stroke-opacity=".76"/>
+  <circle r="10" stroke-opacity=".32"/><circle r="5" stroke-opacity=".22"/>
+  <path id="crosshair" d="M-15 0H15M0-15V15" stroke-opacity=".28"/>
+  <circle cx="7" cy="-6" r="1.4" fill="#39FF14" stroke="none"/>
+</g>
+<g class="diagram-radar-sweep" aria-hidden="true"><path d="M26 27H40" stroke="#39FF14" stroke-width="1.7"/><path d="M26 27l13-4a14 14 0 0 1 1 7z" fill="#39FF14" fill-opacity=".12" stroke="none"/></g>
+<text x="50" y="34" data-wordmark="para11ax-angular-a" aria-label="PARA11AX" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900"><tspan fill="#F7FFF6">PΛRΛ</tspan><tspan fill="#39FF14">11</tspan><tspan fill="#F7FFF6">ΛX</tspan></text>
+<text x="167" y="33" fill="#39FF14" font-size="16" font-weight="700" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" letter-spacing="1">// SEMANTIC FIREWALL</text>
 <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
   <rect x="24" y="68" width="672" height="44" fill="#020403" stroke="#39FF14" stroke-opacity=".24"/>
   <text x="42" y="96" fill="#F7FFF6" font-size="16">PROVIDER OBSERVATION → SEMANTIC CLASS → BOUNDED CORRELATION</text>

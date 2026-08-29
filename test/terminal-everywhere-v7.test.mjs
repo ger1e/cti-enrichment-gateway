@@ -22,10 +22,14 @@ test('landing is a terminal-first v7 surface with live visual motion hooks', () 
   assert.match(landing, /class="terminal-overview"/i);
   assert.match(landing, /class="terminal-integrations"/i);
   assert.match(adapter, /PROMPT_TEXT\s*=\s*['"]analyst@para11ax:~\$['"]/i);
-  assert.match(landing, /PROVENANCE-FIRST CTI PLATFORM/i);
-  assert.match(landing, /EVIDENCE FIRST\./i);
-  assert.match(landing, /BOUNDED ALWAYS\./i);
-  assert.match(landing, /OPERATIONAL WHEN SUPPORTED\./i);
+  assert.match(landing, /href=["']\/brand-unification\.css["']/i);
+  assert.match(landing, /href=["']\/landing-radar-motion\.css["']/i);
+  assert.match(landing, /para11ax-radar-lockup\.svg/i);
+  assert.match(landing, /data-wordmark=["']para11ax-angular-a["']/i);
+  assert.match(landing, /class=["']hero-ghost["'][^>]*aria-hidden=["']true["'][^>]*><\/div>/i);
+  assert.match(landing, /class=["']hero-kiriakou["']/i);
+  assert.match(landing, /You’ve got to follow the evidence… That doesn’t make it fact\./i);
+  assert.doesNotMatch(adapter, /mountMinimalHero|createElement\(['"]blockquote['"]\)/i);
   assert.match(landing, /landing-terminal-v7\.js/i);
   assert.match(landing, /prefers-reduced-motion:\s*reduce/i);
 });
