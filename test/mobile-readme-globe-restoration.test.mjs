@@ -8,16 +8,18 @@ const read = path => readFile(url(path), 'utf8');
 test('README serves one complete self-contained SVG hero', async () => {
   const [readme, hero] = await Promise.all([
     read('README.md'),
-    read('assets/brand/para11ax-readme-hero-v7.svg'),
+    read('assets/brand/para11ax-readme-hero-v8.svg'),
   ]);
 
-  assert.match(readme, /<img\s+src="assets\/brand\/para11ax-readme-hero-v7\.svg"/i);
+  assert.match(readme, /<img\s+src="assets\/brand\/para11ax-readme-hero-v8\.svg"/i);
   assert.doesNotMatch(readme, /<picture>/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif|para11ax-readme-hero-v7\.svg/i);
   assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
   assert.match(hero, /viewBox="0 0 720 360"/i);
   assert.match(hero, /data-radar="ppi"/i);
-  assert.match(hero, /PARA11AX/i);
+  assert.match(hero, /PΛRΛ/i);
+  assert.match(hero, /11/i);
+  assert.match(hero, /ΛX/i);
   assert.match(hero, /CTI ENRICHMENT \/\/ ANALYST OPERATIONS/i);
   assert.doesNotMatch(hero, /(?:href|xlink:href)=["']https?:\/\//i);
   assert.doesNotMatch(hero, /url\(\s*["']?https?:\/\//i);

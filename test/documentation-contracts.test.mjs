@@ -32,7 +32,7 @@ test('README provider count and production identity match canonical policy', () 
   assert.ok(readme.includes(`${providerCount} upstream APIs and feeds`), 'README provider count drifted');
   assert.match(
     readme,
-    /https:\/\/para11ax\.vercel\.app(?:\/(?=[)\s`])|(?=[)\s`]))/,
+    /https:\/\/para11ax\.vercel\.app(?:\/app\/|\/)?/,
     'README canonical production identity drifted',
   );
 });

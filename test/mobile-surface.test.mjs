@@ -97,9 +97,11 @@ test('Vercel preserves API routing while mapping branded browser error surfaces'
   assert.ok(notFoundIndex > filesystemIndex);
 });
 
-test('README avoids renderer-fragile mobile typography and Mermaid source fallback', () => {
+test('README uses bounded GER1E-style microtype and no Mermaid source fallback', () => {
   const markdown = read('README.md');
-  assert.doesNotMatch(markdown, /<sub\b/i);
+  assert.match(markdown, /<sub><strong>01 \/\/ SYSTEM PROFILE<\/strong><\/sub>/i);
+  assert.match(markdown, /<sub><strong>07 \/\/ DEEP DOCS<\/strong><\/sub>/i);
+  assert.doesNotMatch(markdown, /font-size\s*=|style=["'][^"']*font-size/i);
   assert.doesNotMatch(markdown, /```mermaid/i);
 });
 

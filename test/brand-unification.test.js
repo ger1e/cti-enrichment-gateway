@@ -68,20 +68,22 @@ test('browser surfaces share one simplified phosphor PPI radar favicon', () => {
   assert.doesNotMatch(favicon, /sentinel|helmet|shield|#00E5FF|#F6C945|#39FF88/i);
 });
 
-test('README uses one self-contained ger1e-style SVG hero and current v3 diagrams', () => {
+test('README uses one self-contained ger1e-style SVG hero and normalized v4 diagrams', () => {
   const readme = read('README.md');
-  const svgPath = 'assets/brand/para11ax-readme-hero-v7.svg';
-  assert.match(readme, /<img[^>]+para11ax-readme-hero-v7\.svg/i);
+  const svgPath = 'assets/brand/para11ax-readme-hero-v8.svg';
+  assert.match(readme, /<img[^>]+para11ax-readme-hero-v8\.svg/i);
   assert.doesNotMatch(readme, /<picture>/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif|para11ax-readme-hero-v7\.svg/i);
   assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
-  assert.match(readme, /para11ax-architecture-v3\.svg/i);
-  assert.match(readme, /para11ax-semantic-firewall-v3\.svg/i);
+  assert.match(readme, /para11ax-readme-architecture-v4\.svg/i);
+  assert.match(readme, /para11ax-readme-semantics-v4\.svg/i);
   assert.equal(existsSync(svgPath), true, 'README SVG must exist');
   const svg = read(svgPath);
   assert.match(svg, /viewBox=["']0 0 720 360["']/i);
   assert.match(svg, /data-radar=["']ppi["']/i);
-  assert.match(svg, /PARA11AX/i);
+  assert.match(svg, /PΛRΛ/i);
+  assert.match(svg, /11/i);
+  assert.match(svg, /ΛX/i);
   assert.match(svg, /CTI ENRICHMENT\s*\/\/\s*ANALYST OPERATIONS/i);
   assert.match(svg, /John Kiriakou/i);
   assert.doesNotMatch(svg, /(?:href|xlink:href)=["']https?:\/\//i);
@@ -127,14 +129,15 @@ test('legacy banner assets keep CSS radar keyframes', () => {
   }
 });
 
-test('README v3 diagrams use only the current angular wordmark and current provider count', () => {
-  const architecture = read('assets/brand/para11ax-architecture-v3.svg');
-  const firewall = read('assets/brand/para11ax-semantic-firewall-v3.svg');
+test('README v4 diagrams use normalized geometry and current provider count', () => {
+  const architecture = read('assets/brand/para11ax-readme-architecture-v4.svg');
+  const semantics = read('assets/brand/para11ax-readme-semantics-v4.svg');
   for (const [path, svg] of [
-    ['assets/brand/para11ax-architecture-v3.svg', architecture],
-    ['assets/brand/para11ax-semantic-firewall-v3.svg', firewall],
+    ['assets/brand/para11ax-readme-architecture-v4.svg', architecture],
+    ['assets/brand/para11ax-readme-semantics-v4.svg', semantics],
   ]) {
-    assert.match(svg, /data-wordmark=["']para11ax-angular-a["']/i, `${path} missing current angular wordmark`);
+    assert.match(svg, /viewBox=["']0 0 720 (?:760|820)["']/i, `${path} must use the normalized 720px family`);
+    assert.match(svg, /rx=["']12["']/i, `${path} must use rounded outer framing`);
     assert.doesNotMatch(svg, /data-radar=["']ppi["']/i, `${path} must not add another README radar`);
     assert.doesNotMatch(svg, /sentinel|helmet|visor|shield|#00E5FF|#F6C945|#39FF88/i, `${path} contains legacy branding`);
   }
