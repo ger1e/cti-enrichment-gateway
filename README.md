@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/brand/para11ax-readme-hero-v6.gif" alt="PARA11AX — animated PPI radar, Matrix rain, analyst operations and John Kiriakou quote" width="100%" />
+<img src="assets/brand/para11ax-readme-hero-v7.svg" alt="PARA11AX — PPI radar, Matrix rain, analyst operations and John Kiriakou quote" width="100%" />
 
 [![Tooling smoke](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/tooling-smoke.yml)
 [![CodeQL](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml/badge.svg)](https://github.com/ger1e/para11ax/actions/workflows/codeql.yml)
