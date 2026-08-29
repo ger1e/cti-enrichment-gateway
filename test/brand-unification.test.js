@@ -11,6 +11,11 @@ const BANNERS = [
   'assets/brand/para11ax-hero-mobile.svg',
 ];
 
+const README_BANNERS = [
+  'assets/brand/para11ax-readme-hero-v3.svg',
+  'assets/brand/para11ax-readme-hero-mobile-v3.svg',
+];
+
 const FULL_LOGOS = [
   'assets/brand/para11ax-radar-lockup.svg',
   'assets/brand/para11ax-lockup.svg',
@@ -103,10 +108,14 @@ test('browser surfaces share one simplified phosphor PPI radar favicon', () => {
   }
 });
 
-test('README uses the unified terminal hero and operational hierarchy', () => {
+test('README uses cache-busted v3 hero and diagram assets', () => {
   const readme = read('README.md');
-  assert.match(readme, /para11ax-terminal-hero\.svg/i);
-  assert.match(readme, /para11ax-terminal-hero-mobile\.svg/i);
+  assert.match(readme, /para11ax-readme-hero-v3\.svg/i);
+  assert.match(readme, /para11ax-readme-hero-mobile-v3\.svg/i);
+  assert.match(readme, /para11ax-architecture-v3\.svg/i);
+  assert.match(readme, /para11ax-semantic-firewall-v3\.svg/i);
+  assert.doesNotMatch(readme, /assets\/brand\/para11ax-terminal-hero(?:-mobile)?\.svg/i);
+  assert.doesNotMatch(readme, /assets\/brand\/para11ax-(?:architecture|semantic-firewall)\.svg/i);
   assert.match(readme, /OPERATIONAL CORE/i);
   assert.match(readme, /SEMANTIC FIREWALL/i);
   assert.match(readme, /ANALYST SURFACE/i);
@@ -116,27 +125,40 @@ test('README uses the unified terminal hero and operational hierarchy', () => {
   assert.match(readme, /<details>/i);
 });
 
-test('README banner radars use CSS keyframes that keep moving in GitHub image rendering', () => {
+test('legacy banner assets keep CSS radar keyframes', () => {
   for (const path of BANNERS) {
     const svg = read(path);
     assert.match(svg, /@keyframes\s+radar-spin/i, `${path} needs CSS radar keyframes`);
     assert.match(svg, /\.radar-sweep\s*\{[^}]*animation:\s*radar-spin/is, `${path} must animate the sweep with CSS`);
     assert.match(svg, /class=["']radar-sweep["']/i, `${path} missing the animated sweep group`);
-    assert.doesNotMatch(svg, /<animateTransform\b[^>]*type=["']rotate["']/i, `${path} must not depend on SMIL rotation in README`);
+    assert.doesNotMatch(svg, /<animateTransform\b[^>]*type=["']rotate["']/i, `${path} must not depend on SMIL rotation`);
     assert.match(svg, /prefers-reduced-motion:\s*reduce[\s\S]*radar-sweep[\s\S]*animation-duration/is, `${path} must reduce rather than eliminate radar motion`);
   }
 });
 
-test('README diagram SVGs use the current radar plus angular wordmark and current provider count', () => {
-  const architecture = read('assets/brand/para11ax-architecture.svg');
-  const firewall = read('assets/brand/para11ax-semantic-firewall.svg');
-  for (const [path, svg] of [
-    ['assets/brand/para11ax-architecture.svg', architecture],
-    ['assets/brand/para11ax-semantic-firewall.svg', firewall],
-  ]) {
-    assert.match(svg, /data-radar=["']ppi["']/i, `${path} missing current radar mark`);
+test('README v3 hero has exactly one PPI radar and redundant CSS plus SMIL motion', () => {
+  for (const path of README_BANNERS) {
+    const svg = read(path);
+    assert.equal((svg.match(/data-radar=["']ppi["']/gi) ?? []).length, 1, `${path} must contain exactly one radar`);
     assert.match(svg, /data-wordmark=["']para11ax-angular-a["']/i, `${path} missing current angular wordmark`);
+    assert.match(svg, /\.radar-css\s*\{[^}]*animation:\s*radar-spin/is, `${path} missing CSS radar motion`);
+    assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["'][^>]*repeatCount=["']indefinite["']/i, `${path} missing SMIL fallback motion`);
+    assert.match(svg, /prefers-reduced-motion:\s*reduce/i, `${path} must honor reduced motion`);
+    assert.doesNotMatch(svg, /sentinel|helmet|visor|shield|#00E5FF|#F6C945|#39FF88/i, `${path} contains legacy branding`);
+  }
+});
+
+test('README v3 diagrams use only the current angular wordmark and current provider count', () => {
+  const architecture = read('assets/brand/para11ax-architecture-v3.svg');
+  const firewall = read('assets/brand/para11ax-semantic-firewall-v3.svg');
+  for (const [path, svg] of [
+    ['assets/brand/para11ax-architecture-v3.svg', architecture],
+    ['assets/brand/para11ax-semantic-firewall-v3.svg', firewall],
+  ]) {
+    assert.match(svg, /data-wordmark=["']para11ax-angular-a["']/i, `${path} missing current angular wordmark`);
+    assert.doesNotMatch(svg, /data-radar=["']ppi["']/i, `${path} must not add another README radar`);
     assert.doesNotMatch(svg, />\s*PARA11AX\s*\/\//i, `${path} still renders the legacy plain-text logo`);
+    assert.doesNotMatch(svg, /sentinel|helmet|visor|shield|#00E5FF|#F6C945|#39FF88/i, `${path} contains legacy branding`);
   }
   assert.match(architecture, /38\s+FIXED\s+SOURCES/i, 'architecture provider count must be current');
   assert.doesNotMatch(architecture, /37\s+FIXED\s+SOURCES/i, 'architecture must not show the stale provider count');
