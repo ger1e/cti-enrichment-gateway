@@ -12,6 +12,14 @@
       "dest": "/landing-maxx.html"
     },
     {
+      "src": "/app/app.css",
+      "dest": "/app/prepaint-v7.css"
+    },
+    {
+      "src": "/app/app.js",
+      "dest": "/app/terminal-main.js"
+    },
+    {
       "handle": "filesystem"
     },
     {
