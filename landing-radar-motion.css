@@ -5,6 +5,8 @@
 
 .hero-ghost{isolation:isolate;opacity:.46!important;background:url('/assets/brand/para11ax-radar.svg') center/contain no-repeat!important}
 .hero-ghost>.ghost-grid,.hero-ghost>.ghost-ring{display:none!important}
+.hero-ghost::after{content:"";position:absolute;z-index:2;left:50%;top:50%;width:88%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:conic-gradient(from -8deg,rgba(57,255,20,.2) 0deg,rgba(57,255,20,.07) 18deg,transparent 44deg 360deg);mask:radial-gradient(circle,transparent 0 2.5%,#000 3.5% 98.5%,transparent 99.5%);filter:drop-shadow(0 0 7px rgba(57,255,20,.28));transform-origin:50% 50%;animation:para11ax-hero-radar-spin 3.6s linear infinite}
+@keyframes para11ax-hero-radar-spin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
 
 .terminal-button:hover,.terminal-button:focus-visible{animation:acquisition-pulse .26s steps(2,end) 1}
 @keyframes acquisition-pulse{
@@ -25,6 +27,7 @@
 @media(prefers-reduced-motion:reduce){
   .matrix-rain{opacity:.2!important}
   .hero-ghost{opacity:.24!important}
+  .hero-ghost::after{animation-duration:12s}
   .terminal-button:hover,.terminal-button:focus-visible{animation:none!important}
   .session-line{animation:none!important}
   [data-reveal]{transition:none!important;transform:none!important}
