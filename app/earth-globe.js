@@ -3,7 +3,10 @@ import { NATURAL_EARTH_LAND_PATHS } from './earth-geometry.js';
 const STYLE_URL = '/app/earth-globe.css';
 const NS = 'http://www.w3.org/2000/svg';
 
-if (!document.querySelector(`link[href="${STYLE_URL}"]`)) {
+if (
+  document.documentElement.dataset.terminalFirst !== 'v7'
+  && !document.querySelector(`link[href="${STYLE_URL}"]`)
+) {
   const styles = document.createElement('link');
   styles.rel = 'stylesheet';
   styles.href = STYLE_URL;
