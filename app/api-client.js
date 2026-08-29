@@ -1,4 +1,6 @@
 const PROFILES = new Set(['fast', 'standard', 'full']);
+const ENRICHMENT_OBSERVERS = new Set();
+let latestGatewayClient = null;
 
 export class GatewayHttpError extends Error {
   constructor(status, code, requestId = null) {
@@ -7,6 +9,26 @@ export class GatewayHttpError extends Error {
     this.status = status;
     this.code = code || 'request_failed';
     this.requestId = requestId;
+  }
+}
+
+export function addGatewayEnrichmentObserver(observer) {
+  if (typeof observer !== 'function') throw new TypeError('enrichment observer must be a function');
+  ENRICHMENT_OBSERVERS.add(observer);
+  return () => ENRICHMENT_OBSERVERS.delete(observer);
+}
+
+export function getLatestGatewayClient() {
+  return latestGatewayClient;
+}
+
+async function notifyEnrichmentObservers(result) {
+  for (const observer of [...ENRICHMENT_OBSERVERS]) {
+    try {
+      await observer(structuredClone(result));
+    } catch {
+      // Local observers must never alter or invalidate a successful gateway result.
+    }
   }
 }
 
@@ -116,16 +138,20 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
     return { indicators: [...indicators], profile };
   }
 
-  return Object.freeze({
+  const client = Object.freeze({
     meta: (signal) => publicRequest('/api/para11ax/meta', { signal, validate: validMeta }),
     health: (signal) => request('/api/para11ax/health', { signal }),
     status: (signal) => request('/api/para11ax/status', { signal }),
-    enrich: async (indicator, profile, signal) => request('/api/para11ax/enrich', {
-      method: 'POST',
-      body: requestPayload(indicator, profile),
-      signal,
-      validate: validEnvelope,
-    }),
+    enrich: async (indicator, profile, signal) => {
+      const result = await request('/api/para11ax/enrich', {
+        method: 'POST',
+        body: requestPayload(indicator, profile),
+        signal,
+        validate: validEnvelope,
+      });
+      await notifyEnrichmentObservers(result);
+      return result;
+    },
     batch: async (indicators, profile, signal) => request('/api/para11ax/batch', {
       method: 'POST',
       body: batchPayload(indicators, profile),
@@ -139,4 +165,7 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
       validate: validStix,
     }),
   });
+
+  latestGatewayClient = client;
+  return client;
 }
