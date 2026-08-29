@@ -3,6 +3,8 @@ import { SUPPORTED_OBSERVABLE_TYPES } from './observable-input.js';
 const PROFILES = Object.freeze(['fast', 'standard', 'full']);
 const VIEWS = Object.freeze(['overview', 'evidence', 'correlation', 'relationships', 'coverage', 'raw']);
 const CASE_SUBCOMMANDS = Object.freeze(['close', 'export', 'find', 'import', 'list', 'new', 'open', 'refresh', 'show']);
+const USER_SCANNER_TYPES = Object.freeze(['email', 'username']);
+const USER_SCANNER_FLAGS = Object.freeze(['--category', '--module', '--cross-scan', '--include-nsfw']);
 
 export const COMMANDS = Object.freeze([
   { name: 'help', aliases: ['?'], category: 'core', usage: 'help [command]', summary: 'show command index or command help' },
@@ -25,6 +27,8 @@ export const COMMANDS = Object.freeze([
   { name: 'enrich', aliases: ['scan', 'pivot'], category: 'enrichment', usage: 'enrich <observable> [--fast|--standard|--full]', summary: 'run bounded Evidence v2 enrichment' },
   { name: 'profile', category: 'enrichment', usage: 'profile [fast|standard|full]', summary: 'show or set the fixed enrichment profile' },
   { name: 'batch', category: 'enrichment', usage: 'batch <observable> [observable ...]', summary: 'enrich 1..20 observables using the active profile' },
+
+  { name: 'user-scanner', aliases: ['osint', 'identity'], category: 'osint', usage: 'user-scanner <email|username> <target> [--category <name>|--module <name>] [--cross-scan] [--include-nsfw]', summary: 'run isolated email/username OSINT through User Scanner' },
 
   { name: 'case', category: 'case', usage: 'case <new|open|close|list|show|refresh|export|import|find>', summary: 'manage the browser-local analyst workspace' },
   { name: 'pin', category: 'case', usage: 'pin', summary: 'pin the current typed enrichment result to the active case' },
@@ -116,6 +120,38 @@ function parseEnrich(args, activeProfile) {
     profile = requested;
   }
   return result('enrich', { indicator, profile });
+}
+
+function parseUserScanner(args) {
+  if (args.length < 2) return error('usage: user-scanner <email|username> <target> [--category <name>|--module <name>] [--cross-scan] [--include-nsfw]');
+  const scanType = args[0]?.toLowerCase();
+  const target = String(args[1] || '').trim();
+  if (!USER_SCANNER_TYPES.includes(scanType) || !target) return error('user-scanner scan type must be email or username');
+  if (target.length > 320) return error('user-scanner target exceeds 320 characters');
+
+  let category = null;
+  let module = null;
+  let crossScan = false;
+  let noNsfw = true;
+
+  for (let index = 2; index < args.length; index += 1) {
+    const token = args[index];
+    if (token === '--cross-scan') { crossScan = true; continue; }
+    if (token === '--include-nsfw') { noNsfw = false; continue; }
+    if (token === '--category' || token === '--module') {
+      const value = args[index + 1];
+      if (!value || value.startsWith('--')) return error(`${token} requires a value`);
+      if (!/^[a-z0-9._-]{1,64}$/i.test(value)) return error(`${token} value contains unsupported characters`);
+      if (token === '--category') category = value;
+      else module = value.replace(/\./g, '_');
+      index += 1;
+      continue;
+    }
+    return error(`unsupported user-scanner option: ${token}`);
+  }
+
+  if (category && module) return error('user-scanner category and module are mutually exclusive');
+  return result('user-scanner', { scanType, target, category, module, crossScan, noNsfw });
 }
 
 function parseCase(args) {
@@ -230,6 +266,11 @@ export function interpretCommand(input, context = {}) {
     return parseEnrich(args, activeProfile);
   }
 
+  if (canonical === 'user-scanner') {
+    if (!authenticated) return needsAuth();
+    return parseUserScanner(args);
+  }
+
   if (canonical === 'batch') {
     if (!authenticated) return needsAuth();
     if (!args.length || args.length > 20) return error('batch accepts 1..20 observables');
@@ -295,7 +336,19 @@ export function completeCommand(input) {
   }
   const command = trimmedLeft.slice(0, firstSpace).toLowerCase();
   const canonical = INDEX.get(command)?.name || command;
-  const fragment = trimmedLeft.slice(firstSpace).trimStart().toLowerCase();
+  const fragmentRaw = trimmedLeft.slice(firstSpace).trimStart();
+  const fragment = fragmentRaw.toLowerCase();
+
+  if (canonical === 'user-scanner') {
+    const pieces = fragmentRaw.split(/\s+/);
+    if (pieces.length === 1 && !fragmentRaw.endsWith(' ')) {
+      return USER_SCANNER_TYPES.filter(value => value.startsWith(pieces[0].toLowerCase()));
+    }
+    if (pieces.length === 1 && fragmentRaw.endsWith(' ')) return USER_SCANNER_TYPES;
+    const last = fragmentRaw.endsWith(' ') ? '' : (pieces.at(-1) || '');
+    if (last.startsWith('--')) return USER_SCANNER_FLAGS.filter(value => value.startsWith(last.toLowerCase())).sort();
+    return [];
+  }
 
   if (canonical === 'case') {
     const pieces = fragment.split(/\s+/);
