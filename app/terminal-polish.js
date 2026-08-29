@@ -17,7 +17,10 @@ const CUE_CLASSES = Object.freeze([
 let activeClockTimer = null;
 const cueTimers = new WeakMap();
 
-if (!document.querySelector('link[href="/app/shell-polish.css"]')) {
+if (
+  document.documentElement.dataset.terminalFirst !== 'v7'
+  && !document.querySelector('link[href="/app/shell-polish.css"]')
+) {
   const styles = document.createElement('link');
   styles.rel = 'stylesheet';
   styles.href = '/app/shell-polish.css';

@@ -4,6 +4,7 @@ const PROMPT_TEXT = 'analyst@para11ax:~$';
 const LEGACY_PROMPTS = ['para11ax@gateway:~$', 'user@para11ax: ~', 'user@para11ax:~$'];
 
 function ensureStylesheet(href = STYLE_HREF) {
+  if (document.documentElement.dataset.terminalFirst === 'v7') return;
   if (document.querySelector(`link[href="${href}"]`)) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
