@@ -52,6 +52,17 @@ test('timestamp, cache, duration, and source ordering noise produces no semantic
   assert.deepEqual(diff.changes, []);
 });
 
+test('absence remains distinct from explicit negative evidence', () => {
+  const previous = base();
+  const current = clone(previous);
+  previous.evidence = [ev('alpha', fp('a'), 'not_found')];
+  current.evidence = [ev('alpha', fp('b'), 'clean')];
+  const diff = diffEvidenceSnapshots(previous, current);
+  assert.equal(diff.changed, true);
+  assert.equal(categories(diff).has('evidence_removed'), true);
+  assert.equal(categories(diff).has('evidence_added'), true);
+});
+
 test('typed semantic changes cover every Train 3 category', () => {
   const previous = base();
   const current = clone(previous);
