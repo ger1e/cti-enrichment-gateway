@@ -4,15 +4,16 @@ import test from 'node:test';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('browser enters the PARA11AX terminal wrapper directly without a compatibility rewrite', async () => {
+test('browser compatibility entry resolves to the canonical prepainted PARA11AX terminal runtime', async () => {
   const html = await read('app/index.html');
   const vercel = JSON.parse(await read('vercel.json'));
   const main = await read('app/terminal-main.js');
   const entry = await read('app/terminal-entry.js');
-  assert.match(html, /<script\s+type="module"\s+src="\/app\/terminal-main\.js"/);
-  assert.equal(vercel.routes.some(route => route.src === '/app/app.js'), false, 'legacy app.js rewrite must stay removed');
-  assert.match(main, /import ['"]\.\/terminal-entry\.js['"]/);
-  assert.match(main, /import ['"]\.\/terminal-polish\.js['"]/);
+  assert.match(html, /<script\s+type="module"\s+src="\/app\/app\.js"/);
+  assert.equal(vercel.routes.find(route => route.src === '/app/app.js')?.dest, '/app/terminal-main.js');
+  assert.equal(vercel.routes.find(route => route.src === '/app/app.css')?.dest, '/app/prepaint-v7.css');
+  assert.match(main, /await import\(['"]\.\/terminal-entry\.js['"]\)/);
+  assert.match(main, /await import\(['"]\.\/terminal-polish\.js['"]\)/);
   assert.match(entry, /\/app\/shell\.css/);
 });
 
