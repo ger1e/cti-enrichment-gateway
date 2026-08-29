@@ -19,11 +19,11 @@ test('production landing artifact runs heavy README-style native SVG rain', () =
   assert.ok(config.routes.some((route) => route.src === '/' && route.dest === '/landing-maxx.html'));
 });
 
-test('analyst web UI carries the landing tactical identity through an isolated visual layer', () => {
+test('legacy tactical visual layer remains isolated from the active analyst Web UI', () => {
   const main = read('app/terminal-main.js');
   const visual = read('app/visual-maxx.js');
   const css = read('app/tactical-maxx.css');
-  assert.match(main, /visual-maxx\.js/i);
+  assert.doesNotMatch(main, /visual-maxx\.js/i);
   assert.match(visual, /tactical-maxx/i);
   assert.match(visual, /tactical-hud/i);
   assert.match(visual, /sentinel-mark/i);
@@ -33,7 +33,7 @@ test('analyst web UI carries the landing tactical identity through an isolated v
   assert.match(css, /@keyframes\s+visor-pulse/i);
 });
 
-test('analyst UI multiplies rain density at runtime while keeping mobile text clear', () => {
+test('dormant tactical layer retains its rain implementation without entering the production runtime', () => {
   const visual = read('app/visual-maxx.js');
   const css = read('app/tactical-maxx.css');
   assert.match(visual, /RAIN_COLUMNS_PER_LAYER\s*=\s*8/i);

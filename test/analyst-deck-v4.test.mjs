@@ -29,7 +29,7 @@ test('terminal-first presentation assets load after terminal polish without repl
   assert.equal(existsSync('app/analyst-deck.js'), true);
   assert.equal(existsSync('app/analyst-deck.css'), true);
   const main = read('app/terminal-main.js');
-  assert.match(main, /import ['"]\.\/analyst-deck\.js['"]/);
+  assert.match(main, /await\s+import\(['"]\.\/analyst-deck\.js['"]\)/);
   assert.ok(main.indexOf('./analyst-deck.js') > main.indexOf('./terminal-polish.js'));
 
   const source = read('app/analyst-deck.js');
