@@ -68,23 +68,23 @@ test('browser surfaces share one simplified phosphor PPI radar favicon', () => {
   assert.doesNotMatch(favicon, /sentinel|helmet|shield|#00E5FF|#F6C945|#39FF88/i);
 });
 
-test('README uses responsive real animated GIF heroes and current v3 diagrams', () => {
+test('README uses one ger1e-style animated GIF hero and current v3 diagrams', () => {
   const readme = read('README.md');
-  const desktopPath = 'assets/brand/para11ax-readme-hero-v5.gif';
-  const mobilePath = 'assets/brand/para11ax-readme-hero-mobile-v5.gif';
-  assert.match(readme, /<picture>/i);
-  assert.match(readme, /para11ax-readme-hero-mobile-v5\.gif/i);
-  assert.match(readme, /para11ax-readme-hero-v5\.gif/i);
+  const gifPath = 'assets/brand/para11ax-readme-hero-v6.gif';
+  assert.match(readme, /<img[^>]+para11ax-readme-hero-v6\.gif/i);
+  assert.doesNotMatch(readme, /<picture>/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif/i);
   assert.doesNotMatch(readme, /para11ax-readme-hero-v4\.gif/i);
   assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v3\.svg/i);
+  assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
   assert.match(readme, /para11ax-architecture-v3\.svg/i);
   assert.match(readme, /para11ax-semantic-firewall-v3\.svg/i);
-  for (const gifPath of [desktopPath, mobilePath]) {
-    assert.equal(existsSync(gifPath), true, `${gifPath} must exist`);
-    const gif = readFileSync(gifPath);
-    assert.equal(gif.subarray(0, 6).toString('ascii'), 'GIF89a');
-    assert.match(gif.toString('latin1'), /NETSCAPE2\.0/, `${gifPath} must declare an infinite animation loop`);
-  }
+  assert.equal(existsSync(gifPath), true, 'README GIF must exist');
+  const gif = readFileSync(gifPath);
+  assert.equal(gif.subarray(0, 6).toString('ascii'), 'GIF89a');
+  assert.match(gif.toString('latin1'), /NETSCAPE2\.0/, 'GIF must declare an infinite animation loop');
+  assert.equal(gif.readUInt16LE(6), 720);
+  assert.equal(gif.readUInt16LE(8), 360);
   assert.match(readme, /OPERATIONAL CORE/i);
   assert.match(readme, /ANALYST SURFACE/i);
   assert.match(readme, /analyst@para11ax:~\$/i);
