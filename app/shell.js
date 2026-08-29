@@ -53,7 +53,7 @@ export const COMMANDS = Object.freeze([
 
   { name: 'json', category: 'export', usage: 'json [save]', summary: 'print or download Evidence v2 JSON' },
   { name: 'stix', category: 'export', usage: 'stix', summary: 'generate and download STIX 2.1 from current observable' },
-  { name: 'copy', category: 'export', usage: 'copy <observable|json|request-id>', summary: 'copy bounded current-result material' },
+  { name: 'copy', category: 'export', usage: 'copy <observable|report|json|request-id>', summary: 'copy current observable, analyst report, JSON, or request id' },
 
   { name: 'sound', category: 'terminal', usage: 'sound <on|off>', summary: 'enable or mute synthesized terminal audio' },
   { name: 'volume', category: 'terminal', usage: 'volume <0-100>', summary: 'set synthesized audio volume' },
@@ -305,7 +305,7 @@ export function interpretCommand(input, context = {}) {
   }
   if (canonical === 'copy') {
     if (!authenticated) return needsAuth();
-    if (args.length !== 1 || !['observable', 'json', 'request-id'].includes(args[0])) return error('usage: copy <observable|json|request-id>');
+    if (args.length !== 1 || !['observable', 'report', 'json', 'request-id'].includes(args[0])) return error('usage: copy <observable|report|json|request-id>');
     return result('copy', { target: args[0] });
   }
 
@@ -317,7 +317,7 @@ const COMPLETIONS = Object.freeze({
   profile: PROFILES,
   sound: Object.freeze(['off', 'on']),
   auth: Object.freeze(['clear', 'status']),
-  copy: Object.freeze(['json', 'observable', 'request-id']),
+  copy: Object.freeze(['json', 'observable', 'report', 'request-id']),
   json: Object.freeze(['save']),
   case: CASE_SUBCOMMANDS,
   unpin: SUPPORTED_OBSERVABLE_TYPES,
