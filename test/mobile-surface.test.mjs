@@ -57,6 +57,17 @@ test('human-facing custom error pages are branded, static, and mobile-safe', () 
   }
 });
 
+test('human-facing custom error pages use the canonical terminal palette with no legacy color escape', () => {
+  const required = ['#020403', '#39ff14', '#f7fff6', '#8da391', '#ff2438'];
+  const forbidden = ['#050608', '#00e5ff', '#ff1e2d', '#39ff88'];
+  for (const status of ['403', '404', '500']) {
+    const html = read(`${status}.html`).toLowerCase();
+    assert.match(html, /<meta\s+name="theme-color"\s+content="#020403"/i, `${status} theme color must match the terminal`);
+    for (const token of required) assert.ok(html.includes(token), `${status} missing canonical palette token ${token}`);
+    for (const token of forbidden) assert.equal(html.includes(token), false, `${status} still contains legacy palette token ${token}`);
+  }
+});
+
 test('static error pages do not expose unsubstituted platform placeholders', () => {
   assert.doesNotMatch(read('500.html'), /::vercel:/i);
 });
