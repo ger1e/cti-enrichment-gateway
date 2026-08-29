@@ -6,6 +6,8 @@ test('semantic diff explanations are fixed, deterministic, and de-duplicated', (
   const reasons = explainSemanticDiff({
     changes: [
       { category: 'decision_changed' },
+      { category: 'semantic_claim_changed' },
+      { category: 'provider_state_changed' },
       { category: 'evidence_added' },
       { category: 'evidence_added' },
       { category: 'provider_coverage_changed' },
@@ -13,6 +15,8 @@ test('semantic diff explanations are fixed, deterministic, and de-duplicated', (
   });
   assert.deepEqual(reasons, [
     'decision support changed',
+    'normalized evidence claim changed',
+    'provider state changed',
     'new normalized evidence was observed',
     'provider coverage changed',
   ]);
