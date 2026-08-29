@@ -2,7 +2,7 @@
 [data-reveal]{opacity:1!important;transform:none!important}
 .terminal-hero:before{content:none!important;animation:none!important}
 
-.matrix-rain{opacity:.58!important;background-image:url('/assets/brand/para11ax-rain.svg')!important;background-position:center top!important;background-size:cover!important;background-repeat:repeat-y!important}
+.matrix-rain{opacity:.58!important;background-image:url('/assets/brand/para11ax-rain.svg')!important;background-position:center top!important;background-size:72% auto!important;background-repeat:repeat!important}
 .matrix-rain>.rain{display:none!important}
 
 .terminal-hero{display:grid!important;grid-template-columns:minmax(360px,.92fr) minmax(0,1.08fr)!important;grid-template-rows:auto!important;align-items:center!important;column-gap:clamp(28px,5vw,78px)!important;min-height:590px!important}
