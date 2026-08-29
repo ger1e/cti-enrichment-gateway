@@ -53,6 +53,44 @@
   animation:ppi-sweep-angle 4.8s linear infinite;
 }
 
-@media(max-width:720px){.boot-globe{left:50%!important;top:52%!important;width:min(78vw,430px)!important}.shell-logo{width:122px!important}}
-@media(max-width:430px){.boot-globe{width:min(82vw,360px)!important}.shell-logo{width:112px!important}.terminal-mark::before{width:19px;height:19px;flex-basis:19px}}
-@media(prefers-reduced-motion:reduce){.boot-globe,.terminal-mark::before{animation:ppi-sweep-angle 24s linear infinite!important}}
+/* CRT glass: readable phosphor, scanlines, vignette, rounded tube and restrained flicker. */
+.app-shell{
+  border-radius:18px;
+  box-shadow:
+    0 0 0 1px rgba(57,255,20,.14),
+    0 0 34px rgba(57,255,20,.055),
+    inset 0 0 34px rgba(57,255,20,.025),
+    inset 0 0 92px rgba(0,0,0,.72);
+}
+.boot-panel,.terminal-stage,.access,.unix-shell{
+  border-radius:16px!important;
+  text-shadow:0 0 3px rgba(57,255,20,.16);
+}
+.shell-muted,.shell-session-state,.shell-footer,.boot-note,.boot-standby{
+  text-shadow:0 0 2px rgba(141,163,145,.10);
+}
+.shell-red,.boot-status,.shell-footer-led[data-state="error"],.shell-footer-led[data-state="down"]{
+  text-shadow:0 0 4px rgba(255,36,56,.22);
+}
+.crt{
+  opacity:.13!important;
+  border-radius:18px;
+  background:
+    radial-gradient(ellipse at center,transparent 0 61%,rgba(0,0,0,.08) 76%,rgba(0,0,0,.42) 100%),
+    repeating-linear-gradient(180deg,rgba(247,255,246,.018) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,rgba(255,36,56,.010) 0 1px,rgba(57,255,20,.010) 1px 2px,rgba(247,255,246,.008) 2px 3px)!important;
+  box-shadow:
+    inset 0 0 24px rgba(57,255,20,.04),
+    inset 0 0 110px rgba(0,0,0,.88)!important;
+  animation:crt-phosphor-flicker 7.2s steps(1,end) infinite;
+}
+@keyframes crt-phosphor-flicker{
+  0%,8%,12%,31%,34%,61%,66%,100%{opacity:.13}
+  9%{opacity:.105}
+  32%{opacity:.145}
+  63%{opacity:.118}
+}
+
+@media(max-width:720px){.boot-globe{left:50%!important;top:52%!important;width:min(78vw,430px)!important}.shell-logo{width:122px!important}.app-shell,.crt{border-radius:14px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:12px!important}}
+@media(max-width:430px){.boot-globe{width:min(82vw,360px)!important}.shell-logo{width:112px!important}.terminal-mark::before{width:19px;height:19px;flex-basis:19px}.app-shell,.crt{border-radius:11px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:9px!important}.crt{opacity:.10!important}}
+@media(prefers-reduced-motion:reduce){.boot-globe,.terminal-mark::before,.crt{animation:none!important}}
