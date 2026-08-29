@@ -22,6 +22,15 @@ test('shared compact logo assets remain compatible secondary marks', () => {
   }
 });
 
+test('landing hero wordmark matches the canonical white-green-white lockup split', () => {
+  const landing = read('landing-maxx.html');
+  const lockup = read('assets/brand/para11ax-radar-lockup.svg');
+  assert.match(lockup, /<tspan fill="#F7FFF6">PARA<\/tspan><tspan fill="#39FF14">11<\/tspan><tspan fill="#F7FFF6">AX<\/tspan>/i);
+  assert.match(landing, /<h1[^>]*class="ascii-logo"[^>]*>\s*<span class="logo-white">PARA<\/span>\s*<span class="logo-green">11<\/span>\s*<span class="logo-white">AX<\/span>\s*<\/h1>/i);
+  assert.match(landing, /\.ascii-logo \.logo-white\{[^}]*color:var\(--white\)/is);
+  assert.match(landing, /\.ascii-logo \.logo-green\{[^}]*color:var\(--green\)/is);
+});
+
 test('browser surfaces share one simplified phosphor sentinel favicon', () => {
   assert.equal(existsSync('favicon.svg'), true, 'canonical favicon SVG must exist');
   assert.equal(existsSync('favicon.ico'), true, 'root favicon fallback must exist for browser autodiscovery');
