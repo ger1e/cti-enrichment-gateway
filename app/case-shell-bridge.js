@@ -75,8 +75,14 @@ function safeDownload(text, type, filename) {
 }
 
 function importInput() {
-  const input = document.getElementById('case-import');
-  if (!input) throw new Error('case import unavailable');
+  let input = document.getElementById('case-import');
+  if (input) return input;
+  input = document.createElement('input');
+  input.id = 'case-import';
+  input.type = 'file';
+  input.accept = '.para11ax,application/vnd.para11ax.case+json';
+  input.hidden = true;
+  document.body.append(input);
   return input;
 }
 
