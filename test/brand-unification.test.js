@@ -116,6 +116,32 @@ test('README uses the unified terminal hero and operational hierarchy', () => {
   assert.match(readme, /<details>/i);
 });
 
+test('README banner radars use CSS keyframes that keep moving in GitHub image rendering', () => {
+  for (const path of BANNERS) {
+    const svg = read(path);
+    assert.match(svg, /@keyframes\s+radar-spin/i, `${path} needs CSS radar keyframes`);
+    assert.match(svg, /\.radar-sweep\s*\{[^}]*animation:\s*radar-spin/is, `${path} must animate the sweep with CSS`);
+    assert.match(svg, /class=["']radar-sweep["']/i, `${path} missing the animated sweep group`);
+    assert.doesNotMatch(svg, /<animateTransform\b[^>]*type=["']rotate["']/i, `${path} must not depend on SMIL rotation in README`);
+    assert.match(svg, /prefers-reduced-motion:\s*reduce[\s\S]*radar-sweep[\s\S]*animation-duration/is, `${path} must reduce rather than eliminate radar motion`);
+  }
+});
+
+test('README diagram SVGs use the current radar plus angular wordmark and current provider count', () => {
+  const architecture = read('assets/brand/para11ax-architecture.svg');
+  const firewall = read('assets/brand/para11ax-semantic-firewall.svg');
+  for (const [path, svg] of [
+    ['assets/brand/para11ax-architecture.svg', architecture],
+    ['assets/brand/para11ax-semantic-firewall.svg', firewall],
+  ]) {
+    assert.match(svg, /data-radar=["']ppi["']/i, `${path} missing current radar mark`);
+    assert.match(svg, /data-wordmark=["']para11ax-angular-a["']/i, `${path} missing current angular wordmark`);
+    assert.doesNotMatch(svg, />\s*PARA11AX\s*\/\//i, `${path} still renders the legacy plain-text logo`);
+  }
+  assert.match(architecture, /38\s+FIXED\s+SOURCES/i, 'architecture provider count must be current');
+  assert.doesNotMatch(architecture, /37\s+FIXED\s+SOURCES/i, 'architecture must not show the stale provider count');
+});
+
 test('all banner assets are minimal: one real PPI radar, PARA11AX, and the Kiriakou quote only', () => {
   const forbidden = /CTI|EVIDENCE GATEWAY|SEMANTIC FIREWALL|FIXED SOURCES|STIX|READ-ONLY|PROVENANCE|OSINT|GEOINT|FORENSICS|analyst@para11ax|OPERATIONAL|STATUS|CAPABILIT/i;
   for (const path of BANNERS) {
@@ -128,7 +154,7 @@ test('all banner assets are minimal: one real PPI radar, PARA11AX, and the Kiria
     assert.match(svg, /follow[\s\S]{0,120}the evidence/i, `${path} missing Kiriakou quote`);
     assert.match(svg, /doesn.?t make it fact/i, `${path} missing Kiriakou quote conclusion`);
     assert.match(svg, /John Kiriakou/i, `${path} missing quote attribution`);
-    assert.match(svg, /<animateTransform\b[^>]*type=["']rotate["']/i, `${path} radar sweep must rotate`);
+    assert.match(svg, /\.radar-sweep\s*\{[^}]*animation:\s*radar-spin/is, `${path} radar sweep must rotate`);
     assert.match(svg, /prefers-reduced-motion:\s*reduce/i, `${path} must honor reduced motion`);
     assert.doesNotMatch(svg, forbidden, `${path} contains feature or status clutter`);
     assert.doesNotMatch(svg, /#00E5FF|#F6C945|#39FF88/i, `${path} still contains legacy palette`);
