@@ -36,7 +36,7 @@
 .para11ax-logo,.shell-logo{object-fit:contain}
 .shell-logo{width:138px!important}
 .terminal-mark{display:inline-flex;align-items:center;gap:7px}
-.terminal-mark::before{
+.terminal-mark::before,.shell-brand::before{
   content:'';
   width:22px;
   height:22px;
@@ -52,6 +52,7 @@
   box-shadow:0 0 8px rgba(57,255,20,.14);
   animation:ppi-sweep-angle 4.8s linear infinite;
 }
+.shell-brand::before{margin-right:1px}
 
 /* CRT glass: readable phosphor, scanlines, vignette, rounded tube and restrained flicker. */
 .app-shell{
@@ -92,5 +93,5 @@
 }
 
 @media(max-width:720px){.boot-globe{left:50%!important;top:52%!important;width:min(78vw,430px)!important}.shell-logo{width:122px!important}.app-shell,.crt{border-radius:14px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:12px!important}}
-@media(max-width:430px){.boot-globe{width:min(82vw,360px)!important}.shell-logo{width:112px!important}.terminal-mark::before{width:19px;height:19px;flex-basis:19px}.app-shell,.crt{border-radius:11px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:9px!important}.crt{opacity:.10!important}}
-@media(prefers-reduced-motion:reduce){.boot-globe,.terminal-mark::before,.crt{animation:none!important}}
+@media(max-width:430px){.boot-globe{width:min(82vw,360px)!important}.shell-logo{width:112px!important}.terminal-mark::before,.shell-brand::before{width:19px;height:19px;flex-basis:19px}.app-shell,.crt{border-radius:11px}.boot-panel,.terminal-stage,.access,.unix-shell{border-radius:9px!important}.crt{opacity:.10!important}}
+@media(prefers-reduced-motion:reduce){.boot-globe,.terminal-mark::before,.shell-brand::before,.crt{animation:none!important}}
