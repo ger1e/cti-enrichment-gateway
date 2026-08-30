@@ -2,24 +2,23 @@
 
 #### Purpose
 
-The gateway is a public-source, read-only CTI enrichment service for personal research/lab use. It accepts one bounded indicator or a bounded batch, selects a fixed workflow, queries only predeclared provider destinations, normalizes evidence, correlates compatible observations, and returns provenance-preserving JSON or STIX 2.1.
+PARA11AX is a public-source CTI enrichment and analyst-operations platform for personal research/lab use. The canonical Evidence v2 core accepts one bounded indicator or batch, chooses a fixed workflow/profile, queries only predeclared provider destinations, normalizes provider-native evidence, correlates compatible observations, and returns provenance-preserving JSON/STIX/report projections.
 
-The Evidence v2 enrichment core is not a scanner, detonation service, arbitrary HTTP proxy, submission service, takedown system, secret broker, autonomous remediation system or automatic blocking engine. PARA11AX also exposes one explicitly separate active OSINT capability: User Scanner email/username enumeration through an isolated worker. That path does not become an Evidence v2 provider or evidence source.
+Two analyst utilities intentionally sit beside—not inside—the Evidence v2 correlation path:
+
+1. **User Scanner** — active email/username OSINT through an isolated server-configured Python worker.
+2. **Shodan analyst shell** — bounded explicit Shodan host/search/count/stats/domain/info operations through a dedicated authenticated route.
+
+Neither utility automatically becomes Evidence v2 evidence, reputation voting, case evidence, STIX, or attribution.
 
 #### Architecture at a glance
 
 ![PARA11AX request path](../assets/brand/para11ax-architecture.svg)
 
-The hard external boundary for passive CTI enrichment is `safeFetch`: callers cannot choose an arbitrary provider, destination, protocol, method, header or credential. Upstream data remains untrusted until a provider-specific parser converts it into bounded evidence.
-
-User Scanner has a different and deliberately isolated boundary. The browser never calls the external scanner worker directly. The existing PARA11AX shell calls same-origin `POST /api/para11ax/user-scanner`; the gateway validates a bounded email/username request and forwards it only to the server-configured `PARA11AX_USER_SCANNER_URL`. This active OSINT route does not use `safeFetch`, does not share the fixed provider registry, and does not feed Evidence v2 correlation.
-
-#### Request path
-
-Passive CTI enrichment:
+#### Passive Evidence v2 request path
 
 ```text
-Client / Maltego
+Client / Maltego / analyst UI
   -> API auth and request limits (except public /api/para11ax/meta)
   -> strict canonical indicator classifier
   -> fixed workflow + fast|standard|full profile
@@ -31,120 +30,125 @@ Client / Maltego
   -> Evidence Schema v2 normalization + integrity fingerprint
   -> typed correlation / freshness / evidence quality / huntability
   -> deterministic decision support
-  -> Evidence Graph v1.0 + Guidance v1.0 projections on ok/partial results
-  -> JSON, bounded batch result, report bundle, or STIX 2.1 bundle
+  -> Evidence Graph v1.0 + Guidance v1.0 on ok/partial results
+  -> JSON, bounded batch, deterministic report, or STIX 2.1
 ```
 
-Isolated User Scanner active OSINT:
+`safeFetch` is the hard egress boundary for the passive core. Callers cannot choose an arbitrary provider, destination, protocol, method, header, credential, redirect target, or proxy route.
+
+#### User Scanner request path
 
 ```text
-Existing PARA11AX analyst shell
+PARA11AX analyst shell
   -> gateway bearer authentication
-  -> fixed user-scanner command grammar
-  -> same-origin POST /api/para11ax/user-scanner
+  -> bounded user-scanner grammar
+  -> POST /api/para11ax/user-scanner
   -> scanType/target/category/module/crossScan/noNsfw validation
   -> server-configured PARA11AX_USER_SCANNER_URL only
-  -> optional server-side PARA11AX_USER_SCANNER_TOKEN
-  -> isolated Python User Scanner worker
+  -> optional PARA11AX_USER_SCANNER_TOKEN
+  -> isolated Python worker
   -> bounded result normalization
-  -> terminal scrollback
-  -> separate from Evidence v2 current-result/correlation/export state
+  -> terminal output
+  -> Evidence v2 state unchanged
 ```
 
-Batch enrichment reuses the same classifier, profile selector and single-indicator orchestrator. It adds canonical de-duplication, max-three indicator concurrency, one shared deadline and a global provider-call reservation. There is no second provider-routing implementation.
+User Scanner is an explicit active-OSINT exception to passive provider behavior, but not to destination control. The browser cannot choose the worker host, proxy, concurrency, timeout, arbitrary module path, or bulk file.
 
-The browser analyst surface adds a separate local workspace layer after gateway enrichment. Cases, exact typed cross-case sightings, snapshots, semantic diffs and `.para11ax` bundles persist only through browser-local IndexedDB. That layer does not create a server-side IOC history or a second provider/network path. User Scanner results are rendered in the same analyst shell but are not silently pinned into case evidence or reinterpreted as the current Evidence v2 result.
+#### Shodan analyst-shell request path
+
+```text
+PARA11AX analyst shell
+  -> gateway bearer authentication
+  -> fixed shodan command grammar
+  -> POST /api/para11ax/shodan
+  -> command/target/query/facets validation
+  -> server-side SHODAN_API_KEY
+  -> fixed https://api.shodan.io origin only
+  -> bounded upstream request
+  -> response normalization / banner stripping / list caps
+  -> terminal output + explicit creditImpact
+  -> current Evidence v2 state unchanged
+```
+
+Approved commands are exactly:
+
+```text
+shodan host <ip>
+shodan search <query>
+shodan count <query>
+shodan stats <query> [--facets <fields>]
+shodan domain <domain>
+shodan info
+```
+
+The route is not a wrapper around arbitrary local shell execution and does not spawn the Python Shodan CLI. It reproduces only the approved semantics through fixed Shodan API endpoints. Caller-selected URLs, arbitrary pages, arbitrary methods, `download`, scan submission, and unsupported options are rejected.
+
+Search is first-page only. Returned matches/services are capped and large raw banner/service bodies are removed before reaching the browser. The handler emits explicit `creditImpact`: `none`, `consumes_query_credit`, or `may_consume_query_credit` according to the command contract.
 
 #### Trust boundaries
 
 ##### Caller -> gateway
 
-Bearer authentication protects enrichment, batch, STIX, status, health/operations and User Scanner surfaces as documented by the API contract. Request size, media type and indicator/scan type are bounded before external execution. Caller input never chooses arbitrary provider hosts, worker hosts, methods, credentials, proxy routes or provider names.
+Bearer authentication protects enrichment, batch, STIX, status, health, User Scanner, and Shodan operator surfaces. Request/media/input validation occurs before external execution. Caller input never chooses arbitrary provider hosts, User Scanner worker hosts, Shodan hosts, methods, credentials, or proxy routes.
 
-##### Gateway -> provider
+##### Gateway -> Evidence v2 provider
 
-`safeFetch` enforces exact fixed hosts, declared HTTPS methods/protocols, redirect refusal and request/response byte ceilings. Provider credentials are read server-side only. A caller cannot turn the passive enrichment gateway into an open proxy.
+`safeFetch` enforces exact declared hosts, HTTPS methods/protocols, redirect refusal, timeouts, and response ceilings. Provider credentials remain server-side.
 
 ##### Gateway -> User Scanner worker
 
-User Scanner is an explicit active OSINT exception to the passive provider model, not an exception to destination control. The worker URL comes only from `PARA11AX_USER_SCANNER_URL`; callers cannot supply or override it. HTTPS is required except loopback HTTP for local development. The optional worker bearer comes only from `PARA11AX_USER_SCANNER_TOKEN`. The gateway rejects unknown request fields, caller-selected proxy/concurrency/timeout controls, invalid category/module names and category/module conflicts; worker responses are byte-bounded and normalized before returning to the shell.
+The destination comes only from `PARA11AX_USER_SCANNER_URL`. HTTPS is required except loopback HTTP in local development. Worker output is untrusted, byte-bounded, normalized, and kept separate from Evidence v2.
 
-Cross-scan remains opt-in at the shell/API layer. The reference worker fixes cross-scan depth to one and does not expose caller-controlled proxying, arbitrary files or bulk paths through PARA11AX. Active OSINT can contact many external services and may encounter rate limiting, WAF behavior or terms-of-service constraints; it must be used only for authorized defensive research.
+##### Gateway -> Shodan
 
-##### Provider data -> evidence
+The origin is fixed to `https://api.shodan.io`; the API key comes only from `SHODAN_API_KEY`. The route exposes no host/URL override. The browser never sees the key. Missing configuration fails closed. Upstream 429/rate-limit state remains explicit rather than becoming an empty or benign result.
 
-Every upstream response is untrusted. Parsers fail closed on malformed structures. MISP correlations require exact, non-deleted attribute semantics. Provider failures remain failures and are never transformed into clean/not-listed evidence.
+##### Upstream data -> analyst
 
-##### User Scanner output -> analyst
+All provider, User Scanner, and Shodan responses are untrusted. Provider parsers preserve evidence semantics; User Scanner preserves account-enumeration semantics; Shodan preserves infrastructure/exposure semantics.
 
-User Scanner results remain a separate OSINT envelope. A username hit means a platform/module reported a matching handle; an email registration result means the module observed registration-related evidence for that platform. Neither proves that profiles belong to the same person, that a person controls an account, that an account is current, that a target is compromised, or that the target is malicious. `Not Found`/`Not Registered` applies only to the specific module check. `Error` is coverage failure and never negative evidence.
+A Shodan service, port, product, DNS record, organization, tag, or exposure observation is context—not proof of maliciousness, exploitability, compromise, ownership, current reachability, or actor attribution.
 
-The gateway preserves the scanner source, site/module-facing name, category, status, URL, bounded metadata and an operation ID/duration. It deliberately does not synthesize a universal identity confidence score or inject these results into Evidence v2 reputation/attribution logic.
+#### Evidence and graph boundaries
 
-##### Evidence -> analyst/export
+Normalization preserves provider, parser version, retrieval time, cache state, duration, and integrity fingerprint. Correlation is typed. Contextual routing/registration/Tor/scanner/Shodan/certificate/ATT&CK information cannot silently become a malware-reputation vote.
 
-Normalization preserves provider, parser version, retrieval time, cache state, duration and a canonical integrity fingerprint. Correlation is typed: scanner activity, Tor-exit status, registration/routing context and ATT&CK knowledge cannot become malware-reputation votes.
-
-Decision support consumes only normalized evidence, typed correlation, coverage state and explicit relationships. It emits an explainable operational disposition, confidence tier, reasons, telemetry requirements, temporal context, ATT&CK mappings, an internal compact `decision.entityGraph`, and bounded hunt templates. It does not add evidence, infer actor attribution from infrastructure proximity, or execute hunts/remediation.
-
-Train 5 adds two distinct top-level projections to normalized `ok`/`partial` responses:
-
-- `evidenceGraph` — canonical Evidence Graph v1.0 with stable deterministic identity, explicit-only facts/relationships and hard bounds.
-- `guidance` — Guidance v1.0 that inherits the existing decision/correlation semantics and can explain approved semantic-change categories without recalculating a second disposition or confidence model.
-
-These are not replacements for `decision`. Error envelopes do not manufacture either projection.
-
-Three graph concepts therefore remain intentionally separate:
+Three graph concepts remain distinct:
 
 ```text
 decision.entityGraph  -> compact decision-support pivots
-evidenceGraph         -> canonical response Evidence Graph v1.0
+evidenceGraph         -> canonical Evidence Graph v1.0
 browser case graph    -> local-only case/snapshot/exact-sighting projection
 ```
 
-User Scanner active OSINT is a fourth, non-graph result surface and is not auto-promoted into any of those graphs.
+User Scanner and Shodan operator outputs are separate non-graph terminal surfaces unless a future explicit typed design introduces promotion/pinning.
 
-##### Browser local workspace
+#### Browser-local workspace
 
-Train 4 case state is local to the analyst browser. IndexedDB is the persistence adapter; active-case state and gateway bearer state remain runtime-only. Case graph/index rebuilds use exact typed values and do not parse free-form notes into entities. Local cases introduce no direct network persistence route.
-
-##### Gateway -> telemetry/status
-
-Operational telemetry is allowlisted and excludes raw indicators by default. Authenticated status is count-only and `Cache-Control: no-store`; it exposes configuration booleans rather than credential values.
+Cases, exact typed sightings, snapshots, semantic diffs, case graph state, and `.para11ax` bundles persist only in browser-local IndexedDB. Active-case selection and gateway bearer state are runtime-only. Neither User Scanner nor Shodan operator output is silently persisted into case evidence.
 
 #### Scheduling and resilience
 
-- Provider concurrency: maximum 4.
-- Single-request deadline: 20 seconds.
-- Static per-workflow provider-call ceilings.
-- Retry: at most one retry, only for timeout/transport/429/5xx conditions and only inside the remaining request budget.
-- Circuit breaker: instance-local and bounded; default opens after three consecutive retryable failures for 60 seconds.
-- Cache: bounded LRU/TTL, namespaces and in-flight de-duplication. Only successful observations are cached. Successful semantic negatives use the shorter negative TTL; transport/provider failures are never cached.
-- Batch: max 20 inputs, max 3 active indicators and max 200 provider calls globally.
+- Evidence v2 provider concurrency: max 4.
+- Evidence v2 request deadline: 20 seconds.
+- Retry: at most one retry for explicitly retryable conditions.
+- Circuit breaker/cache: bounded, instance-local; provider failures never become cached negative evidence.
+- Batch: max 20 inputs, max 3 active indicators, max 200 provider calls.
 - STIX: max 100 generated objects.
-- Evidence Graph v1.0: bounded explicit projection; current implementation caps nodes/edges independently and fails closed rather than silently inventing/truncating semantic claims.
-- Generated hunt plan: max 8 entries.
-- User Scanner gateway request body: max 4 KiB.
-- User Scanner worker response: max 2 MiB before normalization; max 1000 returned result entries and 512 errored-site names.
-- User Scanner gateway worker deadline: default 55 seconds, independently bounded from passive provider scheduling.
+- User Scanner: independently bounded request/response/deadline path.
+- Shodan shell: one bounded explicit API operation per command; search fixed to first page; host/search output arrays capped; raw banners removed; `download` disabled.
 
 #### Analytical model
 
-There is deliberately no universal maliciousness score. Evidence stays in semantic classes. Corroboration requires compatible independent observations; contradictions stay explicit.
+There is deliberately no universal maliciousness score. Evidence stays in semantic classes, contradictions stay explicit, and absence is not benignness.
 
-For CVEs, KEV, EPSS and CVSS remain separate axes. Huntability is an operational mapping, not a threat-confidence or attribution score. Actor attribution is emitted only from explicit supporting evidence/relationships.
+For CVEs, KEV, EPSS, and CVSS remain separate axes. Huntability is operational mapping, not threat-confidence or attribution. Infrastructure proximity—including Shodan-visible services—does not manufacture actor attribution.
 
-The decision-support layer is an operational synthesis, not a new evidence source. `hunt_now` means the existing evidence is sufficiently supported/current and directly huntable under the deterministic rules; it does not mean compromise is confirmed. Contradiction, staleness and material coverage loss downgrade confidence. Infrastructure-only observations remain context rather than threat confirmation.
+Guidance v1.0 inherits the existing bounded disposition vocabulary (`hunt_now`, `investigate`, `monitor`, `context_only`, `insufficient`) and does not create a second hidden scoring engine.
 
-Guidance v1.0 does not create a second scoring or decision engine. It carries the existing bounded disposition vocabulary (`hunt_now`, `investigate`, `monitor`, `context_only`, `insufficient`) and exposes evidence-backed reasons, limitations and semantic-change attention context.
+User Scanner and Shodan operator output do not participate in that disposition vocabulary automatically.
 
-User Scanner does not participate in that disposition vocabulary. Its output is analyst-facing identity/account OSINT and requires human interpretation under the explicit limitations above.
-
-Telemetry readiness is schema-level only. Generated KQL identifies the expected Microsoft Defender XDR/Sentinel tables, but the gateway does not validate tenant ingestion, retention, table availability or client-specific field customization; `environmentValidated` therefore remains false until checked externally.
-
-#### Indicator types
-
-Implemented canonical Evidence v2 workflows:
+#### Canonical Evidence v2 indicator types
 
 - `ip`
 - `domain`
@@ -156,19 +160,13 @@ Implemented canonical Evidence v2 workflows:
 - `cidr`
 - `certificate`
 
-Certificate classification is explicit: `cert-sha256:<64-hex>`. A bare SHA-256 remains a file hash. The certificate workflow is bounded to contextual certificate metadata sources and does not manufacture a reputation verdict.
-
-Email and username are supported as User Scanner targets in the separate active OSINT capability; they are not added to the canonical Evidence v2 observable registry by this integration.
-
-ASN/CIDR support is limited to defensible fixed lookups. No TLS/JA3 indicator class is implemented because no current fixed, bounded source satisfied the source gate when v2 was built. ATT&CK relationship expansion is intentionally omitted where it would require an unbounded collection-wide fetch.
+Certificate classification is explicit: `cert-sha256:<64-hex>`. Email/username targets and Shodan shell commands are not new Evidence v2 workflow types.
 
 #### State labels
 
-- **Implemented:** present in source and covered by repository verification.
-- **Configured:** required runtime secret/environment configuration is present.
-- **Production-verified:** an exact deployed source SHA has passed the specific authenticated/live checks being claimed.
-- **Gap/omitted:** capability intentionally absent because its source, semantics or boundedness did not meet the design gate.
+- **Implemented:** present in source and repository verification.
+- **Configured:** required runtime secret/environment state exists.
+- **Production-verified:** the exact deployed source SHA passed the specific authenticated/live checks being claimed.
+- **Gap/omitted:** intentionally absent because source, semantics, or boundedness did not meet the design gate.
 
-For User Scanner, distinguish PARA11AX gateway deployment from worker deployment and from wiring. A READY `user-scanner` Vercel project proves only that the worker deployment exists; successful hosted scans additionally require `PARA11AX_USER_SCANNER_URL` (and matching token when worker auth is enabled) in the PARA11AX production environment.
-
-Repository verification is not production acceptance. Public deployment metadata is not proof of credentialed provider or User Scanner worker readiness. See `OPERATIONS.md`.
+A READY deployment does not prove `SHODAN_API_KEY`, other provider credentials, or User Scanner wiring are configured. See `OPERATIONS.md`, `SECURITY-CONTROLS.md`, and `SHODAN-SHELL.md`.
