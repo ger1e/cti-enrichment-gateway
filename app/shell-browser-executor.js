@@ -429,7 +429,7 @@ export function createBrowserShellExecutor({
     if (handler === 'echo' || handler === 'printf') return text(args.join(' '));
     if (handler === 'uname') return text(`PARA11AX ${version}`);
     if (handler === 'id') return text('analyst@para11ax');
-    if (handler === 'uptime') return text(String(Math.max(0, Number(monotonicNow()) - startedAt));
+    if (handler === 'uptime') return text(String(Math.max(0, Number(monotonicNow()) - startedAt)));
     if (handler === 'version') return text(version);
 
     if (handler === 'disconnect' || handler === 'auth-clear') {
