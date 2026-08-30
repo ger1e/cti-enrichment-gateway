@@ -4,6 +4,7 @@ import { createProviderRegistry } from '../src/core/provider-registry.js';
 import { buildCapabilityRegistry } from '../src/core/capability-registry.js';
 import { OBSERVABLE_MANIFEST } from '../src/core/observable-registry.js';
 import { EXECUTION_POLICY } from '../src/core/execution-policy.js';
+import { PROVIDER_SCHEDULER_POLICY_VERSION } from '../src/core/provider-priority.js';
 import { ALL_PROVIDERS } from '../src/providers/index.js';
 import { WORKFLOW_CALL_LIMITS } from '../src/workflows.js';
 
@@ -46,4 +47,26 @@ test('capability registry exposes the canonical shared execution contract withou
   });
   assert.equal(Object.isFrozen(capabilities.execution), true);
   assert.equal(Object.isFrozen(capabilities.execution.workflowProviderCalls), true);
+});
+
+test('capability registry exposes scheduler version descriptors and per-type fallback without pretending runtime rank', () => {
+  const providerRegistry = createProviderRegistry(ALL_PROVIDERS);
+  const capabilities = buildCapabilityRegistry({ providerRegistry, observableRegistry: OBSERVABLE_MANIFEST });
+  const threatfox = capabilities.providers.find(item => item.name === 'threatfox');
+  assert.equal(threatfox.scheduler.version, PROVIDER_SCHEDULER_POLICY_VERSION);
+  assert.deepEqual(threatfox.scheduler.byType.ip, {
+    authorityClass: 'specialist',
+    semanticUniqueness: 'unique',
+    intelligenceValue: 'direct',
+    pivotValue: 'high',
+    latencyClass: 'normal',
+    fallback: false,
+  });
+  const rdap = capabilities.providers.find(item => item.name === 'rdap');
+  assert.deepEqual(rdap.scheduler.byType.asn, { fallback: true, rationale: 'legacy_priority_fallback' });
+  assert.deepEqual(rdap.scheduler.byType.cidr, { fallback: true, rationale: 'legacy_priority_fallback' });
+  const serialized = JSON.stringify(capabilities);
+  assert.doesNotMatch(serialized, /"rank"|"workflowIndex"/);
+  assert.equal(Object.isFrozen(threatfox.scheduler), true);
+  assert.equal(Object.isFrozen(threatfox.scheduler.byType), true);
 });
