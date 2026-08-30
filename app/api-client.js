@@ -1,4 +1,5 @@
 const PROFILES = new Set(['fast', 'standard', 'full']);
+const SHODAN_COMMANDS = new Set(['host', 'search', 'count', 'stats', 'domain', 'info']);
 const ENRICHMENT_OBSERVERS = new Set();
 let latestGatewayClient = null;
 
@@ -89,6 +90,20 @@ function validUserScanner(value) {
   );
 }
 
+function validShodan(value) {
+  return Boolean(
+    value &&
+    typeof value === 'object' &&
+    typeof value.requestId === 'string' &&
+    value.source === 'shodan' &&
+    SHODAN_COMMANDS.has(value.command) &&
+    value.input && typeof value.input === 'object' && !Array.isArray(value.input) &&
+    ['none', 'may_consume_query_credit', 'consumes_query_credit'].includes(value.creditImpact) &&
+    value.data && typeof value.data === 'object' && !Array.isArray(value.data) &&
+    Number.isFinite(value.durationMs) && value.durationMs >= 0
+  );
+}
+
 export function createGatewayClient({ fetchImpl = fetch, getToken }) {
   if (typeof getToken !== 'function') throw new TypeError('getToken must be a function');
   if (typeof fetchImpl !== 'function') throw new TypeError('fetchImpl must be a function');
@@ -110,7 +125,8 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
         : path === '/api/para11ax/batch' ? 'invalid_batch_envelope'
           : path === '/api/para11ax/meta' ? 'invalid_meta_envelope'
             : path === '/api/para11ax/user-scanner' ? 'invalid_user_scanner_envelope'
-              : 'invalid_envelope';
+              : path === '/api/para11ax/shodan' ? 'invalid_shodan_envelope'
+                : 'invalid_envelope';
       throw new GatewayHttpError(502, code);
     }
     return payload;
@@ -176,6 +192,29 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
     return payload;
   }
 
+  function shodanPayload(input) {
+    if (!input || typeof input !== 'object') throw new TypeError('Shodan request required');
+    const command = String(input.command || '').trim().toLowerCase();
+    if (!SHODAN_COMMANDS.has(command)) throw new TypeError('invalid Shodan command');
+    const payload = { command };
+    if (input.target !== undefined && input.target !== null) {
+      const target = String(input.target).trim();
+      if (!target) throw new TypeError('invalid Shodan target');
+      payload.target = target;
+    }
+    if (input.query !== undefined && input.query !== null) {
+      const query = String(input.query).trim();
+      if (!query || query.length > 1024) throw new TypeError('invalid Shodan query');
+      payload.query = query;
+    }
+    if (input.facets !== undefined && input.facets !== null) {
+      const facets = String(input.facets).trim();
+      if (!facets || facets.length > 256) throw new TypeError('invalid Shodan facets');
+      payload.facets = facets;
+    }
+    return payload;
+  }
+
   const client = Object.freeze({
     meta: (signal) => publicRequest('/api/para11ax/meta', { signal, validate: validMeta }),
     health: (signal) => request('/api/para11ax/health', { signal }),
@@ -207,6 +246,12 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
       body: userScannerPayload(input),
       signal,
       validate: validUserScanner,
+    }),
+    shodan: async (input, signal) => request('/api/para11ax/shodan', {
+      method: 'POST',
+      body: shodanPayload(input),
+      signal,
+      validate: validShodan,
     }),
   });
 
