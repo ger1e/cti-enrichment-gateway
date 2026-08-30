@@ -49,6 +49,10 @@ function evidence({
   return item;
 }
 
+function capability(provider, state, observationTypes, sourceRole = 'community', semanticClassHints = []) {
+  return { provider, state, observationTypes, semanticClassHints, sourceRole };
+}
+
 test('empty IP evidence returns the canonical immutable Intelligence Kernel v1 projection', () => {
   const out = build();
   assert.equal(INTELLIGENCE_KERNEL_SCHEMA_VERSION, '1.0');
@@ -226,4 +230,64 @@ test('retrieval time alone never becomes observation recency', () => {
     firstSeen: null, lastSeen: null, ageDays: null, activeSpanDays: null, overall: 'unknown',
     distribution: { current: 0, aging: 0, stale: 0, unknown: 1 },
   });
+});
+
+test('unique direct-threat capability loss is material coverage impact', () => {
+  const out = build({ coverage: {
+    providerCapabilities: [capability('threatfox', 'failed', ['ioc_reputation'], 'first_party', ['reputation'])],
+  } });
+  assert.deepEqual(out.coverageImpact, {
+    level: 'material',
+    uniqueCapabilityLoss: [{ provider: 'threatfox', observationType: 'ioc_reputation', semanticClass: 'reputation', category: 'direct_threat', sourceRole: 'first_party' }],
+    duplicateCoverageLoss: [],
+    reasons: ['unique_threat_capability_loss'],
+  });
+});
+
+test('duplicate direct-threat capability loss is degraded when healthy coverage remains', () => {
+  const out = build({ coverage: {
+    providerCapabilities: [
+      capability('threatfox', 'failed', ['ioc_reputation'], 'first_party', ['reputation']),
+      capability('virustotal', 'ok', ['ioc_reputation'], 'specialist', ['reputation']),
+    ],
+  } });
+  assert.deepEqual(out.coverageImpact, {
+    level: 'degraded',
+    uniqueCapabilityLoss: [],
+    duplicateCoverageLoss: [{ provider: 'threatfox', observationType: 'ioc_reputation', semanticClass: 'reputation', category: 'direct_threat', sourceRole: 'first_party' }],
+    reasons: ['duplicate_capability_loss'],
+  });
+});
+
+test('unique contextual-only capability loss is degraded rather than material', () => {
+  const out = build({ coverage: {
+    providerCapabilities: [capability('rdap', 'skipped', ['registration'], 'authoritative', ['network_context'])],
+  } });
+  assert.deepEqual(out.coverageImpact, {
+    level: 'degraded',
+    uniqueCapabilityLoss: [{ provider: 'rdap', observationType: 'registration', semanticClass: 'network_context', category: 'infrastructure', sourceRole: 'authoritative' }],
+    duplicateCoverageLoss: [],
+    reasons: ['contextual_capability_loss'],
+  });
+});
+
+test('healthy or cached admitted capabilities produce no coverage impact', () => {
+  const out = build({ coverage: {
+    providerCapabilities: [
+      capability('threatfox', 'ok', ['ioc_reputation'], 'first_party', ['reputation']),
+      capability('virustotal', 'cached', ['ioc_reputation'], 'specialist', ['reputation']),
+      capability('rdap', 'ok', ['registration'], 'authoritative', ['network_context']),
+    ],
+  } });
+  assert.deepEqual(out.coverageImpact, { level: 'none', uniqueCapabilityLoss: [], duplicateCoverageLoss: [], reasons: [] });
+});
+
+test('failed or timed-out capability coverage never becomes negative threat evidence', () => {
+  const out = build({ coverage: {
+    providerCapabilities: [capability('threatfox', 'failed', ['ioc_reputation'], 'first_party', ['reputation'])],
+  } });
+  assert.equal(out.threatContext.state, 'insufficient');
+  assert.deepEqual(out.threatContext.direct, []);
+  assert.deepEqual(out.threatContext.supporting, []);
+  assert.equal(JSON.stringify(out.threatContext).includes('negative'), false);
 });
