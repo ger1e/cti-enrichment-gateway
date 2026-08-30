@@ -1,7 +1,7 @@
 # PARA11AX Brand System
 
 > **PARA11AX // PROVENANCE-FIRST CTI TERMINAL**  
-> **Intelligence. Enriched. Operational.**
+> **Evidence first. Bounded always. Operational when supported.**
 
 PARA11AX uses one terminal-first identity across the landing page, analyst Web UI, GitHub README, documentation diagrams, package/CLI references and deployment surfaces.
 
@@ -17,7 +17,7 @@ Threat Hunter
 analyst@para11ax:~$ _
 ```
 
-The terminal frame and terminal prompt must be visible whenever a surface has enough space. Sentinel/helmet geometry is optional secondary emblem use only. It may appear as a compact mark where helpful, but it does not own the page hierarchy.
+The terminal frame and prompt must be visible whenever a surface has enough space. The compact phosphor PPI radar/wordmark is the canonical logo family; no sentinel/helmet identity owns the page hierarchy.
 
 ## Canonical visual system
 
@@ -27,9 +27,7 @@ The terminal language combines five rules:
 2. **Phosphor signal** — `#39FF14` owns identity, prompts, cursor, active rails, status and primary terminal borders.
 3. **Signal white** — `#F7FFF6` owns primary readable content.
 4. **Muted terminal gray-green** — `#8DA391` owns passive state and secondary copy.
-5. **Sparse anomaly red** — `#FF2438` is reserved for scanner heads, failures, contradictions and deliberate anomaly cues.
-
-No legacy cyan, amber or alternate green branding is active in the v7 system.
+5. **Sparse anomaly red** — `#FF2438` is reserved for failures, contradictions and deliberate anomaly cues.
 
 | Token | Hex | Role |
 | --- | --- | --- |
@@ -37,7 +35,9 @@ No legacy cyan, amber or alternate green branding is active in the v7 system.
 | `terminal-phosphor` | `#39FF14` | identity, prompt, cursor, active state |
 | `terminal-text` | `#F7FFF6` | primary content |
 | `terminal-muted` | `#8DA391` | passive/secondary content |
-| `terminal-alert` | `#FF2438` | anomaly, error, contradiction, scanner |
+| `terminal-alert` | `#FF2438` | anomaly, error, contradiction |
+
+Legacy cyan, amber, alternate-green and sentinel/helmet presentation are not active branding.
 
 ## Canonical copy
 
@@ -49,6 +49,7 @@ EVIDENCE FIRST.
 BOUNDED ALWAYS.
 OPERATIONAL WHEN SUPPORTED.
 OBSERVED ≠ INFERRED ≠ CONTEXTUAL
+DERIVED CONTEXT ≠ EVIDENCE
 ABSENCE ≠ BENIGN
 IMPLEMENTED ≠ CONFIGURED ≠ PRODUCTION-VERIFIED
 ```
@@ -65,6 +66,18 @@ production: https://para11ax.vercel.app
 analyst UI: https://para11ax.vercel.app/app/
 ```
 
+## Product truth in public copy
+
+Public content should describe the current deterministic architecture accurately:
+
+- Evidence v2 is the authoritative normalized evidence record.
+- Provider Value Scheduler v1.0 changes deterministic attempt order only; it does not change admission, hosts, credentials or evidence semantics.
+- The current IP reference path is a 24-provider workflow with a 48-call ceiling, max 4 concurrent providers, maximum two attempts/provider and 20-second request deadline.
+- Intelligence Kernel v1.0 is deterministic derived context, not Evidence v2.
+- Kernel language may describe evidence strength, source diversity, contradiction severity, temporal relevance, explicit one-hop pivots, coverage impact, hunt relevance and analyst priority.
+- No LLM, adaptive runtime model or universal maliciousness score is part of the canonical enrichment/analysis path.
+- User Scanner and the native Shodan shell remain separate operator utilities and are not silently promoted into Evidence v2 or Kernel reasoning.
+
 ## Landing page
 
 The landing page is one large terminal environment.
@@ -80,7 +93,7 @@ Required composition:
 - fixed-source summary;
 - terminal footer with read-only/fixed-egress doctrine.
 
-Do not use rounded marketing cards as the primary hierarchy. Do not make the sentinel illustration the hero. Do not place decorative motion over readable terminal content.
+Do not use rounded marketing cards as the primary hierarchy. Do not place decorative motion over readable terminal content.
 
 ## Analyst Web UI
 
@@ -94,7 +107,7 @@ scrollback / evidence transcript
 analyst@para11ax:~$
 ```
 
-The authenticated shell keeps status → scrollback → prompt as its DOM and visual hierarchy. Result views remain transcript sections with dotted separators. No dashboard sidebars, view rails, action rails, floating cards, or duplicated command launchers.
+The authenticated shell keeps status → scrollback → prompt as its DOM and visual hierarchy. Result views remain transcript sections with dotted separators. No dashboard sidebars, duplicated command launchers or generic SaaS card hierarchy.
 
 Mobile preserves the same hierarchy in one column. Input text stays large enough to avoid browser zoom, raw JSON remains horizontally scrollable, and decorative Matrix content is edge-biased/reduced.
 
@@ -105,49 +118,47 @@ Maximum visual cue means frequent but bounded terminal motion, not flashing.
 Canonical motion:
 
 - cursor blink: `0.8–1.0 s` cycle;
-- scanner sweep: approximately `1.8 s`;
-- Matrix streams: `2.8–9 s` multi-depth cycles;
-- status pulse: `1.4–2.4 s` brightness change;
-- terminal-line reveal: `25–90 ms` stagger depending on section;
-- event glitch: maximum `400 ms`, low displacement, event-triggered only.
+- PPI/scanner sweep: approximately `1.8–4.8 s` depending on surface;
+- Matrix streams: multi-depth, low-opacity cycles;
+- status pulse: bounded brightness change;
+- terminal-line reveal: short stagger depending on section;
+- event glitch: brief, low displacement, event-triggered only.
 
-Allowed cue types:
-
-- blinking block/native command caret;
-- red scanner line;
-- low-opacity CRT scanlines;
-- phosphor status LED pulse;
-- short channel-split/glitch on result/error/contradiction events;
-- sequential terminal output reveal;
-- background Matrix fall.
-
-Never use high-frequency full-screen flashes, destructive layout shifts, or motion that hides evidence.
-
-`prefers-reduced-motion: reduce` disables nonessential movement and preserves the same static hierarchy.
+Never use high-frequency full-screen flashes, destructive layout shifts, or motion that hides evidence. `prefers-reduced-motion: reduce` slows/removes nonessential movement while preserving content hierarchy.
 
 ## Pointer system
 
 Browser-owned PARA11AX surfaces use the local `assets/brand/para11ax-cursor.svg` pointer through `/site-cursor.css`. Interactive chrome keeps the branded pointer; terminal output, code, form text and selectable documentation retain native text-selection semantics. The cursor layer must not load remote assets.
 
-GitHub-hosted README and Markdown pages cannot override github.com browser cursor policy; they express the same identity through the terminal hero assets instead.
+GitHub-hosted README and Markdown pages cannot override github.com browser cursor policy; they express the same identity through the terminal SVG family.
 
 ## Audio
 
-**No new audio** is part of the canonical landing/README/documentation identity.
+No new audio is part of the landing/README/documentation identity. Existing `/app` synthesized audio behavior is independent runtime behavior and is not expanded by documentation/brand work.
 
-Landing pages, README assets and documentation remain silent. Existing `/app` synthesized audio behavior is independent runtime behavior and must not be expanded by visual-brand work.
+## README and documentation sizing
 
-## README and documentation
+The GitHub README uses the **same geometry and typography scale as the GER1E profile README**, while retaining PARA11AX black/phosphor/white/red semantics.
 
-The GitHub README uses one normalized 720 px SVG family modeled on the GER1E profile README geometry while retaining the PARA11AX terminal palette and identity:
+Canonical README SVG family:
 
-- `assets/brand/para11ax-readme-hero-v8.svg` — `720 × 360` hero;
-- `assets/brand/para11ax-readme-architecture-v4.svg` — `720 × 760` request-path panel;
-- `assets/brand/para11ax-readme-semantics-v4.svg` — `720 × 820` semantic-firewall panel.
+- `assets/brand/para11ax-readme-hero-v8.svg` — `720 × 360`;
+- `assets/brand/para11ax-readme-architecture-v4.svg` — `720 × 760`;
+- `assets/brand/para11ax-readme-semantics-v4.svg` — `720 × 820`;
+- `assets/brand/para11ax-readme-footer-v1.svg` — `720 × 300`.
 
-README SVGs use 12 px rounded outer framing, the canonical mono stack, black/phosphor/white/red semantics, and self-contained vector content with no raster/mobile fallback or remote asset dependency. The README follows a compact numbered `01 // …` through `07 // …` information hierarchy; technical prose remains searchable and exact.
+GER1E-normalized type scale:
 
-Architecture and semantic panels may be taller than the hero, but all remain 720 px wide and use the same framing, typography and semantic boundaries. Do not use semantic color as a substitute for exact labels, and do not add a second decorative radar outside the hero.
+- hero primary mark: **102 px**;
+- panel primary headings: **22 px**;
+- body/technical copy: **17 px**;
+- labels/microtype: **15 px**;
+- hero primary rain: **13 px**;
+- hero secondary rain: **12 px**.
+
+The old PARA11AX 16px panel-body tier is retired. README diagrams use 12px rounded outer framing, the canonical mono stack, self-contained vector content, no remote asset dependencies and a consistent 720px width. Architecture/semantic panels may be taller than the hero, but all use the same framing, padding and 15/17/22 hierarchy. The README footer is full-width rather than a small inline logo lockup.
+
+The README uses compact numbered sections and keeps technical prose searchable. Decorative SVGs supplement—never replace—exact text contracts.
 
 ## Matrix rain
 
@@ -157,8 +168,8 @@ Matrix rain is atmosphere, never content hierarchy.
 - red anomaly streams are sparse;
 - desktop may be dense and multi-depth;
 - mobile is edge-biased and lower opacity;
-- reduced motion freezes/removes fall animation;
-- no Matrix stream may interfere with prompt, evidence or navigation legibility.
+- reduced motion slows/removes fall animation;
+- no stream may interfere with prompt, evidence or navigation legibility.
 
 ## Typography
 
@@ -177,7 +188,7 @@ Wide tracking is allowed for PARA11AX/status labels. Long technical content uses
 > “You’ve got to follow the evidence… That doesn’t make it fact.”  
 > — **John Kiriakou**
 
-Use the quotation as a secondary evidence-discipline cue, not as the hero. Preserve the ellipsis and attribution. Do not imply endorsement.
+Use the quotation as a secondary evidence-discipline cue. Preserve the ellipsis and attribution. Do not imply endorsement.
 
 Source context: John Kiriakou, *The Joe Rogan Experience* #2392, approximately 01:32:47–01:33:55.
 
@@ -190,6 +201,7 @@ PARA11AX copy should be:
 - explicit about uncertainty;
 - technically precise;
 - free of synthetic “AI threat score” language;
+- explicit that no LLM participates in the deterministic core;
 - free of claims that absence means benign;
 - free of attribution by infrastructure proximity alone.
 
@@ -201,9 +213,8 @@ PARA11AX copy should be:
 | keep `analyst@para11ax:~$` visible where useful | invent unrelated prompt identities |
 | use phosphor for active structure | reintroduce cyan/amber brand rails |
 | use red only for sparse anomaly/error cues | make red a universal maliciousness verdict |
-| animate cursor/scanner/status subtly | flash full-screen or obscure evidence |
-| preserve black negative space | fill every surface with glow |
-| keep mobile single-column and thumb-safe | shrink desktop cards into a phone layout |
+| preserve the GER1E 720px / 15-17-22 scale | mix arbitrary README panel type sizes |
+| distinguish Evidence v2 from Kernel derived context | present derived intelligence as new evidence |
 | retain exact technical caveats | brand away uncertainty |
 
 ## Identity boundary

@@ -1,33 +1,63 @@
 ### Security policy
 
-This repository is public. PARA11AX is a provenance-first, read-only CTI enrichment core with bounded analyst-operations surfaces for personal research/lab use. Every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
+This repository is public. PARA11AX is a provenance-first, read-only CTI evidence gateway with deterministic analytical projections and bounded analyst-operations surfaces for personal research/lab use. Every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
 
 #### Supported use
 
-Do not route commercial-client, internal-enterprise, restricted, or otherwise sensitive data through providers or analyst utilities unless their licensing/data-handling terms and the relevant authorization have been explicitly reviewed. Provider and Shodan data are evidence/context, not attribution.
+Do not route commercial-client, internal-enterprise, restricted, or otherwise sensitive data through providers or analyst utilities unless licensing/data-handling terms and authorization have been explicitly reviewed. Provider and Shodan data are evidence/context, not attribution.
 
 #### Secrets
 
 - Never commit API keys, tokens, credentials, private keys, certificates, `.env` files, packet captures, malware samples, or sensitive analysis artifacts.
 - Use Vercel/project environment secrets for production and `.env.example` only as a non-secret template.
 - The only credential a Maltego client should know is `PARA11AX_TOKEN`; vendor credentials remain server-side.
-- `SHODAN_API_KEY` is server-side only. It must never appear in browser JavaScript, terminal output, documentation examples, screenshots, logs, or committed files.
-- API/health/status responses must never return environment-variable values.
+- `SHODAN_API_KEY` is server-side only. It must never appear in browser JavaScript, terminal output, docs examples, screenshots, logs, or committed files.
+- API/health/status/meta responses must never return environment-variable values.
 - Provider/Shodan errors must not reflect credential-bearing URLs, headers, arbitrary upstream exception text, or secrets.
-- Unexpected handler telemetry is correlation-only and must not contain exception messages, stacks, request bodies, raw indicators, User Scanner targets, or Shodan credentials.
-- If any secret is exposed, revoke/rotate it first, then remove it from repository history as needed.
+- Unexpected telemetry must remain correlation-only and exclude request bodies, raw indicators/identity targets, stack traces and credentials.
+- If a secret is exposed, revoke/rotate it first, then remove it from repository history as needed.
 
 #### Application boundary
 
 - Evidence v2 provider integrations are retrieval/enrichment only unless explicitly documented otherwise.
-- Do not add malware submission, detonation, sample download, takedown, credential testing, arbitrary HTTP proxying, arbitrary outbound headers, shell execution, secret-read/list endpoints, or autonomous remediation without an explicit design/security review.
-- Provider endpoints must remain fixed and indicator input must never control the outbound host.
-- Missing provider credentials must degrade to skipped/partial coverage rather than unsafe fallback.
+- Do not add malware submission, detonation, sample download, takedown, credential testing, arbitrary HTTP proxying, arbitrary outbound headers, shell execution, secret-read/list endpoints, autonomous remediation, or LLM-driven autonomous analysis without explicit design/security review.
+- Provider endpoints remain fixed and indicator input never controls the outbound host.
+- Missing provider credentials degrade to skipped/partial coverage rather than unsafe fallback.
 - Preserve provider semantics; absence is not benign evidence; infrastructure proximity is not actor attribution.
+
+#### Provider Value Scheduler v1.0 boundary
+
+Provider Value Scheduler v1.0 deterministically orders providers only **after** fixed workflow/profile admission. It does not change provider membership, credentials, hosts, methods, protocols, `safeFetch`, or Evidence v2 semantics.
+
+Current IP reference invariants are 24 providers, 48-call ceiling (maximum two attempts/provider), max concurrency 4 and 20-second deadline. Every admitted provider remains scheduled; returned evidence cannot suppress later providers. Missing/invalid scheduling descriptors fall back deterministically.
+
+Scheduler metadata is orchestration policy, not threat evidence or a maliciousness score.
+
+#### Intelligence Kernel v1.0 boundary
+
+Intelligence Kernel v1.0 is a pure deterministic derived-context projection over normalized Evidence v2, explicit relationships, correlation and coverage. **Evidence v2 remains authoritative.** Kernel output never becomes a provider observation simply because it is useful analyst context.
+
+Security invariants:
+
+- the Kernel adds **no new egress**;
+- it performs no provider call or arbitrary network access;
+- it reads no provider secret/environment credential state;
+- it adds no persistence or dependency surface;
+- it uses **no LLM**, adaptive runtime model or learning loop;
+- evidence-backed conclusions retain evidence fingerprints/providers or deterministic rule IDs;
+- provider failures/skips remain coverage state, never benign/negative threat evidence;
+- temporal relevance uses observation timestamps; missing time remains unknown;
+- relationships/pivots come only from supported explicit normalized relationships and are bounded to one hop;
+- free text is not mined to invent related infrastructure;
+- contradictions remain explicit;
+- Kernel-derived pivots do not become Evidence Graph evidence edges or unsupported STIX/attribution facts;
+- projection failure is isolated as `intelligence_projection_unavailable` and must not destroy otherwise-valid Evidence v2.
+
+Decision Support consumes only a compatible Kernel version/type and retains the legacy deterministic fallback otherwise. Guidance can expose only a bounded Kernel summary while existing Evidence Graph/evidence-fingerprint validation remains authoritative.
 
 #### Native Shodan analyst-shell boundary
 
-PARA11AX exposes six bounded native Shodan operator commands in the authenticated analyst shell:
+PARA11AX exposes six bounded native Shodan commands:
 
 ```text
 shodan host <ip>
@@ -38,36 +68,36 @@ shodan domain <domain>
 shodan info
 ```
 
-The browser calls only same-origin `POST /api/para11ax/shodan`. The gateway validates the command and arguments, reads `SHODAN_API_KEY` server-side, and contacts only the fixed upstream origin `https://api.shodan.io`.
+The browser calls only same-origin `POST /api/para11ax/shodan`. The gateway validates command/arguments, reads `SHODAN_API_KEY` server-side, and contacts only fixed `https://api.shodan.io`.
 
 Security invariants:
 
 - no caller-selected URL/host/method/credential/proxy;
-- no arbitrary endpoint selection;
-- no arbitrary paging;
-- `shodan search` is first-page only;
-- response arrays are bounded and large raw banner/service bodies are removed;
-- `shodan download` is disabled;
-- on-demand Shodan scan submission is not exposed;
+- no arbitrary endpoint/paging;
+- search first-page only;
+- response arrays bounded and large raw banner/service bodies removed;
+- `shodan download` disabled;
+- on-demand Shodan scan submission absent;
 - missing configuration fails closed;
-- Shodan 429/rate-limit state remains explicit;
-- Shodan operator output is not automatically converted into Evidence v2, case evidence, STIX, Evidence Graph, Guidance, reputation voting, or attribution.
+- 429/rate-limit state remains explicit;
+- Shodan operator output is not automatically converted into Evidence v2, Intelligence Kernel input, case evidence, STIX, Evidence Graph, Guidance, reputation voting, or attribution.
 
-Credit impact is explicit. Host/count/stats/info are classified as no-query-credit operations; domain consumes a query credit; search may consume a query credit depending on Shodan plan/query behavior. Prefer non-credit-consuming operations for routine health/wiring checks.
+Credit impact is explicit. Host/count/stats/info are no-query-credit operations; domain consumes a query credit; search may consume a query credit depending on plan/query behavior.
 
-A Shodan-visible port/service/product/tag/DNS record is infrastructure/exposure context only. It does not by itself prove exploitability, compromise, maliciousness, ownership, current reachability, or actor attribution.
+A Shodan-visible port/service/product/tag/DNS record is infrastructure/exposure context only. It does not by itself prove exploitability, compromise, maliciousness, ownership, current reachability, or attribution.
 
 #### User Scanner boundary
 
-User Scanner remains a separate active-OSINT capability. The browser calls same-origin `/api/para11ax/user-scanner`; the gateway forwards only to `PARA11AX_USER_SCANNER_URL` and optional server-side `PARA11AX_USER_SCANNER_TOKEN`. Callers cannot select the worker URL, proxy, concurrency, timeout, or arbitrary destination. Account/handle matches are not same-person identity proof or compromise evidence.
+User Scanner remains a separate active-OSINT capability. The browser calls same-origin `/api/para11ax/user-scanner`; the gateway forwards only to `PARA11AX_USER_SCANNER_URL` with optional server-side `PARA11AX_USER_SCANNER_TOKEN`. Callers cannot select worker URL, proxy, concurrency, timeout, or arbitrary destination. Account/handle matches are not same-person identity proof or compromise evidence and are not Intelligence Kernel input.
 
 #### Evidence, graph and guidance boundary
 
-- Evidence Graph v1.0 and Guidance v1.0 are deterministic projections over normalized Evidence v2/correlation/decision inputs; they perform no provider calls, secret lookup, arbitrary network access, or persistence.
-- Guidance inherits the existing bounded disposition vocabulary and must not introduce a universal threat/risk score.
-- Graph entities/edges come only from supported explicit facts/relationships.
-- Error enrichments do not manufacture top-level `evidenceGraph` or `guidance` fields.
-- User Scanner and Shodan analyst-shell output remain outside these projections unless a future explicit typed design changes that boundary.
+- Evidence v2 is the authoritative normalized source record.
+- Intelligence Kernel v1.0 is deterministic derived context and does not create Evidence v2 facts.
+- Evidence Graph v1.0 is built from supported explicit Evidence v2 facts/relationships; Kernel-derived relationships are excluded as evidence.
+- Guidance v1.0 inherits the bounded Decision Support vocabulary/evidence references and can carry only bounded Kernel summary fields.
+- No universal threat/risk score is introduced.
+- User Scanner and Shodan shell output remain outside these projections unless a future explicit typed design changes that boundary.
 
 #### Browser-local case boundary
 
@@ -90,23 +120,21 @@ Bearer-protected private routes include:
 - `GET /api/para11ax/health`
 - `GET /api/para11ax/status`
 
-`GET /api/para11ax/meta` is intentionally public static metadata.
-
-Explicit non-JSON request content types are rejected where JSON is required. Indicator and operator inputs are bounded before external calls. Authenticated operational responses use defensive headers/no-store as applicable. Gateway bearer comparison remains constant-time. Unknown `/api/para11ax/*` routes fail closed.
+`GET /api/para11ax/meta` is intentionally public static metadata. Explicit non-JSON request content types are rejected where JSON is required. Inputs are bounded before external calls. Authenticated operational responses use defensive headers/no-store as applicable. Gateway bearer comparison remains constant-time. Unknown `/api/para11ax/*` routes fail closed.
 
 #### Reporting boundary
 
-Reports compile only from bounded frozen Evidence v2 snapshots and must not perform network/provider/User Scanner/Shodan calls. Snapshot secret scanning and report quality gates remain mandatory. KQL is an analyst artifact, not an execution channel. Artifact manifests retain deterministic SHA-256 digests.
+Reports compile only from bounded frozen gateway snapshots and must not perform provider/User Scanner/Shodan calls. The IP analyst report can consume Kernel-derived context from the snapshot but cannot perform browser-side re-reasoning that manufactures evidence. Snapshot secret scanning and report quality gates remain mandatory. KQL is an analyst artifact, not an execution channel. Artifact manifests retain deterministic SHA-256 digests.
 
 #### Maltego
 
 Remote gateway URLs must use HTTPS except localhost development. Redirects are refused by the local gateway client. Local credential storage uses platform-appropriate secure storage. Generated `.mtz` packages remain untracked local artifacts.
 
-Shodan analyst-shell commands are not silently converted into Maltego Evidence v2 transforms; Shodan's normal Evidence v2 provider behavior remains governed by the canonical provider fabric.
+Shodan analyst-shell commands and Kernel pivot candidates are not silently converted into new Maltego Evidence v2 transforms.
 
 #### Supply chain and governance
 
-- GitHub Actions must remain pinned to immutable commit SHAs.
+- GitHub Actions remain pinned to immutable commit SHAs.
 - Runtime parity is Node.js 24.x across Vercel, CI, Codespaces, and local bootstrap flows.
 - `package-lock.json` is mandatory; CI uses deterministic install/audit.
 - `Tooling smoke` validates repository invariants, Node tests, Maltego tests, Python compilation, shell/ShellCheck, and PowerShell syntax. CodeQL runs separately.
@@ -125,6 +153,6 @@ cd maltego && python3 -m unittest discover -s tests -v
 cd .. && python3 -m compileall -q maltego
 ```
 
-Authenticated production acceptance should additionally verify the exact deployed SHA and, when authorized, protected health/status, representative Evidence v2 enrichment, User Scanner wiring where expected, and Shodan shell wiring with a no-query-credit command such as `shodan info`, `shodan host <approved-ip>`, or `shodan count <approved-query>`.
+Authenticated production acceptance should additionally verify the exact deployed SHA and, when authorized, protected health/status, representative Evidence v2 enrichment, expected IP Intelligence Kernel v1.0 output, User Scanner wiring, and Shodan shell wiring using a no-query-credit command where possible.
 
-A public READY deployment does not itself prove provider secrets, `SHODAN_API_KEY`, account credits, or User Scanner worker readiness.
+A public READY deployment does not itself prove provider secrets, `SHODAN_API_KEY`, User Scanner worker readiness, or that a newer repository-only feature is live. A Vercel deployment/build-rate limit means production remains on the previous READY source until a later exact-SHA deployment succeeds.

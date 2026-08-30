@@ -6,11 +6,13 @@ All responses are JSON unless a documented human-facing error representation is 
 
 Supported indicator types are `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`, and `certificate`. Certificate input is explicit: `cert-sha256:<64-hex>`. Fixed profiles are `fast`, `standard`, and `full`; callers cannot select arbitrary Evidence v2 providers.
 
+Profile admission and execution priority are separate. Admitted providers are ordered by **Provider Value Scheduler v1.0**. For the current IP reference workflow, 24 admitted providers retain a 48-call ceiling (maximum two attempts per provider), maximum concurrency 4, and the 20-second request deadline. Scheduler ordering does not add or suppress providers based on returned evidence.
+
 Email/username User Scanner operations and native Shodan commands are separate analyst utilities. They do not become canonical Evidence v2 workflow types and do not replace the current Evidence v2 result.
 
 #### Route inventory
 
-- `GET /api/para11ax/meta` — public static capabilities and hard limits.
+- `GET /api/para11ax/meta` — public static capabilities and hard limits, including scheduler policy metadata where applicable.
 - `GET /api/para11ax/health` — bearer-protected readiness; `Cache-Control: no-store`.
 - `GET /api/para11ax/status` — bearer-protected count-only runtime state; `Cache-Control: no-store`.
 - `POST /api/para11ax/enrich` — one canonical indicator.
@@ -24,10 +26,39 @@ Unknown `/api/para11ax/*` paths fail closed.
 #### `POST /api/para11ax/enrich`
 
 ```json
-{"indicator":"evil.example","profile":"standard"}
+{"indicator":"203.0.113.10","profile":"standard"}
 ```
 
-Normalized `ok`/`partial` results retain Evidence v2 and `decision` while additively exposing Evidence Graph v1.0 and Guidance v1.0. Error envelopes do not manufacture those projections.
+Normalized `ok`/`partial` results retain authoritative Evidence v2 and add deterministic analytical projections. The IP reference path can include top-level `intelligence` from **Intelligence Kernel v1.0**, followed by kernel-aware `decision` and bounded `guidance`; Evidence Graph v1.0 remains an explicit-evidence projection and does not ingest Kernel-derived relationships as evidence.
+
+Representative trimmed IP envelope:
+
+```json
+{
+  "schemaVersion": "2.0",
+  "indicator": "203.0.113.10",
+  "type": "ip",
+  "profile": "standard",
+  "status": "ok",
+  "evidence": [],
+  "relationships": [],
+  "correlation": {},
+  "intelligence": {
+    "schemaVersion": "1.0",
+    "type": "ip",
+    "evidenceStrength": {"level": "moderate"},
+    "analystPriority": {"level": "investigate"},
+    "coverageImpact": {"level": "none"}
+  },
+  "decision": {},
+  "evidenceGraph": {"schemaVersion": "1.0", "nodes": [], "edges": []},
+  "guidance": {"schemaVersion": "1.0"}
+}
+```
+
+`intelligence` is deterministic derived context, not Evidence v2. It may summarize evidence strength, source diversity, corroboration independence, contradiction severity, temporal relevance, explicit one-hop pivots, threat context, hunt relevance, coverage impact, analyst priority, limitations and trace rule IDs. Kernel projection failure is isolated: usable Evidence v2 remains valid and the unavailable projection is surfaced as a limitation rather than converted into an enrichment failure.
+
+Non-IP workflows remain compatible with their established correlation/decision path until an explicit observable policy adopts the Kernel contract. Error envelopes do not manufacture `intelligence`, Evidence Graph or Guidance projections.
 
 #### `POST /api/para11ax/batch`
 
@@ -39,7 +70,7 @@ Limits: 1..20 strings, max 3 active indicators, max 200 provider calls globally,
 
 #### `POST /api/para11ax/stix`
 
-Uses the same single-indicator request contract as `/enrich`. The gateway enriches first and then maps the bounded result to STIX 2.1; caller-supplied enrichment objects are rejected.
+Uses the same single-indicator request contract as `/enrich`. The gateway enriches first and then maps the bounded result to STIX 2.1; caller-supplied enrichment objects are rejected. Intelligence Kernel-derived conclusions do not become new STIX evidence or attribution facts.
 
 #### `POST /api/para11ax/user-scanner`
 
@@ -49,7 +80,7 @@ Separate active-OSINT capability used by the `user-scanner` command and `osint` 
 {"scanType":"username","target":"kaifcodec","crossScan":false,"noNsfw":true}
 ```
 
-The caller cannot select the worker URL, proxy, concurrency, arbitrary destination or timeout. Output remains separate from Evidence v2.
+The caller cannot select the worker URL, proxy, concurrency, arbitrary destination or timeout. Output remains separate from Evidence v2 and Intelligence Kernel reasoning.
 
 #### `POST /api/para11ax/shodan`
 
@@ -115,7 +146,7 @@ Response envelope:
 - `domain` — `consumes_query_credit`
 - `search` — `may_consume_query_credit`
 
-Search is first-page only. Search results and host-service lists are bounded; large raw banners/service bodies are removed before the response reaches the browser. Shodan operator output is terminal/operator context and leaves the current Evidence v2 enrichment result unchanged.
+Search is first-page only. Search results and host-service lists are bounded; large raw banners/service bodies are removed before the response reaches the browser. Shodan operator output is terminal/operator context and leaves the current Evidence v2 enrichment and `intelligence` projection unchanged.
 
 #### Common errors
 
@@ -129,4 +160,4 @@ Search is first-page only. Search results and host-service lists are bounded; la
 
 #### Security invariants
 
-Caller input never selects arbitrary provider hosts, Shodan hosts, worker hosts, methods, provider secrets, `SHODAN_API_KEY`, or arbitrary adapters. Evidence v2 provider egress remains fixed through `safeFetch`; User Scanner and Shodan use separate bounded authenticated routes with server-configured destinations. See `THREAT-MODEL.md`, `SECURITY-CONTROLS.md`, and `SHODAN-SHELL.md`.
+Caller input never selects arbitrary provider hosts, Shodan hosts, worker hosts, methods, provider secrets, `SHODAN_API_KEY`, or arbitrary adapters. Evidence v2 provider egress remains fixed through `safeFetch`. Provider Value Scheduler v1.0 and Intelligence Kernel v1.0 add no new egress, credential, persistence or dependency surface and use no LLM. User Scanner and Shodan use separate bounded authenticated routes with server-configured destinations. See `THREAT-MODEL.md`, `SECURITY-CONTROLS.md`, and `SHODAN-SHELL.md`.

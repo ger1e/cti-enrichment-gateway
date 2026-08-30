@@ -4,9 +4,28 @@
 
 Audit date: 2026-08-30.
 
-This report covers the repository-wide QA/documentation consolidation after V8 Trains 1–6 and the native Shodan analyst-shell integration. It is evidence-oriented: repository source, CI, deployment metadata, live public HTTP checks, and credential-bearing probes are separate proof states.
+This report covers the public documentation/brand normalization after the deterministic Provider Value Scheduler v1.0 + Intelligence Kernel v1.0 merge. Repository source, CI, deployment metadata, live public HTTP checks, and credential-bearing probes remain separate proof states.
 
-A tracked Markdown file cannot safely hard-code the SHA of the commit that contains itself. Therefore this report does **not** claim to embed its own final merge SHA. Reproduce exact current repository identity from GitHub and exact deployed identity from Vercel metadata as described below.
+The Kernel/Scheduler implementation baseline merged to protected `main` as:
+
+```text
+11d7b861d9f626c45f44c138c8d72cee9493efdf
+```
+
+Fresh push verification on that exact SHA:
+
+```text
+Tooling smoke 1374 — PASS
+CodeQL 962         — PASS
+```
+
+At this audit baseline, Vercel did **not** deploy that SHA because the Hobby plan returned a build/deployment rate limit. The latest READY PARA11AX production deployment remained on:
+
+```text
+2acc19f0558b1c3bbbcd96b47b8da69a25192c55
+```
+
+Therefore the Scheduler/Kernel release was repository/CI-proven but not production-deployment-proven at that point. Live public content must not be used as evidence that the Kernel is deployed until Vercel metadata reports an exact source SHA that contains it. Authenticated protected enrichment was not exercised as part of that closure.
 
 ## Proof-state definitions
 
@@ -18,23 +37,54 @@ A tracked Markdown file cannot safely hard-code the SHA of the commit that conta
 
 These states are intentionally not interchangeable.
 
+## Current architecture QA contract
+
+### Provider Value Scheduler v1.0
+
+The implementation and documentation must agree that:
+
+- provider admission remains fixed by workflow/profile;
+- the Scheduler deterministically orders already-admitted providers;
+- the current IP reference path is a **24-provider IP workflow**;
+- the IP **48-call ceiling** remains 24 × maximum two attempts;
+- max provider concurrency remains 4;
+- request deadline remains 20 seconds;
+- no evidence-dependent source suppression is allowed;
+- malformed/missing scheduler descriptors fall back deterministically;
+- scheduler metadata does not add hosts, credentials, methods or a threat score.
+
+### Intelligence Kernel v1.0
+
+The implementation and documentation must agree that:
+
+- Kernel output is deterministic derived context, not Evidence v2;
+- Evidence v2 remains authoritative;
+- current reference policy is IP-first;
+- source diversity distinguishes independent corroboration from duplicate capability;
+- contradictions stay explicit and carry severity;
+- temporal relevance uses observation timestamps rather than retrieval time;
+- relationships/pivots are explicit, stable and bounded to one hop;
+- provider failures/skips become coverage impact only, never benign/negative threat evidence;
+- Decision Support consumes a compatible Kernel projection with guarded legacy fallback;
+- Evidence Graph remains isolated from Kernel-derived relationships;
+- Guidance exposes only a bounded Kernel summary with existing evidence-fingerprint validation;
+- IP structured/copy report output consumes the same Kernel-backed model;
+- no new network, credential/environment, persistence or dependency surface exists;
+- no LLM, runtime learning or universal maliciousness score exists.
+
 ## Findings and dispositions
 
 ### QA-001 — architecture omitted the certificate workflow
 
-**Proof:** the baseline architecture listed eight workflows while `src/workflows.js` defined a ninth `certificate` workflow.
+**Disposition:** fixed. Documentation and executable checks cover all nine Evidence v2 workflow types.
 
-**Disposition:** fixed in documentation; executable documentation-contract coverage exists.
-
-### QA-002 — Evidence Graph/Guidance top-level response contracts were undocumented
-
-**Proof:** baseline evidence docs documented `decision.entityGraph` but not top-level Evidence Graph v1.0 / Guidance v1.0 on normalized `ok`/`partial` results.
+### QA-002 — Evidence Graph/Guidance contracts were under-documented
 
 **Disposition:** fixed with first-class projection documentation and explicit error-envelope boundaries.
 
 ### QA-003 — Maltego documentation lagged certificate parity and CI topology
 
-**Disposition:** fixed. Maltego docs cover all nine workflow types, explicit `cert-sha256:` transport, and actual bounded Ubuntu Tooling smoke topology.
+**Disposition:** fixed. Maltego covers all nine workflow types, explicit `cert-sha256:` transport, and bounded Ubuntu Tooling smoke topology.
 
 ### QA-004 — changelog lagged major V8 capabilities
 
@@ -42,23 +92,27 @@ These states are intentionally not interchangeable.
 
 ### QA-005 — contribution/security prose contained stale repository-state language
 
-**Disposition:** fixed. Repository files no longer claim to prove external GitHub/Vercel settings.
+**Disposition:** fixed. Repository files distinguish governance intent from external GitHub/Vercel state.
 
-### QA-006 — public/operator docs under-described current local/projection boundaries
+### QA-006 — public/operator docs under-described graph/local-state boundaries
 
-**Disposition:** fixed by separating decision-local graph, canonical Evidence Graph, browser-local case graph, Guidance, and persistence boundaries.
+**Disposition:** fixed by separating decision-local graph, canonical Evidence Graph, browser-local case graph, Guidance and persistence boundaries.
 
 ### QA-007 — Shodan runtime existed before public/operator documentation caught up
 
-**Proof:** PR #172 merged a bounded native Shodan command surface into the analyst shell with `host`, `search`, `count`, `stats`, `domain`, and `info`, fixed upstream `https://api.shodan.io`, server-side `SHODAN_API_KEY`, explicit credit-impact classes, first-page-only search, bounded normalized output, and Evidence v2 isolation. Immediately after merge, README/landing/deep docs still described Shodan only as an Evidence v2 exposure provider rather than as a distinct analyst-shell surface.
+**Disposition:** fixed. README, landing, API, architecture, providers, operations, security controls, threat model, security policy, changelog, QA/release guidance and dedicated `docs/SHODAN-SHELL.md` describe the bounded six-command Shodan surface and Evidence v2 isolation.
 
-**RED evidence:** PR #173 added an executable documentation contract to `test/shodan-terminal.test.mjs`. Tooling smoke failed on the RED candidate while CodeQL remained green, proving the new checks exercised missing/stale documentation rather than runtime implementation failure.
+### QA-008 — Provider Scheduler / Intelligence Kernel merged before public docs were current
 
-**Disposition:** README, landing page, API, architecture, providers, operations, security controls, threat model, security policy, changelog, QA/release guidance, and dedicated `docs/SHODAN-SHELL.md` were synchronized. The documentation contract now requires the approved Shodan command list and the core endpoint/key/fixed-egress/credit/boundedness/isolation semantics.
+**Proof:** merge `11d7b861d9f626c45f44c138c8d72cee9493efdf` introduced deterministic scheduling and Intelligence Kernel v1.0, while the public README/deep docs still described the older provider-order/correlation path and architecture artwork still used retired scheduler wording.
+
+**RED evidence:** documentation-normalization PR #182 added `test/docs-current-ger1e-normalization.test.mjs` before public-doc changes. Tooling smoke run 1400 reached 835 Node tests with 830 passing and exactly five new documentation/GER1E contract tests failing. Existing runtime tests remained green; failures were limited to the missing full-width footer, stale README/architecture/provider content and missing Kernel/security documentation.
+
+**Disposition target:** normalize the full public documentation set and README SVG family to the current Scheduler/Kernel architecture and GER1E 720px / 102-22-17-15 / 13-12 sizing system, then require fresh Tooling smoke + CodeQL on the exact PR head and accepted merged main tree.
 
 ## Shodan shell QA contract
 
-The public/operator documentation must agree on these facts:
+Public/operator documentation must continue to agree on:
 
 ```text
 shodan host <ip>
@@ -77,14 +131,32 @@ shodan info
 - `shodan download` disabled;
 - search first-page only;
 - host/search result arrays bounded and large raw banners removed;
-- `host`, `count`, `stats`, `info`: no-query-credit classification;
-- `domain`: consumes a query credit;
-- `search`: may consume a query credit;
-- native Shodan operator output leaves the current Evidence v2 result unchanged and is not auto-promoted into Evidence Graph, STIX, case evidence, reputation voting, or attribution.
+- host/count/stats/info: no-query-credit classification;
+- domain: consumes a query credit;
+- search: may consume a query credit;
+- native Shodan operator output leaves Evidence v2 / Intelligence Kernel state unchanged.
+
+## README/brand QA contract
+
+README presentation is normalized to the GER1E profile README geometry while keeping PARA11AX colors/identity:
+
+- all README panels 720px wide;
+- hero `720 × 360`;
+- hero primary mark 102px;
+- hero rain 13px / 12px;
+- panel headings 22px;
+- panel body 17px;
+- microtype 15px;
+- architecture `720 × 760`;
+- semantics `720 × 820`;
+- terminal footer `720 × 300`;
+- old 16px PARA11AX panel-body tier retired;
+- footer contains `PER ASPERA AD ASTRA`;
+- README text remains exact/searchable so SVG art never becomes the only documentation source.
 
 ## Repository/static verification
 
-The final candidate must rerun the complete repository gate after documentation/test changes:
+Final candidates must run the complete repository gate:
 
 ```bash
 npm ci --ignore-scripts
@@ -97,16 +169,14 @@ python3 -m compileall -q maltego
 python3 -m compileall -q workers/user-scanner
 ```
 
-The Shodan documentation test is intentionally colocated with the runtime/shell contract in `test/shodan-terminal.test.mjs`, so command grammar, endpoint behavior, and public documentation drift are reviewed together.
-
 ## CI verification
 
 Authoritative CI surfaces:
 
-- `Tooling smoke` — branch-required exact-head status; one bounded Ubuntu job; dependency audit, repository checks, Node tests, Maltego Python tests, Python compile, shell/ShellCheck, and PowerShell parsing.
-- CodeQL — separate JavaScript/TypeScript analysis; required by PARA11AX QA/release procedure even when branch protection does not list it as the required context.
+- `Tooling smoke` — branch-required exact-head status; bounded Ubuntu job covering dependency audit, repository checks, Node tests, Maltego Python tests, Python compile, shell/ShellCheck and PowerShell parsing.
+- `CodeQL` — separate JavaScript/TypeScript analysis, required by PARA11AX QA/release procedure.
 
-For closure, verify the **current exact PR head** has Tooling smoke and CodeQL passing, then verify the **exact merged main SHA** has fresh push runs passing. Do not reuse an earlier green run after the head changes.
+For closure, verify the **current exact PR head** has both passing, then verify the accepted merge/main tree has fresh push runs. Do not reuse an earlier green run after the head changes.
 
 ## Deployment and live-public verification
 
@@ -114,12 +184,10 @@ After merge, accept production only when:
 
 1. GitHub reports the expected exact `main` SHA.
 2. Vercel production deployment metadata reports the same `githubCommitSha` and `READY` state.
-3. `https://para11ax.vercel.app/` returns HTTP 200 and contains the Shodan analyst-ops section/commands.
-4. `https://para11ax.vercel.app/app/` returns HTTP 200.
-5. public `GET /api/para11ax/meta` returns the expected static contract.
-6. representative public static/error routing behaves as documented.
+3. public root/app/meta endpoints return the expected build.
+4. if the release contains the Kernel, live source/authorized API output demonstrates that exact deployed source rather than the previous READY build.
 
-Deployment/live results belong to post-merge closure because editing this tracked report after every deployment would create a new commit and invalidate the exact-SHA claim it tried to describe.
+A build-rate/deployment-rate limit is a failed deployment attempt. It does not invalidate green repository CI, but it also does not make the new code live.
 
 ## Credential-dependent surfaces not proven by public QA
 
@@ -127,36 +195,26 @@ Unless an authorized bearer/provider-secret environment is explicitly used, the 
 
 - authenticated `/api/para11ax/health`;
 - authenticated `/api/para11ax/status`;
-- actual production provider secret configuration;
+- production provider secret configuration;
 - credentialed provider enrichment health;
 - User Scanner worker wiring;
 - `SHODAN_API_KEY` production configuration;
-- Shodan account plan, remaining query/scan credits, rate-limit state, and production shell readiness;
+- Shodan account plan/credits/rate state and production shell readiness;
+- protected live IP enrichment producing Intelligence Kernel v1.0 on the exact deployment;
 - complete `para11ax providers probe --all` readiness.
 
 Not proven is not equivalent to failed, healthy, configured, or unconfigured.
 
-When authorized, Shodan production acceptance should prefer no-query-credit proof paths:
-
-```text
-shodan info
-shodan host <approved-test-ip>
-shodan count <approved-query>
-```
-
-Do not spend query credits merely to prove deployment wiring if a no-query-credit command is sufficient. If `shodan search` or `shodan domain` is intentionally used, record scope and the returned `creditImpact`.
-
 ## Residual risks and deliberate gaps
 
-- Upstream sources, including Shodan, can be semantically wrong while syntactically valid.
-- Provider/Shodan coverage, quota, auth and rate state can change independently of repository source.
-- Shodan-visible exposure is context, not proof of exploitability, compromise, maliciousness, ownership or attribution.
+- Upstream sources can be semantically wrong while syntactically valid.
+- Provider/Shodan coverage, quota, auth and rate state can change independently of source.
+- Deterministic Kernel rules can still encode an imperfect analyst policy; traceability/versioning makes that reviewable rather than infallible.
 - Browser-local case data is durable inside the browser profile and can be exposed by local profile compromise.
-- Repository documentation tests protect bounded canonical facts, not every prose nuance.
-- GitHub branch protection, account security, secret scanning and Vercel project settings are external state requiring API/settings verification when those claims matter.
+- Documentation tests protect bounded canonical facts, not every prose nuance.
+- GitHub/Vercel settings are external state requiring API/settings verification when those claims matter.
 - No TLS/JA3 workflow without a bounded source that passes the source gate.
-- No malware detonation/submission/download, credential testing, remediation, arbitrary proxying, arbitrary shell execution, Shodan on-demand scan submission, Shodan bulk `download`, arbitrary Shodan paging/endpoints, or server-side case database.
-- No universal maliciousness score.
+- No LLM, malware detonation/submission/download, credential testing, remediation, arbitrary proxying, arbitrary shell execution, Shodan on-demand scan submission, Shodan bulk `download`, arbitrary Shodan paging/endpoints, server-side case database, or universal maliciousness score.
 
 ## Reproduction checklist
 
@@ -182,4 +240,4 @@ Vercel production deployment githubCommitSha + READY state
 public root/app/meta HTTP behavior
 ```
 
-When credential-bearing verification is authorized, run protected health/status, provider probes, User Scanner acceptance where applicable, and bounded Shodan shell acceptance. Never reinterpret missing credentials, provider errors, Shodan rate limits, depleted credits, or feed absence as benign evidence.
+When credential-bearing verification is authorized, run protected health/status, provider probes, User Scanner acceptance where applicable, bounded Shodan acceptance, and representative IP Kernel acceptance. Never reinterpret missing credentials, provider errors, Shodan rate limits, depleted credits, feed absence or Kernel projection failure as benign evidence.

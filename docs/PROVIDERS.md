@@ -1,10 +1,10 @@
 ### Providers
 
-The executable provider registry is the source of truth for the canonical Evidence v2 enrichment fabric. The active registry contains **38 providers**. `release-manifest.json` records every active adapter/parser version, and `/api/para11ax/meta` exposes static capabilities without credential values or secret configuration state.
+The executable provider registry is the source of truth for the canonical Evidence v2 enrichment fabric. The active registry contains **38 providers**. `release-manifest.json` records active adapter/parser versions, and `/api/para11ax/meta` exposes static capabilities without credential values or secret configuration state.
 
 #### Registry contract
 
-Every active Evidence v2 provider declares and is validated for supported indicator/observation types, tier/cost class, timeout/cache policy, response ceiling, exact fixed host(s), allowed methods/protocols, parser version, source URL, and credential posture.
+Every active Evidence v2 provider declares and is validated for supported indicator/observation types, tier/cost class, timeout/cache policy, response ceiling, exact fixed host(s), allowed methods/protocols, parser version, source URL, credential posture and source semantics. Scheduler-aware providers can additionally expose declarative execution-value metadata; that metadata does not change fixed hosts, credentials or provider admission.
 
 A canonical workflow cannot route to an unregistered provider or a provider that does not support that indicator type. The nine Evidence v2 workflows are `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`, and `certificate`.
 
@@ -20,18 +20,51 @@ A canonical workflow cannot route to an unregistered provider or a provider that
 
 **Ransomware:** RansomLook · Ransomware.live API-PRO.
 
-#### Shodan: two distinct surfaces
+#### Provider Value Scheduler v1.0
 
-Shodan appears in PARA11AX in two deliberately separate ways.
+Provider selection/admission and execution order are different concerns. Fixed workflow/profile rules decide which providers are admitted. **Provider Value Scheduler v1.0** deterministically orders those admitted adapters.
 
-1. **Evidence v2 provider adapter** — Shodan is one of the 38 fixed providers used where the canonical workflow/profile allows it. Its observations enter the normal provider parser/evidence/correlation path with provider-native exposure semantics.
-2. **Native analyst-shell utility** — `POST /api/para11ax/shodan` implements explicit bounded operator lookups for `shodan host`, `shodan search`, `shodan count`, `shodan stats`, `shodan domain`, and `shodan info`.
+Scheduler descriptors are static, type-aware metadata. The policy comparator uses authority, semantic uniqueness, direct threat value, pivot value, latency class and cost class, then existing tier/workflow order for deterministic fallback. It does not learn from prior requests or suppress sources based on evidence already returned.
 
-The shell utility does **not** add a 39th provider, does not change the provider registry, and does not automatically promote its output into Evidence v2.
+Current **24-provider IP workflow** keeps the same membership and the existing **48-call ceiling** (maximum two attempts/provider), maximum concurrency 4 and 20-second request deadline.
 
-Both surfaces use the server-side `SHODAN_API_KEY`; the browser never receives that key. The analyst-shell route contacts only `https://api.shodan.io`, rejects arbitrary destinations/options, caps returned data, removes large raw service/banner bodies, keeps search first-page only, and disables `shodan download`.
+IP execution order v1:
 
-Credit handling is explicit on the shell route: host/count/stats/info are classified as no-query-credit operations; domain is marked as consuming a query credit; search is marked as potentially consuming a query credit. See `SHODAN-SHELL.md` for the operator contract.
+```text
+rdap
+-> tor-exit
+-> ripestat
+-> ipinfo
+-> cloudflare-radar
+-> feodo-tracker
+-> threatfox
+-> spamhaus-drop
+-> abuseipdb
+-> webamon
+-> greynoise
+-> urlscan
+-> shodan
+-> censys
+-> modat
+-> virustotal
+-> threatminer
+-> pulsedive
+-> otx
+-> misp-circl-osint
+-> tweetfeed
+-> dshield
+-> misp-botvrij-osint
+-> ransomlook
+```
+
+Scheduling invariants:
+
+- every admitted provider remains scheduled;
+- no evidence-dependent omission;
+- missing/malformed scheduler metadata falls back deterministically;
+- scheduling cannot broaden `safeFetch` egress;
+- public capability metadata can describe scheduler policy/descriptors but never credentials, arbitrary runtime rank inputs or threat conclusions;
+- scheduler ordering is not a maliciousness score.
 
 #### Source semantics
 
@@ -50,7 +83,26 @@ Provider observations preserve their own meaning. Examples:
 - reputation/malware services: provider-specific threat observations.
 - RansomLook/ransomware.live: victim-claim/reporting context rather than compromise proof.
 
-These classes are not interchangeable. A Shodan-visible service, Tor exit, scanner hit, registration record, certificate record, community IOC report, ransomware claim, infrastructure exposure record, or ATT&CK technique is not automatically a malware-reputation vote.
+These classes are not interchangeable. A service exposure, Tor exit, scanner hit, registration record, certificate record, community IOC report, ransomware claim or ATT&CK technique is not automatically a malware-reputation vote.
+
+#### Provider capability coverage and Intelligence Kernel
+
+For the IP reference path, approved provider capability/source-role metadata can be projected into request coverage so **Intelligence Kernel v1.0** can distinguish redundant capability loss from materially unique capability loss. Failure/skip state remains coverage only; it is not converted into negative threat evidence.
+
+The Kernel consumes normalized evidence/coverage after provider execution. It cannot call a provider, change scheduler ordering, expand the provider registry or change an adapter's semantic class. Evidence v2 remains authoritative.
+
+#### Shodan: two distinct surfaces
+
+Shodan appears in PARA11AX in two deliberately separate ways.
+
+1. **Evidence v2 provider adapter** — Shodan is one of the 38 fixed providers used where the canonical workflow/profile allows it. Its observations enter the normal provider parser/evidence/correlation path with exposure semantics and can support deterministic derived context without becoming a reputation vote by themselves.
+2. **Native analyst-shell utility** — `POST /api/para11ax/shodan` implements explicit bounded operator lookups for `shodan host`, `search`, `count`, `stats`, `domain`, and `info`.
+
+The shell utility does **not** add a 39th provider, does not change the provider registry/scheduler, and does not automatically promote its output into Evidence v2 or Intelligence Kernel input.
+
+Both surfaces use server-side `SHODAN_API_KEY`; the browser never receives that key. The shell route contacts only `https://api.shodan.io`, rejects arbitrary destinations/options, caps returned data, removes large raw service/banner bodies, keeps search first-page only, and disables `shodan download`.
+
+Credit handling is explicit on the shell route: host/count/stats/info are no-query-credit operations; domain consumes a query credit; search may consume a query credit. See `SHODAN-SHELL.md`.
 
 #### Certificate semantics
 
@@ -66,7 +118,7 @@ ATT&CK TAXII uses fixed MITRE collection IDs and server-side type filtering. Rel
 
 ASN/CIDR support is deliberately narrow and fixed-source: RDAP autnum/network registration, RIPEstat AS/Prefix Overview, and Spamhaus ASN-DROP / IPv4/IPv6 DROP. No active scanning is performed by the Evidence v2 provider fabric.
 
-The Shodan analyst-shell surface performs only the documented Shodan API lookups; it does not expose Shodan on-demand scan submission or arbitrary scanning.
+The Shodan analyst-shell surface performs only documented Shodan API lookups; it does not expose on-demand scan submission or arbitrary scanning.
 
 #### State model
 
@@ -77,7 +129,7 @@ A provider can be:
 - **Production-verified** — an authorized smoke operation succeeded against the exact deployed source SHA.
 - **Unavailable/gap** — omitted, unconfigured, or failed its source/boundedness gate.
 
-Implemented does not imply configured, and configured does not imply production-verified. The same proof-state rule applies to the Shodan shell: source presence does not prove production `SHODAN_API_KEY` availability or account credits.
+Implemented does not imply configured, and configured does not imply production-verified.
 
 #### Intentionally omitted
 
@@ -88,5 +140,6 @@ Implemented does not imply configured, and configured does not imply production-
 - Ransomware-wide unbounded enumeration in per-indicator enrichment.
 - Modat bulk export/broad history in normal enrichment.
 - Shodan arbitrary paging, bulk `download`, caller-selected URLs, and on-demand scan submission through the analyst shell.
+- LLM/adaptive provider scheduling or evidence-dependent source suppression.
 
-Run `node scripts/generate-release-manifest.mjs --check` to detect registry/parser-version drift. Documentation-contract tests separately detect drift in externally documented workflow/provider/operator facts.
+Run `node scripts/generate-release-manifest.mjs --check` to detect registry/parser-version drift. Documentation-contract tests separately detect drift in externally documented workflow/provider/scheduler/operator facts.
