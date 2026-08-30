@@ -1,6 +1,11 @@
 import { GatewayHttpError } from './api-client.js';
 import { runEnrichmentOperation } from './shell-runtime.js';
 import { COMMANDS, completeCommand, createHistory, interpretCommand } from './shell.js';
+import { COMMAND_REGISTRY } from './shell-core/catalog.js';
+import { parseShellLine } from './shell-core/parser.js';
+import { executePipeline } from './shell-core/runtime.js';
+import { createBrowserShellExecutor } from './shell-browser-executor.js';
+import { caseShellAdapter } from './case-shell-bridge.js';
 import {
   buildOverview,
   buildEvidence,
@@ -196,6 +201,18 @@ export function mountAnalystShell({
   };
   const appendJson = (value, tone = '') => appendPre(JSON.stringify(value, null, 2), tone);
   const clearScrollback = () => scrollback.replaceChildren();
+  const renderTypedShellValue = output => {
+    if (!output || output.type === 'void') return;
+    if (output.type === 'text' || output.type === 'scalar') {
+      appendLine(output.value ?? '');
+      return;
+    }
+    if (output.type === 'artifact') {
+      appendStructuredFacts('CASE ARTIFACT', output.value ?? {}, 'green');
+      return;
+    }
+    appendJson(output.value ?? null);
+  };
 
   const appendStructuredFacts = (title, value, tone = '') => {
     const block = document.createElement('section');
@@ -456,6 +473,7 @@ export function mountAnalystShell({
     if (action.action === 'disconnect') {
       abortOperation();
       session.disconnect();
+      caseShellAdapter.reset();
       currentResult = null;
       audio.play('disconnect');
       triggerGlitch('glitch-disconnect', 360);
@@ -466,6 +484,7 @@ export function mountAnalystShell({
     if (action.action === 'reboot') {
       abortOperation();
       session.disconnect();
+      caseShellAdapter.reset();
       currentResult = null;
       history.clear();
       triggerGlitch('glitch-disconnect', 360);
@@ -524,6 +543,46 @@ export function mountAnalystShell({
     await runGateway(action);
   }
 
+  function registeredCaseAst(line) {
+    const ast = parseShellLine(line);
+    const first = ast.stages[0];
+    if (!first) return null;
+    const resolved = COMMAND_REGISTRY.resolve(first.tokens, 'web');
+    return resolved?.descriptor?.namespace === 'case' ? ast : null;
+  }
+
+  async function runRegisteredCase(ast) {
+    const controller = beginOperation(false);
+    const executor = createBrowserShellExecutor({
+      client,
+      session,
+      cases: caseShellAdapter,
+      audio,
+      now,
+      monotonicNow,
+      version,
+      initialState: { profile, currentResult },
+    });
+    try {
+      const output = await executePipeline(ast, {
+        registry: COMMAND_REGISTRY,
+        executor,
+        context: {
+          surface: 'web',
+          authenticated: authenticated(),
+          capabilities: new Set(['gateway-read', 'provider-read']),
+        },
+        signal: controller.signal,
+      });
+      const next = executor.state();
+      profile = next.profile;
+      currentResult = next.currentResult;
+      renderTypedShellValue(output);
+    } finally {
+      endOperation();
+    }
+  }
+
   async function submitSecret() {
     const secret = input.value;
     input.value = '';
@@ -555,6 +614,33 @@ export function mountAnalystShell({
     if (secretMode) { await submitSecret(); return; }
     const line = input.value;
     input.value = '';
+
+    let caseAst = null;
+    try { caseAst = registeredCaseAst(line); }
+    catch (error) {
+      history.push(line);
+      if (line.trim()) appendLine(`analyst@para11ax:~$ ${line}`);
+      appendLine(`terminal: ${error?.message || 'invalid command syntax'}`, 'red');
+      triggerGlitch('glitch-error', 240);
+      updatePrompt();
+      focusInput();
+      return;
+    }
+
+    if (caseAst) {
+      history.push(line);
+      if (line.trim()) appendLine(`analyst@para11ax:~$ ${line}`);
+      try { await runRegisteredCase(caseAst); }
+      catch (error) {
+        appendLine(`terminal: ${error?.message || 'command failed'}`, 'red');
+        triggerGlitch('glitch-error', 240);
+        if (busy) abortOperation();
+      }
+      updatePrompt();
+      focusInput();
+      return;
+    }
+
     const action = interpretCommand(line, { authenticated: authenticated(), profile });
     if (action.historySafe !== false) history.push(line);
     if (line.trim()) appendLine(`analyst@para11ax:~$ ${line}`);
