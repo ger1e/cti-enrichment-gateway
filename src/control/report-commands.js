@@ -1,5 +1,6 @@
 import { lstatSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { shellError } from '../../app/shell-core/errors.js';
 import { compileReportBundle, REPORT_PRESETS } from '../report/compiler.js';
 import { buildReportModel } from '../report/model.js';
 import { assertReportQuality } from '../report/quality.js';
@@ -7,10 +8,20 @@ import { diffReportModels } from '../report/diff.js';
 
 const MAX_SNAPSHOT_BYTES = 20_000_000;
 
+function reportArgumentError(error) {
+  const message = error instanceof Error ? error.message : 'invalid report request';
+  const safe = /^(?:invalid report|duplicate report|unknown report preset|report compile requires|report diff requires|snapshot (?:must|exceeds|has no|is not)|source SHA)/i.test(message)
+    ? message
+    : 'invalid report request';
+  return shellError('INVALID_ARGUMENT', safe);
+}
+
 function readSnapshot(path) {
   if (typeof path !== 'string' || !path || path.startsWith('-')) throw new Error('invalid snapshot path');
   const absolute = resolve(path);
-  const stat = lstatSync(absolute);
+  let stat;
+  try { stat = lstatSync(absolute); }
+  catch { throw new Error('invalid snapshot path'); }
   if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('snapshot must be a regular file');
   if (stat.size <= 0 || stat.size > MAX_SNAPSHOT_BYTES) throw new Error('snapshot exceeds bounded input size');
   let value;
@@ -47,7 +58,7 @@ function parseFlagPairs(args, allowed) {
   return output;
 }
 
-export function compileReportCommand(args) {
+function compileReportCommandUnsafe(args) {
   if (!Array.isArray(args) || args.length < 3 || args.length % 2 === 0) throw new Error('invalid report compile arguments');
   const snapshotPath = args[0];
   const flags = parseFlagPairs(args.slice(1), new Set(['--out', '--preset', '--generated-at', '--source-sha']));
@@ -61,13 +72,21 @@ export function compileReportCommand(args) {
   return { reportId: result.model.reportId, preset, files: result.files.sort((a, b) => a.localeCompare(b)) };
 }
 
+export function compileReportCommand(args) {
+  try { return compileReportCommandUnsafe(args); }
+  catch (error) {
+    if (error?.name === 'ShellCommandError') throw error;
+    throw reportArgumentError(error);
+  }
+}
+
 export function runReportCompile(args) {
   const summary = compileReportCommand(args);
   process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
   return 0;
 }
 
-export function diffReportCommand(args) {
+function diffReportCommandUnsafe(args) {
   if (!Array.isArray(args) || args.length !== 2) throw new Error('report diff requires before.json and after.json');
   const beforeSnapshot = readSnapshot(args[0]);
   const afterSnapshot = readSnapshot(args[1]);
@@ -76,6 +95,14 @@ export function diffReportCommand(args) {
   assertReportQuality(before);
   assertReportQuality(after);
   return diffReportModels(before, after);
+}
+
+export function diffReportCommand(args) {
+  try { return diffReportCommandUnsafe(args); }
+  catch (error) {
+    if (error?.name === 'ShellCommandError') throw error;
+    throw reportArgumentError(error);
+  }
 }
 
 export function runReportDiff(args) {
