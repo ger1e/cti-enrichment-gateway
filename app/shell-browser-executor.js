@@ -1,5 +1,13 @@
 import { classifyBrowserObservable, SUPPORTED_OBSERVABLE_TYPES, validateTypedBrowserObservable } from './observable-input.js';
-import { buildIpAnalystReport, renderIpAnalystReportText } from './view-model.js';
+import {
+  buildCorrelation,
+  buildCoverage,
+  buildEvidence,
+  buildIpAnalystReport,
+  buildOverview,
+  buildRelationships,
+  renderIpAnalystReportText,
+} from './view-model.js';
 import { shellError } from './shell-core/errors.js';
 import {
   listAliases,
@@ -405,8 +413,14 @@ export function createBrowserShellExecutor({
       else if (target === 'json') value = JSON.stringify(current, null, 2);
       else if (target === 'request-id') value = current.requestId;
       else if (target === 'report') {
-        if (current.type !== 'ip') invalid('copy report currently targets IP analyst reports');
-        value = renderIpAnalystReportText(buildIpAnalystReport(current));
+        if (current.type !== 'ip') invalid('copy report currently requires an IP enrichment result');
+        value = renderIpAnalystReportText(buildIpAnalystReport({
+          overview: buildOverview(current),
+          evidence: buildEvidence(current),
+          correlation: buildCorrelation(current),
+          relationships: buildRelationships(current),
+          coverage: buildCoverage(current),
+        }));
       } else invalid('copy target must be observable, report, json, or request-id');
       await clipboard.writeText(String(value ?? ''));
       return text(`copied ${target}`);

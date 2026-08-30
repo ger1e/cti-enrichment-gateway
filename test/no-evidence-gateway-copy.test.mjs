@@ -39,5 +39,5 @@ test('canonical public copy identifies PARA11AX as CTI enrichment', async () => 
   assert.match(landing, /CTI enrichment, correlation and bounded identity OSINT/i);
   assert.match(readme, /bounded, read-only CTI enrichment\/correlation core/i);
   assert.match(shell, /CTI Enrichment \/\/ session unauthenticated/);
-  assert.match(shell, /CTI Enrichment client v2/);
+  assert.match(shell, /PARA11AX Gateway Terminal/);
 });

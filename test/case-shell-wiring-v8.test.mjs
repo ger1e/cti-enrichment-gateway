@@ -43,9 +43,9 @@ test('shared browser execution boundary resets memory-only active case state on 
   const ui = await read('app/shell-ui.js');
   assert.match(bridge, /reset\(\)\s*\{/);
   assert.match(executor, /cases\?\.reset\?\.\(\)/);
-  assert.match(ui, /action\.action\s*===\s*['"]disconnect['"]/);
-  assert.match(ui, /action\.action\s*===\s*['"]reboot['"]/);
-  assert.match(ui, /caseShellAdapter\.reset\(\)/);
+  assert.match(executor, /handler === ['"]disconnect['"]\s*\|\|\s*handler === ['"]auth-clear['"]/);
+  assert.match(executor, /handler === ['"]reboot['"]/);
+  assert.match(ui, /cases:\s*caseShellAdapter/);
 });
 
 test('case bridge surfaces capture warnings without replacing gateway results', async () => {

@@ -63,7 +63,7 @@ test('shell UI is the sole case submit owner and delegates registered case comma
   for (const required of ['createBrowserShellExecutor', 'COMMAND_REGISTRY', 'parseShellLine', 'executePipeline', 'caseShellAdapter']) {
     assert.match(source, new RegExp(required));
   }
-  assert.match(source, /namespace\s*===\s*['"]case['"]/);
+  assert.match(source, /cases:\s*caseShellAdapter/);
 });
 
 test('case runtime exposes deterministic pins notes timeline and evidence graph projections', async () => {

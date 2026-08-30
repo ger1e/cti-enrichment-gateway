@@ -175,7 +175,9 @@ test('copy report command produces analyst-readable text instead of JSON', () =>
   assert.match(text, /WEBAMON:\s+UPSTREAM TIMEOUT/i);
   assert.doesNotMatch(text, /^\s*[{}]\s*$/m);
   assert.deepEqual(interpretCommand('copy report', { authenticated: true, profile: 'full' }), { action: 'copy', target: 'report', historySafe: true });
-  const shellUi = readFileSync('app/shell-ui.js', 'utf8');
-  assert.match(shellUi, /renderIpAnalystReportText/);
-  assert.match(shellUi, /action\.target\s*===\s*['"]report['"]/);
+  const shellExecutor = readFileSync('app/shell-browser-executor.js', 'utf8');
+  assert.match(shellExecutor, /target === ['"]report['"]/);
+  assert.match(shellExecutor, /renderIpAnalystReportText/);
+  assert.match(shellExecutor, /buildOverview\(current\)/);
+  assert.match(shellExecutor, /buildEvidence\(current\)/);
 });
