@@ -1,4 +1,5 @@
 import { isDecisivePolarity, polarity, semanticClass } from './semantics.js';
+import { sha256Hex } from './sha256.js';
 
 export const INTELLIGENCE_KERNEL_SCHEMA_VERSION = '1.0';
 
@@ -7,6 +8,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const CONTRADICTION_LEVEL = Object.freeze({ none: 0, low: 1, medium: 2, high: 3 });
 const HEALTHY_CAPABILITY_STATES = new Set(['ok', 'cached']);
 const LOST_CAPABILITY_STATES = new Set(['failed', 'skipped']);
+const RELATIONSHIP_CLASS_ORDER = Object.freeze({ direct: 0, supporting: 1, contextual: 2, low_value: 3 });
+const PIVOT_PRIORITY_ORDER = Object.freeze({ high: 0, medium: 1, low: 2, none: 3 });
+const MAX_PIVOT_CANDIDATES = 8;
 
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -181,6 +185,114 @@ function temporalRelevance(items, now) {
   };
 }
 
+function relationshipClass(relationshipType, policy) {
+  for (const [valueClass, types] of Object.entries(policy?.relationshipTypes ?? {})) {
+    if (Array.isArray(types) && types.includes(relationshipType)) return snakeCase(valueClass);
+  }
+  return 'low_value';
+}
+
+function pivotPriority(valueClass, targetType, policy) {
+  const eligible = Array.isArray(policy?.pivotTargetTypes) && policy.pivotTargetTypes.includes(targetType);
+  if (!eligible) return 'none';
+  if (valueClass === 'direct') return 'high';
+  if (valueClass === 'supporting') return 'medium';
+  if (valueClass === 'contextual') return 'none';
+  return 'low';
+}
+
+function relationshipValues({ indicator, type, relationships, normalizedEvidence: evidence, policy }) {
+  const fingerprintsByProvider = new Map();
+  for (const item of evidence) {
+    if (!item.provider || !item.fingerprint) continue;
+    if (!fingerprintsByProvider.has(item.provider)) fingerprintsByProvider.set(item.provider, []);
+    fingerprintsByProvider.get(item.provider).push(item.fingerprint);
+  }
+
+  const byId = new Map();
+  for (const relationship of relationships) {
+    if (!relationship || typeof relationship !== 'object') continue;
+    const relationshipType = typeof relationship.type === 'string' ? relationship.type : '';
+    const source = typeof relationship.source === 'string' && relationship.source.length > 0 ? relationship.source : indicator;
+    const target = relationship.target ?? relationship.value;
+    const targetType = typeof relationship.targetType === 'string' && relationship.targetType.length > 0 ? relationship.targetType.toLowerCase() : '';
+    const provider = typeof relationship.provider === 'string' ? relationship.provider : '';
+    if (!relationshipType || (typeof target !== 'string' && typeof target !== 'number') || String(target).length === 0 || !provider) continue;
+    const targetValue = String(target);
+    const valueClass = relationshipClass(relationshipType, policy);
+    const priority = pivotPriority(valueClass, targetType, policy);
+    const id = sha256Hex([type, source, relationshipType, targetType, targetValue, provider].join('\u0000'));
+    if (byId.has(id)) continue;
+    byId.set(id, {
+      id,
+      sourceType: type,
+      source,
+      type: relationshipType,
+      targetType: targetType || null,
+      target: targetValue,
+      provider,
+      valueClass,
+      pivotPriority: priority,
+      evidenceFingerprints: stableUnique(fingerprintsByProvider.get(provider) ?? []),
+    });
+  }
+
+  return [...byId.values()].sort((a, b) => {
+    const classDiff = (RELATIONSHIP_CLASS_ORDER[a.valueClass] ?? 99) - (RELATIONSHIP_CLASS_ORDER[b.valueClass] ?? 99);
+    if (classDiff) return classDiff;
+    return `${a.targetType ?? ''}\u0000${a.target}\u0000${a.provider}\u0000${a.id}`.localeCompare(`${b.targetType ?? ''}\u0000${b.target}\u0000${b.provider}\u0000${b.id}`);
+  });
+}
+
+function relationshipFreshness(providers, evidence, now) {
+  const supporting = evidence.filter(item => providers.includes(item.provider));
+  return temporalRelevance(supporting, now).overall;
+}
+
+function pivotCandidates(relationshipValuesList, evidence, now) {
+  const groups = new Map();
+  for (const relationship of relationshipValuesList) {
+    if (relationship.pivotPriority === 'none' || !relationship.targetType) continue;
+    const key = `${relationship.targetType}\u0000${relationship.target}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(relationship);
+  }
+
+  const candidates = [...groups.values()].map(group => {
+    const priority = [...group].sort((a, b) => (PIVOT_PRIORITY_ORDER[a.pivotPriority] ?? 99) - (PIVOT_PRIORITY_ORDER[b.pivotPriority] ?? 99))[0].pivotPriority;
+    const providers = stableUnique(group.map(item => item.provider));
+    const relationshipClasses = stableUnique(group.map(item => item.valueClass));
+    const reasonCodes = stableUnique([
+      ...relationshipClasses.map(valueClass => valueClass === 'direct'
+        ? 'explicit_direct_relationship'
+        : valueClass === 'supporting'
+          ? 'explicit_supporting_relationship'
+          : 'explicit_low_value_relationship'),
+      ...(providers.length > 1 ? ['multi_provider_relationship'] : []),
+    ]);
+    return {
+      priority,
+      type: group[0].targetType,
+      value: group[0].target,
+      relationshipTypes: stableUnique(group.map(item => item.type)),
+      relationshipClasses,
+      providers,
+      independentProviders: providers,
+      providerCount: providers.length,
+      freshness: relationshipFreshness(providers, evidence, now),
+      relationshipIds: stableUnique(group.map(item => item.id)),
+      evidenceFingerprints: stableUnique(group.flatMap(item => item.evidenceFingerprints)),
+      reasonCodes,
+    };
+  });
+
+  return candidates.sort((a, b) => {
+    const priorityDiff = (PIVOT_PRIORITY_ORDER[a.priority] ?? 99) - (PIVOT_PRIORITY_ORDER[b.priority] ?? 99);
+    if (priorityDiff) return priorityDiff;
+    return `${a.type}\u0000${a.value}`.localeCompare(`${b.type}\u0000${b.value}`);
+  }).slice(0, MAX_PIVOT_CANDIDATES);
+}
+
 function normalizedCapabilityRecords(coverage) {
   const values = Array.isArray(coverage?.providerCapabilities) ? coverage.providerCapabilities : [];
   return values
@@ -258,6 +370,7 @@ export function buildIntelligenceKernel({
   validateInputs({ indicator, type, evidence, relationships, correlation, coverage, policy });
   const fingerprints = validEvidenceFingerprints(evidence);
   const normalized = evidence.map(item => normalizedEvidence(item, policy));
+  const projectedRelationships = relationshipValues({ indicator, type, relationships, normalizedEvidence: normalized, policy });
 
   return deepFreeze({
     schemaVersion: INTELLIGENCE_KERNEL_SCHEMA_VERSION,
@@ -274,8 +387,8 @@ export function buildIntelligenceKernel({
     corroboration: corroboration(normalized),
     contradiction: contradictions(normalized),
     temporalRelevance: temporalRelevance(normalized, now),
-    relationshipValue: [],
-    pivotCandidates: [],
+    relationshipValue: projectedRelationships,
+    pivotCandidates: pivotCandidates(projectedRelationships, normalized, now),
     threatContext: {
       state: 'insufficient',
       direct: [],
