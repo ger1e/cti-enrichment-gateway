@@ -139,11 +139,11 @@ para11ax report diff <before.json> <after.json>
 <strong>KEV ≠ EPSS ≠ CVSS</strong> — exploitation status, probability and severity remain separate axes<br/>
 <strong>FAILURE ≠ NEGATIVE EVIDENCE</strong> — timeout, 429, 5xx, parser/module failure and circuit-open states remain explicit coverage failures</sub>
 
-**No universal maliciousness or identity score.** Full evidence semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
+**No universal maliciousness score. No universal identity score.** Full evidence semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
 
 <sub><strong>05 // PROVIDER FABRIC</strong></sub>
 
-PARA11AX has **38 upstream APIs and feeds** in the canonical Evidence v2 provider fabric. Shodan is one of those fixed providers for canonical enrichment, while the native Shodan shell route is a distinct explicit operator surface and does not increase the provider count.
+PARA11AX has **38 upstream APIs and feeds** — 38 sources in the canonical Evidence v2 provider fabric. Shodan is one of those fixed providers for canonical enrichment, while the native Shodan shell route is a distinct explicit operator surface and does not increase the provider count.
 
 **Identity / routing / exposure:** IPinfo · RDAP · RIPEstat · Shodan · Censys · Modat Magnify · Cloudflare Radar · Cloudflare DNS · Tor Exit · Spamhaus DROP / ASN-DROP.
 
