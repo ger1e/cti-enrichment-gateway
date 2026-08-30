@@ -11,6 +11,7 @@ const LOST_CAPABILITY_STATES = new Set(['failed', 'skipped']);
 const RELATIONSHIP_CLASS_ORDER = Object.freeze({ direct: 0, supporting: 1, contextual: 2, low_value: 3 });
 const PIVOT_PRIORITY_ORDER = Object.freeze({ high: 0, medium: 1, low: 2, none: 3 });
 const MAX_PIVOT_CANDIDATES = 8;
+const IP_HUNT_TELEMETRY = Object.freeze(['CommonSecurityLog', 'DeviceNetworkEvents']);
 
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -185,6 +186,16 @@ function temporalRelevance(items, now) {
   };
 }
 
+function itemTemporalClass(item, now) {
+  const nowDate = validDate(now);
+  const observed = validDate(item.lastSeen) ?? validDate(item.firstSeen);
+  if (!nowDate || !observed) return 'unknown';
+  const ageDays = Math.max(0, (nowDate.ms - observed.ms) / DAY_MS);
+  if (ageDays <= 7) return 'current';
+  if (ageDays <= 30) return 'aging';
+  return 'stale';
+}
+
 function relationshipClass(relationshipType, policy) {
   for (const [valueClass, types] of Object.entries(policy?.relationshipTypes ?? {})) {
     if (Array.isArray(types) && types.includes(relationshipType)) return snakeCase(valueClass);
@@ -345,6 +356,177 @@ function coverageImpact(coverage, policy) {
   };
 }
 
+function threatRecord(item) {
+  return {
+    provider: item.provider,
+    kind: item.kind,
+    semanticClass: item.semanticClass,
+    sourceRole: item.sourceRole,
+    polarity: item.polarity,
+    evidenceFingerprints: item.fingerprint ? [item.fingerprint] : [],
+  };
+}
+
+function threatRecords(items, category) {
+  return items
+    .filter(item => item.category === category)
+    .map(threatRecord)
+    .sort((a, b) => `${a.provider}\u0000${a.kind}\u0000${a.polarity}\u0000${a.evidenceFingerprints[0] ?? ''}`
+      .localeCompare(`${b.provider}\u0000${b.kind}\u0000${b.polarity}\u0000${b.evidenceFingerprints[0] ?? ''}`));
+}
+
+function deriveThreatContext(items, contradiction) {
+  const directItems = items.filter(item => item.category === 'direct_threat');
+  const positiveProviders = stableUnique(directItems.filter(item => item.polarity === 'positive').map(item => item.provider).filter(Boolean));
+  const negativeProviders = stableUnique(directItems.filter(item => item.polarity === 'negative').map(item => item.provider).filter(Boolean));
+  let state = 'insufficient';
+  if (positiveProviders.length > 0 && negativeProviders.length > 0) state = 'contradicted';
+  else if (positiveProviders.length >= 2 && contradiction.level !== 'high') state = 'supported';
+  else if (positiveProviders.length === 1) state = 'single_source';
+  else if (negativeProviders.length > 0) state = 'negative';
+  else if (items.length > 0) state = 'context_only';
+
+  return {
+    state,
+    direct: threatRecords(items, 'direct_threat'),
+    supporting: threatRecords(items, 'supporting_threat'),
+    scannerNoise: threatRecords(items, 'scanner_noise'),
+    torProxy: threatRecords(items, 'tor_proxy'),
+    infrastructure: threatRecords(items, 'infrastructure'),
+    exposure: threatRecords(items, 'exposure'),
+  };
+}
+
+function hasFreshDirectC2OrMalware(items, now) {
+  return items.some(item => item.category === 'direct_threat'
+    && item.polarity === 'positive'
+    && ['botnet_c2', 'malware_association'].includes(item.kind)
+    && ['current', 'aging'].includes(itemTemporalClass(item, now)));
+}
+
+function staleOnly(temporal, itemCount) {
+  return itemCount > 0
+    && temporal.distribution.stale > 0
+    && temporal.distribution.current === 0
+    && temporal.distribution.aging === 0
+    && temporal.distribution.unknown === 0;
+}
+
+function deriveEvidenceStrength({ items, threatContext, diversity, temporal, contradiction, coverage, now }) {
+  const fingerprints = stableUnique(items.map(item => item.fingerprint).filter(Boolean));
+  const providers = stableUnique(items.map(item => item.provider).filter(Boolean));
+  if (items.length === 0) return { level: 'none', reasons: [], providers: [], evidenceFingerprints: fingerprints };
+
+  const positiveDirectProviders = stableUnique(items
+    .filter(item => item.category === 'direct_threat' && item.polarity === 'positive')
+    .map(item => item.provider)
+    .filter(Boolean));
+  const diverseDirectSupport = diversity.sourceRoles.length >= 2 || diversity.capabilityGroups.length >= 2;
+  const isStaleOnly = staleOnly(temporal, items.length);
+  const materialCoverage = coverage.level === 'material';
+  const highContradiction = contradiction.level === 'high';
+
+  if (threatContext.state === 'supported'
+    && positiveDirectProviders.length >= 2
+    && diverseDirectSupport
+    && temporal.overall !== 'stale'
+    && !highContradiction
+    && !materialCoverage) {
+    return {
+      level: 'strong',
+      reasons: ['ip_strength_strong_independent_direct'],
+      providers,
+      evidenceFingerprints: fingerprints,
+    };
+  }
+
+  if (highContradiction || materialCoverage || isStaleOnly) {
+    return {
+      level: 'weak',
+      reasons: ['ip_strength_weak_context_or_conflict'],
+      providers,
+      evidenceFingerprints: fingerprints,
+    };
+  }
+
+  if (['supported', 'single_source'].includes(threatContext.state) || hasFreshDirectC2OrMalware(items, now)) {
+    return {
+      level: 'moderate',
+      reasons: ['ip_strength_moderate_direct'],
+      providers,
+      evidenceFingerprints: fingerprints,
+    };
+  }
+
+  return {
+    level: 'weak',
+    reasons: ['ip_strength_weak_context_or_conflict'],
+    providers,
+    evidenceFingerprints: fingerprints,
+  };
+}
+
+function deriveHuntRelevance({ items, threatContext, pivots, now }) {
+  if (items.length === 0) {
+    return { level: 'none', directSearch: false, telemetry: [], pivotCount: 0, evidenceFingerprints: [], ruleIds: [] };
+  }
+  const fingerprints = stableUnique(items.map(item => item.fingerprint).filter(Boolean));
+  const positiveDirect = items.some(item => item.category === 'direct_threat' && item.polarity === 'positive');
+  const supporting = threatContext.supporting.length > 0;
+  const currentScanner = items.some(item => item.category === 'scanner_noise' && itemTemporalClass(item, now) === 'current');
+
+  if (positiveDirect) {
+    return {
+      level: 'high', directSearch: true, telemetry: [...IP_HUNT_TELEMETRY], pivotCount: pivots.length,
+      evidenceFingerprints: fingerprints, ruleIds: ['ip_hunt_high_direct'],
+    };
+  }
+  if (supporting || pivots.length > 0 || currentScanner) {
+    return {
+      level: 'medium', directSearch: true, telemetry: [...IP_HUNT_TELEMETRY], pivotCount: pivots.length,
+      evidenceFingerprints: fingerprints, ruleIds: ['ip_hunt_medium_pivot_or_activity'],
+    };
+  }
+  return {
+    level: 'low', directSearch: true, telemetry: [...IP_HUNT_TELEMETRY], pivotCount: pivots.length,
+    evidenceFingerprints: fingerprints, ruleIds: ['ip_hunt_low_context'],
+  };
+}
+
+function deriveAnalystPriority({ items, threatContext, strength, hunt, temporal, contradiction, now }) {
+  if (items.length === 0) return { level: 'insufficient', reasons: [], evidenceFingerprints: [] };
+  const fingerprints = stableUnique(items.map(item => item.fingerprint).filter(Boolean));
+  const currentScanner = items.some(item => item.category === 'scanner_noise' && itemTemporalClass(item, now) === 'current');
+  const freshDirect = hasFreshDirectC2OrMalware(items, now);
+
+  if (strength.level === 'strong'
+    && hunt.level === 'high'
+    && ['current', 'aging'].includes(temporal.overall)
+    && contradiction.level !== 'high') {
+    return { level: 'immediate', reasons: ['ip_priority_immediate'], evidenceFingerprints: fingerprints };
+  }
+  if (['moderate', 'strong'].includes(strength.level) || contradiction.level === 'high' || freshDirect) {
+    return { level: 'investigate', reasons: ['ip_priority_investigate'], evidenceFingerprints: fingerprints };
+  }
+  if (threatContext.state === 'negative' || (currentScanner && threatContext.state === 'context_only')) {
+    return { level: 'monitor', reasons: ['ip_priority_monitor'], evidenceFingerprints: fingerprints };
+  }
+  return { level: 'contextual', reasons: ['ip_priority_contextual'], evidenceFingerprints: fingerprints };
+}
+
+function deriveLimitations({ items, threatContext, temporal, contradiction, coverage }) {
+  if (items.length === 0 && coverage.level !== 'material') return [];
+  const limitations = [];
+  if (threatContext.state === 'single_source') limitations.push('single_source_threat_support');
+  if (threatContext.state === 'contradicted' || contradiction.level === 'high') limitations.push('contradictory_threat_evidence');
+  if (staleOnly(temporal, items.length)) limitations.push('stale_evidence_only');
+  if (items.length > 0 && temporal.distribution.unknown > 0) limitations.push('unknown_observation_time');
+  const infrastructureOnly = items.length > 0 && items.every(item => ['infrastructure', 'exposure', 'tor_proxy', 'other'].includes(item.category));
+  if (infrastructureOnly) limitations.push('infrastructure_only_evidence');
+  if (coverage.level === 'material') limitations.push('material_coverage_loss');
+  return stableUnique(limitations);
+}
+
 function validateInputs({ indicator, type, evidence, relationships, correlation, coverage, policy }) {
   if (typeof indicator !== 'string' || indicator.length === 0) throw new TypeError('intelligence_indicator_required');
   if (typeof type !== 'string' || type.length === 0) throw new TypeError('intelligence_type_required');
@@ -370,7 +552,47 @@ export function buildIntelligenceKernel({
   validateInputs({ indicator, type, evidence, relationships, correlation, coverage, policy });
   const fingerprints = validEvidenceFingerprints(evidence);
   const normalized = evidence.map(item => normalizedEvidence(item, policy));
+  const diversity = sourceDiversity(normalized);
+  const corroborated = corroboration(normalized);
+  const contradiction = contradictions(normalized);
+  const temporal = temporalRelevance(normalized, now);
   const projectedRelationships = relationshipValues({ indicator, type, relationships, normalizedEvidence: normalized, policy });
+  const pivots = pivotCandidates(projectedRelationships, normalized, now);
+  const coverageProjection = coverageImpact(coverage, policy);
+  const threatContext = deriveThreatContext(normalized, contradiction);
+  const evidenceStrength = deriveEvidenceStrength({
+    items: normalized,
+    threatContext,
+    diversity,
+    temporal,
+    contradiction,
+    coverage: coverageProjection,
+    now,
+  });
+  const huntRelevance = deriveHuntRelevance({ items: normalized, threatContext, pivots, now });
+  const analystPriority = deriveAnalystPriority({
+    items: normalized,
+    threatContext,
+    strength: evidenceStrength,
+    hunt: huntRelevance,
+    temporal,
+    contradiction,
+    now,
+  });
+  const limitations = deriveLimitations({
+    items: normalized,
+    threatContext,
+    temporal,
+    contradiction,
+    coverage: coverageProjection,
+  });
+  const ruleIds = normalized.length === 0
+    ? []
+    : stableUnique([
+      ...evidenceStrength.reasons,
+      ...huntRelevance.ruleIds,
+      ...analystPriority.reasons,
+    ]);
 
   return deepFreeze({
     schemaVersion: INTELLIGENCE_KERNEL_SCHEMA_VERSION,
@@ -378,41 +600,20 @@ export function buildIntelligenceKernel({
     indicator,
     type,
     evidenceStrength: {
-      level: 'none',
-      reasons: [],
-      providers: [],
-      evidenceFingerprints: fingerprints,
+      ...evidenceStrength,
+      evidenceFingerprints: evidenceStrength.evidenceFingerprints.length > 0 ? evidenceStrength.evidenceFingerprints : fingerprints,
     },
-    sourceDiversity: sourceDiversity(normalized),
-    corroboration: corroboration(normalized),
-    contradiction: contradictions(normalized),
-    temporalRelevance: temporalRelevance(normalized, now),
+    sourceDiversity: diversity,
+    corroboration: corroborated,
+    contradiction,
+    temporalRelevance: temporal,
     relationshipValue: projectedRelationships,
-    pivotCandidates: pivotCandidates(projectedRelationships, normalized, now),
-    threatContext: {
-      state: 'insufficient',
-      direct: [],
-      supporting: [],
-      scannerNoise: [],
-      torProxy: [],
-      infrastructure: [],
-      exposure: [],
-    },
-    huntRelevance: {
-      level: 'none',
-      directSearch: false,
-      telemetry: [],
-      pivotCount: 0,
-      evidenceFingerprints: [],
-      ruleIds: [],
-    },
-    coverageImpact: coverageImpact(coverage, policy),
-    analystPriority: {
-      level: 'insufficient',
-      reasons: [],
-      evidenceFingerprints: [],
-    },
-    limitations: [],
-    trace: { ruleIds: [] },
+    pivotCandidates: pivots,
+    threatContext,
+    huntRelevance,
+    coverageImpact: coverageProjection,
+    analystPriority,
+    limitations,
+    trace: { ruleIds },
   });
 }
