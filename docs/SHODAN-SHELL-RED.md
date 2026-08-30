@@ -1,1 +1,0 @@
-Temporary RED-phase marker for the Shodan documentation synchronization. Remove before merge once the executable documentation contract passes.
