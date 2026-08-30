@@ -1,60 +1,77 @@
 ### Security controls
 
-This document maps the repository's principal controls to the risk they reduce. It is descriptive, not a compliance attestation.
+This document maps PARA11AX controls to the risks they reduce. It is descriptive, not a compliance attestation.
 
 | Area | Control | Security effect | Residual risk |
 | --- | --- | --- | --- |
-| Authentication | Gateway bearer required for enrichment/health/status/User Scanner | Prevents unauthenticated use of provider-backed, operational and active OSINT workflows | A stolen bearer remains usable until rotated |
-| Public metadata | `/api/para11ax/meta` is static and intentionally unauthenticated | Allows capability discovery without exposing configuration state | Public metadata still reveals product capability shape |
-| Secret handling | Vendor credentials remain server-side | Prevents clients and Maltego transforms from receiving provider secrets | Server/runtime compromise can still expose secrets |
-| Secret handling | User Scanner worker bearer remains server-side in `PARA11AX_USER_SCANNER_TOKEN` when enabled | Prevents the browser shell from learning the worker credential | Compromise of the gateway runtime can still expose the worker token |
-| Secret handling | Local Windows bearer protected with current-user DPAPI | Reduces plaintext token exposure at rest | A compromised user session can still access the token |
-| Input validation | Deterministic indicator classification and syntax/size validation | Reduces parser ambiguity and malformed-input abuse | Valid but adversarial indicators still reach bounded adapters |
-| Active OSINT input | User Scanner accepts only `email`/`username`, bounded target/category/module fields and known booleans; unknown fields are rejected | Prevents callers from turning the route into arbitrary worker invocation | Authorized enumeration can still be noisy and subject to remote-site limits/terms |
-| Certificate identity | `cert-sha256:` is required for certificate fingerprints | Prevents ambiguous reinterpretation of bare SHA-256 file hashes | Analyst can still choose the wrong explicit transform/type |
-| Outbound network | Adapter hosts are fixed; caller input cannot choose arbitrary destinations | Prevents the gateway becoming an arbitrary SSRF/proxy primitive | Provider-side behavior still requires defensive handling |
-| Active OSINT egress | User Scanner worker destination comes only from `PARA11AX_USER_SCANNER_URL`; callers cannot choose worker URL, proxy, concurrency or timeout | Contains high-fan-out active OSINT behind one isolated, server-configured boundary | The worker intentionally contacts many third-party services and can be rate-limited or blocked |
-| Active OSINT isolation | User Scanner runs in a separate Python worker and route rather than the passive provider registry/`safeFetch` fabric | Keeps scanner dependencies and broad external contact outside the Evidence v2 enrichment core | Worker compromise/failure remains an independent operational risk |
-| Provider handling | Explicit timeouts, bounded response bodies and structured 429 handling | Limits resource exhaustion and uncontrolled upstream behavior | Provider latency/outage can still produce partial results |
-| User Scanner handling | Gateway caps request/worker-response sizes, normalizes bounded result fields and returns controlled 502/503/504 errors | Limits oversized/untrusted worker output and prevents module failure becoming false negative evidence | Result metadata can still contain misleading third-party content and needs analyst interpretation |
-| Error handling | Provider exception text is not reflected to callers | Reduces leakage of URLs, headers, credentials and internals | Logs still require safe operational handling |
-| Evidence model | Provider-native semantics and provenance are preserved | Reduces false certainty and naive vendor-vote scoring | Analysts can still over-interpret correlations |
-| Identity OSINT semantics | User Scanner results remain separate from Evidence v2 and do not become maliciousness/identity/attribution votes | Prevents a handle or registration hit from being promoted into threat evidence or same-person identity proof | Analysts can still over-correlate matching usernames/accounts manually |
-| Evidence projection | Evidence Graph v1.0 uses explicit deterministic bounded facts/relationships only | Prevents free-form graph inference and new egress/persistence from projection | Explicit upstream relationships can still be semantically wrong |
-| Guidance | Guidance v1.0 inherits the existing decision vocabulary and evidence references | Prevents a second hidden scoring/decision model | Analysts can still over-weight guidance |
-| Attribution | Infrastructure/certificate relationships are not treated as actor attribution | Reduces unsupported attribution claims | Human interpretation remains a risk |
-| Browser cases | IndexedDB is the sole case persistence adapter; active case/auth stay runtime-only | Prevents browser workspace from becoming server-side IOC history or bearer persistence | Local browser profile compromise can expose case content |
-| Browser active OSINT | User Scanner output is terminal-visible but not automatically persisted/pinned as current Evidence v2 case material | Prevents untyped account-enumeration results from silently entering case evidence | Analysts may still copy results into notes outside the typed evidence model |
-| HTTP response | Authenticated responses use `Cache-Control: no-store` and defensive headers | Reduces accidental caching and browser-side exposure | Downstream clients can still persist data |
-| Deployment | Production acceptance compares deployment metadata with exact verified `main` SHA | Reduces acceptance of stale/unreviewed deployment artifacts | A compromised upstream/main remains a supply-chain risk |
-| Worker deployment | User Scanner worker deployment and PARA11AX-to-worker wiring are accepted separately | Prevents a READY worker deployment from being mistaken for a functioning integrated capability | Environment drift can still break the link after deployment |
-| CI supply chain | GitHub Actions are pinned to immutable commit SHAs | Reduces mutable-tag supply-chain risk | A pinned upstream commit can later be discovered vulnerable |
-| Runtime parity | Node.js 24.x is enforced across CI/deployment/bootstrap | Reduces environment drift | Platform/runtime implementation differences can remain |
-| Dependencies | Dependabot monitors npm and GitHub Actions | Surfaces known dependency/action updates | Update review and merge remain human responsibilities |
-| Repository hygiene | `.env`, captures, samples, keys, generated packages and common artifacts are ignored | Reduces accidental sensitive commits | Ignore rules do not protect already-tracked/history content |
-| Public release | `npm run audit:public` checks blocked artifacts, common high-confidence secrets and optional forbidden terms | Adds a publication guardrail | It is not a complete secret scanner, DLP system or licensing review |
-| Documentation integrity | Executable documentation-contract tests compare canonical workflow/provider/version/User Scanner facts with bounded docs | Reduces silent documentation drift | Prose-only nuance still requires review |
-| Change control | CODEOWNERS, contribution policy, PR template and issue forms | Makes security boundaries visible in human change paths | Repository settings must still enforce review/rules where supported |
+| Authentication | Gateway bearer required for enrichment/health/status/User Scanner/Shodan shell | Prevents unauthenticated provider-backed, operational and analyst-utility use | A stolen bearer remains usable until rotated |
+| Public metadata | `/api/para11ax/meta` is static and intentionally unauthenticated | Capability discovery without exposing credential values | Public metadata reveals product capability shape |
+| Provider secrets | Vendor credentials remain server-side | Prevents browser/Maltego disclosure | Runtime compromise can still expose secrets |
+| Shodan secret | `SHODAN_API_KEY` is read only server-side by the provider/shell paths | Prevents the analyst browser from receiving the Shodan credential | Runtime compromise can expose the key |
+| User Scanner secret | Optional `PARA11AX_USER_SCANNER_TOKEN` remains server-side | Prevents worker-bearer disclosure to browser | Gateway compromise can expose it |
+| Evidence input | Deterministic indicator classification and syntax/size validation | Reduces parser ambiguity and malformed-input abuse | Valid adversarial indicators still reach bounded adapters |
+| User Scanner input | Only bounded email/username/category/module/boolean fields; unknown fields rejected | Prevents arbitrary worker invocation | Authorized enumeration remains noisy/third-party constrained |
+| Shodan input | Fixed `host`, `search`, `count`, `stats`, `domain`, `info` grammar; validated target/query/facets; unknown fields/options rejected | Prevents the shell route becoming arbitrary Shodan/API invocation | Valid searches can still be expensive or reveal broad public exposure data |
+| Certificate identity | Explicit `cert-sha256:` transport | Prevents bare SHA-256 ambiguity | Analyst may explicitly select wrong type |
+| Evidence egress | Exact provider hosts/methods/protocols through `safeFetch` | Prevents arbitrary SSRF/proxying in Evidence v2 | Provider-side behavior remains an upstream risk |
+| User Scanner egress | Worker destination comes only from server configuration | Contains high-fan-out active OSINT behind one controlled boundary | Worker intentionally contacts many third parties |
+| Shodan egress | Native shell origin fixed to `https://api.shodan.io`; no caller-selected URL/host/method/proxy | Prevents Shodan shell from becoming a generic proxy or arbitrary fetcher | Shodan itself remains an external dependency |
+| Shodan operation scope | No on-demand scan submission, arbitrary paging, bulk `download`, or arbitrary endpoint selection | Limits quota/resource amplification and active behavior | Approved search/domain operations may consume query credits |
+| Shodan response bounds | First-page search, capped match/service arrays, large banner/service bodies removed | Limits response amplification and browser exposure of excessive raw data | Even bounded service metadata can be sensitive in an investigation |
+| Provider handling | Timeouts, bounded bodies, structured 429 handling | Limits resource exhaustion and uncontrolled upstream behavior | Provider outage can produce partial results |
+| Shodan rate handling | Missing config fails closed; rate limiting remains explicit | Prevents empty/rate-limited response becoming false negative evidence | Account credits/rate limits remain external operational state |
+| Error handling | Raw upstream exception text/credential-bearing URLs not reflected | Reduces secret/internal leakage | Logs still require safe handling |
+| Evidence semantics | Provider-native semantics and provenance preserved | Reduces false certainty and naive vendor voting | Analysts can over-interpret correlations |
+| Shodan semantics | Service/exposure observations remain context; shell output leaves Evidence v2 unchanged | Prevents Shodan exposure from silently becoming maliciousness, attribution, or case evidence | Analysts may manually over-correlate exposed services |
+| Identity semantics | User Scanner results remain separate from Evidence v2 | Prevents registration/handle hits becoming threat/identity proof | Manual over-correlation remains possible |
+| Evidence Graph | Explicit deterministic bounded facts/relationships only | Prevents free-form graph inference | Explicit upstream relationships can still be wrong |
+| Guidance | Inherits existing decision vocabulary/evidence references | Prevents a second hidden scoring engine | Analysts can over-weight guidance |
+| Attribution | Infrastructure/certificate/Shodan proximity is not actor attribution | Reduces unsupported attribution | Human judgment remains a risk |
+| Browser cases | IndexedDB-only case persistence; active case/auth runtime-only | Prevents server-side IOC history/bearer persistence | Local browser compromise can expose cases |
+| Browser utilities | User Scanner/Shodan terminal output is not automatically persisted as typed Evidence v2 case material | Prevents untyped utility results silently entering case evidence | Analysts can manually copy results elsewhere |
+| HTTP response | Authenticated responses use defensive headers/no-store where applicable | Reduces accidental caching/exposure | Downstream clients can persist data |
+| Deployment | Production acceptance compares deployment metadata to exact verified `main` SHA | Reduces stale/unreviewed deployment acceptance | Compromised main/admin remains supply-chain risk |
+| CI supply chain | Actions pinned to immutable SHAs; bounded Tooling smoke + CodeQL | Reduces mutable-action and drift risk | Pinned dependencies may later be found vulnerable |
+| Repository hygiene | Secrets/captures/samples/generated sensitive artifacts blocked/ignored | Reduces accidental publication | Ignore rules do not remove history |
+| Public release | `npm run audit:public` plus release checklist | Adds publication guardrail | Not complete DLP/licensing review |
+| Documentation integrity | Executable documentation-contract tests include Shodan shell facts | Reduces silent operator-doc drift | Prose nuance still requires review |
+
+#### Shodan analyst-shell boundary
+
+The native Shodan command surface is an explicit analyst utility, not a general-purpose shell and not a caller-controlled proxy. The browser calls only same-origin `POST /api/para11ax/shodan`; the gateway authenticates the request, validates one of six approved commands, reads `SHODAN_API_KEY` server-side, and contacts only `https://api.shodan.io`.
+
+Approved commands:
+
+```text
+shodan host <ip>
+shodan search <query>
+shodan count <query>
+shodan stats <query> [--facets <fields>]
+shodan domain <domain>
+shodan info
+```
+
+`shodan download`, arbitrary paging, arbitrary URLs, unsupported options, caller-selected methods, and on-demand scan submission are disabled. Search is first-page only and normalized output is bounded. Large raw banners are intentionally omitted from the browser envelope.
+
+Credit impact is surfaced explicitly: host/count/stats/info are classified as no-query-credit operations; domain consumes a query credit; search may consume a query credit depending on Shodan plan/query behavior. Operational smoke tests should prefer `info`, `host`, or `count` over credit-consuming operations when possible.
+
+Shodan service/exposure metadata is contextual. A port/product/tag/DNS record does not itself prove compromise, exploitability, ownership, maliciousness, or attribution. Native shell output is not automatically injected into Evidence v2 correlation, decision, Evidence Graph, case graph, STIX, or browser case evidence.
 
 #### User Scanner active OSINT boundary
 
-User Scanner is an explicitly active OSINT capability. It is permitted to contact external services to check public username/email account signals, so it is not described as passive read-only enrichment. The security property is isolation and bounded control: the existing PARA11AX shell calls a same-origin authenticated route; that route validates the request and forwards only to the server-configured isolated worker.
+User Scanner remains an explicitly active OSINT capability. The existing PARA11AX shell calls a same-origin authenticated route which forwards only to the server-configured isolated worker. Browser callers cannot set the worker URL/token, proxy routes, concurrency, or arbitrary destinations. Matching handles/registration signals are platform-specific OSINT, not same-person identity proof or compromise evidence.
 
-The browser cannot set `PARA11AX_USER_SCANNER_URL`, `PARA11AX_USER_SCANNER_TOKEN`, proxy routes, worker concurrency or arbitrary outbound destinations. Cross-scan remains opt-in and the reference worker fixes pivot depth; NSFW modules are excluded by default. Use the capability only for authorized defensive research and assume third-party platforms may rate-limit, challenge or log enumeration traffic.
+#### External settings controls
 
-A `Found`/`Registered` result is platform-specific OSINT evidence only. Matching usernames across services do not prove the profiles belong to the same person. Email registration evidence does not prove current ownership or control. `Error` is coverage failure; it must never be flattened into `Not Found`/`Not Registered`.
+The following require GitHub/Vercel/account settings and cannot be guaranteed by repository files alone:
 
-#### Controls that require GitHub account/repository settings
+- branch/ruleset protection for `main`;
+- force-push/deletion restrictions;
+- required status checks/reviews;
+- signed-commit enforcement where practical;
+- secret scanning/push protection;
+- CodeQL/default code scanning;
+- passkey/2FA/recovery hygiene;
+- production environment-secret configuration including `SHODAN_API_KEY` and User Scanner wiring.
 
-The following cannot be guaranteed by files in the repository alone and should be verified in GitHub settings/API when the plan/account supports them:
-
-- branch/ruleset protection for `main`
-- block force-push and branch deletion
-- required status checks
-- required reviews where a second reviewer exists
-- signed-commit enforcement where operationally practical
-- secret scanning and push protection
-- CodeQL/default code scanning where available
-- passkey/2FA and recovery-code hygiene on the GitHub account
-
-File-based CI and documentation are complementary controls, not substitutes for those settings. Likewise, a Vercel `READY` PARA11AX or User Scanner deployment proves deployment state/source identity only; provider credential readiness and worker wiring require authorized authenticated checks.
+A Vercel `READY` deployment proves deployment/source identity only. Shodan/provider credential readiness and User Scanner wiring require authorized authenticated checks.

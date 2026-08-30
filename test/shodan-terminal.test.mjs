@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { COMMANDS, completeCommand, interpretCommand } from '../app/shell.js';
@@ -204,4 +205,39 @@ test('Shodan handler reports missing configuration and upstream throttling safel
   const result = await throttled(request({ command: 'info' }));
   assert.equal(result.status, 429);
   assert.equal(result.body.error, 'shodan_rate_limited');
+});
+
+test('public documentation covers the Shodan analyst-shell contract', () => {
+  const docs = new Map([
+    ['README.md', readFileSync(new URL('../README.md', import.meta.url), 'utf8')],
+    ['index.html', readFileSync(new URL('../index.html', import.meta.url), 'utf8')],
+    ['docs/API.md', readFileSync(new URL('../docs/API.md', import.meta.url), 'utf8')],
+    ['docs/ARCHITECTURE.md', readFileSync(new URL('../docs/ARCHITECTURE.md', import.meta.url), 'utf8')],
+    ['docs/PROVIDERS.md', readFileSync(new URL('../docs/PROVIDERS.md', import.meta.url), 'utf8')],
+    ['docs/OPERATIONS.md', readFileSync(new URL('../docs/OPERATIONS.md', import.meta.url), 'utf8')],
+    ['docs/SECURITY-CONTROLS.md', readFileSync(new URL('../docs/SECURITY-CONTROLS.md', import.meta.url), 'utf8')],
+    ['docs/THREAT-MODEL.md', readFileSync(new URL('../docs/THREAT-MODEL.md', import.meta.url), 'utf8')],
+    ['SECURITY.md', readFileSync(new URL('../SECURITY.md', import.meta.url), 'utf8')],
+    ['CHANGELOG.md', readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8')],
+  ]);
+
+  for (const [name, text] of docs) {
+    assert.match(text, /Shodan/i, `${name} must mention Shodan`);
+  }
+
+  for (const name of ['README.md', 'index.html', 'docs/API.md', 'docs/OPERATIONS.md']) {
+    const text = docs.get(name);
+    for (const command of ['shodan host', 'shodan search', 'shodan count', 'shodan stats', 'shodan domain', 'shodan info']) {
+      assert.ok(text.includes(command), `${name} missing ${command}`);
+    }
+  }
+
+  const contract = [...docs.values()].join('\n');
+  assert.match(contract, /\/api\/para11ax\/shodan/);
+  assert.match(contract, /SHODAN_API_KEY/);
+  assert.match(contract, /api\.shodan\.io/);
+  assert.match(contract, /query credit/i);
+  assert.match(contract, /first[- ]page/i);
+  assert.match(contract, /Evidence v2.*unchanged|unchanged.*Evidence v2/i);
+  assert.match(contract, /download.*(disabled|unsupported|excluded|not supported)/i);
 });

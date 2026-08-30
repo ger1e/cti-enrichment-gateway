@@ -1,95 +1,92 @@
 ### Providers
 
-The executable provider registry is the source of truth. The current active registry contains **38 providers**. `release-manifest.json` records every active adapter and parser version; `/api/para11ax/meta` exposes static capabilities without credential configuration state.
+The executable provider registry is the source of truth for the canonical Evidence v2 enrichment fabric. The active registry contains **38 providers**. `release-manifest.json` records every active adapter/parser version, and `/api/para11ax/meta` exposes static capabilities without credential values or secret configuration state.
 
 #### Registry contract
 
-Every active provider declares and is validated for:
+Every active Evidence v2 provider declares and is validated for supported indicator/observation types, tier/cost class, timeout/cache policy, response ceiling, exact fixed host(s), allowed methods/protocols, parser version, source URL, and credential posture.
 
-- supported indicator types and observation types
-- tier and cost class (`free`, `quota`, `scarce`)
-- timeout and positive/negative cache TTLs
-- maximum response bytes
-- exact fixed outbound host(s)
-- allowed HTTP method(s) and protocol(s)
-- parser version
-- authoritative/source documentation URL
-- required or optional credential status
+A canonical workflow cannot route to an unregistered provider or a provider that does not support that indicator type. The nine Evidence v2 workflows are `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`, and `certificate`.
 
-A workflow cannot route to an unregistered provider or a provider that does not support that indicator type. Repository tests enforce this invariant across all nine canonical workflows: `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`, and `certificate`.
+#### Current provider fabric
 
-#### Execution tiers
+**Identity / routing / exposure:** IPinfo · RDAP · RIPEstat · Shodan · Censys · Modat Magnify · Cloudflare Radar · Cloudflare DNS · Tor Exit · Spamhaus DROP / ASN-DROP.
 
-Tier is execution priority, not analytical authority. Lower tiers are cheap/contextual or core fixed-source lookups. Higher tiers can be quota-heavy, scarce or broad enrichment. Profiles reduce work by declared tier/cost policy; callers cannot select individual providers.
+**Threat / IOC:** DShield · Feodo Tracker · ThreatMiner · CIRCL MISP OSINT · Botvrij MISP OSINT · GreyNoise · AbuseIPDB · VirusTotal · OTX · ThreatFox · urlscan.io · Webamon · Pulsedive · OpenPhish · URLhaus · TweetFeed.
+
+**File / malware:** CIRCL Hashlookup · MalwareBazaar · Malpedia · Hybrid Analysis.
+
+**Vulnerability / ATT&CK:** CISA KEV · FIRST EPSS · CIRCL Vulnerability-Lookup · NVD · OSV · MITRE ATT&CK TAXII.
+
+**Ransomware:** RansomLook · Ransomware.live API-PRO.
+
+#### Shodan: two distinct surfaces
+
+Shodan appears in PARA11AX in two deliberately separate ways.
+
+1. **Evidence v2 provider adapter** — Shodan is one of the 38 fixed providers used where the canonical workflow/profile allows it. Its observations enter the normal provider parser/evidence/correlation path with provider-native exposure semantics.
+2. **Native analyst-shell utility** — `POST /api/para11ax/shodan` implements explicit bounded operator lookups for `shodan host`, `shodan search`, `shodan count`, `shodan stats`, `shodan domain`, and `shodan info`.
+
+The shell utility does **not** add a 39th provider, does not change the provider registry, and does not automatically promote its output into Evidence v2.
+
+Both surfaces use the server-side `SHODAN_API_KEY`; the browser never receives that key. The analyst-shell route contacts only `https://api.shodan.io`, rejects arbitrary destinations/options, caps returned data, removes large raw service/banner bodies, keeps search first-page only, and disables `shodan download`.
+
+Credit handling is explicit on the shell route: host/count/stats/info are classified as no-query-credit operations; domain is marked as consuming a query credit; search is marked as potentially consuming a query credit. See `SHODAN-SHELL.md` for the operator contract.
 
 #### Source semantics
 
 Provider observations preserve their own meaning. Examples:
 
-- RDAP: registration context
-- RIPEstat: routing context
-- DShield: scanner activity
-- Spamhaus DROP/ASN-DROP: netblock/ASN listing context
-- Tor exit: Tor infrastructure context
-- CISA KEV: known exploited status
-- EPSS: exploitation probability
-- NVD/CIRCL/OSV: vulnerability metadata
-- MITRE ATT&CK TAXII: knowledge/mapping context
-- reputation/malware services: provider-specific threat observations
-- Censys / VirusTotal certificate lookup: contextual X.509 metadata for explicit certificate SHA-256 pivots
-- Modat Magnify: host/service exposure and passive-DNS infrastructure context; an observed service, tag, CVE or DNS relationship is not by itself a maliciousness verdict
-- TweetFeed.live: community-reported IOC context from exact IOC lookup; an observed report is a hunting/watchlist lead, not an automatic malicious verdict or block decision
-- RansomLook: bounded public search across ransomware posts and related datasets; matched posts are adversary/public-source claims, not proof that the named organization or asset was compromised
-- ransomware.live API-PRO: keyed victim-claim context for domain/URL workflows; search results are filtered to exact normalized victim website hosts before they become domain evidence
+- RDAP: registration context.
+- RIPEstat: routing context.
+- Shodan/Censys/Modat: service/infrastructure exposure context.
+- DShield: scanner activity.
+- Spamhaus DROP/ASN-DROP: netblock/ASN listing context.
+- Tor exit: Tor infrastructure context.
+- CISA KEV: known exploited status.
+- EPSS: exploitation probability.
+- NVD/CIRCL/OSV: vulnerability metadata.
+- MITRE ATT&CK TAXII: knowledge/mapping context.
+- reputation/malware services: provider-specific threat observations.
+- RansomLook/ransomware.live: victim-claim/reporting context rather than compromise proof.
 
-Certificate lookups are explicit and contextual. The canonical classifier requires `cert-sha256:<64-hex>` so a certificate fingerprint cannot silently steal a bare SHA-256 from the file-hash workflow. Certificate subject/issuer names, reuse, infrastructure proximity or presence are investigative context rather than a reputation vote or attribution proof.
+These classes are not interchangeable. A Shodan-visible service, Tor exit, scanner hit, registration record, certificate record, community IOC report, ransomware claim, infrastructure exposure record, or ATT&CK technique is not automatically a malware-reputation vote.
 
-Modat Magnify uses authenticated read-only retrieval at the fixed `api.magnify.modat.io` host. IP enrichment uses the bounded `/host/{ip}/v1` endpoint and domain enrichment uses `/dns/zones/{fqdn}/v1`. Search, history and bulk-export endpoints are deliberately excluded from the normal per-indicator workflow. `MODAT_API_KEY` is sent only in the `Authorization` header and is never copied into evidence or references. Modat is tier 3 / quota, so it participates in `standard` and `full` profiles but not `fast`.
+#### Certificate semantics
 
-RansomLook and ransomware.live intentionally use different observation kinds. Two aggregators repeating the same leak-site post are not treated as independent compromise confirmation. Ransomware claims use the neutral `observed` verdict and remain outside reputation voting/corroboration.
-
-TweetFeed.live uses the public no-auth exact IOC endpoint for IP, domain, URL, MD5 and SHA-256. SHA-1 is explicitly returned as unsupported/no-result rather than manufactured into a negative lookup. The adapter does not use TweetFeed blocklists for automatic prevention.
-
-RansomLook uses the public no-auth `/api/search?query=` surface and requires the documented direct-array response shape. Malformed response shapes fail closed instead of becoming false `not_listed` evidence. Bulk export, authenticated administrative paths and unbounded crawling are outside the adapter.
-
-ransomware.live uses API-PRO at `api-pro.ransomware.live` with `RANSOMWARE_LIVE_API_KEY` sent only in the `X-API-KEY` header. The adapter uses bounded `/victims/search?q=` retrieval for domain/URL context and does not enumerate all groups or IOC collections.
-
-These classes are not interchangeable. A Tor exit, scanner hit, registration record, certificate record, community IOC report, ransomware claim, infrastructure exposure record or ATT&CK technique is not a malware-reputation vote.
+Certificate lookup is explicit and contextual. The canonical classifier requires `cert-sha256:<64-hex>` so a certificate fingerprint cannot silently steal a bare SHA-256 from the file-hash workflow. Certificate subject/issuer names, reuse, infrastructure proximity, or mere presence are investigative context rather than reputation or attribution proof.
 
 #### Public feed hardening
 
-Public feed parsers reject malformed content rather than manufacture `not_listed` results. MISP feed hash-cache hits are verified against exact event attributes. Deleted attributes are excluded. Supported composite attribute types compare only the corresponding component. MISP event fetches are bounded per query.
+Public feed parsers reject malformed content rather than manufacture `not_listed` results. MISP feed hash-cache hits are verified against exact event attributes; deleted attributes are excluded; composite attribute types compare only the corresponding component; event fetches are bounded.
 
-ATT&CK TAXII uses fixed MITRE collection IDs and server-side type filtering. Relationship expansion remains intentionally omitted where collection-wide retrieval would violate boundedness.
+ATT&CK TAXII uses fixed MITRE collection IDs and server-side type filtering. Relationship expansion remains omitted where collection-wide retrieval would violate boundedness.
 
 #### Network indicator support
 
-ASN/CIDR support is deliberately narrow and fixed-source:
+ASN/CIDR support is deliberately narrow and fixed-source: RDAP autnum/network registration, RIPEstat AS/Prefix Overview, and Spamhaus ASN-DROP / IPv4/IPv6 DROP. No active scanning is performed by the Evidence v2 provider fabric.
 
-- RDAP autnum/network registration
-- RIPEstat AS/Prefix Overview
-- Spamhaus ASN-DROP and IPv4/IPv6 DROP
-
-No active scanning is performed.
+The Shodan analyst-shell surface performs only the documented Shodan API lookups; it does not expose Shodan on-demand scan submission or arbitrary scanning.
 
 #### State model
 
 A provider can be:
 
-- **Implemented:** adapter exists and repository tests pass.
-- **Configured:** required runtime secret is present; check authenticated `/api/para11ax/status`.
-- **Production-verified:** the provider completed an authorized smoke enrichment on the exact deployed source SHA.
-- **Unavailable/gap:** provider is intentionally omitted, unconfigured or failed the source/boundedness gate.
+- **Implemented** — adapter exists and repository tests pass.
+- **Configured** — required runtime secret is present; inspect authenticated health/status/probes.
+- **Production-verified** — an authorized smoke operation succeeded against the exact deployed source SHA.
+- **Unavailable/gap** — omitted, unconfigured, or failed its source/boundedness gate.
 
-Implemented does not imply configured, and configured does not imply production-verified. A public Vercel deployment being READY also does not prove provider secret configuration.
+Implemented does not imply configured, and configured does not imply production-verified. The same proof-state rule applies to the Shodan shell: source presence does not prove production `SHODAN_API_KEY` availability or account credits.
 
 #### Intentionally omitted
 
-- SecurityTrails: removed from the active personal gateway configuration rather than retaining stale/paid assumptions.
-- Deprecated SSLBL C2 provider path: excluded.
-- TLS/JA3 indicator class: not added because no current fixed, bounded source satisfied the source gate.
-- Unbounded ATT&CK relationship download: omitted.
-- Ransomware-wide unbounded group/IOC enumeration: omitted from per-indicator enrichment; only fixed bounded lookup surfaces are used.
-- Modat bulk export, broad host/service search and history retrieval: omitted from ordinary enrichment to preserve fixed per-indicator call bounds.
+- SecurityTrails stale/paid assumptions.
+- Deprecated SSLBL C2 path.
+- TLS/JA3 indicator class without a suitable fixed bounded source.
+- Unbounded ATT&CK relationship download.
+- Ransomware-wide unbounded enumeration in per-indicator enrichment.
+- Modat bulk export/broad history in normal enrichment.
+- Shodan arbitrary paging, bulk `download`, caller-selected URLs, and on-demand scan submission through the analyst shell.
 
-Run `node scripts/generate-release-manifest.mjs --check` to detect registry/parser-version drift. Documentation-contract tests separately detect drift in the externally documented provider count and workflow set.
+Run `node scripts/generate-release-manifest.mjs --check` to detect registry/parser-version drift. Documentation-contract tests separately detect drift in externally documented workflow/provider/operator facts.
