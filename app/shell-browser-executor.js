@@ -1,5 +1,14 @@
 import { classifyBrowserObservable, SUPPORTED_OBSERVABLE_TYPES, validateTypedBrowserObservable } from './observable-input.js';
 import { shellError } from './shell-core/errors.js';
+import {
+  listAliases,
+  renderCapabilities,
+  renderCommandIndex,
+  renderLimits,
+  renderManual,
+  searchCommands,
+  whichCommand,
+} from './shell-core/help.js';
 
 const PROFILES = new Set(['fast', 'standard', 'full']);
 const SHODAN_COMMANDS = new Set(['host', 'search', 'count', 'stats', 'domain', 'info']);
@@ -183,10 +192,23 @@ function caseOutput(handler, action, outcome) {
   invalid('unsupported case output');
 }
 
+function commandListArgs(args) {
+  let namespace = null;
+  let all = false;
+  for (const value of args) {
+    if (value === '--all') { all = true; continue; }
+    if (namespace !== null) invalid('usage: commands [namespace] [--all]');
+    namespace = String(value);
+  }
+  return { namespace, all };
+}
+
 export function createBrowserShellExecutor({
   client,
   session,
   cases = null,
+  history = null,
+  ui = null,
   downloads = { save: () => {} },
   clipboard = { writeText: async () => {} },
   audio = {},
@@ -208,7 +230,45 @@ export function createBrowserShellExecutor({
   async function execute({ descriptor, args = [], input = { type: 'void', value: null }, context = {}, signal } = {}) {
     if (!descriptor || typeof descriptor.handler !== 'string') throw new TypeError('command descriptor required');
     const handler = descriptor.handler;
+    const surface = context.surface ?? 'web';
     if (RESULT_REQUIRED.has(handler) && !resultOrInput(state, input)) invalid('no current enrichment result');
+
+    if (handler === 'help') {
+      if (args.length > 1) invalid('usage: help [command]');
+      return text(args.length ? renderManual(args) : `PARA11AX COMMAND INDEX\n\n${renderCommandIndex()}`);
+    }
+    if (handler === 'man') {
+      if (!args.length) invalid('usage: man <command>');
+      return text(renderManual(args));
+    }
+    if (handler === 'commands') {
+      const { namespace } = commandListArgs(args);
+      return text(renderCommandIndex(namespace));
+    }
+    if (handler === 'apropos') {
+      if (!args.length) invalid('usage: apropos <term>');
+      return text(searchCommands(args.join(' ')).map(item => `${item.command} — ${item.summary}`).join('\n'));
+    }
+    if (handler === 'which') {
+      if (!args.length) invalid('usage: which <command>');
+      return text(whichCommand(args));
+    }
+    if (handler === 'aliases') return records(listAliases());
+    if (handler === 'capabilities') return records(renderCapabilities({ surface }));
+    if (handler === 'limits') return record(renderLimits());
+    if (handler === 'system-policy') return record({
+      surface,
+      commandExecution: 'registered-only',
+      hostShell: false,
+      arbitraryFetch: false,
+      arbitraryFilesystem: false,
+      credentialPersistence: false,
+    });
+    if (handler === 'history') return text(history?.entries?.().join('\n') ?? '');
+    if (handler === 'history-clear') {
+      history?.clear?.();
+      return text('history cleared');
+    }
 
     if (handler === 'enrich') {
       const request = parseEnrichArgs(args, state.profile);
@@ -369,7 +429,7 @@ export function createBrowserShellExecutor({
     if (handler === 'echo' || handler === 'printf') return text(args.join(' '));
     if (handler === 'uname') return text(`PARA11AX ${version}`);
     if (handler === 'id') return text('analyst@para11ax');
-    if (handler === 'uptime') return text(String(Math.max(0, Number(monotonicNow()) - startedAt)));
+    if (handler === 'uptime') return text(String(Math.max(0, Number(monotonicNow()) - startedAt));
     if (handler === 'version') return text(version);
 
     if (handler === 'disconnect' || handler === 'auth-clear') {
@@ -384,10 +444,19 @@ export function createBrowserShellExecutor({
       cases?.reset?.();
       session.reset?.();
       state.currentResult = null;
+      await ui?.reboot?.();
       return text('reboot');
     }
-    if (handler === 'login') return text('hidden bearer prompt required');
-    if (handler === 'clear') return text('');
+    if (handler === 'login') {
+      if (args.length) invalid('login accepts no inline bearer; use the hidden prompt');
+      ui?.requestLogin?.();
+      return text('hidden bearer prompt required');
+    }
+    if (handler === 'clear') {
+      if (args.length) invalid('usage: clear');
+      ui?.clear?.();
+      return text('');
+    }
 
     if (handler.startsWith('case-')) {
       if (!cases?.handle) throw shellError('CAPABILITY_UNAVAILABLE', 'case workspace unavailable');
@@ -396,7 +465,7 @@ export function createBrowserShellExecutor({
       return caseOutput(handler, action, outcome);
     }
 
-    throw shellError('CAPABILITY_UNAVAILABLE', 'browser command handler unavailable', { handler, surface: context.surface ?? 'web' });
+    throw shellError('CAPABILITY_UNAVAILABLE', 'browser command handler unavailable', { handler, surface });
   }
 
   return Object.freeze({ execute, state: snapshot });
