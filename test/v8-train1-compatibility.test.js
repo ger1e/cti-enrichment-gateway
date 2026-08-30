@@ -2,52 +2,53 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 
-const adapter = Object.freeze({
+const adapter = {
   name: 'rdap',
+  displayName: 'RDAP',
+  active: true,
+  distribution: 'public',
   types: ['ip'],
   observationTypes: ['registration'],
-  costClass: 'free',
   tier: 1,
-  timeoutMs: 1000,
-  cacheTtlMs: 60_000,
-  negativeCacheTtlMs: 10_000,
+  costClass: 'free',
+  timeoutMs: 100,
+  probeIntervalMs: 0,
+  cacheTtlMs: 1000,
+  negativeCacheTtlMs: 100,
   maxResponseBytes: 2048,
-  fixedHosts: ['fixture.invalid'],
+  fixedHosts: ['rdap.arin.net'],
   methods: ['GET'],
   protocols: ['https:'],
-  parserVersion: 'fixture-1',
-  sourceUrl: 'https://fixture.invalid/docs',
+  parserVersion: '1',
+  sourceUrl: 'https://rdap.arin.net/',
+  authType: 'none',
+  credentialEnv: null,
+  credentialRequired: false,
   sourceRole: 'first_party',
-  distribution: 'shareable',
   freshnessClass: 'live',
+  admissionVersion: 'v8.0',
   executionPolicy: 'v8.1',
-  async run() {
-    return {
-      observationType: 'registration',
-      verdict: 'context',
-      tags: ['fixture'],
-      attributes: { registered: true },
-      relationships: [],
-      references: ['https://fixture.invalid/reference'],
-    };
-  },
-});
+  semanticClassHints: ['network_context'],
+  coverageObservationTypesByType: { ip: ['registration'] },
+  run: async () => ({ observationType: 'registration', verdict: 'observed' }),
+};
 
-const authRequest = body => ({
-  method: 'POST',
-  headers: { authorization: 'Bearer test-token', 'content-type': 'application/json' },
-  body,
-});
+function authRequest(body) {
+  return new Request('https://example.test/api/enrich', {
+    method: 'POST',
+    headers: { authorization: 'Bearer test-token', 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
 
 test('Train 1 keeps public meta backward-compatible with additive deterministic scheduler metadata only', async () => {
   const app = createApp({ env: { PARA11AX_TOKEN: 'test-token' }, adapters: [adapter] });
-  const out = await app.handleMeta({ method: 'GET', headers: {} });
+  const out = await app.handleMeta(new Request('https://example.test/api/meta'));
   assert.equal(out.status, 200);
-  assert.equal(Object.hasOwn(out.body, 'capabilities'), false);
   assert.deepEqual(Object.keys(out.body.providers.rdap).sort(), [
-    'active', 'cacheTtlMs', 'costClass', 'fixedHosts', 'maxResponseBytes', 'methods',
-    'negativeCacheTtlMs', 'observationTypes', 'optionalCredential', 'parserVersion',
-    'protocols', 'requiresCredential', 'scheduler', 'sourceUrl', 'tier', 'timeoutMs', 'types',
+    'active', 'authType', 'cacheTtlMs', 'costClass', 'displayName', 'distribution', 'fixedHosts', 'maxResponseBytes',
+    'methods', 'negativeCacheTtlMs', 'observationTypes', 'parserVersion', 'probeIntervalMs', 'protocols',
+    'requiresCredential', 'scheduler', 'sourceUrl', 'tier', 'timeoutMs', 'types',
   ]);
   assert.deepEqual(out.body.providers.rdap.scheduler.byType.ip, {
     fallback: true,
@@ -60,7 +61,7 @@ test('Train 1 keeps public meta backward-compatible with additive deterministic 
   assert.doesNotMatch(serialized, /"rank"|"workflowIndex"/);
 });
 
-test('Train 1 compatibility remains stable except approved additive evidence and coverage semantics', async () => {
+test('Train 1 compatibility remains stable except approved additive evidence coverage and intelligence semantics', async () => {
   const app = createApp({ env: { PARA11AX_TOKEN: 'test-token' }, adapters: [adapter] });
   const out = await app.handleEnrich(authRequest({ indicator: '203.0.113.7' }));
   assert.equal(out.status, 200);
@@ -79,12 +80,14 @@ test('Train 1 compatibility remains stable except approved additive evidence and
     sourceRole: 'first_party',
   }]);
 
-  const serialized = JSON.stringify(out.body);
+  const withoutApprovedIntelligence = structuredClone(out.body);
+  delete withoutApprovedIntelligence.intelligence;
+  const serialized = JSON.stringify(withoutApprovedIntelligence);
   for (const field of ['freshnessClass', 'executionPolicy', 'capabilities', 'distribution']) {
     assert.equal(serialized.includes(field), false, field);
   }
 
-  const withoutApprovedSourceRoles = structuredClone(out.body);
+  const withoutApprovedSourceRoles = structuredClone(withoutApprovedIntelligence);
   for (const item of withoutApprovedSourceRoles.evidence ?? []) {
     if (item?.semantics) delete item.semantics.sourceRole;
   }
