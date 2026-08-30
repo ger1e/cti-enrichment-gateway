@@ -7,7 +7,7 @@ const CUES = Object.freeze({
   'access-ok': [[120, .05, 'square', 90, .08], [330, .07, 'triangle', 330, .08], [660, .10, 'triangle', 660, .08]],
   'access-denied': [[190, .12, 'square', 140, .10], [120, .15, 'square', 82, .11]],
   key: [[1880, .022, 'square', 1460, .065]],
-  'key-backspace': [[690, .032, 'square', 360, .11], [210, .018, 'square', 150, .07]],
+  'key-backspace': [[1250, .024, 'square', 720, .10], [180, .016, 'triangle', 95, .06]],
   'key-enter': [[190, .045, 'square', 95, .10], [620, .035, 'square', 620, .06]],
   paste: [[480, .035, 'square', 980, .07], [980, .035, 'square', 1560, .07], [1560, .045, 'square', 620, .06]],
   tab: [[720, .035, 'square', 880, .06]],
