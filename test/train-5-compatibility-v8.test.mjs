@@ -14,6 +14,11 @@ const PURE_TRAIN5_SOURCES = Object.freeze([
   'src/core/guidance.js',
   'app/case-evidence-graph.js',
 ]);
+const PURE_KERNEL_SOURCES = Object.freeze([
+  'src/core/intelligence-kernel.js',
+  'src/core/intelligence-policy/ip.js',
+  'src/core/provider-priority.js',
+]);
 
 function emptyGraph() {
   return buildEvidenceGraph({
@@ -105,4 +110,37 @@ test('gateway integration is additive and does not replace the existing decision
   assert.match(source, /buildGuidance\s*\(/);
   assert.match(source, /status, evidence, relationships: correlation\.relationships, correlation, decision, coverage, limitations, failures/);
   assert.match(source, /\.\.\.\(evidenceGraph \? \{ evidenceGraph, guidance \} : \{\}\)/);
+});
+
+test('Intelligence Kernel remains optional additive state and cached or legacy envelopes do not require it', () => {
+  const source = read('src/core/orchestrator.js');
+  const viewModel = read('app/view-model.js');
+  assert.match(source, /type === ['"]ip['"] && \(status === ['"]ok['"] \|\| status === ['"]partial['"]\)/);
+  assert.match(source, /\.\.\.\(intelligence \? \{ intelligence \} : \{\}\)/);
+  assert.match(source, /buildDecisionSupport\s*\(\{[\s\S]*?intelligence,[\s\S]*?\}\)/);
+  assert.match(source, /buildGuidance\s*\(\{ decision, correlation, evidenceGraph, intelligence \}\)/);
+  assert.match(viewModel, /intelligence:\s*envelope\.intelligence \|\| null/);
+
+  const legacy = buildGuidance({
+    decision: {
+      disposition: 'insufficient', confidence: 'low', reasons: [],
+      assessment: { coverageMaterialLoss: false }, telemetry: {}, attackMappings: [], huntPlan: [],
+    },
+    correlation: { contradictions: [], limitations: [], freshness: { overall: 'unknown', items: [] } },
+    evidenceGraph: emptyGraph(),
+  });
+  assert.equal('intelligence' in legacy, false);
+});
+
+test('pure deterministic kernel sources add no hosts dependencies credential environment fetch or persistence surface', () => {
+  for (const path of PURE_KERNEL_SOURCES) {
+    const source = read(path);
+    assert.doesNotMatch(source, /https?:\/\//, `${path}: host or URL`);
+    assert.doesNotMatch(source, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon\s*\(/, `${path}: network`);
+    assert.doesNotMatch(source, /process\.env|Deno\.env|Bun\.env/, `${path}: environment`);
+    assert.doesNotMatch(source, /Authorization|PARA11AX_TOKEN|getToken\s*\(/, `${path}: credential`);
+    assert.doesNotMatch(source, /localStorage|sessionStorage|indexedDB|caches\.open|CacheStorage|FileSystemHandle|showSaveFilePicker/, `${path}: persistence`);
+  }
+  const pkg = JSON.parse(read('package.json'));
+  assert.deepEqual(pkg.dependencies ?? {}, {});
 });
