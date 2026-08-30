@@ -36,7 +36,8 @@ try {
   process.exitCode = await main(process.argv.slice(2));
 } catch (error) {
   const code = typeof error?.code === 'string' ? error.code : 'COMMAND_FAILED';
-  const message = error instanceof Error ? error.message : 'command failed';
+  const rawMessage = error instanceof Error ? error.message : 'command failed';
+  const message = code === 'COMMAND_NOT_FOUND' ? 'unknown command' : rawMessage;
   process.stderr.write(`ERROR [${code}]: ${message}\n`);
-  process.exitCode = code === 'UNKNOWN_COMMAND' ? 2 : 1;
+  process.exitCode = code === 'COMMAND_NOT_FOUND' ? 2 : 1;
 }
