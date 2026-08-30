@@ -5,23 +5,43 @@ import { createProviderRegistry } from '../src/core/provider-registry.js';
 import { normalizeEvidence } from '../src/core/normalize.js';
 import { enrich } from '../src/core/orchestrator.js';
 
-function adapter(name, { types = ['ip'], observationTypes = ['fixture_context'], run, parserVersion = '1' } = {}) {
+function adapter(name, {
+  types = ['ip'],
+  observationTypes = ['fixture_context'],
+  run,
+  parserVersion = '1',
+  tier = 1,
+  costClass = 'free',
+  schedulerByType,
+  sourceRole = 'community',
+  coverageObservationTypesByType,
+} = {}) {
   return {
     name,
     types,
     observationTypes,
     cacheTtlMs: 1000,
     negativeCacheTtlMs: 100,
-    costClass: 'free',
-    tier: 1,
+    costClass,
+    tier,
     timeoutMs: 100,
     maxResponseBytes: 2048,
     fixedHosts: ['example.test'],
     parserVersion,
     sourceUrl: 'https://example.test/docs',
+    sourceRole,
+    ...(coverageObservationTypesByType ? { coverageObservationTypesByType } : {}),
+    ...(schedulerByType ? { schedulerByType } : {}),
     run,
   };
 }
+
+const PRIORITY_BASE = Object.freeze({
+  semanticUniqueness: 'unique',
+  intelligenceValue: 'direct',
+  pivotValue: 'high',
+  latencyClass: 'fast',
+});
 
 test('normalizes provider result into canonical evidence', () => {
   const evidence = normalizeEvidence('demo', '8.8.8.8', 'ip', { verdict: 'benign', confidence: 90, firstSeen: '2026-01-01T00:00:00Z', tags: ['resolver'], references: ['https://example.test/ref'] }, { retrievedAt: '2026-08-20T12:00:00Z', rawHash: 'a'.repeat(64), parserVersion: '1' });
@@ -81,12 +101,46 @@ test('coverage separates selected executed succeeded failed skipped and cached s
   const cache = new TtlCache();
   const base = { indicator: '8.8.8.8', type: 'ip', providerNames: ['good', 'bad', 'missing'], registry, cache, now: () => '2026-08-20T12:00:00Z' };
   const first = await enrich({ ...base, requestId: 'r1' });
-  assert.deepEqual(first.coverage, { selected: 3, executed: 2, succeeded: 1, failed: 1, skipped: 1, materialLoss: true });
+  assert.deepEqual(first.coverage, {
+    selected: 3, executed: 2, succeeded: 1, failed: 1, skipped: 1, materialLoss: true,
+    providerCapabilities: [
+      { provider: 'good', state: 'ok', observationTypes: ['fixture_context'], semanticClassHints: ['fixture_context'], sourceRole: 'community' },
+      { provider: 'bad', state: 'failed', observationTypes: ['fixture_context'], semanticClassHints: ['fixture_context'], sourceRole: 'community' },
+      { provider: 'missing', state: 'skipped', observationTypes: [], semanticClassHints: [], sourceRole: null },
+    ],
+  });
   assert.ok(first.limitations.includes('partial_provider_failure'));
   assert.ok(first.limitations.includes('material_coverage_loss'));
   const second = await enrich({ ...base, providerNames: ['good'], requestId: 'r2' });
-  assert.deepEqual(second.coverage, { selected: 1, executed: 0, succeeded: 1, failed: 0, skipped: 0, materialLoss: false });
+  assert.deepEqual(second.coverage, {
+    selected: 1, executed: 0, succeeded: 1, failed: 0, skipped: 0, materialLoss: false,
+    providerCapabilities: [
+      { provider: 'good', state: 'cached', observationTypes: ['fixture_context'], semanticClassHints: ['fixture_context'], sourceRole: 'community' },
+    ],
+  });
   assert.equal(calls >= 2, true);
+});
+
+test('coverage capability detail uses typed declarations, semantic hints, source role, and final provider state', async () => {
+  const good = adapter('good', {
+    observationTypes: ['network_identity', 'registration'],
+    coverageObservationTypesByType: { ip: ['registration'] },
+    sourceRole: 'first_party',
+    run: async () => ({ observationType: 'registration', verdict: 'observed' }),
+  });
+  const bad = adapter('bad', {
+    observationTypes: ['ioc_reputation'],
+    sourceRole: 'community',
+    run: async () => { throw new Error('down'); },
+  });
+  const result = await enrich({
+    indicator: '8.8.8.8', type: 'ip', providerNames: ['good', 'bad'], registry: createProviderRegistry([good, bad]),
+    cache: new TtlCache(), requestId: 'coverage-capabilities', now: () => '2026-08-20T12:00:00Z',
+  });
+  assert.deepEqual(result.coverage.providerCapabilities, [
+    { provider: 'good', state: 'ok', observationTypes: ['registration'], semanticClassHints: ['network_context'], sourceRole: 'first_party' },
+    { provider: 'bad', state: 'failed', observationTypes: ['ioc_reputation'], semanticClassHints: ['reputation'], sourceRole: 'community' },
+  ]);
 });
 
 test('loss of every selected provider for a semantic class is material coverage loss', async () => {
@@ -96,4 +150,49 @@ test('loss of every selected provider for a semantic class is material coverage 
   const result = await enrich({ indicator: '8.8.8.8', type: 'ip', providerNames: ['rep', 'ctx'], registry, cache: new TtlCache(), requestId: 'r', now: () => '2026-08-20T12:00:00Z' });
   assert.equal(result.coverage.materialLoss, true);
   assert.ok(result.limitations.includes('material_coverage_loss'));
+});
+
+test('IP orchestration starts admitted providers in value order while preserving envelope evidence order', async () => {
+  const starts = [];
+  const community = adapter('community-first-in-workflow', {
+    tier: 1,
+    schedulerByType: { ip: { authorityClass: 'community', ...PRIORITY_BASE } },
+    observationTypes: ['network_identity'],
+    run: async () => { starts.push('community-first-in-workflow'); return { observationType: 'network_identity', verdict: 'observed' }; },
+  });
+  const authoritative = adapter('authoritative-second-in-workflow', {
+    tier: 5,
+    schedulerByType: { ip: { authorityClass: 'authoritative', ...PRIORITY_BASE } },
+    observationTypes: ['registration'],
+    run: async () => { starts.push('authoritative-second-in-workflow'); return { observationType: 'registration', verdict: 'observed' }; },
+  });
+  const registry = createProviderRegistry([community, authoritative]);
+  const result = await enrich({
+    indicator: '8.8.8.8', type: 'ip',
+    providerNames: ['community-first-in-workflow', 'authoritative-second-in-workflow'],
+    registry, cache: new TtlCache(), requestId: 'priority',
+    now: () => '2026-08-20T12:00:00Z',
+  });
+  assert.deepEqual(starts, ['authoritative-second-in-workflow', 'community-first-in-workflow']);
+  assert.deepEqual(result.evidence.map(item => item.provider), ['community-first-in-workflow', 'authoritative-second-in-workflow']);
+});
+
+test('orchestrator keeps the fixed two-attempt provider call ceiling under typed scheduling', async () => {
+  const calls = new Map();
+  const providers = ['a', 'b', 'c'].map((name, index) => adapter(name, {
+    tier: index + 1,
+    schedulerByType: { ip: { authorityClass: 'specialist', ...PRIORITY_BASE } },
+    run: async () => {
+      calls.set(name, (calls.get(name) ?? 0) + 1);
+      throw new Error('transient');
+    },
+  }));
+  const result = await enrich({
+    indicator: '8.8.8.8', type: 'ip', providerNames: providers.map(item => item.name),
+    registry: createProviderRegistry(providers), cache: new TtlCache(), requestId: 'budget',
+    now: () => '2026-08-20T12:00:00Z',
+  });
+  assert.equal(result.budget.providerCallLimit, providers.length * 2);
+  assert.equal(result.budget.providerCalls <= providers.length * 2, true);
+  for (const name of providers.map(item => item.name)) assert.equal((calls.get(name) ?? 0) <= 2, true, name);
 });

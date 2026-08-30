@@ -14,6 +14,7 @@ import { runBatch } from './core/batch.js';
 import { toStixBundle } from './export/stix.js';
 import { GATEWAY_VERSION, EVIDENCE_SCHEMA_VERSION } from './core/version.js';
 import { PROVIDER_CONCURRENCY_MAX, REQUEST_DEADLINE_MS } from './core/execution-policy.js';
+import { PROVIDER_SCHEDULER_POLICY_VERSION } from './core/provider-priority.js';
 import { ALL_PROVIDERS } from './providers/index.js';
 import { PROVIDER_MANIFEST } from './providers/manifest.js';
 import { PROFILE_NAMES, selectProviders } from './profiles.js';
@@ -60,6 +61,16 @@ function providerStatus(adapter, env) {
   return { configured: true, auth: 'none' };
 }
 
+function schedulerMetadata(adapter) {
+  const invalid = new Set(adapter.schedulerMetadataInvalidTypes ?? []);
+  const byType = Object.fromEntries([...adapter.types].sort().map(type => {
+    const descriptor = invalid.has(type) ? null : adapter.schedulerByType?.[type];
+    if (!descriptor) return [type, Object.freeze({ fallback: true, rationale: 'legacy_priority_fallback' })];
+    return [type, Object.freeze({ ...descriptor, fallback: false })];
+  }));
+  return Object.freeze({ version: PROVIDER_SCHEDULER_POLICY_VERSION, byType: Object.freeze(byType) });
+}
+
 function publicProvider(adapter) {
   return Object.freeze({
     types: [...adapter.types], observationTypes: [...adapter.observationTypes],
@@ -69,6 +80,7 @@ function publicProvider(adapter) {
     maxResponseBytes: adapter.maxResponseBytes, fixedHosts: [...adapter.fixedHosts],
     methods: [...(adapter.methods ?? ['GET'])], protocols: [...(adapter.protocols ?? ['https:'])],
     parserVersion: adapter.parserVersion, sourceUrl: adapter.sourceUrl, active: adapter.active !== false,
+    scheduler: schedulerMetadata(adapter),
   });
 }
 

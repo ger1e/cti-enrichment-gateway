@@ -119,6 +119,14 @@ test('IP enrichment compiles into one ordered deterministic analyst report', () 
   assert.match(report.assessment.summary, /2 independent provider/i);
 });
 
+test('legacy IP envelope without intelligence preserves the existing report fallback', () => {
+  const report = build();
+  assert.equal(viewModel.buildOverview(sample).intelligence ?? null, null);
+  assert.equal(report.assessment.decisionSource, 'REPORT FALLBACK');
+  assert.equal(report.assessment.state, 'ACTIONABLE THREAT EVIDENCE');
+  assert.doesNotMatch(viewModel.renderIpAnalystReportText(report), /INTELLIGENCE KERNEL/i);
+});
+
 test('IP report deduplicates repeated facts and keeps corroborating provenance', () => {
   const report = build();
   const identity = report.sections.find(section => section.id === 'identity');
