@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { classifyIndicator } from '../src/core/validate.js';
+import { rankProvidersForExecution } from '../src/core/provider-priority.js';
 import { ALL_PROVIDERS } from '../src/providers/index.js';
+import { WORKFLOWS } from '../src/workflows.js';
 
 function prng(seed = 0x6d2b79f5) {
   let state = seed >>> 0;
@@ -68,6 +70,29 @@ function provider(name) {
   assert.ok(item, `missing provider ${name}`);
   return item;
 }
+
+function shuffled(values, random) {
+  const copy = [...values];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const selected = Math.floor(random() * (index + 1));
+    [copy[index], copy[selected]] = [copy[selected], copy[index]];
+  }
+  return copy;
+}
+
+function rankedNames(providers) {
+  return rankProvidersForExecution({ providers, type: 'ip' }).map(item => item.adapter.name);
+}
+
+test('deterministic provider ranking ignores input-array permutation when explicit workflow indexes are preserved', () => {
+  const indexed = WORKFLOWS.ip.map((name, workflowIndex) => ({ ...provider(name), workflowIndex }));
+  const expected = rankedNames(indexed);
+  const random = prng(0x11a11a11);
+  for (let iteration = 0; iteration < 128; iteration += 1) {
+    assert.deepEqual(rankedNames(shuffled(indexed, random)), expected, `ranking drift at permutation ${iteration}`);
+  }
+});
+
 function text(value) { return new Response(value, { status: 200, headers: { 'content-type': 'text/plain' } }); }
 
 test('deterministic malformed MISP hash-cache corpus fails closed', async () => {
