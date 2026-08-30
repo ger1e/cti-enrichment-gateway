@@ -2,53 +2,52 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 
-const adapter = {
+const adapter = Object.freeze({
   name: 'rdap',
-  displayName: 'RDAP',
-  active: true,
-  distribution: 'public',
   types: ['ip'],
   observationTypes: ['registration'],
-  tier: 1,
   costClass: 'free',
-  timeoutMs: 100,
-  probeIntervalMs: 0,
-  cacheTtlMs: 1000,
-  negativeCacheTtlMs: 100,
+  tier: 1,
+  timeoutMs: 1000,
+  cacheTtlMs: 60_000,
+  negativeCacheTtlMs: 10_000,
   maxResponseBytes: 2048,
-  fixedHosts: ['rdap.arin.net'],
+  fixedHosts: ['fixture.invalid'],
   methods: ['GET'],
   protocols: ['https:'],
-  parserVersion: '1',
-  sourceUrl: 'https://rdap.arin.net/',
-  authType: 'none',
-  credentialEnv: null,
-  credentialRequired: false,
+  parserVersion: 'fixture-1',
+  sourceUrl: 'https://fixture.invalid/docs',
   sourceRole: 'first_party',
+  distribution: 'shareable',
   freshnessClass: 'live',
-  admissionVersion: 'v8.0',
   executionPolicy: 'v8.1',
-  semanticClassHints: ['network_context'],
-  coverageObservationTypesByType: { ip: ['registration'] },
-  run: async () => ({ observationType: 'registration', verdict: 'observed' }),
-};
+  async run() {
+    return {
+      observationType: 'registration',
+      verdict: 'context',
+      tags: ['fixture'],
+      attributes: { registered: true },
+      relationships: [],
+      references: ['https://fixture.invalid/reference'],
+    };
+  },
+});
 
-function authRequest(body) {
-  return new Request('https://example.test/api/enrich', {
-    method: 'POST',
-    headers: { authorization: 'Bearer test-token', 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-}
+const authRequest = body => ({
+  method: 'POST',
+  headers: { authorization: 'Bearer test-token', 'content-type': 'application/json' },
+  body,
+});
 
 test('Train 1 keeps public meta backward-compatible with additive deterministic scheduler metadata only', async () => {
   const app = createApp({ env: { PARA11AX_TOKEN: 'test-token' }, adapters: [adapter] });
-  const out = await app.handleMeta(new Request('https://example.test/api/meta'));
+  const out = await app.handleMeta({ method: 'GET', headers: {} });
   assert.equal(out.status, 200);
+  assert.equal(Object.hasOwn(out.body, 'capabilities'), false);
   assert.deepEqual(Object.keys(out.body.providers.rdap).sort(), [
-    'active', 'authType', 'cacheTtlMs', 'costClass', 'displayName', 'distribution', 'fixedHosts', 'maxResponseBytes',
-    'methods', 'negativeCacheTtlMs', 'observationTypes', 'parserVersion', 'probeIntervalMs', 'protocols',
-    'requiresCredential', 'scheduler', 'sourceUrl', 'tier', 'timeoutMs', 'types',
+    'active', 'cacheTtlMs', 'costClass', 'fixedHosts', 'maxResponseBytes', 'methods',
+    'negativeCacheTtlMs', 'observationTypes', 'optionalCredential', 'parserVersion',
+    'protocols', 'requiresCredential', 'scheduler', 'sourceUrl', 'tier', 'timeoutMs', 'types',
   ]);
   assert.deepEqual(out.body.providers.rdap.scheduler.byType.ip, {
     fallback: true,
