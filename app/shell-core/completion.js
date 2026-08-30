@@ -3,6 +3,7 @@ import { COMMAND_REGISTRY } from './catalog.js';
 const SPECIAL_DYNAMIC = Object.freeze({
   'provider run': 'providerNames',
 });
+const LEGACY_CASE_SUBCOMMANDS = Object.freeze(['close', 'export', 'find', 'import', 'list', 'new', 'open', 'refresh', 'show']);
 
 function splitInput(input) {
   const value = String(input ?? '');
@@ -45,6 +46,22 @@ function resolveDescriptor(tokens, surface) {
   return resolved;
 }
 
+function legacyCaseCompletions(tokens, trailingSpace, caseTypes) {
+  if (!caseTypes.length || tokens[0]?.toLowerCase() !== 'case') return null;
+  if (tokens.length === 1) return trailingSpace ? [...LEGACY_CASE_SUBCOMMANDS] : null;
+
+  const subcommand = tokens[1].toLowerCase();
+  if (tokens.length === 2 && !trailingSpace) {
+    return LEGACY_CASE_SUBCOMMANDS.filter(value => value.startsWith(subcommand));
+  }
+  if (subcommand !== 'find') return [];
+  if (tokens.length === 2 && trailingSpace) return uniqueSorted(caseTypes);
+  if (tokens.length === 3 && !trailingSpace) {
+    return uniqueSorted(caseTypes).filter(value => value.toLowerCase().startsWith(tokens[2].toLowerCase()));
+  }
+  return [];
+}
+
 export function completeShellInput(input, {
   surface = 'web',
   providerNames = [],
@@ -60,6 +77,9 @@ export function completeShellInput(input, {
   if (!trailingSpace && tokens.length === 1) {
     return childCompletions([], tokens[0], surface);
   }
+
+  const legacyCase = legacyCaseCompletions(tokens, trailingSpace, caseTypes);
+  if (legacyCase !== null) return legacyCase;
 
   const prefixTokens = trailingSpace ? tokens : tokens.slice(0, -1);
   const fragment = trailingSpace ? '' : tokens[tokens.length - 1];
