@@ -1,8 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 
 const read = path => readFileSync(path, 'utf8');
+
+const DOC_STANDARD_MARKER = '<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->';
+const DOC_STANDARD_FOOTER = /PΛRΛ11ΛX\s*\/\/\s*PER ASPERA AD ASTRA/i;
+const ALL_MARKDOWN_DOCS = execFileSync('git', ['ls-files', '*.md'], { encoding: 'utf8' })
+  .trim()
+  .split('\n')
+  .filter(Boolean)
+  .sort();
+const HISTORICAL_DOCS = ALL_MARKDOWN_DOCS.filter(path => path.startsWith('docs/superpowers/'));
 
 const PUBLIC_DOCS = [
   'README.md',
@@ -110,7 +120,7 @@ test('canonical deep docs describe scheduler v1, Kernel v1, and evidence boundar
   assert.match(qa, /2acc19f0558b1c3bbbcd96b47b8da69a25192c55/i);
 });
 
-test('all public docs are free of stale scheduler/provider-count language', () => {
+test('all current public docs are free of stale scheduler/provider-count language', () => {
   for (const path of PUBLIC_DOCS) {
     const content = read(path);
     assert.doesNotMatch(content, /tiered scheduler/i, `${path} still documents the retired tiered scheduler`);
@@ -129,4 +139,36 @@ test('security and contribution docs preserve deterministic no-LLM and no-new-eg
   assert.match(contributing, /Provider Value Scheduler v1\.0/i);
   assert.match(contributing, /Intelligence Kernel v1\.0/i);
   assert.match(contributing, /Evidence v2 remains authoritative/i);
+});
+
+test('every tracked Markdown document uses the GER1E/PARA11AX document standard', () => {
+  assert.ok(ALL_MARKDOWN_DOCS.length > PUBLIC_DOCS.length, 'repository-wide contract must cover more than canonical public docs');
+  for (const path of ALL_MARKDOWN_DOCS) {
+    const content = read(path);
+    assert.ok(content.startsWith(`${DOC_STANDARD_MARKER}\n`), `${path} must start with the shared document-standard marker`);
+    assert.match(content, DOC_STANDARD_FOOTER, `${path} must carry the shared PARA11AX footer`);
+  }
+});
+
+test('historical Superpowers plans/specs are standardized without pretending to be current architecture', () => {
+  assert.ok(HISTORICAL_DOCS.length > 0, 'historical Superpowers archive must be present');
+  for (const path of HISTORICAL_DOCS) {
+    const content = read(path);
+    assert.match(content, /Historical design record/i, `${path} must be clearly labeled historical`);
+    assert.match(content, /docs\/ARCHITECTURE\.md|ARCHITECTURE\.md/i, `${path} must point readers to the current architecture`);
+  }
+});
+
+test('supporting Markdown surfaces are explicitly covered by the same standard', () => {
+  for (const path of [
+    '.github/pull_request_template.md',
+    'maltego/README.md',
+    'maltego/README-compatibility.md',
+    'workers/user-scanner/README.md',
+  ]) {
+    assert.ok(ALL_MARKDOWN_DOCS.includes(path), `${path} must be tracked by the repository-wide documentation contract`);
+    const content = read(path);
+    assert.ok(content.startsWith(`${DOC_STANDARD_MARKER}\n`), `${path} must use the shared marker`);
+    assert.match(content, DOC_STANDARD_FOOTER, `${path} must use the shared footer`);
+  }
 });
