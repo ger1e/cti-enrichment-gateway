@@ -58,6 +58,10 @@ test('result raw remains a typed enrichment value for downstream structured stag
   assert.strictEqual(output.value, currentResult);
 });
 
+test('result raw registry metadata matches the typed executor contract', () => {
+  assert.equal(COMMAND_REGISTRY.get('result.raw').outputType, 'enrichment');
+});
+
 test('legacy direct result aliases resolve through the shared registry', () => {
   for (const alias of ['overview', 'evidence', 'cor', 'rel', 'coverage', 'raw', 'last', 'request', 'failures', 'contradictions', 'corroboration', 'references', 'providers']) {
     const resolved = COMMAND_REGISTRY.resolve([alias], 'web');
