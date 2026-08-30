@@ -268,7 +268,7 @@ export function createBrowserShellExecutor({
     if (handler === 'result-hunts') return records(resultOrInput(state, input).guidance?.hunts ?? resultOrInput(state, input).decision?.hunts ?? []);
     if (handler === 'result-telemetry') return record(resultOrInput(state, input).guidance?.telemetry ?? {});
     if (handler === 'result-freshness') return records(resultOrInput(state, input).guidance?.freshness ?? []);
-    if (handler === 'result-raw') return text(JSON.stringify(resultOrInput(state, input), null, 2));
+    if (handler === 'result-raw') return { type: 'enrichment', value: resultOrInput(state, input) };
     if (handler === 'view') return text(JSON.stringify(resultOrInput(state, input)));
 
     if (handler === 'json') {
