@@ -89,6 +89,24 @@ test('STIX export enforces object cap and rejects non-gateway-shaped input', () 
   assert.throws(() => toStixBundle(enrichment('evil.example', 'domain'), { maxObjects: 101 }), /maxObjects/);
 });
 
+test('STIX export ignores kernel-derived conclusions and serializes only defensible raw evidence and explicit relationships', () => {
+  const input = enrichment('203.0.113.7', 'ip', [ev('p', 'reputation')], []);
+  input.intelligence = {
+    schemaVersion: '1.0', type: 'ip', policy: { type: 'ip', version: '1.0' },
+    analystPriority: { level: 'immediate', reasons: ['ip_priority_immediate'], evidenceFingerprints: [] },
+    evidenceStrength: { level: 'strong', reasons: ['ip_strength_strong_independent_direct'], providers: ['p'], evidenceFingerprints: [] },
+    pivotCandidates: [{ type: 'domain', value: 'kernel-only.example', reasonCodes: ['derived_only'] }],
+    relationshipValue: [{ targetType: 'domain', target: 'kernel-only.example', valueClass: 'direct' }],
+  };
+  const bundle = toStixBundle(input, { now: () => '2026-08-21T01:00:00.000Z', uuid });
+  const json = JSON.stringify(bundle);
+  assert.equal(json.includes('ip_priority_immediate'), false);
+  assert.equal(json.includes('ip_strength_strong_independent_direct'), false);
+  assert.equal(json.includes('kernel-only.example'), false);
+  assert.equal(json.includes('analystPriority'), false);
+  assert.equal(json.includes('evidenceStrength'), false);
+});
+
 function adapter() {
   return Object.freeze({
     name: 'rdap', types: ['domain'], observationTypes: ['registration'], costClass: 'free', tier: 1, timeoutMs: 5000,
