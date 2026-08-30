@@ -181,7 +181,7 @@ para11ax report diff <before.json> <after.json>
 
 <sub><strong>05 // PROVIDER FABRIC</strong></sub>
 
-PARA11AX has **38 upstream APIs and feeds** in the canonical Evidence v2 provider fabric. Shodan is one fixed provider for canonical enrichment, while the native Shodan shell route is a distinct explicit operator surface and does not increase the provider count.
+PARA11AX has **38 configured sources** (upstream APIs and feeds) in the canonical Evidence v2 provider fabric. Shodan is one fixed provider for canonical enrichment, while the native Shodan shell route is a distinct explicit operator surface and does not increase the provider count.
 
 <details>
 <summary><strong>38 upstream APIs and feeds</strong></summary>
