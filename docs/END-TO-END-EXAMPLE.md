@@ -32,14 +32,7 @@ The IP workflow then selects only statically registered providers allowed by the
 
 #### 3. Fixed-egress provider execution
 
-Each selected adapter executes through the central `safeFetch` boundary. The boundary enforces:
-
-- HTTPS only and exact allowlisted hosts;
-- declared methods only;
-- no redirects;
-- request/response byte ceilings;
-- bounded timeout/retry behavior;
-- provider concurrency of at most four.
+Each selected adapter executes through the central `safeFetch` boundary. The boundary enforces HTTPS only, exact allowlisted hosts, declared methods, no redirects, request/response ceilings, bounded timeout/retry behavior, and provider concurrency of at most four.
 
 Upstream responses remain untrusted until the provider parser validates and normalizes them.
 
@@ -56,44 +49,15 @@ A successful response uses the Evidence Schema v2 envelope. The trimmed example 
   "type": "ip",
   "profile": "standard",
   "status": "ok",
-  "providerSummary": {
-    "ok": 3,
-    "failed": 0,
-    "skipped": 2,
-    "cached": 0
-  },
-  "evidence": [
-    {
-      "provider": "rdap",
-      "indicator": "203.0.113.10",
-      "type": "ip",
-      "observation": {
-        "kind": "registration",
-        "verdict": "observed",
-        "attributes": {}
-      },
-      "relationships": [],
-      "references": ["https://<authoritative-rdap-reference>"],
-      "retrievedAt": "<iso8601>",
-      "cacheState": "miss",
-      "durationMs": 42,
-      "integrity": {
-        "parserVersion": "<adapter-version>",
-        "rawHash": "<sha256>",
-        "fingerprint": "<sha256>"
-      }
-    }
-  ],
+  "providerSummary": {"ok": 3, "failed": 0, "skipped": 2, "cached": 0},
+  "evidence": [],
   "relationships": [],
   "failures": [],
   "correlation": {
     "corroboration": [],
     "contradictions": [],
     "freshness": "unknown",
-    "huntability": {
-      "level": "<bounded-level>",
-      "rationale": []
-    }
+    "huntability": {"level": "<bounded-level>", "rationale": []}
   },
   "decision": {
     "disposition": "context_only",
@@ -101,48 +65,69 @@ A successful response uses the Evidence Schema v2 envelope. The trimmed example 
     "reasons": ["<machine-readable reason>"],
     "huntPlan": []
   },
-  "evidenceGraph": {
-    "schemaVersion": "1.0",
-    "nodes": [],
-    "edges": []
-  },
-  "guidance": {
-    "schemaVersion": "1.0",
-    "disposition": "context_only",
-    "confidence": "low"
-  }
+  "evidenceGraph": {"schemaVersion": "1.0", "nodes": [], "edges": []},
+  "guidance": {"schemaVersion": "1.0", "disposition": "context_only", "confidence": "low"}
 }
 ```
 
-The graph/guidance fragments are intentionally abbreviated. Their important contract is additive and provenance-preserving:
-
-```text
-evidence
-  -> typed correlation
-  -> bounded decision support
-  -> Evidence Graph v1.0 + Guidance v1.0 projections
-  -> analyst interpretation/export
-```
-
-`decision`, `evidenceGraph`, and `guidance` answer different questions:
-
-- `decision` provides the existing bounded operational disposition, confidence, limitations, telemetry needs and hunt-plan templates.
-- `evidenceGraph` provides deterministic explicit investigation facts/relationships with stable identities; it does not infer entities from arbitrary prose or infrastructure proximity.
-- `guidance` explains the existing decision/evidence context and approved semantic changes; it does not create a second score or decision engine.
-
-For `status: "error"`, the graph/guidance projections are absent and the legacy error envelope remains unchanged.
-
-The important analytical property is what the gateway **does not** do: routing/registration context, certificate metadata, scanner activity, Tor-exit status, reputation, ransomware claims and ATT&CK knowledge are not collapsed into a universal maliciousness score. Generated KQL or `hunt_now` guidance is a hunting hypothesis, not proof that the asset is compromised.
+The important analytical property is what the gateway **does not** do: routing/registration context, Shodan/Censys exposure, certificate metadata, scanner activity, Tor-exit status, reputation, ransomware claims and ATT&CK knowledge are not collapsed into a universal maliciousness score. Generated KQL or `hunt_now` guidance is a hunting hypothesis, not proof of compromise.
 
 #### 5. Browser-local case workspace
 
-The analyst UI can capture successful Evidence v2 results into a local case. Case snapshots, semantic diffs, exact typed cross-case sightings and `.para11ax` bundles live in the browser-local workspace. IndexedDB is the case persistence adapter; the gateway does not become a server-side case database.
+The analyst UI can capture successful Evidence v2 results into a local case. Case snapshots, semantic diffs, exact typed cross-case sightings and `.para11ax` bundles live in browser-local IndexedDB. The gateway does not become a server-side case database.
 
-Free-form case notes are not parsed into graph entities. Certificate snapshots retain explicit certificate identity and restore `cert-sha256:` when replayed through the gateway.
+User Scanner and native Shodan analyst-shell output are terminal/operator surfaces and are **not** automatically persisted into Evidence v2 case evidence.
 
-#### 6. Optional STIX export
+#### 6. Native Shodan operator path
 
-The same input can be sent to the bounded STIX surface:
+The analyst can make an explicit bounded Shodan lookup without replacing the current Evidence v2 result:
+
+```text
+analyst@para11ax:~$ shodan host 203.0.113.10
+```
+
+Equivalent HTTP request:
+
+```bash
+curl --fail-with-body \
+  -H 'Authorization: Bearer <PARA11AX_TOKEN>' \
+  -H 'Content-Type: application/json' \
+  -d '{"command":"host","target":"203.0.113.10"}' \
+  https://<gateway>/api/para11ax/shodan
+```
+
+Request path:
+
+```text
+analyst shell
+  -> same-origin /api/para11ax/shodan
+  -> bearer authentication
+  -> fixed command/argument validation
+  -> server-side SHODAN_API_KEY
+  -> fixed https://api.shodan.io
+  -> bounded normalization
+  -> terminal output + creditImpact
+  -> Evidence v2 state unchanged
+```
+
+The same bounded command surface supports:
+
+```text
+shodan host <ip>
+shodan search <query>
+shodan count <query>
+shodan stats <query> [--facets <fields>]
+shodan domain <domain>
+shodan info
+```
+
+`shodan search` is first-page only; returned match/service arrays are capped and large raw banners are removed. `shodan download`, arbitrary paging, caller-selected URLs and on-demand scan submission are disabled. Host/count/stats/info are classified as no-query-credit operations, domain consumes a query credit, and search may consume a query credit.
+
+A Shodan-visible service remains exposure context rather than proof of compromise, exploitability, ownership or attribution.
+
+#### 7. Optional STIX export
+
+The Evidence v2 input can be sent to the bounded STIX surface:
 
 ```bash
 curl --fail-with-body \
@@ -152,31 +137,20 @@ curl --fail-with-body \
   https://<gateway>/api/para11ax/stix
 ```
 
-The gateway enriches first and then maps only defensible evidence into a STIX 2.1 Bundle. Callers cannot inject their own enrichment object into the exporter. The bundle is capped at 100 objects.
+The gateway enriches first and maps only defensible Evidence v2 into a STIX 2.1 Bundle. Native Shodan shell output is not silently included in that bundle.
 
-#### 7. Offline report path
+#### 8. Offline report path
 
-A frozen gateway evidence snapshot can be compiled without any network calls:
+A frozen Evidence v2 snapshot can be compiled without network calls:
 
 ```bash
 para11ax report compile snapshot.json --out ./report --preset all
 ```
 
-The report quality gate runs before artifacts are written. The resulting bundle can contain deterministic HTML/PDF/text, evidence JSON, STIX, observables CSV, KQL hunt material, ATT&CK Navigator data and a SHA-256 manifest.
-
-Complete auditable path:
+Complete auditable separation:
 
 ```text
-indicator
-  -> canonical classification
-  -> fixed workflow/profile
-  -> bounded provider fanout
-  -> provider-specific parsing
-  -> Evidence v2 provenance
-  -> typed correlation
-  -> bounded decision support
-  -> Evidence Graph v1.0 + Guidance v1.0
-  -> JSON/STIX
-  -> optional browser-local case capture
-  -> optional frozen offline report
+canonical indicator -> Evidence v2 -> correlation/decision -> graph/guidance -> JSON/STIX/report
+explicit User Scanner command -> isolated active OSINT -> terminal only
+explicit Shodan command -> fixed Shodan API -> bounded operator result -> terminal only
 ```
