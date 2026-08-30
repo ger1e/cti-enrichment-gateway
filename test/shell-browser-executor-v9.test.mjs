@@ -11,11 +11,13 @@ function descriptor(tokens) {
   return resolved.descriptor;
 }
 
-function makeExecutor({ client = makeClient(), session = makeSession(), initialState, events = [] } = {}) {
+function makeExecutor({ client = makeClient(), session = makeSession(), initialState, events = [], history = null, ui = null } = {}) {
   return createBrowserShellExecutor({
     client,
     session,
     cases: null,
+    history,
+    ui,
     downloads: { save: (...args) => events.push(['download', ...args]) },
     clipboard: { writeText: async value => events.push(['copy', value]) },
     audio: { ...makeAudio(), mute: value => events.push(['mute', value]), setVolume: value => events.push(['volume', value]) },
@@ -53,6 +55,41 @@ test('profile and gateway read handlers preserve bounded browser state', async (
   assert.equal(executor.state().profile, 'full');
   assert.deepEqual(await execute(executor, ['system', 'meta']), { type: 'record', value: { providers: [] } });
   assert.deepEqual(await execute(executor, ['system', 'health']), { type: 'record', value: { status: 'ok' } });
+});
+
+test('registry discovery and history commands execute through the shared browser executor', async () => {
+  const historyEvents = [];
+  const history = {
+    entries: () => ['help', 'enrich 8.8.8.8'],
+    clear: () => historyEvents.push('clear'),
+  };
+  const executor = makeExecutor({ history });
+  const help = await execute(executor, ['help']);
+  const aliases = await execute(executor, ['aliases']);
+  const limits = await execute(executor, ['limits']);
+  const historyOutput = await execute(executor, ['history']);
+  const cleared = await execute(executor, ['history', 'clear']);
+  assert.equal(help.type, 'text');
+  assert.match(help.value, /PARA11AX COMMAND INDEX/);
+  assert.equal(aliases.type, 'records');
+  assert.equal(limits.type, 'record');
+  assert.deepEqual(historyOutput, { type: 'text', value: 'help\nenrich 8.8.8.8' });
+  assert.deepEqual(cleared, { type: 'text', value: 'history cleared' });
+  assert.deepEqual(historyEvents, ['clear']);
+});
+
+test('browser-only presentation effects are delegated without shell UI command dispatch', async () => {
+  const events = [];
+  const ui = {
+    requestLogin: () => events.push('login'),
+    clear: () => events.push('clear'),
+    reboot: async () => events.push('reboot'),
+  };
+  const executor = makeExecutor({ ui });
+  assert.deepEqual(await execute(executor, ['login']), { type: 'text', value: 'hidden bearer prompt required' });
+  assert.deepEqual(await execute(executor, ['clear']), { type: 'text', value: '' });
+  assert.deepEqual(await execute(executor, ['reboot']), { type: 'text', value: 'reboot' });
+  assert.deepEqual(events, ['login', 'clear', 'reboot']);
 });
 
 test('specialist OSINT handlers delegate exact bounded inputs', async () => {
