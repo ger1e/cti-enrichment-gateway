@@ -112,7 +112,7 @@ const commands = [
   command('result.hunts', ['result', 'hunts'], 'result', 'result hunts', 'show generated hunt opportunities', { inputTypes: ['void', 'enrichment'], handler: 'result-hunts', outputType: 'records' }),
   command('result.telemetry', ['result', 'telemetry'], 'result', 'result telemetry', 'show telemetry guidance', { inputTypes: ['void', 'enrichment'], handler: 'result-telemetry', outputType: 'record' }),
   command('result.freshness', ['result', 'freshness'], 'result', 'result freshness', 'show evidence freshness state', { inputTypes: ['void', 'enrichment'], handler: 'result-freshness', outputType: 'records' }),
-  command('result.raw', ['result', 'raw'], 'result', 'result raw', 'render raw Evidence v2 JSON', { aliases: [['raw']], inputTypes: ['void', 'enrichment'], handler: 'result-raw', outputType: 'text' }),
+  command('result.raw', ['result', 'raw'], 'result', 'result raw', 'return raw Evidence v2 enrichment', { aliases: [['raw']], inputTypes: ['void', 'enrichment'], handler: 'result-raw', outputType: 'enrichment' }),
   command('result.view', ['view'], 'result', 'view <overview|evidence|correlation|relationships|coverage|raw>', 'render a legacy result view', { inputTypes: ['void', 'enrichment'], handler: 'view', completion: { values: ['overview', 'evidence', 'correlation', 'relationships', 'coverage', 'raw'] } }),
 
   // Cases
