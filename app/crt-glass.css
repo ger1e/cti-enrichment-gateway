@@ -1,4 +1,4 @@
-html[data-terminal-first="v7"][data-crt-glass="v8"]{
+html[data-terminal-first="v7"]{
   --crt-bg:#020403;
   --crt-phosphor:#39ff14;
   --crt-glass:rgba(2,4,3,.66);
@@ -11,14 +11,14 @@ html[data-terminal-first="v7"][data-crt-glass="v8"]{
   background:#020403;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] body{
+html[data-terminal-first="v7"] body{
   background:
     radial-gradient(ellipse at 50% 4%,rgba(57,255,20,.055),transparent 34%),
     radial-gradient(ellipse at 50% 115%,rgba(57,255,20,.025),transparent 42%),
     #020403!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] body::before{
+html[data-terminal-first="v7"] body::before{
   content:"";
   position:fixed;
   inset:0;
@@ -31,7 +31,7 @@ html[data-terminal-first="v7"][data-crt-glass="v8"] body::before{
   opacity:.92;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] body::after{
+html[data-terminal-first="v7"] body::after{
   opacity:.10!important;
   background:
     repeating-linear-gradient(180deg,transparent 0 2px,rgba(57,255,20,.018) 3px,rgba(247,255,246,.016) 4px,transparent 5px)!important;
@@ -40,14 +40,14 @@ html[data-terminal-first="v7"][data-crt-glass="v8"] body::after{
     inset 0 0 26vw rgba(0,0,0,.44)!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .matrix-heavy{
+html[data-terminal-first="v7"] .matrix-heavy{
   opacity:.14!important;
   filter:blur(.15px) brightness(.86)!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .boot-panel,
-html[data-terminal-first="v7"][data-crt-glass="v8"] .access,
-html[data-terminal-first="v7"][data-crt-glass="v8"] .terminal-stage{
+html[data-terminal-first="v7"] .boot-panel,
+html[data-terminal-first="v7"] .access,
+html[data-terminal-first="v7"] .terminal-stage{
   background:
     linear-gradient(145deg,var(--crt-highlight),transparent 18%),
     linear-gradient(180deg,rgba(57,255,20,.018),transparent 22%),
@@ -63,13 +63,13 @@ html[data-terminal-first="v7"][data-crt-glass="v8"] .terminal-stage{
     0 0 34px rgba(57,255,20,.032)!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .terminal-stage{
+html[data-terminal-first="v7"] .terminal-stage{
   position:relative!important;
   isolation:isolate;
   overflow:hidden!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .terminal-stage::after{
+html[data-terminal-first="v7"] .terminal-stage::after{
   content:"";
   position:absolute;
   inset:0;
@@ -84,7 +84,7 @@ html[data-terminal-first="v7"][data-crt-glass="v8"] .terminal-stage::after{
   opacity:.78;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .unix-shell{
+html[data-terminal-first="v7"] .unix-shell{
   z-index:1;
   background:
     linear-gradient(180deg,rgba(57,255,20,.012),transparent 17%),
@@ -99,8 +99,8 @@ html[data-terminal-first="v7"][data-crt-glass="v8"] .unix-shell{
     inset 0 0 170px rgba(0,0,0,.20)!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-status,
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-prompt{
+html[data-terminal-first="v7"] .shell-status,
+html[data-terminal-first="v7"] .shell-prompt{
   background:
     linear-gradient(180deg,rgba(247,255,246,.018),transparent 55%),
     var(--crt-glass-strong)!important;
@@ -109,41 +109,41 @@ html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-prompt{
   border-color:var(--crt-edge-hot)!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-status{
+html[data-terminal-first="v7"] .shell-status{
   box-shadow:
     inset 0 -1px 0 rgba(57,255,20,.07),
     0 14px 34px rgba(0,0,0,.26),
     0 1px 18px rgba(57,255,20,.025)!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-prompt{
+html[data-terminal-first="v7"] .shell-prompt{
   box-shadow:
     inset 0 1px 0 rgba(57,255,20,.07),
     0 -14px 36px rgba(0,0,0,.32),
     0 -1px 18px rgba(57,255,20,.025)!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-scrollback{
+html[data-terminal-first="v7"] .shell-scrollback{
   background:
     radial-gradient(ellipse at 50% 0,rgba(57,255,20,.015),transparent 40%),
     transparent!important;
   text-shadow:0 0 6px rgba(57,255,20,.035);
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-result{
+html[data-terminal-first="v7"] .shell-result{
   background:transparent!important;
   box-shadow:
     inset 0 1px 0 rgba(247,255,246,.012),
     inset 0 -1px 0 rgba(57,255,20,.018)!important;
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-input{
+html[data-terminal-first="v7"] .shell-input{
   background:rgba(2,4,3,.28)!important;
   text-shadow:0 0 7px rgba(57,255,20,.08);
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-input:focus,
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-input:focus-visible{
+html[data-terminal-first="v7"] .shell-input:focus,
+html[data-terminal-first="v7"] .shell-input:focus-visible{
   background:rgba(2,4,3,.46)!important;
   border-left-color:var(--crt-phosphor)!important;
   box-shadow:
@@ -153,18 +153,18 @@ html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-input:focus-visible{
   text-shadow:0 0 8px rgba(57,255,20,.16);
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .boot-controls button,
-html[data-terminal-first="v7"][data-crt-glass="v8"] .access button{
+html[data-terminal-first="v7"] .boot-controls button,
+html[data-terminal-first="v7"] .access button{
   background:rgba(2,4,3,.42)!important;
   -webkit-backdrop-filter:blur(16px);
   backdrop-filter:blur(16px);
   box-shadow:inset 0 1px 0 rgba(247,255,246,.025);
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .boot-controls button:hover,
-html[data-terminal-first="v7"][data-crt-glass="v8"] .boot-controls button:focus-visible,
-html[data-terminal-first="v7"][data-crt-glass="v8"] .access button:hover,
-html[data-terminal-first="v7"][data-crt-glass="v8"] .access button:focus-visible{
+html[data-terminal-first="v7"] .boot-controls button:hover,
+html[data-terminal-first="v7"] .boot-controls button:focus-visible,
+html[data-terminal-first="v7"] .access button:hover,
+html[data-terminal-first="v7"] .access button:focus-visible{
   background:rgba(57,255,20,.055)!important;
   box-shadow:
     inset 0 0 18px rgba(57,255,20,.055),
@@ -172,32 +172,32 @@ html[data-terminal-first="v7"][data-crt-glass="v8"] .access button:focus-visible
   text-shadow:0 0 8px rgba(57,255,20,.24);
 }
 
-html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-logo,
-html[data-terminal-first="v7"][data-crt-glass="v8"] .boot-globe{
+html[data-terminal-first="v7"] .shell-logo,
+html[data-terminal-first="v7"] .boot-globe{
   filter:drop-shadow(0 0 10px rgba(57,255,20,.18)) drop-shadow(0 0 26px rgba(57,255,20,.055))!important;
 }
 
 @media(max-width:430px){
-  html[data-terminal-first="v7"][data-crt-glass="v8"] .boot-panel,
-  html[data-terminal-first="v7"][data-crt-glass="v8"] .access,
-  html[data-terminal-first="v7"][data-crt-glass="v8"] .terminal-stage{
+  html[data-terminal-first="v7"] .boot-panel,
+  html[data-terminal-first="v7"] .access,
+  html[data-terminal-first="v7"] .terminal-stage{
     -webkit-backdrop-filter:blur(14px) saturate(110%);
     backdrop-filter:blur(14px) saturate(110%);
     box-shadow:inset 0 0 58px rgba(57,255,20,.018),0 12px 34px rgba(0,0,0,.50)!important;
   }
-  html[data-terminal-first="v7"][data-crt-glass="v8"] .unix-shell,
-  html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-status,
-  html[data-terminal-first="v7"][data-crt-glass="v8"] .shell-prompt{
+  html[data-terminal-first="v7"] .unix-shell,
+  html[data-terminal-first="v7"] .shell-status,
+  html[data-terminal-first="v7"] .shell-prompt{
     -webkit-backdrop-filter:blur(10px);
     backdrop-filter:blur(10px);
   }
-  html[data-terminal-first="v7"][data-crt-glass="v8"] .terminal-stage::after{opacity:.46}
+  html[data-terminal-first="v7"] .terminal-stage::after{opacity:.46}
 }
 
 @media(prefers-reduced-motion:reduce){
-  html[data-terminal-first="v7"][data-crt-glass="v8"] body::before,
-  html[data-terminal-first="v7"][data-crt-glass="v8"] body::after,
-  html[data-terminal-first="v7"][data-crt-glass="v8"] .terminal-stage::after{
+  html[data-terminal-first="v7"] body::before,
+  html[data-terminal-first="v7"] body::after,
+  html[data-terminal-first="v7"] .terminal-stage::after{
     animation:none!important;
     transition:none!important;
   }
