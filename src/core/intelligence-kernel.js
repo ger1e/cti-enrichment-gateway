@@ -5,6 +5,8 @@ export const INTELLIGENCE_KERNEL_SCHEMA_VERSION = '1.0';
 const FINGERPRINT_RE = /^[a-f0-9]{64}$/i;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CONTRADICTION_LEVEL = Object.freeze({ none: 0, low: 1, medium: 2, high: 3 });
+const HEALTHY_CAPABILITY_STATES = new Set(['ok', 'cached']);
+const LOST_CAPABILITY_STATES = new Set(['failed', 'skipped']);
 
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -179,6 +181,58 @@ function temporalRelevance(items, now) {
   };
 }
 
+function normalizedCapabilityRecords(coverage) {
+  const values = Array.isArray(coverage?.providerCapabilities) ? coverage.providerCapabilities : [];
+  return values
+    .filter(item => item && typeof item === 'object' && typeof item.provider === 'string' && item.provider.length > 0)
+    .map(item => ({
+      provider: item.provider,
+      state: typeof item.state === 'string' ? item.state : 'skipped',
+      observationTypes: stableUnique((Array.isArray(item.observationTypes) ? item.observationTypes : [])
+        .filter(value => typeof value === 'string' && value.length > 0)),
+      sourceRole: typeof item.sourceRole === 'string' && item.sourceRole.length > 0 ? item.sourceRole : 'unknown',
+    }));
+}
+
+function coverageImpact(coverage, policy) {
+  const capabilities = normalizedCapabilityRecords(coverage);
+  const healthy = capabilities.filter(item => HEALTHY_CAPABILITY_STATES.has(item.state));
+  const lost = capabilities.filter(item => LOST_CAPABILITY_STATES.has(item.state));
+  const uniqueCapabilityLoss = [];
+  const duplicateCoverageLoss = [];
+
+  for (const item of lost) {
+    for (const observationType of item.observationTypes) {
+      const record = {
+        provider: item.provider,
+        observationType,
+        semanticClass: semanticClass(observationType),
+        category: evidenceCategory(observationType, policy),
+        sourceRole: item.sourceRole,
+      };
+      const healthyDuplicate = healthy.some(candidate => candidate.provider !== item.provider && candidate.observationTypes.includes(observationType));
+      (healthyDuplicate ? duplicateCoverageLoss : uniqueCapabilityLoss).push(record);
+    }
+  }
+
+  const byIdentity = (a, b) => `${a.observationType}:${a.provider}:${a.sourceRole}`.localeCompare(`${b.observationType}:${b.provider}:${b.sourceRole}`);
+  uniqueCapabilityLoss.sort(byIdentity);
+  duplicateCoverageLoss.sort(byIdentity);
+
+  const uniqueThreatLoss = uniqueCapabilityLoss.some(item => item.category === 'direct_threat' || item.category === 'supporting_threat');
+  const reasons = [];
+  if (uniqueThreatLoss) reasons.push('unique_threat_capability_loss');
+  if (duplicateCoverageLoss.length > 0) reasons.push('duplicate_capability_loss');
+  if (uniqueCapabilityLoss.some(item => item.category !== 'direct_threat' && item.category !== 'supporting_threat')) reasons.push('contextual_capability_loss');
+
+  return {
+    level: uniqueThreatLoss ? 'material' : (uniqueCapabilityLoss.length > 0 || duplicateCoverageLoss.length > 0 ? 'degraded' : 'none'),
+    uniqueCapabilityLoss,
+    duplicateCoverageLoss,
+    reasons: stableUnique(reasons),
+  };
+}
+
 function validateInputs({ indicator, type, evidence, relationships, correlation, coverage, policy }) {
   if (typeof indicator !== 'string' || indicator.length === 0) throw new TypeError('intelligence_indicator_required');
   if (typeof type !== 'string' || type.length === 0) throw new TypeError('intelligence_type_required');
@@ -239,12 +293,7 @@ export function buildIntelligenceKernel({
       evidenceFingerprints: [],
       ruleIds: [],
     },
-    coverageImpact: {
-      level: 'none',
-      uniqueCapabilityLoss: [],
-      duplicateCoverageLoss: [],
-      reasons: [],
-    },
+    coverageImpact: coverageImpact(coverage, policy),
     analystPriority: {
       level: 'insufficient',
       reasons: [],
