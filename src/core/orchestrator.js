@@ -297,7 +297,7 @@ export async function enrich({
       correlation,
       decision,
     });
-    guidance = buildGuidance({ decision, correlation, evidenceGraph });
+    guidance = buildGuidance({ decision, correlation, evidenceGraph, intelligence });
   }
   const durationMs = Math.max(0, nowMs() - started);
   telemetry?.emit?.({ event: 'request_complete', requestId, type, profile, status, durationMs, indicator });
