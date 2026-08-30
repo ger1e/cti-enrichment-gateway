@@ -14,19 +14,21 @@ All notable repository changes should be recorded here. This project uses a ligh
 - Bounded Intelligence Kernel summary in Guidance while Evidence Graph fingerprint validation remains authoritative.
 - Kernel-backed IP analyst report using one shared deterministic model for executive assessment, relationships/pivots, contradiction severity, temporal context, hunt relevance, coverage and copy/text output.
 - Compatibility locks keeping Evidence v2 authoritative, Evidence Graph/STIX isolated from Kernel-derived conclusions, legacy/cached envelopes valid, and deterministic outputs permutation-safe.
-- GER1E-normalized public documentation/README sizing contract: 720px SVG family, 102px hero mark, 22px headings, 17px body, 15px microtype, 13/12px hero rain, and full-width 720×300 terminal footer with `PER ASPERA AD ASTRA`.
+- Repository-wide **GER1E/PARA11AX documentation standard v1** across every tracked Markdown surface: shared standard marker/footer, current terminology and proof-state vocabulary, GER1E-normalized README sizing, supporting README/template parity, and explicit historical-status banners on preserved Superpowers plans/specs.
+- GER1E-normalized README sizing contract: 720px SVG family, 102px hero mark, 22px headings, 17px body, 15px microtype, 13/12px hero rain, and full-width 720×300 terminal footer with `PER ASPERA AD ASTRA`.
 - Native bounded Shodan analyst-shell surface with authenticated `shodan host`, `search`, `count`, `stats`, `domain`, and `info` commands through same-origin `POST /api/para11ax/shodan`.
 - Fixed Shodan shell egress to `https://api.shodan.io` with server-side-only `SHODAN_API_KEY`, first-page-only search, capped normalized results, raw banner stripping, disabled `download`/arbitrary paging, and explicit query-credit impact.
 - V8 Train 4 browser-local case workspace with IndexedDB persistence, bounded `.para11ax` bundles, snapshots/semantic diffs, exact typed cross-case index and local case graph projection.
 - V8 Train 5 canonical Evidence Graph v1.0 and Guidance v1.0 projections.
 - V8 Train 6 certificate Maltego parity across all nine gateway workflow types with explicit `cert-sha256:` semantics.
-- Executable documentation-contract drift checks for workflow types, provider count, scheduler/Kernel contracts, API routes, evidence projection versions, Maltego coverage, production identity, User Scanner, Shodan shell and README visual sizing.
+- Executable documentation-contract drift checks for workflow types, provider count, scheduler/Kernel contracts, API routes, evidence projection versions, Maltego coverage, production identity, User Scanner, Shodan shell, README visual sizing, and repository-wide Markdown standardization.
 - Evidence-oriented QA report and proof-state model separating repository, CI, deployment, live-public and credential-dependent verification.
 - Public-release safety audit/checklist, architecture/trust-boundary/security-control docs, contribution guidance and operator CLI/report workflows.
 
 ##### Changed
 
-- Public README and all public deep docs now describe the merged deterministic Scheduler/Kernel architecture instead of the retired provider-order wording.
+- Public README and all current deep docs now describe the merged deterministic Scheduler/Kernel architecture instead of the retired provider-order wording.
+- Every tracked Markdown document now uses the same GER1E/PARA11AX standard; historical Superpowers plans/specs retain their original technical record but are explicitly labeled historical and point to the current architecture.
 - Evidence v2 remains the authoritative provider-normalized record; Intelligence Kernel output is explicitly documented as derived context rather than new evidence.
 - Provider execution ordering is now separated from profile admission. Scheduler priority cannot broaden provider membership or use earlier evidence to suppress admitted sources.
 - IP reporting, Decision Support and Guidance consume a compatible Intelligence Kernel v1.0 projection while preserving established fallbacks.
