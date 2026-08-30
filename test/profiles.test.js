@@ -21,16 +21,45 @@ test('profiles are fixed and reject arbitrary values', () => {
   assert.throws(() => selectProviders({ type: 'hash', profile: 'whatever', workflow, registry: reg }), /invalid_profile/);
 });
 
-test('full stays inside the workflow and orders deterministically by tier', () => {
-  assert.deepEqual(selectProviders({ type: 'hash', profile: 'full', workflow, registry: reg }), ['tier1b', 'tier1a', 'tier3', 'scarce', 'knowledge']);
+test('full is admission-only and preserves original workflow order despite scrambled tiers', () => {
+  assert.deepEqual(selectProviders({ type: 'hash', profile: 'full', workflow, registry: reg }), workflow);
 });
 
-test('standard excludes scarce providers without inventing providers', () => {
-  assert.deepEqual(selectProviders({ type: 'hash', profile: 'standard', workflow, registry: reg }), ['tier1b', 'tier1a', 'tier3', 'knowledge']);
+test('standard excludes scarce providers and preserves workflow order', () => {
+  assert.deepEqual(selectProviders({ type: 'hash', profile: 'standard', workflow, registry: reg }), ['tier3', 'tier1b', 'tier1a', 'knowledge']);
 });
 
 test('fast excludes scarce and high-cost broad enrichment but preserves sole knowledge workflow', () => {
   assert.deepEqual(selectProviders({ type: 'hash', profile: 'fast', workflow, registry: reg }), ['tier1b', 'tier1a', 'knowledge']);
   const attackReg = registry([{ name: 'attack-taxii', types: ['attack'], tier: 5, costClass: 'free', observationTypes: ['attack_knowledge'] }]);
   assert.deepEqual(selectProviders({ type: 'attack', profile: 'fast', workflow: ['attack-taxii'], registry: attackReg }), ['attack-taxii']);
+});
+
+test('scheduler descriptors cannot re-admit providers excluded by profile', () => {
+  const schedulerAware = registry([
+    {
+      name: 'scarce-direct',
+      types: ['ip'],
+      tier: 4,
+      costClass: 'scarce',
+      schedulerByType: { ip: { authorityClass: 'authoritative', semanticUniqueness: 'unique', intelligenceValue: 'direct', pivotValue: 'high', latencyClass: 'fast' } },
+    },
+    {
+      name: 'tier3-direct',
+      types: ['ip'],
+      tier: 3,
+      costClass: 'quota',
+      schedulerByType: { ip: { authorityClass: 'authoritative', semanticUniqueness: 'unique', intelligenceValue: 'direct', pivotValue: 'high', latencyClass: 'fast' } },
+    },
+    {
+      name: 'tier2-context',
+      types: ['ip'],
+      tier: 2,
+      costClass: 'free',
+      schedulerByType: { ip: { authorityClass: 'contextual', semanticUniqueness: 'duplicative', intelligenceValue: 'contextual', pivotValue: 'none', latencyClass: 'slow' } },
+    },
+  ]);
+  const names = ['scarce-direct', 'tier3-direct', 'tier2-context'];
+  assert.deepEqual(selectProviders({ type: 'ip', profile: 'fast', workflow: names, registry: schedulerAware }), ['tier2-context']);
+  assert.deepEqual(selectProviders({ type: 'ip', profile: 'standard', workflow: names, registry: schedulerAware }), ['tier3-direct', 'tier2-context']);
 });
