@@ -1,5 +1,6 @@
 const PROFILES = new Set(['fast', 'standard', 'full']);
 const SHODAN_COMMANDS = new Set(['host', 'search', 'count', 'stats', 'domain', 'info']);
+const PROVIDER_NAME_RE = /^[a-z0-9-]{1,64}$/;
 const ENRICHMENT_OBSERVERS = new Set();
 let latestGatewayClient = null;
 
@@ -167,6 +168,14 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
     return { indicator: String(indicator), profile };
   }
 
+  function providerPayload(provider, indicator) {
+    const name = String(provider ?? '').trim().toLowerCase();
+    if (!PROVIDER_NAME_RE.test(name)) throw new TypeError('invalid provider name');
+    const value = String(indicator ?? '').trim();
+    if (!value) throw new TypeError('provider indicator required');
+    return { provider: name, indicator: value };
+  }
+
   function batchPayload(indicators, profile) {
     if (!PROFILES.has(profile)) throw new TypeError('invalid profile');
     if (!Array.isArray(indicators) || indicators.length < 1 || indicators.length > 20 || indicators.some(value => typeof value !== 'string')) {
@@ -223,6 +232,16 @@ export function createGatewayClient({ fetchImpl = fetch, getToken }) {
       const result = await request('/api/para11ax/enrich', {
         method: 'POST',
         body: requestPayload(indicator, profile),
+        signal,
+        validate: validEnvelope,
+      });
+      await notifyEnrichmentObservers(result);
+      return result;
+    },
+    provider: async (provider, indicator, signal) => {
+      const result = await request('/api/para11ax/provider', {
+        method: 'POST',
+        body: providerPayload(provider, indicator),
         signal,
         validate: validEnvelope,
       });
