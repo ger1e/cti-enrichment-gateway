@@ -47,7 +47,18 @@ function resolveDescriptor(tokens, surface) {
 }
 
 function legacyCaseCompletions(tokens, trailingSpace, caseTypes) {
-  if (!caseTypes.length || tokens[0]?.toLowerCase() !== 'case') return null;
+  if (!caseTypes.length) return null;
+  const root = tokens[0]?.toLowerCase();
+
+  if (root === 'unpin') {
+    if (tokens.length === 1 && trailingSpace) return uniqueSorted(caseTypes);
+    if (tokens.length === 2 && !trailingSpace) {
+      return uniqueSorted(caseTypes).filter(value => value.toLowerCase().startsWith(tokens[1].toLowerCase()));
+    }
+    return tokens.length > 1 ? [] : null;
+  }
+
+  if (root !== 'case') return null;
   if (tokens.length === 1) return trailingSpace ? [...LEGACY_CASE_SUBCOMMANDS] : null;
 
   const subcommand = tokens[1].toLowerCase();
