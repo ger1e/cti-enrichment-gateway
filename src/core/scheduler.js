@@ -3,6 +3,7 @@ import {
   PROVIDER_MAX_ATTEMPTS,
   REQUEST_DEADLINE_MS,
 } from './execution-policy.js';
+import { rankProvidersForExecution } from './provider-priority.js';
 
 function retryableFailure(result) {
   if (!result || result.ok || !result.failure) return false;
@@ -56,6 +57,7 @@ async function runPool(items, concurrency, worker) {
 
 export async function runScheduledProviders({
   providers = [],
+  type,
   execute,
   concurrency = PROVIDER_CONCURRENCY_MAX,
   deadlineMs = REQUEST_DEADLINE_MS,
@@ -121,16 +123,21 @@ export async function runScheduledProviders({
     return { provider: adapter.name, skipped: false, attempts, result };
   };
 
-  for (const group of groupByTier(providers)) {
-    if (nowMs() >= deadlineAt) {
-      all.push(...group.providers.map(adapter => ({ provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts: 0 })));
-      continue;
+  if (type) {
+    const queue = rankProvidersForExecution({ providers, type }).map(item => item.adapter);
+    all.push(...await runPool(queue, concurrency, runOne));
+  } else {
+    for (const group of groupByTier(providers)) {
+      if (nowMs() >= deadlineAt) {
+        all.push(...group.providers.map(adapter => ({ provider: adapter.name, skipped: true, reason: 'request_deadline_exhausted', attempts: 0 })));
+        continue;
+      }
+      if (calls >= callLimit) {
+        all.push(...group.providers.map(adapter => ({ provider: adapter.name, skipped: true, reason: 'provider_call_budget_exhausted', attempts: 0 })));
+        continue;
+      }
+      all.push(...await runPool(group.providers, concurrency, runOne));
     }
-    if (calls >= callLimit) {
-      all.push(...group.providers.map(adapter => ({ provider: adapter.name, skipped: true, reason: 'provider_call_budget_exhausted', attempts: 0 })));
-      continue;
-    }
-    all.push(...await runPool(group.providers, concurrency, runOne));
   }
 
   return Object.freeze({
