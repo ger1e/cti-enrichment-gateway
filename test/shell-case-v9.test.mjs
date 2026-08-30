@@ -58,6 +58,14 @@ test('case bridge retains storage import download and capture but never owns she
   }
 });
 
+test('shell UI is the sole case submit owner and delegates registered case commands to shared runtime', async () => {
+  const source = await readFile(new URL('../app/shell-ui.js', import.meta.url), 'utf8');
+  for (const required of ['createBrowserShellExecutor', 'COMMAND_REGISTRY', 'parseShellLine', 'executePipeline', 'caseShellAdapter']) {
+    assert.match(source, new RegExp(required));
+  }
+  assert.match(source, /namespace\s*===\s*['"]case['"]/);
+});
+
 test('case runtime exposes deterministic pins notes timeline and evidence graph projections', async () => {
   const caseValue = {
     schemaVersion: '1.0', id: 'case-1', title: 'Fixture',
