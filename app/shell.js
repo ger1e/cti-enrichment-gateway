@@ -5,6 +5,8 @@ const VIEWS = Object.freeze(['overview', 'evidence', 'correlation', 'relationshi
 const CASE_SUBCOMMANDS = Object.freeze(['close', 'export', 'find', 'import', 'list', 'new', 'open', 'refresh', 'show']);
 const USER_SCANNER_TYPES = Object.freeze(['email', 'username']);
 const USER_SCANNER_FLAGS = Object.freeze(['--category', '--module', '--cross-scan', '--include-nsfw']);
+const SHODAN_SUBCOMMANDS = Object.freeze(['count', 'domain', 'host', 'info', 'search', 'stats']);
+const SHODAN_FLAGS = Object.freeze(['--facets']);
 
 export const COMMANDS = Object.freeze([
   { name: 'help', aliases: ['?'], category: 'core', usage: 'help [command]', summary: 'show command index or command help' },
@@ -29,6 +31,7 @@ export const COMMANDS = Object.freeze([
   { name: 'batch', category: 'enrichment', usage: 'batch <observable> [observable ...]', summary: 'enrich 1..20 observables using the active profile' },
 
   { name: 'user-scanner', aliases: ['osint', 'identity'], category: 'osint', usage: 'user-scanner <email|username> <target> [--category <name>|--module <name>] [--cross-scan] [--include-nsfw]', summary: 'run isolated email/username OSINT through User Scanner' },
+  { name: 'shodan', category: 'osint', usage: 'shodan <host|search|count|stats|domain|info> ...', summary: 'run bounded Shodan operator queries through the authenticated gateway' },
 
   { name: 'case', category: 'case', usage: 'case <new|open|close|list|show|refresh|export|import|find>', summary: 'manage the browser-local analyst workspace' },
   { name: 'pin', category: 'case', usage: 'pin', summary: 'pin the current typed enrichment result to the active case' },
@@ -154,6 +157,58 @@ function parseUserScanner(args) {
   return result('user-scanner', { scanType, target, category, module, crossScan, noNsfw });
 }
 
+function parseShodan(args) {
+  const command = args[0]?.toLowerCase();
+  if (!command || !SHODAN_SUBCOMMANDS.includes(command)) return error('usage: shodan <host|search|count|stats|domain|info> ...');
+
+  if (command === 'info') {
+    if (args.length !== 1) return error('usage: shodan info');
+    return result('shodan', { command, target: null, query: null, facets: null });
+  }
+
+  if (command === 'host') {
+    const target = String(args[1] || '').trim();
+    if (args.length !== 2 || !target || target.length > 64 || !/^[0-9a-f:.]+$/i.test(target) || (!target.includes('.') && !target.includes(':'))) {
+      return error('usage: shodan host <ip>');
+    }
+    return result('shodan', { command, target, query: null, facets: null });
+  }
+
+  if (command === 'domain') {
+    const target = String(args[1] || '').trim().toLowerCase().replace(/\.$/, '');
+    if (args.length !== 2 || !target || target.length > 253 || !/^[a-z0-9.-]+$/i.test(target) || !target.includes('.') || target.includes('..')) {
+      return error('usage: shodan domain <domain>');
+    }
+    return result('shodan', { command, target, query: null, facets: null });
+  }
+
+  if (command === 'search' || command === 'count') {
+    const queryParts = args.slice(1);
+    if (!queryParts.length || queryParts.some(token => token.startsWith('--'))) return error(`usage: shodan ${command} <query>`);
+    const query = queryParts.join(' ').trim();
+    if (!query || query.length > 1024) return error('Shodan query must be 1..1024 characters');
+    return result('shodan', { command, target: null, query, facets: null });
+  }
+
+  const queryParts = [];
+  let facets = null;
+  for (let index = 1; index < args.length; index += 1) {
+    const token = args[index];
+    if (token === '--facets') {
+      if (facets !== null || index + 1 >= args.length || index + 2 !== args.length) return error('usage: shodan stats <query> [--facets <fields>]');
+      facets = args[index + 1];
+      if (!/^[a-z0-9_.-]+(?::[1-9]\d{0,2})?(?:,[a-z0-9_.-]+(?::[1-9]\d{0,2})?)*$/i.test(facets) || facets.length > 256) return error('invalid Shodan facets');
+      index += 1;
+      continue;
+    }
+    if (token.startsWith('--')) return error(`unsupported Shodan option: ${token}`);
+    queryParts.push(token);
+  }
+  const query = queryParts.join(' ').trim();
+  if (!query || query.length > 1024) return error('usage: shodan stats <query> [--facets <fields>]');
+  return result('shodan', { command, target: null, query, facets });
+}
+
 function parseCase(args) {
   const subcommand = args[0]?.toLowerCase();
   if (!subcommand) return error('usage: case <new|open|close|list|show|refresh|export|import|find>');
@@ -271,6 +326,11 @@ export function interpretCommand(input, context = {}) {
     return parseUserScanner(args);
   }
 
+  if (canonical === 'shodan') {
+    if (!authenticated) return needsAuth();
+    return parseShodan(args);
+  }
+
   if (canonical === 'batch') {
     if (!authenticated) return needsAuth();
     if (!args.length || args.length > 20) return error('batch accepts 1..20 observables');
@@ -347,6 +407,18 @@ export function completeCommand(input) {
     if (pieces.length === 1 && fragmentRaw.endsWith(' ')) return USER_SCANNER_TYPES;
     const last = fragmentRaw.endsWith(' ') ? '' : (pieces.at(-1) || '');
     if (last.startsWith('--')) return USER_SCANNER_FLAGS.filter(value => value.startsWith(last.toLowerCase())).sort();
+    return [];
+  }
+
+  if (canonical === 'shodan') {
+    const pieces = fragmentRaw.split(/\s+/);
+    if (pieces.length === 1 && !fragmentRaw.endsWith(' ')) {
+      return SHODAN_SUBCOMMANDS.filter(value => value.startsWith(pieces[0].toLowerCase())).sort();
+    }
+    if (pieces.length === 1 && fragmentRaw.endsWith(' ')) return [...SHODAN_SUBCOMMANDS].sort();
+    const subcommand = pieces[0]?.toLowerCase();
+    const last = fragmentRaw.endsWith(' ') ? '' : (pieces.at(-1) || '');
+    if (subcommand === 'stats' && last.startsWith('--')) return SHODAN_FLAGS.filter(value => value.startsWith(last.toLowerCase())).sort();
     return [];
   }
 
