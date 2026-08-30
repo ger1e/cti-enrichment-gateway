@@ -25,6 +25,30 @@ function assertDeepFrozen(value) {
   for (const child of Object.values(value)) assertDeepFrozen(child);
 }
 
+function evidence({
+  provider,
+  kind = 'reputation',
+  verdict = 'malicious',
+  sourceRole = 'first_party',
+  semanticClass = 'reputation',
+  fingerprint = 'a',
+  firstSeen,
+  lastSeen,
+  retrievedAt,
+} = {}) {
+  const observation = { kind, verdict };
+  if (firstSeen !== undefined) observation.firstSeen = firstSeen;
+  if (lastSeen !== undefined) observation.lastSeen = lastSeen;
+  const item = {
+    provider,
+    observation,
+    semantics: { sourceRole, semanticClass },
+    integrity: { fingerprint: fingerprint.repeat(64) },
+  };
+  if (retrievedAt !== undefined) item.retrievedAt = retrievedAt;
+  return item;
+}
+
 test('empty IP evidence returns the canonical immutable Intelligence Kernel v1 projection', () => {
   const out = build();
   assert.equal(INTELLIGENCE_KERNEL_SCHEMA_VERSION, '1.0');
@@ -62,7 +86,7 @@ test('empty IP evidence returns the canonical immutable Intelligence Kernel v1 p
 });
 
 test('kernel projection never mutates Evidence v2 relationships correlation or coverage inputs', () => {
-  const evidence = [{
+  const inputEvidence = [{
     provider: 'fixture',
     observation: { kind: 'reputation', verdict: 'malicious', attributes: { nested: ['x'] } },
     semantics: { sourceRole: 'first_party', semanticClass: 'reputation' },
@@ -71,11 +95,11 @@ test('kernel projection never mutates Evidence v2 relationships correlation or c
   const relationships = [{ type: 'domain', source: '203.0.113.7', target: 'evil.example', targetType: 'domain', provider: 'fixture' }];
   const correlation = { limitations: ['fixture_limit'], nested: { values: [1, 2] } };
   const coverage = { materialLoss: false, selectedProviders: ['fixture'], nested: { values: [3, 4] } };
-  const before = structuredClone({ evidence, relationships, correlation, coverage });
+  const before = structuredClone({ evidence: inputEvidence, relationships, correlation, coverage });
 
-  build({ evidence, relationships, correlation, coverage });
+  build({ evidence: inputEvidence, relationships, correlation, coverage });
 
-  assert.deepEqual({ evidence, relationships, correlation, coverage }, before);
+  assert.deepEqual({ evidence: inputEvidence, relationships, correlation, coverage }, before);
 });
 
 test('kernel projection is deterministic for identical inputs and injected clock', () => {
@@ -105,4 +129,101 @@ test('missing clock never falls back to wall clock for temporal state', () => {
   });
   assert.equal(out.temporalRelevance.overall, 'unknown');
   assert.equal(out.temporalRelevance.ageDays, null);
+});
+
+test('source diversity and corroboration distinguish independent evidence from same-capability duplication', () => {
+  const independent = build({ evidence: [
+    evidence({ provider: 'alpha', sourceRole: 'first_party', fingerprint: '1' }),
+    evidence({ provider: 'beta', sourceRole: 'contextual', fingerprint: '2' }),
+  ] });
+  assert.deepEqual(independent.sourceDiversity, {
+    providerCount: 2,
+    providers: ['alpha', 'beta'],
+    sourceRoles: ['contextual', 'first_party'],
+    semanticClasses: ['reputation'],
+    evidenceCategories: ['direct_threat'],
+    capabilityGroups: ['contextual:reputation', 'first_party:reputation'],
+  });
+  assert.deepEqual(independent.corroboration, [{
+    semanticClass: 'reputation',
+    category: 'direct_threat',
+    polarity: 'positive',
+    providers: ['alpha', 'beta'],
+    sourceRoles: ['contextual', 'first_party'],
+    evidenceFingerprints: ['1'.repeat(64), '2'.repeat(64)],
+    independence: 'independent',
+  }]);
+
+  const duplicate = build({ evidence: [
+    evidence({ provider: 'alpha', sourceRole: 'first_party', fingerprint: '3' }),
+    evidence({ provider: 'beta', sourceRole: 'first_party', fingerprint: '4' }),
+  ] });
+  assert.equal(duplicate.corroboration[0].independence, 'same_capability');
+  assert.deepEqual(duplicate.sourceDiversity.capabilityGroups, ['first_party:reputation']);
+});
+
+test('contradiction severity follows direct supporting and contextual evidence categories', () => {
+  const high = build({ evidence: [
+    evidence({ provider: 'alpha', kind: 'reputation', verdict: 'malicious', fingerprint: '1' }),
+    evidence({ provider: 'beta', kind: 'reputation', verdict: 'benign', fingerprint: '2' }),
+  ] });
+  assert.equal(high.contradiction.level, 'high');
+  assert.equal(high.contradiction.items[0].category, 'direct_threat');
+
+  const medium = build({ evidence: [
+    evidence({ provider: 'alpha', kind: 'threat_context', semanticClass: 'threat_context', verdict: 'malicious', fingerprint: '3' }),
+    evidence({ provider: 'beta', kind: 'threat_context', semanticClass: 'threat_context', verdict: 'benign', fingerprint: '4' }),
+  ] });
+  assert.equal(medium.contradiction.level, 'medium');
+  assert.equal(medium.contradiction.items[0].category, 'supporting_threat');
+
+  const low = build({ evidence: [
+    evidence({ provider: 'alpha', kind: 'registration', semanticClass: 'network_context', verdict: 'malicious', fingerprint: '5' }),
+    evidence({ provider: 'beta', kind: 'registration', semanticClass: 'network_context', verdict: 'benign', fingerprint: '6' }),
+  ] });
+  assert.equal(low.contradiction.level, 'low');
+  assert.equal(low.contradiction.items[0].category, 'infrastructure');
+
+  const none = build({ evidence: [
+    evidence({ provider: 'alpha', fingerprint: '7' }),
+    evidence({ provider: 'beta', fingerprint: '8' }),
+  ] });
+  assert.deepEqual(none.contradiction, { level: 'none', items: [] });
+});
+
+test('temporal relevance classifies current aging stale mixed and unknown observation time deterministically', () => {
+  const current = build({ evidence: [evidence({ provider: 'current', firstSeen: '2026-08-28T10:00:00.000Z', lastSeen: '2026-08-29T10:00:00.000Z', fingerprint: '1' })] });
+  assert.deepEqual(current.temporalRelevance, {
+    firstSeen: '2026-08-28T10:00:00.000Z', lastSeen: '2026-08-29T10:00:00.000Z', ageDays: 1, activeSpanDays: 1,
+    overall: 'current', distribution: { current: 1, aging: 0, stale: 0, unknown: 0 },
+  });
+
+  const aging = build({ evidence: [evidence({ provider: 'aging', lastSeen: '2026-08-15T10:00:00.000Z', fingerprint: '2' })] });
+  assert.equal(aging.temporalRelevance.overall, 'aging');
+  assert.equal(aging.temporalRelevance.ageDays, 15);
+
+  const stale = build({ evidence: [evidence({ provider: 'stale', lastSeen: '2026-07-01T10:00:00.000Z', fingerprint: '3' })] });
+  assert.equal(stale.temporalRelevance.overall, 'stale');
+  assert.equal(stale.temporalRelevance.ageDays, 60);
+
+  const mixed = build({ evidence: [
+    evidence({ provider: 'current', firstSeen: '2026-08-29T10:00:00.000Z', lastSeen: '2026-08-29T10:00:00.000Z', fingerprint: '4' }),
+    evidence({ provider: 'aging', firstSeen: '2026-08-10T10:00:00.000Z', lastSeen: '2026-08-15T10:00:00.000Z', fingerprint: '5' }),
+    evidence({ provider: 'stale', firstSeen: '2026-06-01T10:00:00.000Z', lastSeen: '2026-07-01T10:00:00.000Z', fingerprint: '6' }),
+    evidence({ provider: 'unknown', fingerprint: '7' }),
+  ] });
+  assert.equal(mixed.temporalRelevance.overall, 'stale');
+  assert.deepEqual(mixed.temporalRelevance.distribution, { current: 1, aging: 1, stale: 1, unknown: 1 });
+  assert.equal(mixed.temporalRelevance.firstSeen, '2026-06-01T10:00:00.000Z');
+  assert.equal(mixed.temporalRelevance.lastSeen, '2026-08-29T10:00:00.000Z');
+  assert.equal(mixed.temporalRelevance.ageDays, 1);
+  assert.equal(mixed.temporalRelevance.activeSpanDays, 89);
+});
+
+test('retrieval time alone never becomes observation recency', () => {
+  const out = build({ evidence: [evidence({ provider: 'retrieved-only', retrievedAt: '2026-08-30T09:59:00.000Z', fingerprint: '9' })] });
+  assert.deepEqual(out.temporalRelevance, {
+    firstSeen: null, lastSeen: null, ageDays: null, activeSpanDays: null, overall: 'unknown',
+    distribution: { current: 0, aging: 0, stale: 0, unknown: 1 },
+  });
 });
