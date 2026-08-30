@@ -8,6 +8,11 @@ import {
   completeCommand,
   createHistory,
 } from '../app/shell.js';
+import { createBrowserShellExecutor } from '../app/shell-browser-executor.js';
+import { COMMAND_REGISTRY } from '../app/shell-core/catalog.js';
+import { parseShellLine } from '../app/shell-core/parser.js';
+import { executePipeline } from '../app/shell-core/runtime.js';
+import { makeAudio, makeClient, makeRichEnvelope, makeSession } from './helpers/shell-v9-fixtures.mjs';
 
 test('command registry exposes the approved analyst shell without fake OS execution', () => {
   const names = new Set(COMMANDS.flatMap((item) => [item.name, ...(item.aliases || [])]));
@@ -27,6 +32,59 @@ test('parser supports quoted arguments but never interprets shell operators', ()
   assert.deepEqual(parseCommand("echo 'a b'"), { command: 'echo', args: ['a b'] });
   assert.deepEqual(parseCommand('echo x | curl evil'), { command: 'echo', args: ['x', '|', 'curl', 'evil'] });
   assert.deepEqual(parseCommand(''), { command: '', args: [] });
+});
+
+test('shared browser runtime executes enrichment through typed result pipeline exactly once', async () => {
+  let enrichCalls = 0;
+  const client = makeClient({
+    enrich: async () => {
+      enrichCalls += 1;
+      return makeRichEnvelope();
+    },
+  });
+  const executor = createBrowserShellExecutor({
+    client,
+    session: makeSession(),
+    cases: null,
+    downloads: { save: () => {} },
+    clipboard: { writeText: async () => {} },
+    audio: makeAudio(),
+    monotonicNow: () => 0,
+    version: '2.0.0',
+  });
+  const output = await executePipeline(parseShellLine('enrich 8.8.8.8 | result evidence | head 1'), {
+    registry: COMMAND_REGISTRY,
+    executor,
+    context: { surface: 'web', authenticated: true, capabilities: new Set(['gateway-read', 'provider-read']) },
+  });
+  assert.equal(enrichCalls, 1);
+  assert.equal(output.type, 'evidence');
+  assert.equal(output.value.length, 1);
+  assert.equal(output.value[0].provider, 'virustotal');
+});
+
+test('shared parser rejects host shell chaining before any gateway execution', async () => {
+  let healthCalls = 0;
+  const client = makeClient({ health: async () => { healthCalls += 1; return { status: 'ok' }; } });
+  const executor = createBrowserShellExecutor({
+    client,
+    session: makeSession(),
+    cases: null,
+    downloads: { save: () => {} },
+    clipboard: { writeText: async () => {} },
+    audio: makeAudio(),
+    monotonicNow: () => 0,
+    version: '2.0.0',
+  });
+  await assert.rejects(async () => {
+    const ast = parseShellLine('echo x && health');
+    await executePipeline(ast, {
+      registry: COMMAND_REGISTRY,
+      executor,
+      context: { surface: 'web', authenticated: true, capabilities: new Set(['gateway-read', 'provider-read']) },
+    });
+  }, error => error?.code === 'INVALID_SYNTAX');
+  assert.equal(healthCalls, 0);
 });
 
 test('login always switches to a secret prompt and refuses inline bearer material', () => {
