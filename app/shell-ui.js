@@ -371,6 +371,27 @@ export function mountAnalystShell({
       } finally { endOperation(); }
       return;
     }
+    if (action.action === 'shodan') {
+      const controller = beginOperation(false);
+      const subject = action.target || action.query || '';
+      appendLine(`shodan: ${action.command}${subject ? ` ${subject}` : ''}${action.facets ? ` [facets=${action.facets}]` : ''}`, 'cyan');
+      audio.play('scan');
+      triggerGlitch('glitch-scan', 240);
+      try {
+        const result = await client.shodan({
+          command: action.command,
+          target: action.target,
+          query: action.query,
+          facets: action.facets,
+        }, controller.signal);
+        const tone = result.creditImpact === 'none' ? 'green' : 'amber';
+        appendLine(`[ OK ] SHODAN ${String(result.command).toUpperCase()} · credit=${result.creditImpact} · ${result.durationMs}ms · ${result.requestId}`, tone);
+        appendStructuredFacts(`SHODAN ${String(result.command).toUpperCase()}`, result.data, tone);
+        appendLine('Shodan operator output is isolated from the current Evidence v2 enrichment result.', 'muted');
+        triggerGlitch('glitch-result', 220);
+      } finally { endOperation(); }
+      return;
+    }
     if (action.action === 'batch') {
       const controller = beginOperation(false);
       appendLine(`batch: ${action.indicators.length} observables [profile=${action.profile}]`, 'cyan');
