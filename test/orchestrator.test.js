@@ -5,7 +5,17 @@ import { createProviderRegistry } from '../src/core/provider-registry.js';
 import { normalizeEvidence } from '../src/core/normalize.js';
 import { enrich } from '../src/core/orchestrator.js';
 
-function adapter(name, { types = ['ip'], observationTypes = ['fixture_context'], run, parserVersion = '1', tier = 1, costClass = 'free', schedulerByType } = {}) {
+function adapter(name, {
+  types = ['ip'],
+  observationTypes = ['fixture_context'],
+  run,
+  parserVersion = '1',
+  tier = 1,
+  costClass = 'free',
+  schedulerByType,
+  sourceRole = 'community',
+  coverageObservationTypesByType,
+} = {}) {
   return {
     name,
     types,
@@ -19,6 +29,8 @@ function adapter(name, { types = ['ip'], observationTypes = ['fixture_context'],
     fixedHosts: ['example.test'],
     parserVersion,
     sourceUrl: 'https://example.test/docs',
+    sourceRole,
+    ...(coverageObservationTypesByType ? { coverageObservationTypesByType } : {}),
     ...(schedulerByType ? { schedulerByType } : {}),
     run,
   };
@@ -89,12 +101,46 @@ test('coverage separates selected executed succeeded failed skipped and cached s
   const cache = new TtlCache();
   const base = { indicator: '8.8.8.8', type: 'ip', providerNames: ['good', 'bad', 'missing'], registry, cache, now: () => '2026-08-20T12:00:00Z' };
   const first = await enrich({ ...base, requestId: 'r1' });
-  assert.deepEqual(first.coverage, { selected: 3, executed: 2, succeeded: 1, failed: 1, skipped: 1, materialLoss: true });
+  assert.deepEqual(first.coverage, {
+    selected: 3, executed: 2, succeeded: 1, failed: 1, skipped: 1, materialLoss: true,
+    providerCapabilities: [
+      { provider: 'good', state: 'ok', observationTypes: ['fixture_context'], semanticClassHints: ['fixture_context'], sourceRole: 'community' },
+      { provider: 'bad', state: 'failed', observationTypes: ['fixture_context'], semanticClassHints: ['fixture_context'], sourceRole: 'community' },
+      { provider: 'missing', state: 'skipped', observationTypes: [], semanticClassHints: [], sourceRole: null },
+    ],
+  });
   assert.ok(first.limitations.includes('partial_provider_failure'));
   assert.ok(first.limitations.includes('material_coverage_loss'));
   const second = await enrich({ ...base, providerNames: ['good'], requestId: 'r2' });
-  assert.deepEqual(second.coverage, { selected: 1, executed: 0, succeeded: 1, failed: 0, skipped: 0, materialLoss: false });
+  assert.deepEqual(second.coverage, {
+    selected: 1, executed: 0, succeeded: 1, failed: 0, skipped: 0, materialLoss: false,
+    providerCapabilities: [
+      { provider: 'good', state: 'cached', observationTypes: ['fixture_context'], semanticClassHints: ['fixture_context'], sourceRole: 'community' },
+    ],
+  });
   assert.equal(calls >= 2, true);
+});
+
+test('coverage capability detail uses typed declarations, semantic hints, source role, and final provider state', async () => {
+  const good = adapter('good', {
+    observationTypes: ['network_identity', 'registration'],
+    coverageObservationTypesByType: { ip: ['registration'] },
+    sourceRole: 'first_party',
+    run: async () => ({ observationType: 'registration', verdict: 'observed' }),
+  });
+  const bad = adapter('bad', {
+    observationTypes: ['ioc_reputation'],
+    sourceRole: 'community',
+    run: async () => { throw new Error('down'); },
+  });
+  const result = await enrich({
+    indicator: '8.8.8.8', type: 'ip', providerNames: ['good', 'bad'], registry: createProviderRegistry([good, bad]),
+    cache: new TtlCache(), requestId: 'coverage-capabilities', now: () => '2026-08-20T12:00:00Z',
+  });
+  assert.deepEqual(result.coverage.providerCapabilities, [
+    { provider: 'good', state: 'ok', observationTypes: ['registration'], semanticClassHints: ['network_context'], sourceRole: 'first_party' },
+    { provider: 'bad', state: 'failed', observationTypes: ['ioc_reputation'], semanticClassHints: ['reputation'], sourceRole: 'community' },
+  ]);
 });
 
 test('loss of every selected provider for a semantic class is material coverage loss', async () => {
