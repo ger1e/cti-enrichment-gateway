@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
+
+const read = path => readFileSync(path, 'utf8');
+
+test('terminal prompt uses one synced phosphor block cursor instead of the native caret', () => {
+  const css = read('site-cursor.css');
+  const deck = read('app/analyst-deck.js');
+
+  assert.match(css, /\.shell-input\s*\{[^}]*caret-color:\s*transparent/i, 'native caret must be hidden');
+  assert.match(css, /@keyframes\s+terminal-block-cursor-blink/i);
+  assert.match(css, /\.shell-block-cursor\s*\{[^}]*width:\s*\.6\d*ch[^}]*height:\s*1\.\d+em[^}]*background:\s*var\(--prompt-accent/i);
+  assert.match(css, /terminal-block-cursor-blink\s+[\d.]+s\s+steps\(1,end\)\s+infinite/i);
+  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.shell-block-cursor[\s\S]*animation:none!important/i);
+
+  assert.match(deck, /function\s+wireBlockCursor\s*\(/);
+  assert.match(deck, /selectionStart/);
+  assert.match(deck, /scrollLeft/);
+  assert.match(deck, /measureText\(/);
+  assert.match(deck, /cursor\.getBoundingClientRect\(\)\.width/);
+  assert.match(deck, /maxLeft\s*=\s*inputRect\.right\s*-\s*promptRect\.left\s*-\s*cursorWidth/);
+  assert.match(deck, /input\.type\s*===\s*['"]password['"]/);
+  assert.match(deck, /['"]•['"]\.repeat\(/, 'password cursor position must be measured from mask glyphs, not secret text');
+  assert.doesNotMatch(deck, /textContent\s*=\s*input\.value|innerHTML\s*=\s*input\.value/, 'secret or typed input must never be mirrored into the DOM');
+
+  for (const eventName of ['input', 'keyup', 'click', 'select', 'scroll', 'focus', 'blur']) {
+    assert.match(deck, new RegExp(`addEventListener\\(['"]${eventName}['"]`), `${eventName} must keep the cursor synchronized`);
+  }
+});
