@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # PARA11AX Absolute-Max Shell Command Fabric Design
 
 Date: 2026-08-30
@@ -826,3 +829,7 @@ Chosen compatibility strategy: preserve every existing WebUI and Node CLI comman
 Chosen trust boundary: no expansion to a general OS shell, arbitrary network client, arbitrary filesystem interface, or browser credential store.
 
 The command fabric therefore maximizes analyst expressiveness inside PARA11AX while keeping execution constrained by PARA11AX's existing capability, provider, policy and surface boundaries.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
