@@ -25,6 +25,7 @@ const BATCH_INPUT_LIMIT = 20;
 const BATCH_PROVIDER_CALL_LIMIT = 200;
 const BATCH_INDICATOR_CONCURRENCY = 3;
 const STIX_OBJECT_LIMIT = 100;
+const PROVIDER_NAME_RE = /^[a-z0-9-]{1,64}$/;
 
 function response(status, body, extraHeaders = {}) {
   return { status, headers: { ...securityHeaders(), ...extraHeaders }, body };
@@ -119,11 +120,7 @@ export function createApp({
     return renderHttpError(request, 500, 'internal_error', { requestId });
   }
 
-  async function enrichClassified(classified, profile = 'standard', { deadlineMs = REQUEST_DEADLINE_MS, callLimit = null } = {}) {
-    const workflow = WORKFLOWS[classified.type];
-    if (!workflow) throw new TypeError('unsupported_indicator_type');
-    const selected = selectProviders({ type: classified.type, profile, workflow, registry });
-    const providerNames = selected.filter(configured);
+  async function runEnrichment(classified, providerNames, profile = 'standard', { deadlineMs = REQUEST_DEADLINE_MS, callLimit = null } = {}) {
     const defaultCallLimit = WORKFLOW_CALL_LIMITS[classified.type] ?? Math.max(1, providerNames.length * 2);
     const effectiveCallLimit = callLimit == null ? defaultCallLimit : Math.max(1, Math.min(defaultCallLimit, callLimit));
     return enrich({
@@ -132,6 +129,13 @@ export function createApp({
       callLimit: effectiveCallLimit, circuitBreaker: breaker, telemetry: events,
       context: { fetchImpl, env },
     });
+  }
+
+  async function enrichClassified(classified, profile = 'standard', { deadlineMs = REQUEST_DEADLINE_MS, callLimit = null } = {}) {
+    const workflow = WORKFLOWS[classified.type];
+    if (!workflow) throw new TypeError('unsupported_indicator_type');
+    const selected = selectProviders({ type: classified.type, profile, workflow, registry });
+    return runEnrichment(classified, selected.filter(configured), profile, { deadlineMs, callLimit });
   }
 
   async function parseSingleIndicatorRequest(request, allowedFields) {
@@ -200,6 +204,32 @@ export function createApp({
       catch (error) {
         if (error?.message === 'unsupported_indicator_type') return renderHttpError(request, 400, 'unsupported_indicator_type');
         return internalHandlerError(request, 'enrich');
+      }
+    },
+
+    async handleProvider(request) {
+      const gate = requestGate(request, env); if (gate) return gate;
+      let body;
+      try { body = parseBody(request); }
+      catch (error) { return renderHttpError(request, error.status ?? 400, error.status === 413 ? 'payload_too_large' : 'invalid_request'); }
+      const allowed = new Set(['provider', 'indicator', 'type']);
+      if (Object.keys(body).some(key => !allowed.has(key))) return renderHttpError(request, 400, 'unsupported_request_field');
+      const providerName = typeof body.provider === 'string' ? body.provider : '';
+      if (!PROVIDER_NAME_RE.test(providerName)) return renderHttpError(request, 400, 'invalid_provider');
+      const adapter = registry.get(providerName);
+      if (!adapter) return renderHttpError(request, 404, 'provider_not_found');
+      if (adapter.active === false) return renderHttpError(request, 409, 'provider_inactive');
+      if (adapter.requiredEnv && !env[adapter.requiredEnv]) return renderHttpError(request, 409, 'provider_unconfigured');
+      let classified;
+      try { classified = classifyIndicator(body.indicator); }
+      catch { return renderHttpError(request, 400, 'invalid_indicator'); }
+      if (body.type !== undefined && body.type !== classified.type) return renderHttpError(request, 400, 'indicator_type_mismatch');
+      if (!adapter.types.includes(classified.type)) return renderHttpError(request, 400, 'provider_type_unsupported');
+      try {
+        const callLimit = Math.max(1, Math.min(2, WORKFLOW_CALL_LIMITS[classified.type] ?? 2));
+        return response(200, await runEnrichment(classified, [providerName], 'standard', { callLimit }));
+      } catch {
+        return internalHandlerError(request, 'provider');
       }
     },
 
