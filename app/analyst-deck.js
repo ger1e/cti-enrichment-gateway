@@ -2,6 +2,7 @@ const STYLE_HREF = '/app/analyst-deck.css';
 const CURSOR_HREF = '/site-cursor.css';
 const PROMPT_TEXT = 'analyst@para11ax:~$';
 const LEGACY_PROMPTS = ['para11ax@gateway:~$', 'user@para11ax: ~', 'user@para11ax:~$'];
+const blockCursorSchedulers = new WeakMap();
 
 function ensureStylesheet(href = STYLE_HREF) {
   if (document.documentElement.dataset.terminalFirst === 'v7') return;
@@ -12,12 +13,108 @@ function ensureStylesheet(href = STYLE_HREF) {
   document.head.append(link);
 }
 
+function wireBlockCursor(prompt) {
+  const input = prompt?.querySelector?.('.shell-input');
+  if (!input) return;
+
+  const existing = blockCursorSchedulers.get(input);
+  if (existing) {
+    existing();
+    return;
+  }
+
+  const cursor = document.createElement('i');
+  cursor.className = 'shell-block-cursor';
+  cursor.setAttribute('aria-hidden', 'true');
+  prompt.append(cursor);
+
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  let frame = 0;
+
+  const render = () => {
+    frame = 0;
+    if (document.activeElement !== input || input.disabled) {
+      prompt.dataset.blockCursorActive = 'false';
+      return;
+    }
+
+    const style = getComputedStyle(input);
+    const selectionStart = input.selectionStart ?? input.value.length;
+    const selectionEnd = input.selectionEnd ?? selectionStart;
+    const caretIndex = selectionStart === selectionEnd || input.selectionDirection === 'backward'
+      ? selectionStart
+      : selectionEnd;
+    const prefixLength = Math.max(0, Math.min(input.value.length, caretIndex));
+    const prefix = input.type === 'password'
+      ? '•'.repeat(prefixLength)
+      : input.value.slice(0, prefixLength);
+
+    let advance = 0;
+    if (context) {
+      context.font = style.font;
+      advance = context.measureText(prefix).width;
+    }
+    const letterSpacing = Number.parseFloat(style.letterSpacing);
+    if (Number.isFinite(letterSpacing) && prefix.length > 1) advance += letterSpacing * (prefix.length - 1);
+
+    const promptRect = prompt.getBoundingClientRect();
+    const inputRect = input.getBoundingClientRect();
+    const paddingLeft = Number.parseFloat(style.paddingLeft) || 0;
+    const borderLeft = Number.parseFloat(style.borderLeftWidth) || 0;
+    const minLeft = inputRect.left - promptRect.left + borderLeft + paddingLeft;
+    const maxLeft = inputRect.right - promptRect.left - 2;
+    const measuredLeft = minLeft + advance - input.scrollLeft;
+    const left = Math.min(Math.max(measuredLeft, minLeft), maxLeft);
+    const top = inputRect.top - promptRect.top + (inputRect.height / 2);
+
+    cursor.style.left = `${left}px`;
+    cursor.style.top = `${top}px`;
+    prompt.dataset.blockCursorActive = 'true';
+  };
+
+  const schedule = () => {
+    if (frame) return;
+    if (typeof requestAnimationFrame !== 'function') {
+      render();
+      return;
+    }
+    frame = requestAnimationFrame(render);
+  };
+
+  const deactivate = () => {
+    if (frame && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame);
+    frame = 0;
+    prompt.dataset.blockCursorActive = 'false';
+  };
+
+  input.addEventListener('input', schedule);
+  input.addEventListener('keyup', schedule);
+  input.addEventListener('keydown', schedule);
+  input.addEventListener('click', schedule);
+  input.addEventListener('select', schedule);
+  input.addEventListener('scroll', schedule, { passive: true });
+  input.addEventListener('focus', schedule);
+  input.addEventListener('blur', deactivate);
+
+  if (typeof ResizeObserver === 'function') {
+    const observer = new ResizeObserver(schedule);
+    observer.observe(input);
+  } else if (typeof globalThis.addEventListener === 'function') {
+    globalThis.addEventListener('resize', schedule, { passive: true });
+  }
+
+  blockCursorSchedulers.set(input, schedule);
+  schedule();
+}
+
 const decoratePrompt = prompt => {
   const label = prompt?.querySelector?.('.shell-prompt-label');
   const input = prompt?.querySelector?.('.shell-input');
   if (!label || !input) return;
   const secretPrompt = input.type === 'password' || /^BEARER:/i.test(label.textContent || '');
   if (!secretPrompt && label.textContent !== PROMPT_TEXT) label.textContent = PROMPT_TEXT;
+  wireBlockCursor(prompt);
 };
 
 const normalizeTranscriptNode = node => {
