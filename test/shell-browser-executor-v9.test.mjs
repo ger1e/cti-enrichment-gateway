@@ -134,9 +134,11 @@ test('copy report preserves the analyst-readable IP report contract', async () =
   const events = [];
   const executor = makeExecutor({ events, initialState: { currentResult: makeEnvelope('8.8.8.8') } });
   const output = await execute(executor, ['copy'], ['report']);
-  assert.equal(output.type, 'text');
-  assert.match(output.value, /^IP INTELLIGENCE REPORT \/\/ 8\.8\.8\.8/m);
-  assert.match(output.value, /EXECUTIVE ASSESSMENT/);
-  assert.doesNotMatch(output.value, /^\s*\{/);
-  assert.deepEqual(events, [['copy', output.value]]);
+  assert.deepEqual(output, { type: 'text', value: 'copied report' });
+  assert.equal(events.length, 1);
+  assert.equal(events[0][0], 'copy');
+  const copied = events[0][1];
+  assert.match(copied, /^IP INTELLIGENCE REPORT \/\/ 8\.8\.8\.8/m);
+  assert.match(copied, /EXECUTIVE ASSESSMENT/);
+  assert.doesNotMatch(copied, /^\s*\{/);
 });
