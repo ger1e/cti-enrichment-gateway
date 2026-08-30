@@ -1,10 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import rawManifest from '../config/providers.json' with { type: 'json' };
 import {
+  providerPolicy,
   sanitizeSchedulerMetadata,
   validateProviderPolicy,
 } from '../src/providers/manifest.js';
 import { EXECUTION_POLICY_VERSION } from '../src/core/execution-policy.js';
+import { WORKFLOWS } from '../src/workflows.js';
 
 const VALID = Object.freeze({
   authorityClass: 'specialist',
@@ -95,5 +98,32 @@ test('provider policy accepts malformed scheduler metadata but preserves strict 
       /invalid provider manifest/,
       field,
     );
+  }
+});
+
+test('every configured IP provider has a complete valid scheduler descriptor', () => {
+  assert.equal(WORKFLOWS.ip.length, 24);
+  for (const name of WORKFLOWS.ip) {
+    const policy = providerPolicy(name);
+    assert.deepEqual(policy.schedulerMetadataInvalidTypes ?? [], [], `${name} has invalid scheduler metadata`);
+    const descriptor = policy.schedulerByType?.ip;
+    assert.ok(descriptor, `${name} missing schedulerByType.ip`);
+    const normalized = sanitizeSchedulerMetadata(['ip'], { ip: descriptor });
+    assert.deepEqual(normalized.schedulerMetadataInvalidTypes, [], `${name} descriptor must validate`);
+    assert.deepEqual(normalized.schedulerByType.ip, descriptor, `${name} descriptor must be canonical`);
+  }
+});
+
+test('IP scheduler descriptors do not alter transport or credential boundaries', () => {
+  for (const name of WORKFLOWS.ip) {
+    const raw = rawManifest[name];
+    const policy = providerPolicy(name);
+    assert.deepEqual(policy.types, raw.types, `${name} types`);
+    assert.deepEqual(policy.fixedHosts, raw.fixedHosts, `${name} fixedHosts`);
+    assert.deepEqual(policy.methods, raw.methods, `${name} methods`);
+    assert.deepEqual(policy.protocols, raw.protocols, `${name} protocols`);
+    assert.equal(policy.credentialEnv, raw.credentialEnv, `${name} credentialEnv`);
+    assert.equal(policy.optionalCredential, raw.optionalCredential, `${name} optionalCredential`);
+    assert.equal(policy.authType, raw.authType, `${name} authType`);
   }
 });
