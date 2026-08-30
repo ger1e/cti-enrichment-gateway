@@ -1,6 +1,6 @@
 ### Security policy
 
-This repository is public. PARA11AX is a provenance-first CTI enrichment and bounded analyst-operations platform for personal research/lab use. Every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
+This repository is public. PARA11AX is a provenance-first, read-only CTI enrichment core with bounded analyst-operations surfaces for personal research/lab use. Every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
 
 #### Supported use
 
@@ -106,8 +106,8 @@ Shodan analyst-shell commands are not silently converted into Maltego Evidence v
 
 #### Supply chain and governance
 
-- GitHub Actions remain pinned to immutable commit SHAs.
-- Runtime parity remains Node.js 24.x across Vercel/CI/bootstrap flows.
+- GitHub Actions must remain pinned to immutable commit SHAs.
+- Runtime parity is Node.js 24.x across Vercel, CI, Codespaces, and local bootstrap flows.
 - `package-lock.json` is mandatory; CI uses deterministic install/audit.
 - `Tooling smoke` validates repository invariants, Node tests, Maltego tests, Python compilation, shell/ShellCheck, and PowerShell syntax. CodeQL runs separately.
 - Protected `main` must use exact-head status checks and deployment/source identity verification.
