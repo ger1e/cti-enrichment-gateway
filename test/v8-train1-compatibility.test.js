@@ -60,7 +60,7 @@ test('Train 1 keeps public meta backward-compatible with additive deterministic 
   assert.doesNotMatch(serialized, /"rank"|"workflowIndex"/);
 });
 
-test('Train 1 compatibility remains stable except Train 3 additive evidence semantics', async () => {
+test('Train 1 compatibility remains stable except approved additive evidence and coverage semantics', async () => {
   const app = createApp({ env: { PARA11AX_TOKEN: 'test-token' }, adapters: [adapter] });
   const out = await app.handleEnrich(authRequest({ indicator: '203.0.113.7' }));
   assert.equal(out.status, 200);
@@ -71,15 +71,25 @@ test('Train 1 compatibility remains stable except Train 3 additive evidence sema
     semanticClass: 'network_context',
     sourceRole: 'first_party',
   });
+  assert.deepEqual(out.body.coverage.providerCapabilities, [{
+    provider: 'rdap',
+    state: 'ok',
+    observationTypes: ['registration'],
+    semanticClassHints: ['network_context'],
+    sourceRole: 'first_party',
+  }]);
 
   const serialized = JSON.stringify(out.body);
   for (const field of ['freshnessClass', 'executionPolicy', 'capabilities', 'distribution']) {
     assert.equal(serialized.includes(field), false, field);
   }
 
-  const withoutEvidenceSourceRole = structuredClone(out.body);
-  for (const item of withoutEvidenceSourceRole.evidence ?? []) {
+  const withoutApprovedSourceRoles = structuredClone(out.body);
+  for (const item of withoutApprovedSourceRoles.evidence ?? []) {
     if (item?.semantics) delete item.semantics.sourceRole;
   }
-  assert.equal(JSON.stringify(withoutEvidenceSourceRole).includes('sourceRole'), false);
+  for (const item of withoutApprovedSourceRoles.coverage?.providerCapabilities ?? []) {
+    delete item.sourceRole;
+  }
+  assert.equal(JSON.stringify(withoutApprovedSourceRoles).includes('sourceRole'), false);
 });
