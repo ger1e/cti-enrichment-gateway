@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Radar, Rain, and Brand Unification Design
 
 ## Goal
@@ -21,3 +24,7 @@ Unify the landing page and analyst web UI around one compact radar + PARA11AX lo
 ## Verification
 
 Automated tests assert shared-asset parity, native radar motion, native rain motion, reduced-motion fallbacks, absence of old runtime radar/rain construction, and visual-only runtime behavior. Existing platform tests remain green.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

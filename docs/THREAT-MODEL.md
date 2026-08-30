@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Threat Model
 
 #### Assets
@@ -104,3 +105,7 @@ Residual risk remains: deterministic policy can still be wrong or insufficient. 
 #### Out of scope by design
 
 LLM/adaptive threat reasoning, malware submission/detonation, remediation, credential testing, arbitrary web fetching, arbitrary shell execution, caller-controlled proxying, Shodan on-demand scan submission, Shodan bulk `download`, arbitrary Shodan paging/endpoints, unbounded graph crawling, server-side case persistence, automated attribution and a universal maliciousness score are not PARA11AX gateway capabilities.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

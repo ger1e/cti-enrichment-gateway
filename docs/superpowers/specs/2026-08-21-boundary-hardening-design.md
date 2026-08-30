@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # PARA11AX — Final Boundary Hardening Design
 
 Date: 2026-08-21
@@ -257,3 +260,7 @@ The hardening tranche is complete when all mandatory defects are fixed, all new 
 3. fixable without disproportionate complexity or scope expansion.
 
 Ideas that are merely stylistic, theoretical without a reachable path, dependent on unavailable credentials/external state, or that create new infrastructure/product surface are recorded as deliberate gaps rather than implemented.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

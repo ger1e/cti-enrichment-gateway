@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Public release checklist
 
 This repository is public. Treat every commit, pull request, workflow artifact, issue, and release as a publication event.
@@ -113,3 +114,7 @@ Before merge or release, answer these independently:
 5. Does public copy distinguish authoritative Evidence v2 from deterministic derived context and current production from merely merged code?
 
 If any answer is uncertain, stop publication of that change until it is resolved.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

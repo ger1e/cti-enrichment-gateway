@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 # PARA11AX QA Report
 
 ## Scope and audit baseline
@@ -241,3 +242,7 @@ public root/app/meta HTTP behavior
 ```
 
 When credential-bearing verification is authorized, run protected health/status, provider probes, User Scanner acceptance where applicable, bounded Shodan acceptance, and representative IP Kernel acceptance. Never reinterpret missing credentials, provider errors, Shodan rate limits, depleted credits, feed absence or Kernel projection failure as benign evidence.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

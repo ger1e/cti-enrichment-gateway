@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Decision-Grade Evidence MAX Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -123,3 +126,7 @@
 - [ ] Verify Vercel production is `READY` from the exact merge SHA.
 - [ ] Verify live `/api/para11ax/meta` returns 200 with no secret/config state and unauthenticated `/api/para11ax/status` returns 401.
 - [ ] Verify production runtime error clusters are zero; investigate any cluster before completion is claimed.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

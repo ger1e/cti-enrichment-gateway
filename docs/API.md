@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### API
 
 All responses are JSON unless a documented human-facing error representation is explicitly negotiated. Production clients should use HTTPS. The gateway bearer is `Authorization: Bearer <PARA11AX_TOKEN>`.
@@ -161,3 +162,7 @@ Search is first-page only. Search results and host-service lists are bounded; la
 #### Security invariants
 
 Caller input never selects arbitrary provider hosts, Shodan hosts, worker hosts, methods, provider secrets, `SHODAN_API_KEY`, or arbitrary adapters. Evidence v2 provider egress remains fixed through `safeFetch`. Provider Value Scheduler v1.0 and Intelligence Kernel v1.0 add no new egress, credential, persistence or dependency surface and use no LLM. User Scanner and Shodan use separate bounded authenticated routes with server-configured destinations. See `THREAT-MODEL.md`, `SECURITY-CONTROLS.md`, and `SHODAN-SHELL.md`.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

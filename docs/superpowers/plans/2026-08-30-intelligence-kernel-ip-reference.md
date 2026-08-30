@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Intelligence Kernel IP Reference Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -693,3 +696,7 @@ Expected: all pass.
 ## Stage 2 Gate
 
 Do not migrate domain, URL, hash, CVE, or certificate in this plan. Stage 2 starts only after the IP reference implementation is merged, production-verified, deterministic regression fixtures are stable, and the user explicitly approves the next observable migration. The subsequent order remains: domain -> URL -> hash -> CVE -> certificate.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

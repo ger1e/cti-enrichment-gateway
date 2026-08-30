@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # PARA11AX Analyst Deck v4 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -98,3 +101,7 @@
 - [ ] **Step 4: Merge only after both gates pass.**
 - [ ] **Step 5: Verify protected `main` status and Vercel production deployment at the exact merged SHA.**
 - [ ] **Step 6: Fetch `/app/`, `/app/analyst-deck.css`, and `/app/analyst-deck.js` from production and confirm HTTP 200 plus the new analyst-deck markers.**
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

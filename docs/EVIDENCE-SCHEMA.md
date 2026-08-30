@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Evidence Schema v2
 
 The gateway returns provider evidence without collapsing different source semantics into one score. Current Evidence v2 schema version is `2.0`.
@@ -208,3 +209,9 @@ Batch results preserve original input order. Canonically duplicated inputs reuse
 STIX export is derived only from gateway-generated Evidence v2. It does not turn Intelligence Kernel conclusions into new evidence, threat confidence or attribution. MITRE source STIX IDs are preserved when available; object count is capped at 100.
 
 There is no universal maliciousness score anywhere in Evidence v2, Intelligence Kernel v1.0, Evidence Graph v1.0 or Guidance v1.0.
+
+Error envelopes do not add evidenceGraph or guidance; failed requests do not manufacture derived analytical projections.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 # PARA11AX Brand System
 
 > **PARA11AX // PROVENANCE-FIRST CTI TERMINAL**  
@@ -231,3 +232,7 @@ The canonical public identity is intentionally singular:
 - Maltego artifact: `para11ax-local.mtz`
 
 Legacy aliases and legacy visual palettes are not part of the supported contract.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

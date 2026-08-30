@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 # Shodan analyst shell
 
 PARA11AX exposes a bounded native Shodan command surface inside the authenticated analyst shell. It is an operator utility, not a second Evidence v2 enrichment pipeline and not an Intelligence Kernel data source.
@@ -75,3 +76,7 @@ Neither Provider Value Scheduler v1.0 nor Intelligence Kernel v1.0 adds a Shodan
 ## Production proof
 
 A successful public deployment or Evidence v2 Shodan provider probe does not prove native Shodan shell readiness. Shell readiness requires an authorized command on the exact deployment with `SHODAN_API_KEY` configured. Prefer `shodan info`, `shodan host <approved-ip>`, or `shodan count <approved-query>` for no-query-credit wiring checks.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

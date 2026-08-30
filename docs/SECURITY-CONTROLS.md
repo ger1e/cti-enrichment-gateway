@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Security controls
 
 This document maps PARA11AX controls to the risks they reduce. It is descriptive, not a compliance attestation.
@@ -107,3 +108,7 @@ The following require GitHub/Vercel/account settings and cannot be guaranteed by
 - production environment-secret configuration including `SHODAN_API_KEY` and User Scanner wiring.
 
 A Vercel `READY` deployment proves deployment/source identity only. Provider credential readiness, User Scanner wiring, authenticated Kernel output and Shodan shell readiness require authorized checks on that exact deployment.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

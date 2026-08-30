@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # V8 Train 6 — Certificate Maltego Parity Design
 
 ## Goal
@@ -54,3 +57,7 @@ Gateway JSON payload emitted by `GatewayClient.enrich`:
 4. Review changed-file scope, unresolved review threads, and mainline drift.
 5. Merge only against the expected exact head.
 6. Verify post-merge `main` Tooling smoke, CodeQL, and Vercel status before declaring closure.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

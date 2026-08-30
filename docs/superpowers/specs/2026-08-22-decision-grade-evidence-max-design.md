@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Decision-Grade Evidence MAX Design
 
 ## Goal
@@ -158,3 +161,7 @@ After squash merge:
 - `/api/para11ax/meta` returns 200 and remains non-secret;
 - unauthenticated `/api/para11ax/status` returns 401;
 - production runtime error clusters remain zero or are explicitly investigated before completion is claimed.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

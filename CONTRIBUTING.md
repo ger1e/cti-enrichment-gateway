@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Contributing
 
 This repository is a public personal-research/lab PARA11AX project. Changes should preserve its read-only, bounded, evidence-first and deterministic design.
@@ -112,3 +113,7 @@ Prefer small PRs. Avoid drive-by formatting mixed with functional changes. If a 
 #### Commit messages
 
 Use concise imperative messages. Conventional prefixes such as `feat:`, `fix:`, `chore:`, `docs:`, `test:`, and `refactor:` are preferred when they make history easier to scan.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

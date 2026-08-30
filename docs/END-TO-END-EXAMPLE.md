@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### End-to-end enrichment example
 
 This is a **sanitized structural example**, not captured production telemetry and not a claim about a live IOC. It uses the documentation-only address `203.0.113.10` so the flow can be understood without publishing sensitive or operational data.
@@ -211,3 +212,7 @@ canonical indicator
 explicit User Scanner command -> isolated active OSINT -> terminal only
 explicit Shodan command -> fixed Shodan API -> bounded operator result -> terminal only
 ```
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

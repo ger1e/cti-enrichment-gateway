@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # PARA11AX Terminal Everywhere v7 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -310,3 +313,7 @@ Confirm landing contains the v7 terminal hero/motion marker and `/app` contains 
 - [ ] **Step 6: Final report**
 
 Report exact PR number, verified head SHA, merge SHA, Tooling Smoke/CodeQL status, Vercel deployment ID/state and canonical URLs. Do not claim completion before these checks are fresh and successful.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

@@ -1,8 +1,9 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### PARA11AX Architecture
 
 #### Purpose
 
-PARA11AX is a public-source CTI evidence gateway and analyst-operations surface for personal research/lab use. The canonical Evidence v2 core accepts one bounded indicator or batch, chooses a fixed workflow/profile, queries only predeclared provider destinations, normalizes provider-native evidence, correlates compatible observations, and returns provenance-preserving analytical/export projections.
+PARA11AX is a public-source CTI enrichment/correlation core and analyst-operations surface for personal research/lab use. The canonical Evidence v2 core accepts one bounded indicator or batch, chooses a fixed workflow/profile, queries only predeclared provider destinations, normalizes provider-native evidence, correlates compatible observations, and returns provenance-preserving analytical/export projections.
 
 Two analyst utilities intentionally sit beside—not inside—the Evidence v2 / Intelligence Kernel path:
 
@@ -13,7 +14,7 @@ Neither utility automatically becomes Evidence v2 evidence, Intelligence Kernel 
 
 #### Architecture at a glance
 
-![PARA11AX request path](../assets/brand/para11ax-readme-architecture-v4.svg)
+![PARA11AX request path](../assets/brand/para11ax-architecture.svg)
 
 #### Passive Evidence v2 request path
 
@@ -252,3 +253,7 @@ Certificate classification is explicit: `cert-sha256:<64-hex>`. Email/username t
 - **Gap/omitted:** intentionally absent because source, semantics, or boundedness did not meet the design gate.
 
 A READY deployment does not prove `SHODAN_API_KEY`, other provider credentials, User Scanner wiring, or authenticated enrichment readiness. See `OPERATIONS.md`, `SECURITY-CONTROLS.md`, and `QA-REPORT.md`.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 <p align="center">
   <img src="assets/brand/para11ax-readme-hero-v8.svg" alt="PARA11AX — provenance-first CTI enrichment and analyst operations" width="100%">
 </p>
@@ -22,7 +23,7 @@
 
 <sub><strong>01 // SYSTEM PROFILE</strong></sub>
 
-PARA11AX is a bounded, read-only CTI evidence gateway with deterministic analysis and isolated analyst utilities. Canonical observables enter fixed Evidence v2 workflows. Profile admission stays separate from execution priority: the **Provider Value Scheduler v1.0** deterministically orders admitted providers without evidence-dependent source suppression. The IP reference path then projects **Intelligence Kernel v1.0** derived context over normalized evidence and correlation before Decision Support, Guidance and the analyst report consume it.
+PARA11AX is a bounded, read-only CTI enrichment/correlation core with deterministic analysis and isolated analyst utilities. Canonical observables enter fixed Evidence v2 workflows. Profile admission stays separate from execution priority: the **Provider Value Scheduler v1.0** deterministically orders admitted providers without evidence-dependent source suppression. The IP reference path then projects **Intelligence Kernel v1.0** derived context over normalized evidence and correlation before Decision Support, Guidance and the analyst report consume it.
 
 The Kernel does not fetch, mutate or manufacture evidence. Raw **Evidence v2 remains authoritative**. Kernel output is derived context: evidence strength, source diversity, corroboration independence, contradiction severity, temporal relevance, explicit one-hop pivots, threat context, hunt relevance, coverage impact and analyst priority. Every important conclusion remains traceable to evidence fingerprints/providers or an explicit deterministic rule.
 
@@ -97,7 +98,7 @@ Complete contracts: [`docs/API.md`](docs/API.md) and [`docs/SHODAN-SHELL.md`](do
 
 </details>
 
-<sub><strong>03 // INTELLIGENCE KERNEL</strong></sub>
+<sub><strong>INTELLIGENCE KERNEL v1.0</strong></sub>
 
 **Intelligence Kernel v1.0** is a pure deterministic analysis layer. The current reference policy is IP-first; other observable types retain their established correlation/decision behavior until migrated under explicit type policies.
 
@@ -113,7 +114,7 @@ Complete contracts: [`docs/API.md`](docs/API.md) and [`docs/SHODAN-SHELL.md`](do
 
 No LLM, adaptive model, runtime learning or universal maliciousness score participates in this path. Kernel failure is isolated: usable Evidence v2 still survives and the missing derived projection becomes an explicit limitation rather than an enrichment failure.
 
-<sub><strong>04 // ANALYST SURFACE</strong></sub>
+<sub><strong>03 // ANALYST SURFACE</strong></sub>
 
 **ANALYST SURFACE** — [https://para11ax.vercel.app/app/](https://para11ax.vercel.app/app/)
 
@@ -163,7 +164,7 @@ para11ax report diff <before.json> <after.json>
 
 </details>
 
-<sub><strong>05 // SEMANTIC FIREWALL</strong></sub>
+<sub><strong>04 // SEMANTIC FIREWALL</strong></sub>
 
 <p align="center"><img src="assets/brand/para11ax-readme-semantics-v4.svg" alt="PARA11AX semantic firewall separating authoritative evidence from deterministic derived context and unsupported inference" width="100%"></p>
 
@@ -178,7 +179,7 @@ para11ax report diff <before.json> <after.json>
 
 **No universal maliciousness score. No universal identity score. No LLM inference layer.** Full evidence semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
 
-<sub><strong>06 // PROVIDER FABRIC</strong></sub>
+<sub><strong>05 // PROVIDER FABRIC</strong></sub>
 
 PARA11AX has **38 upstream APIs and feeds** in the canonical Evidence v2 provider fabric. Shodan is one fixed provider for canonical enrichment, while the native Shodan shell route is a distinct explicit operator surface and does not increase the provider count.
 
@@ -199,7 +200,7 @@ PARA11AX has **38 upstream APIs and feeds** in the canonical Evidence v2 provide
 
 [`config/providers.json`](config/providers.json) is the machine-readable Evidence v2 provider policy. Scheduler descriptors are declarative execution metadata; they do not change provider admission, credentials, fixed hosts or evidence semantics.
 
-<sub><strong>07 // SECURITY / VERIFICATION / DOCS</strong></sub>
+<sub><strong>06 // SECURITY & VERIFICATION</strong></sub>
 
 <sub><strong>AUTH</strong> — bearer protects private API surfaces including User Scanner and Shodan shell; `/api/para11ax/meta` is intentionally public<br/>
 <strong>EGRESS</strong> — exact declared provider hosts; Kernel/Scheduler add no new egress; Shodan shell uses exact `https://api.shodan.io`; User Scanner uses its configured worker only<br/>
@@ -208,6 +209,12 @@ PARA11AX has **38 upstream APIs and feeds** in the canonical Evidence v2 provide
 <strong>CI</strong> — protected `main` requires Tooling smoke; CodeQL runs alongside it<br/>
 <strong>DEPLOY</strong> — repository/CI proof and production deployment proof remain separate; see Operations/QA for exact current state</sub>
 
+<sub><strong>07 // DEEP DOCS</strong></sub>
+
 <sub>[BRAND](docs/BRAND.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [END-TO-END](docs/END-TO-END-EXAMPLE.md) · [EVIDENCE](docs/EVIDENCE-SCHEMA.md) · [PROVIDERS](docs/PROVIDERS.md) · [API](docs/API.md) · [SHODAN SHELL](docs/SHODAN-SHELL.md) · [THREAT MODEL](docs/THREAT-MODEL.md) · [SECURITY CONTROLS](docs/SECURITY-CONTROLS.md) · [OPERATIONS](docs/OPERATIONS.md) · [QA](docs/QA-REPORT.md) · [PUBLIC RELEASE](docs/PUBLIC-RELEASE-CHECKLIST.md) · [MANIFEST](release-manifest.json)</sub>
 
 <p align="center"><img src="assets/brand/para11ax-readme-footer-v1.svg" alt="PARA11AX operating principles — Per Aspera Ad Astra" width="100%"></p>
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
+
+<p align="center"><img src="assets/brand/para11ax-radar-lockup.svg" alt="PARA11AX" width="180"></p>

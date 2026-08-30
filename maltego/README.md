@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Maltego local transforms for PARA11AX
 
 Maltego Graph Desktop talks only to the PARA11AX gateway. Vendor API credentials stay server-side; the workstation stores only `PARA11AX_TOKEN`.
@@ -161,3 +162,7 @@ Windows:
 .\.venv\Scripts\python.exe project.py mtz
 .\.venv\Scripts\python.exe bootstrap.py --check
 ```
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

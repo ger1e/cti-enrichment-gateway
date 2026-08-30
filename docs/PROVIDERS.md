@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Providers
 
 The executable provider registry is the source of truth for the canonical Evidence v2 enrichment fabric. The active registry contains **38 providers**. `release-manifest.json` records active adapter/parser versions, and `/api/para11ax/meta` exposes static capabilities without credential values or secret configuration state.
@@ -143,3 +144,7 @@ Implemented does not imply configured, and configured does not imply production-
 - LLM/adaptive provider scheduling or evidence-dependent source suppression.
 
 Run `node scripts/generate-release-manifest.mjs --check` to detect registry/parser-version drift. Documentation-contract tests separately detect drift in externally documented workflow/provider/scheduler/operator facts.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # User Scanner Terminal Integration Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -113,3 +116,7 @@
 - [ ] Document `PARA11AX_USER_SCANNER_URL` and `PARA11AX_USER_SCANNER_TOKEN`.
 - [ ] Run `npm test` and repository verification through CI.
 - [ ] Confirm no secret values, arbitrary destination parameters, proxy controls, or loud-module toggles entered the browser/API contract.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

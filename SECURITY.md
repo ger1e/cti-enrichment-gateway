@@ -1,6 +1,7 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Security policy
 
-This repository is public. PARA11AX is a provenance-first, read-only CTI evidence gateway with deterministic analytical projections and bounded analyst-operations surfaces for personal research/lab use. Every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
+This repository is public. PARA11AX is a provenance-first, read-only CTI enrichment/correlation core with deterministic analytical projections and bounded analyst-operations surfaces for personal research/lab use. Every commit, pull request, workflow artifact, issue, and release must be treated as potentially public information.
 
 #### Supported use
 
@@ -156,3 +157,7 @@ cd .. && python3 -m compileall -q maltego
 Authenticated production acceptance should additionally verify the exact deployed SHA and, when authorized, protected health/status, representative Evidence v2 enrichment, expected IP Intelligence Kernel v1.0 output, User Scanner wiring, and Shodan shell wiring using a no-query-credit command where possible.
 
 A public READY deployment does not itself prove provider secrets, `SHODAN_API_KEY`, User Scanner worker readiness, or that a newer repository-only feature is live. A Vercel deployment/build-rate limit means production remains on the previous READY source until a later exact-SHA deployment succeeds.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

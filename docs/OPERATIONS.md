@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Operations
 
 #### Acceptance and proof states
@@ -261,3 +262,7 @@ When Shodan operator contract changes: update runtime tests, `SHODAN-SHELL.md`, 
 #### Public release
 
 Treat every tracked repository artifact as public. Run `npm run audit:public` and follow `PUBLIC-RELEASE-CHECKLIST.md` before release publication. `QA-REPORT.md` records proof boundaries; current external GitHub/Vercel state must still be read during verification.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
