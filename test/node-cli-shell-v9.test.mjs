@@ -55,4 +55,4 @@ test('typed provider list remains composable while direct legacy output stays co
   const legacy = run(['providers', 'list']);
   assert.equal(legacy.status, 0, combined(legacy));
   assert.match(legacy.stdout, /^[a-z0-9-]+\t[^\n]+$/m);
-}
+});
