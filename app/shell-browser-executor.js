@@ -1,3 +1,4 @@
+import { classifyBrowserObservable, SUPPORTED_OBSERVABLE_TYPES, validateTypedBrowserObservable } from './observable-input.js';
 import { shellError } from './shell-core/errors.js';
 
 const PROFILES = new Set(['fast', 'standard', 'full']);
@@ -15,6 +16,16 @@ function records(value) { return { type: 'records', value: Array.isArray(value) 
 
 function invalid(message, context = undefined) {
   throw shellError('INVALID_ARGUMENT', message, context);
+}
+
+function classifyObservable(value) {
+  try { return classifyBrowserObservable(String(value ?? '')); }
+  catch { invalid('invalid observable'); }
+}
+
+function validateTypedObservable(type, value) {
+  try { return validateTypedBrowserObservable(type, String(value ?? '')); }
+  catch { invalid(`invalid ${type} observable`, { type }); }
 }
 
 function parseProfile(args, fallback) {
@@ -103,6 +114,13 @@ function parseShodanArgs(args) {
   return { command, target: null, query, facets };
 }
 
+function providerEntries(meta) {
+  const providers = meta?.providers;
+  if (!providers || Array.isArray(providers) || typeof providers !== 'object') return [];
+  return Object.entries(providers).map(([name, value]) => ({ name, ...(value && typeof value === 'object' ? value : {}) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 function resultOrInput(state, input) {
   if (input && input.type === 'enrichment') return input.value;
   return state.currentResult;
@@ -141,6 +159,27 @@ export function createBrowserShellExecutor({
       state.currentResult = value;
       return { type: 'enrichment', value };
     }
+    if (handler === 'intel-typed') {
+      const expectedType = descriptor.tokens[1];
+      if (!SUPPORTED_OBSERVABLE_TYPES.includes(expectedType) || args.length !== 1) invalid(`usage: intel ${expectedType} <observable>`);
+      const classified = validateTypedObservable(expectedType, args[0]);
+      const value = await client.enrich(classified.value, state.profile, signal);
+      state.currentResult = value;
+      return { type: 'enrichment', value };
+    }
+    if (handler === 'normalize') {
+      if (args.length !== 1) invalid('usage: normalize <observable>');
+      return record(classifyObservable(args[0]));
+    }
+    if (handler === 'type') {
+      if (args.length !== 1) invalid('usage: type <observable>');
+      return { type: 'scalar', value: classifyObservable(args[0]).type };
+    }
+    if (handler === 'validate') {
+      if (args.length !== 1) invalid('usage: validate <observable>');
+      const classified = classifyObservable(args[0]);
+      return record({ valid: true, ...classified });
+    }
     if (handler === 'profile') {
       if (!args.length) return text(`profile: ${state.profile}`);
       state.profile = parseProfile(args, state.profile);
@@ -154,6 +193,49 @@ export function createBrowserShellExecutor({
     if (handler === 'health') return record(await client.health(signal));
     if (handler === 'status') return record(await client.status(signal));
     if (handler === 'meta') return record(await client.meta(signal));
+
+    if (handler === 'provider-run') {
+      let providerName;
+      let indicator;
+      if (descriptor.provider) {
+        providerName = descriptor.provider;
+        if (args.length !== 1) invalid(`usage: ${descriptor.tokens.join(' ')} <observable>`);
+        indicator = String(args[0] ?? '').trim();
+      } else {
+        if (args.length !== 2) invalid('usage: provider run <provider> <observable>');
+        providerName = String(args[0] ?? '').trim().toLowerCase();
+        indicator = String(args[1] ?? '').trim();
+      }
+      if (!providerName || !indicator) invalid('provider and observable required');
+      const value = await client.provider(providerName, indicator, signal);
+      state.currentResult = value;
+      return { type: 'enrichment', value };
+    }
+    if (handler === 'provider-list') {
+      return records(providerEntries(await client.meta(signal)));
+    }
+    if (handler === 'provider-show' || handler === 'provider-capabilities') {
+      if (args.length !== 1) invalid(`usage: provider ${handler === 'provider-show' ? 'show' : 'capabilities'} <provider>`);
+      const found = providerEntries(await client.meta(signal)).find(item => item.name === String(args[0]).toLowerCase());
+      if (!found) invalid('unknown provider', { provider: args[0] });
+      return record(found);
+    }
+    if (handler === 'provider-coverage') {
+      if (args.length !== 1 || !SUPPORTED_OBSERVABLE_TYPES.includes(String(args[0]).toLowerCase())) invalid('usage: provider coverage <observable-type>');
+      const type = String(args[0]).toLowerCase();
+      return records(providerEntries(await client.meta(signal)).filter(item => Array.isArray(item.types) && item.types.includes(type)));
+    }
+    if (handler === 'provider-status') {
+      if (args.length > 1) invalid('usage: provider status [provider]');
+      const status = await client.status(signal);
+      const entries = providerEntries({ providers: status?.providers ?? {} });
+      if (!args.length) return records(entries);
+      const name = String(args[0]).toLowerCase();
+      const found = entries.find(item => item.name === name);
+      if (!found) invalid('unknown provider', { provider: name });
+      return records([found]);
+    }
+
     if (handler === 'shodan') return record(await client.shodan(parseShodanArgs(args), signal));
     if (handler === 'user-scanner') return record(await client.userScanner(parseUserScannerArgs(args), signal));
 
