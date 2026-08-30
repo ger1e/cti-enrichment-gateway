@@ -29,10 +29,11 @@ function relation(type, target, targetType, provider = 'alpha', extra = {}) {
 
 function expectedRelationshipId(item) {
   return sha256Hex([
+    'ip',
     item.source,
     item.type,
-    item.target,
     item.targetType,
+    item.target,
     item.provider,
   ].join('\u0000'));
 }
