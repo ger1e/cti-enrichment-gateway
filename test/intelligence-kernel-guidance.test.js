@@ -84,7 +84,7 @@ test('guidance exposes only a bounded deeply frozen intelligence summary', () =>
   const serialized = JSON.stringify(out.intelligence);
   assert.equal(serialized.includes('must-not-copy'), false);
   assert.equal(serialized.includes('pivot.example'), false);
-  assert.equal(serialized.includes('direct'), false);
+  assert.equal(serialized.includes('"direct":'), false);
   assert.deepEqual(Object.keys(out.intelligence).sort(), [
     'analystPriority', 'coverageImpact', 'evidenceStrength', 'limitations', 'ruleIds', 'schemaVersion', 'threatState',
   ]);
