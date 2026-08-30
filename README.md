@@ -168,6 +168,8 @@ para11ax report diff <before.json> <after.json>
 
 <p align="center"><img src="assets/brand/para11ax-readme-semantics-v4.svg" alt="PARA11AX semantic firewall separating authoritative evidence from deterministic derived context and unsupported inference" width="100%"></p>
 
+**OBSERVED ≠ INFERRED ≠ CONTEXTUAL.** These states remain explicit across evidence, deterministic derived context and infrastructure/knowledge surfaces.
+
 <sub><strong>DERIVED CONTEXT ≠ EVIDENCE</strong> — Intelligence Kernel output never becomes a new Evidence v2 observation<br/>
 <strong>ABSENCE ≠ BENIGN</strong> — `not_listed`, `not_found`, `no_result` and `no_association` remain source-scoped absence semantics<br/>
 <strong>CONTEXT ≠ REPUTATION</strong> — routing, registration, Tor, scanners, Shodan exposure, certificates and ATT&CK cannot vote an IOC malicious<br/>
