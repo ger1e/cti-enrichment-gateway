@@ -2,6 +2,8 @@ import { ShellCommandError, shellError } from './errors.js';
 import { PIPELINE_LIMITS, assertBoundedValue } from './types.js';
 import { TRANSFORM_HANDLERS } from './transforms.js';
 
+const RECORD_COLLECTION_TYPES = new Set(['records', 'evidence', 'relationships', 'provider-list']);
+
 function capabilitySet(value) {
   if (value instanceof Set) return value;
   if (Array.isArray(value)) return new Set(value);
@@ -26,6 +28,11 @@ function validateAst(ast, limits) {
   }
 }
 
+function acceptsInputType(descriptor, inputType) {
+  if (descriptor.inputTypes.includes(inputType)) return true;
+  return descriptor.inputTypes.includes('records') && RECORD_COLLECTION_TYPES.has(inputType);
+}
+
 function validateGate(descriptor, resolved, input, context) {
   if (!resolved.surfaceAvailable) {
     throw shellError('SURFACE_UNAVAILABLE', 'command is unavailable on this surface', { command: descriptor.id });
@@ -38,7 +45,7 @@ function validateGate(descriptor, resolved, input, context) {
   if (missing.length) {
     throw shellError('CAPABILITY_UNAVAILABLE', 'required capability unavailable', { command: descriptor.id, capabilities: missing });
   }
-  if (!descriptor.inputTypes.includes(input.type)) {
+  if (!acceptsInputType(descriptor, input.type)) {
     throw shellError('PIPELINE_TYPE_MISMATCH', 'pipeline input type is not accepted by command', {
       command: descriptor.id,
       expected: descriptor.inputTypes,
@@ -49,7 +56,12 @@ function validateGate(descriptor, resolved, input, context) {
 
 async function executeStage({ descriptor, args, input, executor, context, signal, limits }) {
   const transform = TRANSFORM_HANDLERS[descriptor.handler];
-  if (typeof transform === 'function') return transform({ input, args, limits });
+  if (typeof transform === 'function') {
+    const transformInput = descriptor.inputTypes.includes('records') && RECORD_COLLECTION_TYPES.has(input.type)
+      ? { type: 'records', value: input.value }
+      : input;
+    return transform({ input: transformInput, args, limits });
+  }
   if (!executor || typeof executor.execute !== 'function') {
     throw shellError('CAPABILITY_UNAVAILABLE', 'surface executor unavailable', { command: descriptor.id });
   }
