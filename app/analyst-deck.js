@@ -63,9 +63,10 @@ function wireBlockCursor(prompt) {
     const paddingLeft = Number.parseFloat(style.paddingLeft) || 0;
     const borderLeft = Number.parseFloat(style.borderLeftWidth) || 0;
     const minLeft = inputRect.left - promptRect.left + borderLeft + paddingLeft;
-    const maxLeft = inputRect.right - promptRect.left - 2;
+    const cursorWidth = cursor.getBoundingClientRect().width;
+    const maxLeft = inputRect.right - promptRect.left - cursorWidth;
     const measuredLeft = minLeft + advance - input.scrollLeft;
-    const left = Math.min(Math.max(measuredLeft, minLeft), maxLeft);
+    const left = Math.min(Math.max(measuredLeft, minLeft), Math.max(minLeft, maxLeft));
     const top = inputRect.top - promptRect.top + (inputRect.height / 2);
 
     cursor.style.left = `${left}px`;
