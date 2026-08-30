@@ -104,6 +104,11 @@ export function createCommandRegistry(descriptors = []) {
 
   return Object.freeze({
     all() { return items; },
+    list({ surface = null, namespace = null } = {}) {
+      if (surface !== null && !SURFACES.has(surface)) throw new TypeError(`invalid command surface: ${surface}`);
+      if (namespace !== null && !NAMESPACES.has(namespace)) throw new TypeError(`invalid command namespace: ${namespace}`);
+      return Object.freeze(items.filter(item => (surface === null || item.surfaces.includes(surface)) && (namespace === null || item.namespace === namespace)));
+    },
     get(id) { return byId.get(id); },
     resolve(tokens, surface = null) {
       if (!Array.isArray(tokens)) throw new TypeError('command tokens must be an array');
