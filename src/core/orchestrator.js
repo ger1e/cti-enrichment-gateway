@@ -40,12 +40,36 @@ function coverageObservationTypes(adapter, type) {
   return Array.isArray(adapter?.observationTypes) ? adapter.observationTypes : [];
 }
 
+function providerCoverageState(record) {
+  if (!record || record.skipped) return 'skipped';
+  if (record.result?.ok) return record.cacheState === 'hit' ? 'cached' : 'ok';
+  return 'failed';
+}
+
+function providerCapabilityRecord(name, adapter, type, record) {
+  if (!adapter?.types?.includes(type)) {
+    return { provider: name, state: 'skipped', observationTypes: [], semanticClassHints: [], sourceRole: null };
+  }
+  const observationTypes = [...new Set(coverageObservationTypes(adapter, type).filter(value => typeof value === 'string' && value.length > 0))];
+  const semanticClassHints = [...new Set(observationTypes.map(semanticClass))].sort();
+  return {
+    provider: name,
+    state: providerCoverageState(record),
+    observationTypes,
+    semanticClassHints,
+    sourceRole: adapter.sourceRole ?? 'community',
+  };
+}
+
 function buildCoverage(providerNames, registry, type, records, summary, executedProviders) {
   const classProviders = new Map();
   const successfulClasses = new Set();
+  const providerCapabilities = [];
 
   for (const name of providerNames) {
     const adapter = registry.get(name);
+    const record = records.get(name);
+    providerCapabilities.push(providerCapabilityRecord(name, adapter, type, record));
     if (!adapter?.types?.includes(type)) continue;
 
     const expectedClasses = [...new Set(coverageObservationTypes(adapter, type).map(semanticClass))];
@@ -54,7 +78,6 @@ function buildCoverage(providerNames, registry, type, records, summary, executed
       classProviders.get(cls).add(name);
     }
 
-    const record = records.get(name);
     if (!record?.result?.ok) continue;
     const actualKind = record.result?.data?.observationType;
     if (typeof actualKind === 'string' && actualKind) {
@@ -76,6 +99,7 @@ function buildCoverage(providerNames, registry, type, records, summary, executed
     failed: summary.failed,
     skipped: summary.skipped,
     materialLoss: ratioLoss || semanticLoss,
+    providerCapabilities,
   };
 }
 
@@ -112,7 +136,7 @@ export async function enrich({
     const queriedAt = now();
     const durationMs = Math.max(0, nowMs() - started);
     const rawCorrelation = correlateEvidence({ indicator, type, evidence: [], relationships: [], now: queriedAt });
-    const coverage = { selected: 0, executed: 0, succeeded: 0, failed: 0, skipped: 0, materialLoss: false };
+    const coverage = { selected: 0, executed: 0, succeeded: 0, failed: 0, skipped: 0, materialLoss: false, providerCapabilities: [] };
     const limitations = rawCorrelation.limitations ?? [];
     const decision = buildDecisionSupport({ indicator, type, evidence: [], relationships: [], correlation: rawCorrelation, coverage, limitations, now: queriedAt });
     const correlation = { ...rawCorrelation, assessment: decision.assessment };
