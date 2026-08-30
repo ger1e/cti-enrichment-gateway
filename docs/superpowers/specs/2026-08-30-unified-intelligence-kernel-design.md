@@ -52,18 +52,18 @@ Neither component creates evidence.
 
 ### 1. Intelligence Kernel Boundary
 
-Add a new pure, versioned module under `src/core/`, conceptually `intelligence-kernel.js`.
+Add a new pure, versioned module under `src/core/`, conceptually `intelligence-kernel.js`, plus observable policy modules under a focused subdirectory such as `src/core/intelligence-policy/`.
 
 Inputs:
 
-- observable `type`
-- canonical subject / indicator
-- normalized Evidence v2 items
-- explicit normalized relationships
-- existing correlation output
-- coverage state
-- injected `now`
-- observable-specific policy module
+- observable `type`;
+- canonical subject / indicator;
+- normalized Evidence v2 items;
+- explicit normalized relationships;
+- existing correlation output;
+- coverage state;
+- injected `now`;
+- observable-specific policy module.
 
 The kernel must not:
 
@@ -79,9 +79,15 @@ Output is deeply frozen, schema-versioned, and additive.
 
 Initial version: `Intelligence Kernel v1.0`.
 
+Every material derived conclusion must expose at least one of:
+
+- supporting evidence fingerprints;
+- explicit relationship identifiers/provider provenance;
+- deterministic rule identifiers.
+
 ### 2. Kernel Output Contract
 
-The kernel should emit categorical, explainable analyst context rather than an opaque score.
+The kernel emits categorical, explainable analyst context rather than an opaque score.
 
 #### `evidenceStrength`
 
@@ -157,10 +163,10 @@ Missing observation timestamps remain `unknown`. Retrieval time must not be prom
 
 Explicit relationships are categorized as:
 
-- direct;
-- supporting;
-- contextual;
-- low-value.
+- `direct`;
+- `supporting`;
+- `contextual`;
+- `low_value`.
 
 The classification is observable-policy driven and must retain source/provider provenance.
 
@@ -242,15 +248,15 @@ Priority must include explicit deterministic reasons. It is not a probability an
 
 #### `limitations`
 
-All uncertainty or degraded-analysis conditions required to prevent overclaiming must be explicit. Examples include:
+All uncertainty or degraded-analysis conditions required to prevent overclaiming must be explicit. Initial normalized limitation identifiers include:
 
-- single-source direct threat support;
-- contradictory threat evidence;
-- stale-only evidence;
-- unknown observation time;
-- infrastructure-only evidence;
-- material coverage loss;
-- intelligence projection unavailable.
+- `single_source_threat_support`;
+- `contradictory_threat_evidence`;
+- `stale_evidence_only`;
+- `unknown_observation_time`;
+- `infrastructure_only_evidence`;
+- `material_coverage_loss`;
+- `intelligence_projection_unavailable`.
 
 ### 3. IP Reference Policy
 
@@ -281,7 +287,7 @@ Case B:
 
 `multiple infrastructure sources + exposed ports + scanner activity`
 
-Even with similar provider counts, Case A should have materially stronger direct threat context and analyst priority than Case B.
+Even with similar provider counts, Case A must have materially stronger direct threat context and analyst priority than Case B.
 
 ## Deterministic Provider Value Scheduler
 
@@ -300,53 +306,66 @@ The scheduler must not skip a provider because another provider already returned
 
 ### 2. Ranking Model
 
-Provider order must be derived from a lexicographically ordered categorical priority vector, not a single opaque score.
+Provider order is derived from a lexicographically ordered categorical priority vector, not a single opaque score.
 
-Priority dimensions, in order:
+For a given provider/type pair, compare these dimensions in order:
 
-1. authority class;
-2. semantic uniqueness;
-3. direct threat value;
-4. pivot value;
-5. latency class;
-6. cost class;
-7. existing tier;
-8. original workflow order.
+1. `authorityClass`: `authoritative > first_party > specialist > aggregator > community > contextual`;
+2. `semanticUniqueness`: `unique > complementary > duplicative`;
+3. `intelligenceValue`: `direct > supporting > contextual`;
+4. `pivotValue`: `high > medium > low > none`;
+5. `latencyClass`: `fast > normal > slow`;
+6. existing `costClass`: `free > quota > scarce`;
+7. existing numeric `tier`: lower tier first;
+8. original workflow position: lower index first.
 
-This produces a deterministic and auditable reason why provider A precedes provider B.
+The order above is normative. It makes execution order reproducible and makes the first differing dimension the explanation for why provider A precedes provider B.
 
-### 3. Provider Metadata
+Profile admission remains unchanged and occurs before value ranking. A `scarce` provider excluded by the selected profile is not re-admitted by scheduler metadata.
 
-Extend declarative provider policy metadata with explicit scheduler descriptors, expected to include:
+### 3. Provider/Type Scheduler Metadata
 
-- `authorityClass`
-- `intelligenceValue`
-- `pivotValue`
-- `latencyClass`
+Scheduler metadata is defined per provider/type pair because the same provider can have different analyst value for IP, domain, hash, or another observable.
 
-Existing metadata remains part of the decision surface:
+The provider manifest should therefore carry a nested declarative structure equivalent to:
 
-- `semanticClassHints`
-- `sourceRole`
-- `costClass`
-- `timeoutMs`
-- `tier`
-- workflow order
-- profile admission rules
+`schedulerByType[type] = { authorityClass, semanticUniqueness, intelligenceValue, pivotValue, latencyClass }`
 
-The scheduler must not infer priority from provider names.
+Allowed values are exactly the categorical enums defined in the Ranking Model section.
+
+Existing metadata remains available as supporting policy and fallback context:
+
+- `semanticClassHints`;
+- `sourceRole`;
+- `costClass`;
+- `timeoutMs`;
+- `tier`;
+- workflow order;
+- profile admission rules.
+
+The scheduler must not infer priority from provider names, historical runtime behavior, or previous request results.
 
 ### 4. Fallback
 
-If scheduler metadata is absent or malformed, provider execution falls back deterministically to the current behavior:
+If `schedulerByType[type]` is absent, incomplete, or invalid, that provider/type pair falls back deterministically to the current ordering contract:
 
 `tier -> workflow order`
 
-A metadata defect must not prevent an otherwise-admitted provider from executing.
+Fallback is local to the malformed/missing provider/type scheduler descriptor. A metadata defect must not prevent an otherwise-admitted provider from executing.
+
+The fallback path must be surfaced in scheduler rationale as `legacy_priority_fallback`.
 
 ### 5. Capability Registry Exposure
 
-The capability registry should expose the resulting scheduler metadata and deterministic execution rationale so the API/WebUI can explain source priority without coupling scheduling to analytical conclusions.
+The capability registry should expose, for each provider/type pair:
+
+- scheduler policy version;
+- normalized categorical descriptors;
+- resulting order/rank for the applicable workflow/profile when requested by the calling surface;
+- whether fallback was used;
+- first differing comparator dimension used as the execution-order rationale where meaningful.
+
+This allows the API/WebUI to explain source priority without coupling scheduling to analytical conclusions.
 
 Scheduler policy receives its own version identifier independent from the Intelligence Kernel version.
 
@@ -389,15 +408,16 @@ If kernel derivation fails:
 
 - valid provider evidence remains successful;
 - the enrichment request is not converted into a provider failure;
-- Decision Support may fall back to current deterministic logic;
-- the response records `intelligence_projection_unavailable` or an equivalent explicit limitation;
+- Decision Support falls back to its existing deterministic logic where possible;
+- the response records the exact limitation `intelligence_projection_unavailable`;
 - raw Evidence v2 remains available.
 
 If scheduler metadata evaluation fails:
 
 - provider admission remains unchanged;
-- ordering falls back to `tier -> workflow order`;
-- execution continues under the existing egress, retry, concurrency, and deadline controls.
+- the affected provider/type pair falls back to `tier -> workflow order`;
+- execution continues under the existing egress, retry, concurrency, and deadline controls;
+- scheduler rationale records `legacy_priority_fallback`.
 
 Provider timeout, credential absence, circuit state, or upstream failure remains coverage information only.
 
@@ -460,20 +480,26 @@ No observable is considered migrated until tests prove no regression in:
 
 Implementation must follow TDD.
 
-Required test classes include:
+### Scheduler Tests
 
-### Scheduler
+Required cases:
 
 - deterministic ordering for all profiles;
+- exact comparator precedence for every categorical dimension;
 - stable ordering for identical metadata;
-- fallback on missing scheduler metadata;
-- fallback on malformed scheduler metadata;
+- provider/type-specific metadata behavior;
+- fallback on absent scheduler metadata;
+- fallback on incomplete scheduler metadata;
+- fallback on invalid scheduler metadata;
+- `legacy_priority_fallback` rationale;
 - profile admission unchanged;
 - no result-conditioned provider suppression;
 - retry/concurrency/deadline invariants unchanged;
 - capability registry exposes deterministic scheduling rationale.
 
-### Intelligence Kernel
+### Intelligence Kernel Tests
+
+Required cases:
 
 - strong multi-source direct threat support;
 - single-source direct threat support;
@@ -488,24 +514,29 @@ Required test classes include:
 - bounded pivot generation;
 - malformed/absent relationship handling;
 - no guessed pivots;
-- fingerprint/provenance traceability;
+- fingerprint/provenance/rule-ID traceability;
 - deterministic output from identical inputs;
 - deep-freeze/immutability guarantees;
 - no Evidence v2 mutation.
 
-### Integration
+### Integration Tests
+
+Required cases:
 
 - Decision Support behavior with kernel output;
 - Decision Support compatibility without kernel output;
 - Guidance compatibility and evidence-reference validation;
 - kernel failure isolation;
+- exact `intelligence_projection_unavailable` limitation on kernel failure;
 - IP report semantic sections;
 - copy/export parity;
 - raw evidence preservation;
 - Evidence Graph compatibility;
 - old fixtures/cached-envelope compatibility.
 
-### Regression and Release
+### Regression and Release Verification
+
+Required gates:
 
 - full Node test suite;
 - Maltego suite where applicable;
