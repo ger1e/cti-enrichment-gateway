@@ -5,23 +5,31 @@ import { createProviderRegistry } from '../src/core/provider-registry.js';
 import { normalizeEvidence } from '../src/core/normalize.js';
 import { enrich } from '../src/core/orchestrator.js';
 
-function adapter(name, { types = ['ip'], observationTypes = ['fixture_context'], run, parserVersion = '1' } = {}) {
+function adapter(name, { types = ['ip'], observationTypes = ['fixture_context'], run, parserVersion = '1', tier = 1, costClass = 'free', schedulerByType } = {}) {
   return {
     name,
     types,
     observationTypes,
     cacheTtlMs: 1000,
     negativeCacheTtlMs: 100,
-    costClass: 'free',
-    tier: 1,
+    costClass,
+    tier,
     timeoutMs: 100,
     maxResponseBytes: 2048,
     fixedHosts: ['example.test'],
     parserVersion,
     sourceUrl: 'https://example.test/docs',
+    ...(schedulerByType ? { schedulerByType } : {}),
     run,
   };
 }
+
+const PRIORITY_BASE = Object.freeze({
+  semanticUniqueness: 'unique',
+  intelligenceValue: 'direct',
+  pivotValue: 'high',
+  latencyClass: 'fast',
+});
 
 test('normalizes provider result into canonical evidence', () => {
   const evidence = normalizeEvidence('demo', '8.8.8.8', 'ip', { verdict: 'benign', confidence: 90, firstSeen: '2026-01-01T00:00:00Z', tags: ['resolver'], references: ['https://example.test/ref'] }, { retrievedAt: '2026-08-20T12:00:00Z', rawHash: 'a'.repeat(64), parserVersion: '1' });
@@ -96,4 +104,49 @@ test('loss of every selected provider for a semantic class is material coverage 
   const result = await enrich({ indicator: '8.8.8.8', type: 'ip', providerNames: ['rep', 'ctx'], registry, cache: new TtlCache(), requestId: 'r', now: () => '2026-08-20T12:00:00Z' });
   assert.equal(result.coverage.materialLoss, true);
   assert.ok(result.limitations.includes('material_coverage_loss'));
+});
+
+test('IP orchestration starts admitted providers in value order while preserving envelope evidence order', async () => {
+  const starts = [];
+  const community = adapter('community-first-in-workflow', {
+    tier: 1,
+    schedulerByType: { ip: { authorityClass: 'community', ...PRIORITY_BASE } },
+    observationTypes: ['network_identity'],
+    run: async () => { starts.push('community-first-in-workflow'); return { observationType: 'network_identity', verdict: 'observed' }; },
+  });
+  const authoritative = adapter('authoritative-second-in-workflow', {
+    tier: 5,
+    schedulerByType: { ip: { authorityClass: 'authoritative', ...PRIORITY_BASE } },
+    observationTypes: ['registration'],
+    run: async () => { starts.push('authoritative-second-in-workflow'); return { observationType: 'registration', verdict: 'observed' }; },
+  });
+  const registry = createProviderRegistry([community, authoritative]);
+  const result = await enrich({
+    indicator: '8.8.8.8', type: 'ip',
+    providerNames: ['community-first-in-workflow', 'authoritative-second-in-workflow'],
+    registry, cache: new TtlCache(), requestId: 'priority',
+    now: () => '2026-08-20T12:00:00Z',
+  });
+  assert.deepEqual(starts, ['authoritative-second-in-workflow', 'community-first-in-workflow']);
+  assert.deepEqual(result.evidence.map(item => item.provider), ['community-first-in-workflow', 'authoritative-second-in-workflow']);
+});
+
+test('orchestrator keeps the fixed two-attempt provider call ceiling under typed scheduling', async () => {
+  const calls = new Map();
+  const providers = ['a', 'b', 'c'].map((name, index) => adapter(name, {
+    tier: index + 1,
+    schedulerByType: { ip: { authorityClass: 'specialist', ...PRIORITY_BASE } },
+    run: async () => {
+      calls.set(name, (calls.get(name) ?? 0) + 1);
+      throw new Error('transient');
+    },
+  }));
+  const result = await enrich({
+    indicator: '8.8.8.8', type: 'ip', providerNames: providers.map(item => item.name),
+    registry: createProviderRegistry(providers), cache: new TtlCache(), requestId: 'budget',
+    now: () => '2026-08-20T12:00:00Z',
+  });
+  assert.equal(result.budget.providerCallLimit, providers.length * 2);
+  assert.equal(result.budget.providerCalls <= providers.length * 2, true);
+  for (const name of providers.map(item => item.name)) assert.equal((calls.get(name) ?? 0) <= 2, true, name);
 });
