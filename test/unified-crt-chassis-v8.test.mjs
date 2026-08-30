@@ -13,7 +13,7 @@ test('desktop boot and terminal share one fixed CRT chassis across the skip hand
 
   assert.match(
     desktop,
-    /html\[data-terminal-first="v7"\] \.boot-panel\{[^}]*padding:0 clamp\(14px,2vw,26px\)!important;/s,
+    /html\[data-terminal-first="v7"\] \.boot-panel\{[^}]*padding:0 clamp\(14px,2vw,26px\)!important;?/s,
     'boot content must use the same horizontal CRT inset as the terminal shell',
   );
 });
