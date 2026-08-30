@@ -89,3 +89,29 @@ test('STIX export in the bundle is deterministic and structurally valid STIX 2.1
     rmSync(outDir, { recursive: true, force: true });
   }
 });
+
+test('report bundles preserve additive intelligence in evidence.json while legacy snapshots remain supported', () => {
+  const legacyDir = mkdtempSync(join(tmpdir(), 'cti-report-legacy-'));
+  const kernelDir = mkdtempSync(join(tmpdir(), 'cti-report-kernel-'));
+  const intelligence = {
+    schemaVersion: '1.0',
+    type: 'ip',
+    policy: { type: 'ip', version: '1.0' },
+    analystPriority: { level: 'monitor', reasons: ['ip_priority_monitor'], evidenceFingerprints: [] },
+    evidenceStrength: { level: 'weak', reasons: ['ip_strength_contextual'], providers: [], evidenceFingerprints: [] },
+  };
+  try {
+    compileReportBundle(snapshot, { ...options, outDir: legacyDir });
+    const legacyEvidence = JSON.parse(readFileSync(join(legacyDir, 'evidence.json'), 'utf8'));
+    assert.equal('intelligence' in legacyEvidence, false);
+
+    compileReportBundle({ ...snapshot, intelligence }, { ...options, outDir: kernelDir });
+    const kernelEvidence = JSON.parse(readFileSync(join(kernelDir, 'evidence.json'), 'utf8'));
+    assert.deepEqual(kernelEvidence.intelligence, intelligence);
+    assert.deepEqual(kernelEvidence.evidence, snapshot.evidence);
+    assert.deepEqual(kernelEvidence.relationships, snapshot.relationships);
+  } finally {
+    rmSync(legacyDir, { recursive: true, force: true });
+    rmSync(kernelDir, { recursive: true, force: true });
+  }
+});
