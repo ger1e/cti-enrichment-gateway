@@ -1,6 +1,7 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 # Shodan analyst shell
 
-PARA11AX exposes a bounded native Shodan command surface inside the existing authenticated analyst shell. It is an operator utility, not a second Evidence v2 enrichment pipeline.
+PARA11AX exposes a bounded native Shodan command surface inside the authenticated analyst shell. It is an operator utility, not a second Evidence v2 enrichment pipeline and not an Intelligence Kernel data source.
 
 ## Commands
 
@@ -28,7 +29,9 @@ shodan info
 
 The browser calls only the same-origin authenticated endpoint `POST /api/para11ax/shodan`. The gateway reads `SHODAN_API_KEY` server-side and sends requests only to the fixed upstream origin `https://api.shodan.io`. The caller cannot select an arbitrary URL, host, page, HTTP method, credential, proxy, or provider destination.
 
-Shodan operator results are rendered in terminal scrollback and leave the current Evidence v2 enrichment result unchanged. They are not promoted into Evidence v2 correlation, case evidence, STIX, or provider voting automatically.
+Shodan operator results are rendered in terminal scrollback and leave the current Evidence v2 enrichment result unchanged. They are not promoted into Evidence v2 correlation, **Intelligence Kernel v1.0**, Decision Support, case evidence, STIX, Evidence Graph, Guidance or provider voting automatically.
+
+The canonical Evidence v2 Shodan provider is a separate adapter in the fixed provider fabric. Only that normalized provider path can contribute Shodan-origin observations to Evidence v2 and therefore to any later deterministic derived analysis. Native shell output never bypasses that boundary.
 
 ## Bounded behavior
 
@@ -40,7 +43,7 @@ Shodan operator results are rendered in terminal scrollback and leave the curren
 - Search results are capped and large raw banners/service bodies are removed before returning to the browser.
 - `download`, arbitrary paging, caller-selected URLs and unsupported options are disabled.
 
-The terminal surfaces the returned `creditImpact` classification so the analyst can see whether a command is free, credit-consuming, or potentially credit-consuming before treating it as a routine workflow.
+The terminal surfaces returned `creditImpact` so the analyst can distinguish free, credit-consuming, and potentially credit-consuming operations.
 
 ## Authentication and configuration
 
@@ -62,4 +65,18 @@ Never expose or commit the Shodan key. Missing configuration fails closed with a
 
 Shodan host, service, DNS, organization and exposure data are infrastructure/exposure context. They do not by themselves prove compromise, maliciousness, attribution, ownership, exploitability, or current reachability.
 
-The dedicated shell surface is separate from the normal Shodan Evidence v2 provider adapter. The provider adapter remains governed by the fixed provider registry and Evidence v2 semantics; the analyst-shell commands are explicit operator lookups with their own bounded response envelope.
+The dedicated shell surface is separate from:
+
+1. the normal Shodan Evidence v2 provider adapter;
+2. Provider Value Scheduler v1.0, which only orders already-admitted Evidence v2 adapters;
+3. Intelligence Kernel v1.0, which only consumes normalized Evidence v2/correlation/coverage after provider execution.
+
+Neither Provider Value Scheduler v1.0 nor Intelligence Kernel v1.0 adds a Shodan shell call, changes Shodan credit behavior, or creates new egress. The deterministic core uses no LLM.
+
+## Production proof
+
+A successful public deployment or Evidence v2 Shodan provider probe does not prove native Shodan shell readiness. Shell readiness requires an authorized command on the exact deployment with `SHODAN_API_KEY` configured. Prefer `shodan info`, `shodan host <approved-ip>`, or `shodan count <approved-query>` for no-query-credit wiring checks.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

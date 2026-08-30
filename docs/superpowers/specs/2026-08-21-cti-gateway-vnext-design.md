@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # PARA11AX vNext — Ultimate Bounded Design
 
 Date: 2026-08-21
@@ -590,3 +593,7 @@ The implementation should land as a sequence of independently reviewable PR-size
 13. final repository QA, cleanup and production parity verification
 
 Each phase may be merged only after its exact merge tree is green. If a proposed upstream source or feature cannot satisfy the fixed-host, bounded-response or no-false-negative invariants, it is skipped and recorded as an explicit coverage gap.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Unified Intelligence Kernel + Deterministic Value Scheduler
 
 Date: 2026-08-30
@@ -586,3 +589,7 @@ This design explicitly does not include:
 ## Implementation Constraint Summary
 
 The implementation must remain deterministic, source-grounded, read-only with respect to external infrastructure, bounded by the existing egress model, backwards compatible during rollout, and test-first.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

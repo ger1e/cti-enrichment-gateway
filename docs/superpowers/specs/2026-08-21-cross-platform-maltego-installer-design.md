@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Cross-platform Maltego Installer Design
 
 ## Goal
@@ -39,3 +42,7 @@ Windows: `./install.ps1` from PowerShell.
 macOS/Linux: `./install.sh` from zsh or bash.
 
 The user enters the gateway token once through a non-echoing prompt when a secure native backend is available, receives a tested `para11ax-local.mtz`, imports it into Maltego Graph Desktop, and does not manually manage Python, pip, or venvs during normal operation.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ## Summary
 
 Describe the change and why it is needed.
@@ -44,3 +45,7 @@ List tests, fixtures, provider documentation, or other evidence used to validate
 ## Residual risk / limitations
 
 Document degraded modes, provider limitations, false-positive/false-negative considerations, or unresolved risk. Use `None` only when genuinely applicable.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

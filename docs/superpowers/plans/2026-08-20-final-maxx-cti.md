@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Final MAXX CTI Gateway Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -572,3 +575,7 @@ Only claim completion if the fresh evidence shows:
 **Placeholder scan:** The plan contains no TBD/TODO/implement-later instructions. Runtime-selected public smoke indicators are explicitly bounded to non-secret public fixtures because exact live provider availability is execution-time state, not an implementation placeholder.
 
 **Type consistency:** `classifyIndicator`, `runProvider`, `enrich`, `createApp`, `GatewayClient.enrich`, `map_enrichment`, provider metadata fields and the canonical response envelope use the same names/signatures throughout the plan and approved spec.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

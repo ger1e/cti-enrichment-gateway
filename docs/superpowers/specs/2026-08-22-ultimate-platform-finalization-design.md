@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Ultimate Platform Finalization Design
 
 ## Goal
@@ -94,3 +97,7 @@ The approved bounded design is part of this release. API/CLI callers retain JSON
 ## Acceptance
 
 The exact PR head must pass repository invariants, dependency lock/audit validation, all Node tests, all Maltego tests, Python compile, bash/zsh/ShellCheck, PowerShell syntax, Linux/macOS/Windows jobs, Vercel preview, report fixture determinism, secret/public-release audit, and final security diff review. Merge uses the exact verified head SHA; production is accepted only after exact-main Vercel `READY`, `/api/para11ax/meta` 200, protected unauthenticated endpoints 401/no-store, custom browser 401 and unknown-route 404 behavior, and zero new runtime error clusters.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

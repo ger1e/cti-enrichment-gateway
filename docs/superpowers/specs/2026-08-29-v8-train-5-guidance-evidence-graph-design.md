@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # PARA11AX v8 Train 5 — Guidance and Evidence Graph Design
 
 Date: 2026-08-29
@@ -353,3 +356,7 @@ Train 5 is complete only when:
 7. the verified PR head is synchronized with current `main` before merge;
 8. branch protection merges only the verified head;
 9. merged `main` receives a fresh successful Tooling smoke run.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

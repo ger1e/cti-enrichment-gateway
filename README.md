@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 <p align="center">
   <img src="assets/brand/para11ax-readme-hero-v8.svg" alt="PARA11AX — provenance-first CTI enrichment and analyst operations" width="100%">
 </p>
@@ -22,29 +23,51 @@
 
 <sub><strong>01 // SYSTEM PROFILE</strong></sub>
 
-PARA11AX combines a bounded, read-only CTI enrichment/correlation core with isolated analyst utilities. Canonical observables enter fixed Evidence v2 workflows. User Scanner performs bounded email/username active OSINT through an isolated worker. Native Shodan operator commands provide explicit infrastructure/exposure lookups through the same authenticated analyst shell while remaining separate from the current Evidence v2 result.
+PARA11AX is a bounded, read-only CTI enrichment/correlation core with deterministic analysis and isolated analyst utilities. Canonical observables enter fixed Evidence v2 workflows. Profile admission stays separate from execution priority: the **Provider Value Scheduler v1.0** deterministically orders admitted providers without evidence-dependent source suppression. The IP reference path then projects **Intelligence Kernel v1.0** derived context over normalized evidence and correlation before Decision Support, Guidance and the analyst report consume it.
+
+The Kernel does not fetch, mutate or manufacture evidence. Raw **Evidence v2 remains authoritative**. Kernel output is derived context: evidence strength, source diversity, corroboration independence, contradiction severity, temporal relevance, explicit one-hop pivots, threat context, hunt relevance, coverage impact and analyst priority. Every important conclusion remains traceable to evidence fingerprints/providers or an explicit deterministic rule.
 
 <sub><strong>STATE</strong> — OPERATIONAL CORE<br/>
 <strong>INPUTS</strong> — `ip` · `domain` · `url` · `hash` · `cve` · `attack` · `asn` · `cidr` · `certificate` (`cert-sha256:&lt;64-hex&gt;`)<br/>
+<strong>SCHEDULER</strong> — Provider Value Scheduler v1.0 · deterministic static ordering · profile admission stays separate<br/>
+<strong>IP REFERENCE</strong> — 24-provider IP workflow · 48-call ceiling · max 4 active · max 2 attempts/provider · 20 s request deadline<br/>
+<strong>INTELLIGENCE</strong> — Intelligence Kernel v1.0 on IP · deterministic derived context · no LLM · no synthetic threat score<br/>
 <strong>IDENTITY OSINT</strong> — `user-scanner email|username &lt;target&gt;` · aliases `osint` / `identity`<br/>
 <strong>SHODAN OPS</strong> — `shodan host|search|count|stats|domain|info` · fixed upstream · server-side key · explicit credit impact<br/>
 <strong>PROFILES</strong> — `fast` · `standard` · `full`; callers cannot select arbitrary Evidence v2 providers<br/>
-<strong>OUTPUT</strong> — Evidence v2 · Evidence Graph v1.0 · Guidance v1.0 · deterministic decision support · JSON · batch · STIX 2.1 · deterministic reports<br/>
+<strong>OUTPUT</strong> — Evidence v2 · `intelligence` · Decision Support · Evidence Graph v1.0 · Guidance v1.0 · JSON · batch · STIX 2.1 · deterministic reports<br/>
 <strong>LOCAL</strong> — browser-local cases · snapshots/diffs · exact typed cross-case index · case graph · `.para11ax` bundles; no server-side case persistence<br/>
 <strong>IDENTITY</strong> — repository/package/CLI `para11ax` · bearer `PARA11AX_TOKEN` · API `/api/para11ax/*`</sub>
 
 <sub><strong>02 // REQUEST PATH</strong></sub>
 
-<p align="center"><img src="assets/brand/para11ax-readme-architecture-v4.svg" alt="PARA11AX bounded request path from caller through safeFetch to Evidence v2" width="100%"></p>
+<p align="center"><img src="assets/brand/para11ax-readme-architecture-v4.svg" alt="PARA11AX bounded request path through deterministic provider scheduling, fixed egress, Evidence v2 and Intelligence Kernel v1.0" width="100%"></p>
 
-`safeFetch` is the hard egress boundary for the passive Evidence v2 core. Callers cannot choose arbitrary destinations, protocols, methods, headers, redirects, provider credentials or custom proxy routes. Upstream responses remain untrusted until a provider parser validates and normalizes them.
+Canonical passive flow:
 
-Two operator paths are intentionally separate from Evidence v2 correlation:
+```text
+caller
+  -> auth / classifier / fixed profile admission
+  -> Provider Value Scheduler v1.0
+  -> safeFetch fixed-egress boundary
+  -> provider parser + bounded cache
+  -> Evidence v2 + typed correlation
+  -> Intelligence Kernel v1.0 (IP reference)
+  -> Decision Support
+  -> Evidence Graph v1.0 + Guidance v1.0
+  -> analyst report / JSON / batch / STIX 2.1
+```
+
+`safeFetch` remains the hard egress boundary for the passive provider core. The scheduler changes attempt order only; it does not add a provider, host, method, credential, dependency or network path. Every admitted provider remains scheduled under the existing bounded deadline/retry policy. Missing or malformed scheduler descriptors fail back deterministically instead of blocking enrichment.
+
+The current 24-provider IP workflow keeps its **48-call ceiling** (24 providers × maximum two attempts). Provider execution priority is static and inspectable; evidence never changes which admitted source is allowed to run.
+
+Two operator paths remain intentionally separate from Evidence v2 and Intelligence Kernel reasoning:
 
 - User Scanner: same-origin authenticated route to the server-configured isolated Python worker.
 - Shodan shell: same-origin authenticated route to a bounded server-side Shodan command handler using only `https://api.shodan.io` and `SHODAN_API_KEY`.
 
-Neither operator path silently replaces or mutates the current Evidence v2 enrichment result.
+Neither operator path silently replaces, mutates or promotes output into the current Evidence v2 result or top-level `intelligence` projection.
 
 <details>
 <summary><strong>API surface</strong></summary>
@@ -75,11 +98,27 @@ Complete contracts: [`docs/API.md`](docs/API.md) and [`docs/SHODAN-SHELL.md`](do
 
 </details>
 
+<sub><strong>INTELLIGENCE KERNEL v1.0</strong></sub>
+
+**Intelligence Kernel v1.0** is a pure deterministic analysis layer. The current reference policy is IP-first; other observable types retain their established correlation/decision behavior until migrated under explicit type policies.
+
+<sub><strong>EVIDENCE STRENGTH</strong> — `none | weak | moderate | strong`; based on directness, freshness, source diversity, independent corroboration and contradiction pressure<br/>
+<strong>SOURCE DIVERSITY</strong> — providers · source roles · semantic classes · independent vs duplicate capability<br/>
+<strong>CONTRADICTIONS</strong> — explicit semantic conflict and severity; never silently resolved<br/>
+<strong>TEMPORAL</strong> — observation first/last seen · current/aging/stale/unknown · retrieval time is not observation time<br/>
+<strong>RELATIONSHIPS</strong> — explicit relationship value · bounded one-hop pivots · stable identities · provenance retained<br/>
+<strong>THREAT CONTEXT</strong> — direct evidence separated from scanner/noise, exposure, infrastructure and reported claims<br/>
+<strong>HUNT RELEVANCE</strong> — telemetry/hunt viability from existing evidence; no environment-readiness fabrication<br/>
+<strong>COVERAGE IMPACT</strong> — duplicate-capability loss separated from materially unique capability loss<br/>
+<strong>ANALYST PRIORITY</strong> — `immediate | investigate | monitor | contextual | insufficient` with rule-backed reasons</sub>
+
+No LLM, adaptive model, runtime learning or universal maliciousness score participates in this path. Kernel failure is isolated: usable Evidence v2 still survives and the missing derived projection becomes an explicit limitation rather than an enrichment failure.
+
 <sub><strong>03 // ANALYST SURFACE</strong></sub>
 
 **ANALYST SURFACE** — [https://para11ax.vercel.app/app/](https://para11ax.vercel.app/app/)
 
-The production terminal keeps the gateway bearer in volatile memory only, exposes bounded command grammars and evidence views, and preserves the API semantic model. The IndexedDB-backed case workspace is browser-local; active-case state and gateway authentication remain runtime-only.
+The terminal keeps the gateway bearer in volatile memory only, exposes bounded command grammars and evidence views, and preserves the API semantic model. The IndexedDB-backed case workspace is browser-local; active-case state and gateway authentication remain runtime-only.
 
 User Scanner examples:
 
@@ -101,9 +140,7 @@ shodan domain example.com
 shodan info
 ```
 
-Shodan behavior is deliberately bounded. `host`, `count`, `stats` and `info` are classified as no-query-credit operations by PARA11AX; `domain` is marked as consuming a query credit; `search` is first-page only and marked as potentially consuming a query credit. Search/service output is capped and large raw banners are removed. `shodan download`, arbitrary paging, caller-selected URLs and arbitrary Shodan operations are disabled.
-
-The browser never receives `SHODAN_API_KEY`, never chooses the Shodan origin, and never calls Shodan directly. Every command goes through `POST /api/para11ax/shodan`, and the result is rendered as operator output while the current Evidence v2 result remains unchanged.
+Shodan behavior is deliberately bounded. `host`, `count`, `stats` and `info` are classified as no-query-credit operations by PARA11AX; `domain` consumes a query credit; `search` is first-page only and may consume a query credit. Search/service output is capped and large raw banners are removed. `shodan download`, arbitrary paging, caller-selected URLs and arbitrary Shodan operations are disabled.
 
 <sub><strong>PROMPT</strong> — `analyst@para11ax:~$`<br/>
 <strong>WORKSPACE</strong> — local cases · pins · snapshots · semantic diffs · exact sightings · case graph<br/>
@@ -129,9 +166,12 @@ para11ax report diff <before.json> <after.json>
 
 <sub><strong>04 // SEMANTIC FIREWALL</strong></sub>
 
-<p align="center"><img src="assets/brand/para11ax-readme-semantics-v4.svg" alt="PARA11AX semantic firewall separating context, reputation, vulnerability axes, failures and attribution" width="100%"></p>
+<p align="center"><img src="assets/brand/para11ax-readme-semantics-v4.svg" alt="PARA11AX semantic firewall separating authoritative evidence from deterministic derived context and unsupported inference" width="100%"></p>
 
-<sub><strong>ABSENCE ≠ BENIGN</strong> — `not_listed`, `not_found`, `no_result` and `no_association` remain absence semantics<br/>
+**OBSERVED ≠ INFERRED ≠ CONTEXTUAL.** These states remain explicit across evidence, deterministic derived context and infrastructure/knowledge surfaces.
+
+<sub><strong>DERIVED CONTEXT ≠ EVIDENCE</strong> — Intelligence Kernel output never becomes a new Evidence v2 observation<br/>
+<strong>ABSENCE ≠ BENIGN</strong> — `not_listed`, `not_found`, `no_result` and `no_association` remain source-scoped absence semantics<br/>
 <strong>CONTEXT ≠ REPUTATION</strong> — routing, registration, Tor, scanners, Shodan exposure, certificates and ATT&CK cannot vote an IOC malicious<br/>
 <strong>IDENTITY HIT ≠ IDENTITY PROOF</strong> — matching usernames or registration signals do not prove same-person identity, ownership or compromise<br/>
 <strong>CLAIMS ≠ COMPROMISE PROOF</strong> — community and ransomware reporting remain claim/report evidence<br/>
@@ -139,11 +179,11 @@ para11ax report diff <before.json> <after.json>
 <strong>KEV ≠ EPSS ≠ CVSS</strong> — exploitation status, probability and severity remain separate axes<br/>
 <strong>FAILURE ≠ NEGATIVE EVIDENCE</strong> — timeout, 429, 5xx, parser/module failure and circuit-open states remain explicit coverage failures</sub>
 
-**No universal maliciousness score. No universal identity score.** Full evidence semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
+**No universal maliciousness score. No universal identity score. No LLM inference layer.** Full evidence semantics: [`docs/EVIDENCE-SCHEMA.md`](docs/EVIDENCE-SCHEMA.md).
 
 <sub><strong>05 // PROVIDER FABRIC</strong></sub>
 
-PARA11AX has **38 upstream APIs and feeds** — 38 sources in the canonical Evidence v2 provider fabric. Shodan is one of those fixed providers for canonical enrichment, while the native Shodan shell route is a distinct explicit operator surface and does not increase the provider count.
+PARA11AX has **38 configured sources** (upstream APIs and feeds) in the canonical Evidence v2 provider fabric. Shodan is one fixed provider for canonical enrichment, while the native Shodan shell route is a distinct explicit operator surface and does not increase the provider count.
 
 <details>
 <summary><strong>38 upstream APIs and feeds</strong></summary>
@@ -160,29 +200,23 @@ PARA11AX has **38 upstream APIs and feeds** — 38 sources in the canonical Evid
 
 </details>
 
-[`config/providers.json`](config/providers.json) is the machine-readable Evidence v2 provider policy. Shodan shell semantics are documented separately because that route does not participate in provider selection/correlation.
+[`config/providers.json`](config/providers.json) is the machine-readable Evidence v2 provider policy. Scheduler descriptors are declarative execution metadata; they do not change provider admission, credentials, fixed hosts or evidence semantics.
 
 <sub><strong>06 // SECURITY & VERIFICATION</strong></sub>
 
 <sub><strong>AUTH</strong> — bearer protects private API surfaces including User Scanner and Shodan shell; `/api/para11ax/meta` is intentionally public<br/>
-<strong>EGRESS</strong> — Evidence v2 uses exact declared provider hosts; Shodan shell uses exact `https://api.shodan.io`; User Scanner uses its server-configured worker only<br/>
+<strong>EGRESS</strong> — exact declared provider hosts; Kernel/Scheduler add no new egress; Shodan shell uses exact `https://api.shodan.io`; User Scanner uses its configured worker only<br/>
 <strong>SECRETS</strong> — `SHODAN_API_KEY` and all provider/worker credentials remain server-side<br/>
-<strong>SHODAN LIMITS</strong> — fixed subcommands · first-page search · bounded responses · banners stripped · no `download` · explicit credit impact<br/>
-<strong>STATE</strong> — Shodan and User Scanner operator output do not silently mutate Evidence v2 state<br/>
+<strong>STATE</strong> — operator utilities do not silently mutate Evidence v2 or Intelligence Kernel state<br/>
 <strong>CI</strong> — protected `main` requires Tooling smoke; CodeQL runs alongside it<br/>
-<strong>DEPLOY</strong> — Vercel Git deployment is enabled only for protected `main`</sub>
-
-For exact security and operational contracts see [`docs/SECURITY-CONTROLS.md`](docs/SECURITY-CONTROLS.md), [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md), [`docs/OPERATIONS.md`](docs/OPERATIONS.md), and [`docs/SHODAN-SHELL.md`](docs/SHODAN-SHELL.md).
+<strong>DEPLOY</strong> — repository/CI proof and production deployment proof remain separate; see Operations/QA for exact current state</sub>
 
 <sub><strong>07 // DEEP DOCS</strong></sub>
 
 <sub>[BRAND](docs/BRAND.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [END-TO-END](docs/END-TO-END-EXAMPLE.md) · [EVIDENCE](docs/EVIDENCE-SCHEMA.md) · [PROVIDERS](docs/PROVIDERS.md) · [API](docs/API.md) · [SHODAN SHELL](docs/SHODAN-SHELL.md) · [THREAT MODEL](docs/THREAT-MODEL.md) · [SECURITY CONTROLS](docs/SECURITY-CONTROLS.md) · [OPERATIONS](docs/OPERATIONS.md) · [QA](docs/QA-REPORT.md) · [PUBLIC RELEASE](docs/PUBLIC-RELEASE-CHECKLIST.md) · [MANIFEST](release-manifest.json)</sub>
 
----
+<p align="center"><img src="assets/brand/para11ax-readme-footer-v1.svg" alt="PARA11AX operating principles — Per Aspera Ad Astra" width="100%"></p>
 
-<p align="center">
-  <code>analyst@para11ax:~$ _</code><br/><br/>
-  <strong>OBSERVED ≠ INFERRED ≠ CONTEXTUAL</strong><br/><br/>
-  <sub>Preserve provenance · keep semantics separate · fail closed · make uncertainty visible</sub><br/><br/>
-  <img src="assets/brand/para11ax-radar-lockup.svg" alt="PARA11AX" width="320">
-</p>
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
+
+<p align="center"><img src="assets/brand/para11ax-radar-lockup.svg" alt="PARA11AX" width="180"></p>

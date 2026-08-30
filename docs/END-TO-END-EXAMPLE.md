@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### End-to-end enrichment example
 
 This is a **sanitized structural example**, not captured production telemetry and not a claim about a live IOC. It uses the documentation-only address `203.0.113.10` so the flow can be understood without publishing sensitive or operational data.
@@ -12,11 +13,11 @@ curl --fail-with-body \
   https://<gateway>/api/para11ax/enrich
 ```
 
-The caller supplies only an indicator and a fixed profile. It cannot select an upstream provider, host, method, header or provider credential.
+The caller supplies only an indicator and a fixed profile. It cannot select an upstream provider, host, method, header, provider credential or scheduler rank.
 
-The same classifier supports nine explicit workflow types: `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`, and `certificate`. Certificate SHA-256 is explicit as `cert-sha256:<64-hex>`; a bare SHA-256 remains a file hash.
+The classifier supports nine explicit workflow types: `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`, and `certificate`. Certificate SHA-256 is explicit as `cert-sha256:<64-hex>`; a bare SHA-256 remains a file hash.
 
-#### 2. Classification and routing
+#### 2. Classification and admission
 
 The gateway canonicalizes the example input as:
 
@@ -28,17 +29,19 @@ The gateway canonicalizes the example input as:
 }
 ```
 
-The IP workflow then selects only statically registered providers allowed by the `standard` profile. Missing credentials reduce coverage explicitly; they do not cause hidden fallback to an unregistered source.
+The IP workflow selects only statically registered providers admitted by the fixed profile. Missing credentials reduce coverage explicitly; they do not cause hidden fallback to an unregistered source.
 
-#### 3. Fixed-egress provider execution
+#### 3. Provider Value Scheduler v1.0 and fixed egress
 
-Each selected adapter executes through the central `safeFetch` boundary. The boundary enforces HTTPS only, exact allowlisted hosts, declared methods, no redirects, request/response ceilings, bounded timeout/retry behavior, and provider concurrency of at most four.
+After admission, Provider Value Scheduler v1.0 deterministically orders the admitted adapters. The ordering is static metadata-driven and does not depend on evidence returned earlier in the same request.
 
-Upstream responses remain untrusted until the provider parser validates and normalizes them.
+The current **24-provider IP workflow** keeps a **48-call ceiling**: at most two attempts/provider, maximum four active providers, and a 20-second request deadline. The scheduler changes attempt order only; it does not add providers or destinations.
 
-#### 4. Evidence v2, correlation and decision support
+Each adapter executes through the central `safeFetch` boundary. The boundary enforces HTTPS only, exact allowlisted hosts, declared methods, no redirects, request/response ceilings, bounded timeout/retry behavior, and the existing concurrency ceiling. Upstream responses remain untrusted until the provider parser validates and normalizes them.
 
-A successful response uses the Evidence Schema v2 envelope. The trimmed example below is illustrative; provider availability, observations, timings, hashes and counts vary by request.
+#### 4. Evidence v2 and typed correlation
+
+A successful response uses Evidence Schema v2. The trimmed example below is illustrative; provider availability, observations, timings, hashes and counts vary by request.
 
 ```json
 {
@@ -58,27 +61,77 @@ A successful response uses the Evidence Schema v2 envelope. The trimmed example 
     "contradictions": [],
     "freshness": "unknown",
     "huntability": {"level": "<bounded-level>", "rationale": []}
-  },
+  }
+}
+```
+
+Evidence v2 is authoritative. Provider failures/skips remain coverage facts, never negative reputation evidence. Routing/registration context, Shodan/Censys exposure, certificate metadata, scanner activity, Tor-exit status, reputation, ransomware claims and ATT&CK knowledge are not collapsed into a universal maliciousness score.
+
+#### 5. Intelligence Kernel v1.0 — IP reference
+
+For IP results, the gateway can project deterministic **Intelligence Kernel v1.0** derived context from normalized evidence, explicit relationships, correlation and coverage.
+
+Illustrative shape:
+
+```json
+{
+  "intelligence": {
+    "schemaVersion": "1.0",
+    "type": "ip",
+    "policy": {"type":"ip","version":"1.0"},
+    "evidenceStrength": {"level":"moderate","reasons":[]},
+    "sourceDiversity": {},
+    "corroboration": [],
+    "contradiction": {"level":"none","items":[]},
+    "temporalRelevance": {"overall":"unknown"},
+    "relationshipValue": [],
+    "pivotCandidates": [],
+    "threatContext": {},
+    "huntRelevance": {},
+    "coverageImpact": {"level":"none"},
+    "analystPriority": {"level":"investigate","reasons":[]},
+    "limitations": [],
+    "ruleIds": []
+  }
+}
+```
+
+Kernel output is **derived context, not Evidence v2**. It creates no new provider observations and performs no network calls. Relationship candidates are explicit one-hop pivots only; free-text attributes are not mined for guessed infrastructure. Observation timestamps drive temporal relevance; `retrievedAt` is not reinterpreted as first/last seen.
+
+There is no LLM, runtime learning or universal threat score in this path.
+
+#### 6. Decision Support, graph, Guidance and report
+
+A compatible IP Kernel projection can inform deterministic Decision Support disposition/confidence while preserving the legacy fallback if Kernel data is absent, malformed, wrong-version or wrong-type. Evidence Graph v1.0 remains built from explicit Evidence v2 facts/relationships and does not absorb Kernel-derived pivots as new evidence.
+
+Guidance v1.0 can carry only a bounded Intelligence Kernel summary while existing evidence-fingerprint validation remains authoritative. The IP analyst report consumes the same Kernel-backed model for executive priority/strength, relationships/pivots, contradiction severity, temporal context, hunt relevance and coverage impact.
+
+```json
+{
   "decision": {
-    "disposition": "context_only",
-    "confidence": "low",
+    "disposition": "investigate",
+    "confidence": "medium",
     "reasons": ["<machine-readable reason>"],
     "huntPlan": []
   },
   "evidenceGraph": {"schemaVersion": "1.0", "nodes": [], "edges": []},
-  "guidance": {"schemaVersion": "1.0", "disposition": "context_only", "confidence": "low"}
+  "guidance": {"schemaVersion": "1.0", "disposition": "investigate", "confidence": "medium"}
 }
 ```
 
-The important analytical property is what the gateway **does not** do: routing/registration context, Shodan/Censys exposure, certificate metadata, scanner activity, Tor-exit status, reputation, ransomware claims and ATT&CK knowledge are not collapsed into a universal maliciousness score. Generated KQL or `hunt_now` guidance is a hunting hypothesis, not proof of compromise.
+Generated KQL or `hunt_now` guidance is a hunting hypothesis, not proof of compromise.
 
-#### 5. Browser-local case workspace
+#### 7. Failure isolation
+
+If the Kernel projection fails, usable enrichment is not discarded. Evidence v2, correlation and existing downstream fallbacks remain available, and `intelligence_projection_unavailable` is surfaced as a limitation. Missing timestamps remain unknown; failed/skipped sources remain unknown rather than benign.
+
+#### 8. Browser-local case workspace
 
 The analyst UI can capture successful Evidence v2 results into a local case. Case snapshots, semantic diffs, exact typed cross-case sightings and `.para11ax` bundles live in browser-local IndexedDB. The gateway does not become a server-side case database.
 
-User Scanner and native Shodan analyst-shell output are terminal/operator surfaces and are **not** automatically persisted into Evidence v2 case evidence.
+User Scanner and native Shodan analyst-shell output are terminal/operator surfaces and are **not** automatically persisted into Evidence v2 case evidence or Intelligence Kernel input.
 
-#### 6. Native Shodan operator path
+#### 9. Native Shodan operator path
 
 The analyst can make an explicit bounded Shodan lookup without replacing the current Evidence v2 result:
 
@@ -107,7 +160,7 @@ analyst shell
   -> fixed https://api.shodan.io
   -> bounded normalization
   -> terminal output + creditImpact
-  -> Evidence v2 state unchanged
+  -> Evidence v2 / intelligence state unchanged
 ```
 
 The same bounded command surface supports:
@@ -125,9 +178,7 @@ shodan info
 
 A Shodan-visible service remains exposure context rather than proof of compromise, exploitability, ownership or attribution.
 
-#### 7. Optional STIX export
-
-The Evidence v2 input can be sent to the bounded STIX surface:
+#### 10. Optional STIX export
 
 ```bash
 curl --fail-with-body \
@@ -137,20 +188,31 @@ curl --fail-with-body \
   https://<gateway>/api/para11ax/stix
 ```
 
-The gateway enriches first and maps only defensible Evidence v2 into a STIX 2.1 Bundle. Native Shodan shell output is not silently included in that bundle.
+The gateway enriches first and maps only defensible Evidence v2 into a STIX 2.1 Bundle. Native Shodan shell output and Intelligence Kernel derived conclusions are not silently converted into new STIX evidence or attribution.
 
-#### 8. Offline report path
+#### 11. Offline report path
 
-A frozen Evidence v2 snapshot can be compiled without network calls:
+A frozen Evidence v2 response can be compiled without provider/network calls:
 
 ```bash
 para11ax report compile snapshot.json --out ./report --preset all
 ```
 
-Complete auditable separation:
+Canonical separation:
 
 ```text
-canonical indicator -> Evidence v2 -> correlation/decision -> graph/guidance -> JSON/STIX/report
+canonical indicator
+  -> profile admission
+  -> Provider Value Scheduler v1.0
+  -> Evidence v2
+  -> typed correlation
+  -> Intelligence Kernel v1.0 (IP reference)
+  -> Decision / Evidence Graph / Guidance / report
+
 explicit User Scanner command -> isolated active OSINT -> terminal only
 explicit Shodan command -> fixed Shodan API -> bounded operator result -> terminal only
 ```
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

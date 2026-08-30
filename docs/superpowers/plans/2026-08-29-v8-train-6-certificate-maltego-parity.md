@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # V8 Train 6 Certificate Maltego Parity Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -147,3 +150,7 @@ Require exact merged-main Tooling smoke PASS, CodeQL PASS, and successful Vercel
 - Spec coverage: certificate transform, explicit transport prefix, registration, manifest, MTZ parity, credential boundary, and release verification are all covered.
 - Placeholder scan: no deferred implementation steps remain.
 - Type consistency: Maltego input is raw SHA-256 in `maltego.Hash`; gateway transport is `cert-sha256:<sha256>` with type `certificate`; file hashes remain unchanged.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
