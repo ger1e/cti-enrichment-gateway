@@ -134,6 +134,7 @@ export function buildOverview(envelope) {
     huntability: envelope.correlation?.huntability || null,
     decision: envelope.decision || null,
     guidance: envelope.guidance || null,
+    intelligence: envelope.intelligence || null,
     correlationLimitations: envelope.correlation?.limitations || [],
   };
 }
@@ -312,15 +313,93 @@ function freshnessDisplay(value) {
   return 'UNKNOWN';
 }
 
-function temporalFacts(decision, cards) {
-  const temporal = decision?.temporal || null;
+function isCompatibleIpIntelligence(intelligence) {
+  return Boolean(
+    intelligence &&
+    intelligence.schemaVersion === '1.0' &&
+    intelligence.type === 'ip' &&
+    intelligence.policy?.type === 'ip' &&
+    intelligence.policy?.version === '1.0' &&
+    intelligence.evidenceStrength &&
+    intelligence.analystPriority &&
+    intelligence.threatContext,
+  );
+}
+
+function kernelProviders(items) {
+  return [...new Set((Array.isArray(items) ? items : []).map(item => item?.provider).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
+function kernelRelationshipItems(intelligence) {
+  if (!isCompatibleIpIntelligence(intelligence)) return [];
+  const relationships = (Array.isArray(intelligence.relationshipValue) ? intelligence.relationshipValue : []).slice(0, 32).map((item, index) => ({
+    title: `${labelize(item?.class ?? 'related')} RELATIONSHIP // ${labelize(item?.targetType ?? item?.type ?? 'entity')}`,
+    facts: [
+      { label: 'RELATIONSHIP ID', value: String(item?.id ?? `relationship-${index + 1}`) },
+      { label: 'TYPE', value: humanizeToken(item?.type) || 'related to' },
+      { label: 'TARGET TYPE', value: labelize(item?.targetType ?? 'unknown') },
+      { label: 'TARGET', value: String(item?.target ?? '—') },
+      { label: 'PROVIDER', value: String(item?.provider ?? 'unknown') },
+      { label: 'EVIDENCE LINKS', value: String(item?.evidenceFingerprints?.length ?? 0) },
+      { label: 'RULE', value: humanizeToken(item?.ruleId) || 'none emitted' },
+    ],
+  }));
+  const pivots = (Array.isArray(intelligence.pivotCandidates) ? intelligence.pivotCandidates : []).slice(0, 16).map((item, index) => ({
+    title: `${labelize(item?.priority ?? 'low')} PIVOT // ${labelize(item?.targetType ?? 'entity')}`,
+    facts: [
+      { label: 'RELATIONSHIP ID', value: String(item?.relationshipId ?? `pivot-${index + 1}`) },
+      { label: 'TARGET TYPE', value: labelize(item?.targetType ?? 'unknown') },
+      { label: 'TARGET', value: String(item?.target ?? '—') },
+      { label: 'PROVIDER', value: String(item?.provider ?? 'unknown') },
+      { label: 'EVIDENCE LINKS', value: String(item?.evidenceFingerprints?.length ?? 0) },
+      { label: 'RULE', value: humanizeToken(item?.ruleId) || 'none emitted' },
+    ],
+  }));
+  return [...relationships, ...pivots].slice(0, 48);
+}
+
+function kernelCorrelationItems(intelligence) {
+  if (!isCompatibleIpIntelligence(intelligence)) return [];
+  const corroboration = (Array.isArray(intelligence.corroboration) ? intelligence.corroboration : []).slice(0, 24).map((item, index) => ({
+    title: `${labelize(item?.independence ?? 'unknown')} // ${labelize(item?.semanticClass ?? item?.category ?? `corroboration ${index + 1}`)}`,
+    tone: 'corroboration',
+    facts: [
+      { label: 'INDEPENDENCE', value: labelize(item?.independence ?? 'unknown') },
+      { label: 'POLARITY', value: labelize(item?.polarity ?? 'unknown') },
+      { label: 'PROVIDERS', value: (item?.providers || []).join(', ') || 'none emitted' },
+      { label: 'SOURCE ROLES', value: humanizeList(item?.sourceRoles) || 'none emitted' },
+      { label: 'EVIDENCE LINKS', value: String(item?.evidenceFingerprints?.length ?? 0) },
+    ],
+  }));
+  const contradictions = (Array.isArray(intelligence.contradiction?.items) ? intelligence.contradiction.items : []).slice(0, 8).map((item, index) => ({
+    title: `CONTRADICTION ${index + 1} // ${labelize(item?.semanticClass ?? item?.category ?? 'unknown')}`,
+    tone: 'contradiction',
+    facts: [
+      { label: 'SEVERITY', value: labelize(intelligence.contradiction?.level ?? 'none') },
+      { label: 'PROVIDERS', value: (item?.providers || []).join(', ') || 'none emitted' },
+      { label: 'EVIDENCE LINKS', value: String(item?.evidenceFingerprints?.length ?? 0) },
+    ],
+  }));
+  return [...corroboration, ...contradictions].slice(0, 32);
+}
+
+function temporalFacts(decision, cards, intelligence = null) {
+  const kernelTemporal = isCompatibleIpIntelligence(intelligence) ? intelligence.temporalRelevance : null;
+  const temporal = kernelTemporal || decision?.temporal || null;
   const firstSeen = temporal?.firstSeen ?? cards.map(card => card.firstSeen).filter(Boolean).sort()[0] ?? null;
   const lastSeen = temporal?.lastSeen ?? cards.map(card => card.lastSeen).filter(Boolean).sort().at(-1) ?? null;
   const facts = [];
+  if (kernelTemporal) facts.push({ label: 'TEMPORAL STATE', value: labelize(kernelTemporal.overall ?? 'unknown') });
   if (firstSeen) facts.push({ label: 'FIRST SEEN', value: firstSeen });
   if (lastSeen) facts.push({ label: 'LAST SEEN', value: lastSeen });
   if (temporal?.ageDays != null) facts.push({ label: 'AGE', value: `${temporal.ageDays} day${temporal.ageDays === 1 ? '' : 's'}` });
   if (temporal?.activeSpanDays != null) facts.push({ label: 'ACTIVE SPAN', value: `${temporal.activeSpanDays} day${temporal.activeSpanDays === 1 ? '' : 's'}` });
+  if (kernelTemporal?.distribution) {
+    facts.push({ label: 'CURRENT', value: String(kernelTemporal.distribution.current ?? 0) });
+    facts.push({ label: 'AGING', value: String(kernelTemporal.distribution.aging ?? 0) });
+    facts.push({ label: 'STALE', value: String(kernelTemporal.distribution.stale ?? 0) });
+    facts.push({ label: 'UNKNOWN TIME', value: String(kernelTemporal.distribution.unknown ?? 0) });
+  }
   return facts;
 }
 
@@ -361,7 +440,7 @@ function firstFact(sections, label) {
   return null;
 }
 
-function buildIpAssessment({ overview, evidence, correlation, sections }) {
+function buildIpAssessment({ overview, evidence, correlation, sections, intelligence = null }) {
   const decision = overview.decision || null;
   const threatBasis = correlation?.threatAssessment?.assessmentBasis?.providers || [];
   const threatProviders = new Set(threatBasis);
@@ -376,6 +455,45 @@ function buildIpAssessment({ overview, evidence, correlation, sections }) {
   const organization = firstFact(sections, 'ORGANIZATION') ?? firstFact(sections, 'AS NAME') ?? firstFact(sections, 'ASNAME') ?? firstFact(sections, 'HOLDER');
   const identity = [asn, organization].filter(Boolean).join(' / ');
   const subject = identity ? `${overview.indicator} is associated with ${identity}.` : `${overview.indicator} was enriched as an IP observable.`;
+
+  if (isCompatibleIpIntelligence(intelligence)) {
+    const state = labelize(decision?.disposition ?? intelligence.analystPriority?.level ?? 'unknown');
+    const confidence = labelize(decision?.confidence ?? decision?.assessment?.confidence ?? 'unknown');
+    const priority = labelize(intelligence.analystPriority?.level ?? 'insufficient');
+    const strength = labelize(intelligence.evidenceStrength?.level ?? 'none');
+    const threatState = labelize(intelligence.threatContext?.state ?? 'insufficient');
+    const freshness = labelize(intelligence.temporalRelevance?.overall ?? 'unknown');
+    const huntability = labelize(intelligence.huntRelevance?.level ?? 'none');
+    const directBasis = kernelProviders(intelligence.threatContext?.direct);
+    const supportingBasis = kernelProviders(intelligence.threatContext?.supporting);
+    const reasons = decision?.reasons?.length ? decision.reasons : (intelligence.analystPriority?.reasons || []);
+    const decisionSource = `INTELLIGENCE KERNEL V${intelligence.schemaVersion} / DECISION SUPPORT V${decision?.version || '1.0'}`;
+    return {
+      state,
+      confidence,
+      decisionSource,
+      summary: `${subject} Intelligence Kernel v${intelligence.schemaVersion} sets analyst priority ${priority} with ${strength} evidence strength and threat state ${threatState}. Decision support recommends ${state} with ${confidence} confidence. Direct basis: ${directBasis.join(' + ') || 'none emitted'}. Supporting basis: ${supportingBasis.join(' + ') || 'none emitted'}. Freshness is ${freshness}; hunt relevance is ${huntability}; coverage impact is ${labelize(intelligence.coverageImpact?.level ?? 'none')}. Failed or absent sources remain unknown rather than benign.`,
+      facts: [
+        { label: 'DECISION SOURCE', value: decisionSource },
+        { label: 'DISPOSITION', value: state },
+        { label: 'CONFIDENCE', value: confidence },
+        { label: 'ANALYST PRIORITY', value: priority },
+        { label: 'EVIDENCE STRENGTH', value: strength },
+        { label: 'THREAT STATE', value: threatState },
+        { label: 'DIRECT BASIS', value: directBasis.join(', ') || 'NONE EMITTED' },
+        { label: 'SUPPORTING BASIS', value: supportingBasis.join(', ') || 'NONE EMITTED' },
+        { label: 'KERNEL VERSION', value: intelligence.schemaVersion },
+        { label: 'POLICY VERSION', value: String(intelligence.policy?.version ?? 'unknown') },
+        { label: 'FRESHNESS', value: freshness },
+        { label: 'HUNTABILITY', value: huntability },
+        { label: 'PRIORITY BASIS', value: humanizeList(intelligence.analystPriority?.reasons) || 'none emitted' },
+        { label: 'STRENGTH BASIS', value: humanizeList(intelligence.evidenceStrength?.reasons) || 'none emitted' },
+        { label: 'KEY LIMITATIONS', value: humanizeList(intelligence.limitations) || 'none emitted' },
+        { label: 'DECISION REASONS', value: humanizeList(reasons) || 'none emitted' },
+        { label: 'EXPOSURE SOURCES', value: exposureProviders.size ? [...exposureProviders].sort().join(', ') : 'NONE OBSERVED' },
+      ],
+    };
+  }
 
   if (decision?.disposition) {
     const state = labelize(decision.disposition);
@@ -436,6 +554,7 @@ export function buildIpAnalystReport({ overview, evidence, correlation, relation
   const cards = Array.isArray(evidence) ? evidence : [];
   const decision = overview.decision || null;
   const guidance = overview.guidance || null;
+  const intelligence = isCompatibleIpIntelligence(overview.intelligence) ? overview.intelligence : null;
   const sections = IP_SECTION_DEFS.map(definition => ({ id: definition.id, title: definition.title, facts: [], items: [] }));
   const byId = new Map(sections.map(section => [section.id, section]));
 
@@ -444,36 +563,52 @@ export function buildIpAnalystReport({ overview, evidence, correlation, relation
   }
   for (const [id, kinds] of Object.entries(IP_SECTION_KINDS)) byId.get(id).items = reportItems(cards, kinds);
 
-  byId.get('related-infrastructure').items = (relationships || []).slice(0, 64);
+  const kernelRelationships = kernelRelationshipItems(intelligence);
+  byId.get('related-infrastructure').items = kernelRelationships.length ? kernelRelationships : (relationships || []).slice(0, 64);
   const quality = correlation?.evidenceQuality || {};
   const threat = correlation?.threatAssessment || {};
   const threatProviders = threat?.assessmentBasis?.providers || [];
+  const temporalDistribution = intelligence?.temporalRelevance?.distribution || null;
   byId.get('correlation').facts = [
-    { label: 'FRESHNESS', value: freshnessDisplay(correlation?.freshness) },
-    { label: 'THREAT STATE', value: labelize(threat?.state ?? decision?.assessment?.threatState ?? 'unknown') },
-    { label: 'THREAT BASIS', value: threatProviders.length ? threatProviders.join(', ') : 'NONE EMITTED' },
-    { label: 'EVIDENCE QUALITY', value: labelize(quality?.level ?? decision?.assessment?.evidenceQuality ?? 'none') },
+    { label: 'FRESHNESS', value: intelligence ? labelize(intelligence.temporalRelevance?.overall ?? 'unknown') : freshnessDisplay(correlation?.freshness) },
+    { label: 'THREAT STATE', value: intelligence ? labelize(intelligence.threatContext?.state ?? 'unknown') : labelize(threat?.state ?? decision?.assessment?.threatState ?? 'unknown') },
+    { label: 'THREAT BASIS', value: intelligence ? (kernelProviders(intelligence.threatContext?.direct).join(', ') || 'NONE EMITTED') : (threatProviders.length ? threatProviders.join(', ') : 'NONE EMITTED') },
+    { label: 'EVIDENCE QUALITY', value: intelligence ? labelize(intelligence.evidenceStrength?.level ?? 'none') : labelize(quality?.level ?? decision?.assessment?.evidenceQuality ?? 'none') },
     { label: 'EVIDENCE ITEMS', value: String(quality?.evidenceCount ?? cards.length) },
-    { label: 'EVIDENCE PROVIDERS', value: String(quality?.providerCount ?? new Set(cards.map(card => card.provider).filter(Boolean)).size) },
-    { label: 'CURRENT / AGING / STALE / UNKNOWN', value: `${quality?.currentCount ?? 0} / ${quality?.agingCount ?? 0} / ${quality?.staleCount ?? 0} / ${quality?.unknownFreshnessCount ?? 0}` },
-    { label: 'CORROBORATION GROUPS', value: String(correlation?.corroboration?.length ?? 0) },
-    { label: 'CONTRADICTIONS', value: String(correlation?.contradictions?.length ?? 0) },
+    { label: 'EVIDENCE PROVIDERS', value: String(intelligence?.sourceDiversity?.providerCount ?? quality?.providerCount ?? new Set(cards.map(card => card.provider).filter(Boolean)).size) },
+    { label: 'CURRENT / AGING / STALE / UNKNOWN', value: temporalDistribution ? `${temporalDistribution.current ?? 0} / ${temporalDistribution.aging ?? 0} / ${temporalDistribution.stale ?? 0} / ${temporalDistribution.unknown ?? 0}` : `${quality?.currentCount ?? 0} / ${quality?.agingCount ?? 0} / ${quality?.staleCount ?? 0} / ${quality?.unknownFreshnessCount ?? 0}` },
+    { label: 'CORROBORATION GROUPS', value: String(intelligence?.corroboration?.length ?? correlation?.corroboration?.length ?? 0) },
+    { label: 'CONTRADICTIONS', value: String(intelligence?.contradiction?.items?.length ?? correlation?.contradictions?.length ?? 0) },
+    ...(intelligence ? [{ label: 'CONTRADICTION SEVERITY', value: labelize(intelligence.contradiction?.level ?? 'none') }] : []),
   ];
-  byId.get('correlation').items = [
+  const kernelCorrelation = kernelCorrelationItems(intelligence);
+  byId.get('correlation').items = kernelCorrelation.length ? kernelCorrelation : [
     ...(correlation?.corroboration || []).map(item => ({ ...item, tone: 'corroboration' })),
     ...(correlation?.contradictions || []).map(item => ({ ...item, tone: 'contradiction' })),
   ].slice(0, 32);
 
-  byId.get('temporal-context').facts = temporalFacts(decision, cards);
+  byId.get('temporal-context').facts = temporalFacts(decision, cards, intelligence);
   byId.get('attack-behavior').items = attackItems(decision, guidance);
   byId.get('analyst-actions').items = actionItems(decision, guidance);
+  byId.get('analyst-actions').facts = intelligence ? [
+    { label: 'KERNEL HUNT RELEVANCE', value: labelize(intelligence.huntRelevance?.level ?? 'none') },
+    { label: 'ANALYST PRIORITY', value: labelize(intelligence.analystPriority?.level ?? 'insufficient') },
+    { label: 'PRIORITY BASIS', value: humanizeList(intelligence.analystPriority?.reasons) || 'none emitted' },
+    { label: 'HUNT BASIS', value: humanizeList(intelligence.huntRelevance?.ruleIds) || 'none emitted' },
+  ] : [];
   byId.get('analyst-actions').summary = byId.get('analyst-actions').items.length
-    ? 'Prioritized deterministic hunt guidance derived from existing Decision/Guidance output; validate telemetry availability before execution.'
+    ? intelligence
+      ? 'Decision/Guidance hunt instructions remain authoritative; Intelligence Kernel context annotates hunt relevance and priority basis without generating browser-side KQL.'
+      : 'Prioritized deterministic hunt guidance derived from existing Decision/Guidance output; validate telemetry availability before execution.'
     : 'No deterministic hunt plan was emitted for this result.';
 
   byId.get('huntability').facts = [
-    { label: 'LEVEL', value: labelize(correlation?.huntability?.level ?? decision?.assessment?.huntability ?? 'unknown') },
-    { label: 'RATIONALE', value: correlation?.huntability?.rationale ?? humanizeToken(correlation?.huntability?.reason) ?? 'No huntability rationale emitted.' },
+    { label: 'LEVEL', value: labelize(intelligence?.huntRelevance?.level ?? correlation?.huntability?.level ?? decision?.assessment?.huntability ?? 'unknown') },
+    ...(intelligence ? [
+      { label: 'KERNEL DIRECT SEARCH', value: intelligence.huntRelevance?.directSearch === true ? 'YES' : 'NO' },
+      { label: 'KERNEL PIVOTS', value: String(intelligence.huntRelevance?.pivotCount ?? 0) },
+    ] : []),
+    { label: 'RATIONALE', value: correlation?.huntability?.rationale ?? (humanizeToken(correlation?.huntability?.reason) || 'No huntability rationale emitted.') },
     { label: 'TELEMETRY READINESS', value: labelize(decision?.telemetry?.status ?? guidance?.telemetry?.status ?? 'unknown') },
     { label: 'REQUIRED TABLES', value: (decision?.telemetry?.requiredTables ?? guidance?.telemetry?.requiredTables ?? []).join(', ') || 'none specified' },
     { label: 'ENVIRONMENT VALIDATED', value: (decision?.telemetry?.environmentValidated ?? guidance?.telemetry?.environmentValidated) === true ? 'YES' : 'NO' },
@@ -484,18 +619,27 @@ export function buildIpAnalystReport({ overview, evidence, correlation, relation
     ...(overview.correlationLimitations || []),
     ...(correlation?.limitations || []),
     ...(guidance?.limitations || []),
+    ...(intelligence?.limitations || []),
   ].filter(Boolean).map(value => String(value).includes(' ') ? String(value) : humanizeToken(value)))];
   byId.get('coverage').summary = coverage?.summaryText ?? overview.coverage;
   byId.get('coverage').failures = (coverage?.failures || []).slice(0, 32);
-  byId.get('coverage').facts = limitationValues.map((value, index) => ({ label: `LIMITATION ${index + 1}`, value }));
+  byId.get('coverage').facts = [
+    ...(intelligence ? [
+      { label: 'COVERAGE IMPACT', value: labelize(intelligence.coverageImpact?.level ?? 'none') },
+      { label: 'UNIQUE CAPABILITY LOSS', value: humanizeList(intelligence.coverageImpact?.uniqueCapabilityLoss) || 'NONE' },
+      { label: 'DUPLICATE COVERAGE LOSS', value: humanizeList(intelligence.coverageImpact?.duplicateCoverageLoss) || 'NONE' },
+    ] : []),
+    ...limitationValues.map((value, index) => ({ label: `LIMITATION ${index + 1}`, value })),
+  ];
 
-  const assessment = buildIpAssessment({ overview, evidence: cards, correlation: correlation || {}, sections });
+  const assessment = buildIpAssessment({ overview, evidence: cards, correlation: correlation || {}, sections, intelligence });
   return {
     title: `IP INTELLIGENCE REPORT // ${overview.indicator}`,
     indicator: overview.indicator,
     status: overview.status,
     profile: overview.profile,
     durationMs: overview.durationMs,
+    intelligence,
     assessment,
     sections,
   };

@@ -183,3 +183,23 @@ test('hard evidence actor attack and edge limits fail closed without truncation'
     correlation: {}, decision: {},
   }), /evidence_graph_edge_limit/);
 });
+
+test('kernel-derived intelligence cannot manufacture evidence nodes or alter fingerprint topology', () => {
+  const input = baseInput();
+  const baseline = buildEvidenceGraph(input);
+  const withIntelligence = buildEvidenceGraph({
+    ...input,
+    intelligence: {
+      schemaVersion: '1.0', type: 'domain',
+      evidenceStrength: { level: 'strong', evidenceFingerprints: [fp('c')] },
+      analystPriority: { level: 'immediate' },
+      pivotCandidates: [{ type: 'domain', value: 'kernel-only.example', evidenceFingerprints: [fp('c')] }],
+      relationshipValue: [{ targetType: 'ip', target: '198.51.100.200', evidenceFingerprints: [fp('c')] }],
+    },
+  });
+
+  assert.deepEqual(withIntelligence, baseline);
+  assert.equal(withIntelligence.nodes.some(item => item.id === `evidence:${fp('c')}`), false);
+  assert.equal(withIntelligence.nodes.some(item => item.value === 'kernel-only.example'), false);
+  assert.equal(withIntelligence.nodes.some(item => item.value === '198.51.100.200'), false);
+});

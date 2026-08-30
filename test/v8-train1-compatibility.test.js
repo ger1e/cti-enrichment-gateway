@@ -39,7 +39,7 @@ const authRequest = body => ({
   body,
 });
 
-test('Train 1 keeps public meta shape backward-compatible and does not expose internal capability metadata', async () => {
+test('Train 1 keeps public meta backward-compatible with additive deterministic scheduler metadata only', async () => {
   const app = createApp({ env: { PARA11AX_TOKEN: 'test-token' }, adapters: [adapter] });
   const out = await app.handleMeta({ method: 'GET', headers: {} });
   assert.equal(out.status, 200);
@@ -47,15 +47,20 @@ test('Train 1 keeps public meta shape backward-compatible and does not expose in
   assert.deepEqual(Object.keys(out.body.providers.rdap).sort(), [
     'active', 'cacheTtlMs', 'costClass', 'fixedHosts', 'maxResponseBytes', 'methods',
     'negativeCacheTtlMs', 'observationTypes', 'optionalCredential', 'parserVersion',
-    'protocols', 'requiresCredential', 'sourceUrl', 'tier', 'timeoutMs', 'types',
+    'protocols', 'requiresCredential', 'scheduler', 'sourceUrl', 'tier', 'timeoutMs', 'types',
   ]);
+  assert.deepEqual(out.body.providers.rdap.scheduler.byType.ip, {
+    fallback: true,
+    rationale: 'legacy_priority_fallback',
+  });
   const serialized = JSON.stringify(out.body);
   assert.equal(serialized.includes('sourceRole'), false);
   assert.equal(serialized.includes('freshnessClass'), false);
   assert.equal(serialized.includes('executionPolicy'), false);
+  assert.doesNotMatch(serialized, /"rank"|"workflowIndex"/);
 });
 
-test('Train 1 compatibility remains stable except Train 3 additive evidence semantics', async () => {
+test('Train 1 compatibility remains stable except approved additive evidence coverage and intelligence semantics', async () => {
   const app = createApp({ env: { PARA11AX_TOKEN: 'test-token' }, adapters: [adapter] });
   const out = await app.handleEnrich(authRequest({ indicator: '203.0.113.7' }));
   assert.equal(out.status, 200);
@@ -66,15 +71,27 @@ test('Train 1 compatibility remains stable except Train 3 additive evidence sema
     semanticClass: 'network_context',
     sourceRole: 'first_party',
   });
+  assert.deepEqual(out.body.coverage.providerCapabilities, [{
+    provider: 'rdap',
+    state: 'ok',
+    observationTypes: ['registration'],
+    semanticClassHints: ['network_context'],
+    sourceRole: 'first_party',
+  }]);
 
-  const serialized = JSON.stringify(out.body);
+  const withoutApprovedIntelligence = structuredClone(out.body);
+  delete withoutApprovedIntelligence.intelligence;
+  const serialized = JSON.stringify(withoutApprovedIntelligence);
   for (const field of ['freshnessClass', 'executionPolicy', 'capabilities', 'distribution']) {
     assert.equal(serialized.includes(field), false, field);
   }
 
-  const withoutEvidenceSourceRole = structuredClone(out.body);
-  for (const item of withoutEvidenceSourceRole.evidence ?? []) {
+  const withoutApprovedSourceRoles = structuredClone(withoutApprovedIntelligence);
+  for (const item of withoutApprovedSourceRoles.evidence ?? []) {
     if (item?.semantics) delete item.semantics.sourceRole;
   }
-  assert.equal(JSON.stringify(withoutEvidenceSourceRole).includes('sourceRole'), false);
+  for (const item of withoutApprovedSourceRoles.coverage?.providerCapabilities ?? []) {
+    delete item.sourceRole;
+  }
+  assert.equal(JSON.stringify(withoutApprovedSourceRoles).includes('sourceRole'), false);
 });

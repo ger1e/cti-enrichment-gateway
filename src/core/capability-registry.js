@@ -1,4 +1,5 @@
 import { EXECUTION_POLICY } from './execution-policy.js';
+import { PROVIDER_SCHEDULER_POLICY_VERSION } from './provider-priority.js';
 import { WORKFLOW_CALL_LIMITS } from '../workflows.js';
 
 function frozenObjects(values) {
@@ -9,6 +10,21 @@ function credentialMode(provider) {
   if (provider.requiredEnv) return 'required';
   if (provider.optionalEnv) return 'optional';
   return 'none';
+}
+
+function schedulerMetadata(provider) {
+  const invalid = new Set(provider.schedulerMetadataInvalidTypes ?? []);
+  const byType = Object.fromEntries([...provider.types].sort().map(type => {
+    const descriptor = invalid.has(type) ? null : provider.schedulerByType?.[type];
+    if (!descriptor) {
+      return [type, Object.freeze({ fallback: true, rationale: 'legacy_priority_fallback' })];
+    }
+    return [type, Object.freeze({ ...descriptor, fallback: false })];
+  }));
+  return Object.freeze({
+    version: PROVIDER_SCHEDULER_POLICY_VERSION,
+    byType: Object.freeze(byType),
+  });
 }
 
 export function buildCapabilityRegistry({ providerRegistry, observableRegistry }) {
@@ -35,6 +51,7 @@ export function buildCapabilityRegistry({ providerRegistry, observableRegistry }
     distribution: provider.distribution ?? null,
     credentialMode: credentialMode(provider),
     active: provider.active !== false,
+    scheduler: schedulerMetadata(provider),
   })).sort((a, b) => a.name.localeCompare(b.name));
 
   const byType = Object.fromEntries(observableTypes.map(({ type }) => {

@@ -3,12 +3,17 @@ import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 import { TtlCache } from '../src/core/cache.js';
 import { createTelemetry } from '../src/core/telemetry.js';
+import { PROVIDER_SCHEDULER_POLICY_VERSION } from '../src/core/provider-priority.js';
 
 function adapter() {
   return Object.freeze({
     name: 'rdap', types: ['ip', 'domain'], observationTypes: ['registration'], requiredEnv: 'RDAP_SECRET_TEST',
     costClass: 'free', tier: 1, timeoutMs: 5000, cacheTtlMs: 1000, negativeCacheTtlMs: 1000,
     maxResponseBytes: 2048, fixedHosts: ['fixture.invalid'], methods: ['GET'], protocols: ['https:'], parserVersion: 'test-parser', sourceUrl: 'https://fixture.invalid/',
+    schedulerByType: {
+      ip: { authorityClass: 'authoritative', semanticUniqueness: 'unique', intelligenceValue: 'contextual', pivotValue: 'medium', latencyClass: 'fast' },
+    },
+    schedulerMetadataInvalidTypes: [],
     async run() { return { observationType: 'registration', verdict: 'unknown', attributes: {}, relationships: [], references: [] }; },
   });
 }
@@ -25,10 +30,21 @@ test('public meta exposes static capabilities and hard limits but no secret name
   assert.equal(out.body.limits.batchInputs, 20);
   assert.equal(out.body.limits.providerConcurrency, 4);
   assert.equal(out.body.providers.rdap.requiresCredential, true);
+  assert.equal(out.body.providers.rdap.scheduler.version, PROVIDER_SCHEDULER_POLICY_VERSION);
+  assert.deepEqual(out.body.providers.rdap.scheduler.byType.ip, {
+    authorityClass: 'authoritative',
+    semanticUniqueness: 'unique',
+    intelligenceValue: 'contextual',
+    pivotValue: 'medium',
+    latencyClass: 'fast',
+    fallback: false,
+  });
+  assert.deepEqual(out.body.providers.rdap.scheduler.byType.domain, { fallback: true, rationale: 'legacy_priority_fallback' });
   const text = JSON.stringify(out.body);
   assert.equal(text.includes('RDAP_SECRET_TEST'), false);
   assert.equal(text.includes('actual-secret'), false);
   assert.equal(text.includes('configured'), false);
+  assert.doesNotMatch(text, /"rank"|"workflowIndex"/);
 });
 
 test('authenticated status is no-store and aggregate-only', async () => {

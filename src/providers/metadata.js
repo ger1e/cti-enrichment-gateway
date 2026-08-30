@@ -2,6 +2,13 @@ import { PROVIDER_MANIFEST, providerPolicy } from './manifest.js';
 
 export const PROVIDER_METADATA = PROVIDER_MANIFEST;
 
+function schedulerByType(policy) {
+  return Object.freeze(Object.fromEntries(Object.entries(policy.schedulerByType ?? {}).map(([type, descriptor]) => [
+    type,
+    Object.freeze({ ...descriptor }),
+  ])));
+}
+
 export function withProviderMetadata(adapter) {
   const policy = providerPolicy(adapter?.name);
   const credentialFields = policy.credentialEnv
@@ -37,5 +44,7 @@ export function withProviderMetadata(adapter) {
     freshnessClass: policy.freshnessClass,
     admissionVersion: policy.admissionVersion,
     executionPolicy: policy.executionPolicy,
+    schedulerByType: schedulerByType(policy),
+    schedulerMetadataInvalidTypes: Object.freeze([...(policy.schedulerMetadataInvalidTypes ?? [])]),
   });
 }
