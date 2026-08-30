@@ -58,7 +58,7 @@ test('shared browser runtime executes enrichment through typed result pipeline e
     context: { surface: 'web', authenticated: true, capabilities: new Set(['gateway-read', 'provider-read']) },
   });
   assert.equal(enrichCalls, 1);
-  assert.equal(output.type, 'evidence');
+  assert.equal(output.type, 'records');
   assert.equal(output.value.length, 1);
   assert.equal(output.value[0].provider, 'virustotal');
 });
