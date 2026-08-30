@@ -124,9 +124,18 @@ function validatePolicy(name, input) {
   output.semanticClassHints = Array.isArray(input.semanticClassHints) && input.semanticClassHints.length
     ? boundedArray(input.semanticClassHints, `${name}.semanticClassHints`)
     : Object.freeze([]);
-  const scheduler = sanitizeSchedulerMetadata(output.types, input.schedulerByType);
-  output.schedulerByType = scheduler.schedulerByType;
-  output.schedulerMetadataInvalidTypes = scheduler.schedulerMetadataInvalidTypes;
+  if (input.schedulerByType !== undefined) {
+    const scheduler = sanitizeSchedulerMetadata(output.types, input.schedulerByType);
+    output.schedulerByType = scheduler.schedulerByType;
+    if (scheduler.schedulerMetadataInvalidTypes.length) {
+      output.schedulerMetadataInvalidTypes = scheduler.schedulerMetadataInvalidTypes;
+    } else {
+      delete output.schedulerMetadataInvalidTypes;
+    }
+  } else {
+    delete output.schedulerByType;
+    delete output.schedulerMetadataInvalidTypes;
+  }
   output.parserVersion = boundedText(input.parserVersion, `${name}.parserVersion`);
   output.sourceUrl = boundedText(input.sourceUrl, `${name}.sourceUrl`);
   try {
