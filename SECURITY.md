@@ -134,7 +134,7 @@ Shodan analyst-shell commands and Kernel pivot candidates are not silently conve
 
 #### Supply chain and governance
 
-- GitHub Actions remain pinned to immutable commit SHAs.
+- GitHub Actions must remain pinned to immutable commit SHAs.
 - Runtime parity is Node.js 24.x across Vercel, CI, Codespaces, and local bootstrap flows.
 - `package-lock.json` is mandatory; CI uses deterministic install/audit.
 - `Tooling smoke` validates repository invariants, Node tests, Maltego tests, Python compilation, shell/ShellCheck, and PowerShell syntax. CodeQL runs separately.
