@@ -8,6 +8,7 @@ const ERROR_CATALOGUE = Object.freeze({
   404: Object.freeze({ code: 'not_found', title: 'ROUTE NOT FOUND', message: 'The requested gateway route does not exist.' }),
   405: Object.freeze({ code: 'method_not_allowed', title: 'METHOD NOT ALLOWED', message: 'This route does not accept the requested HTTP method.' }),
   408: Object.freeze({ code: 'request_timeout', title: 'REQUEST TIMEOUT', message: 'The request exceeded its bounded execution window.' }),
+  409: Object.freeze({ code: 'conflict', title: 'RESOURCE STATE CONFLICT', message: 'The requested operation conflicts with the current gateway resource state.' }),
   413: Object.freeze({ code: 'payload_too_large', title: 'PAYLOAD TOO LARGE', message: 'The request exceeded the gateway payload limit.' }),
   415: Object.freeze({ code: 'unsupported_media_type', title: 'MEDIA TYPE REJECTED', message: 'This route accepts JSON request bodies only.' }),
   422: Object.freeze({ code: 'unprocessable_request', title: 'REQUEST REJECTED', message: 'The request was syntactically valid but could not be processed safely.' }),
