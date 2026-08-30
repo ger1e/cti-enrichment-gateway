@@ -143,7 +143,7 @@ para11ax report diff <before.json> <after.json>
 
 <sub><strong>05 // PROVIDER FABRIC</strong></sub>
 
-PARA11AX has **38 configured Evidence v2 sources** across network identity, threat/IOC context, malware intelligence, vulnerability knowledge and ransomware reporting. Shodan remains one of those fixed Evidence v2 providers for canonical enrichment, but the native Shodan shell route is a distinct explicit operator surface and does not increase the provider count.
+PARA11AX has **38 upstream APIs and feeds** in the canonical Evidence v2 provider fabric. Shodan is one of those fixed providers for canonical enrichment, while the native Shodan shell route is a distinct explicit operator surface and does not increase the provider count.
 
 **Identity / routing / exposure:** IPinfo · RDAP · RIPEstat · Shodan · Censys · Modat Magnify · Cloudflare Radar · Cloudflare DNS · Tor Exit · Spamhaus DROP / ASN-DROP.
 
