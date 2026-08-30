@@ -40,3 +40,18 @@ test('glass treatment preserves terminal section layout and reduces effects on s
   assert.match(css, /@media\s*\(max-width:\s*430px\)/i);
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/i);
 });
+
+test('pre-terminal globe gets its own smoked CRT lens while Natural Earth renderer stays untouched', () => {
+  const css = read('app/crt-glass.css');
+  const earth = read('app/earth-globe.css');
+
+  assert.match(css, /\.boot-screen::before\s*\{[^}]*radial-gradient[^}]*var\(--crt-glass-soft\)/is);
+  assert.match(css, /\.boot-screen::after\s*\{[^}]*repeating-linear-gradient[^}]*radial-gradient/is);
+  assert.match(css, /\.boot-globe\s*\{[^}]*opacity:\s*\.1[4-8][^}]*drop-shadow/is);
+  assert.match(css, /\.boot-earth-land\s*\{[^}]*stroke:\s*rgba\(247,255,246,[^)]+\)[^}]*drop-shadow/is);
+  assert.match(css, /@media\s*\(max-width:\s*430px\)[\s\S]*\.boot-screen::before[\s\S]*\.boot-globe/i);
+
+  assert.match(earth, /Natural Earth renderer/);
+  assert.match(earth, /\.boot-globe\{animation:none!important;transform:translate\(-50%,-50%\) rotate\(0deg\)!important/);
+  assert.match(earth, /\.boot-earth-layer\{pointer-events:none;opacity:\.96\}/);
+});
