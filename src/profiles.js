@@ -23,13 +23,12 @@ export function selectProviders({ type, profile = 'standard', workflow, registry
   if (!Array.isArray(workflow)) return [];
   if (!registry || typeof registry.get !== 'function') throw new TypeError('provider registry is required');
 
-  const ranked = [];
-  workflow.forEach((name, index) => {
+  const admitted = [];
+  for (const name of workflow) {
     const adapter = registry.get(name);
-    if (!adapter || !Array.isArray(adapter.types) || !adapter.types.includes(type)) return;
-    if (!included(adapter, profile)) return;
-    ranked.push({ name, tier: Number.isInteger(adapter.tier) ? adapter.tier : 5, index });
-  });
-  ranked.sort((a, b) => a.tier - b.tier || a.index - b.index);
-  return ranked.map(item => item.name);
+    if (!adapter || !Array.isArray(adapter.types) || !adapter.types.includes(type)) continue;
+    if (!included(adapter, profile)) continue;
+    admitted.push(name);
+  }
+  return admitted;
 }
