@@ -18,6 +18,8 @@ test('terminal prompt uses one synced phosphor block cursor instead of the nativ
   assert.match(deck, /selectionStart/);
   assert.match(deck, /scrollLeft/);
   assert.match(deck, /measureText\(/);
+  assert.match(deck, /cursor\.getBoundingClientRect\(\)\.width/);
+  assert.match(deck, /maxLeft\s*=\s*inputRect\.right\s*-\s*promptRect\.left\s*-\s*cursorWidth/);
   assert.match(deck, /input\.type\s*===\s*['"]password['"]/);
   assert.match(deck, /['"]•['"]\.repeat\(/, 'password cursor position must be measured from mask glyphs, not secret text');
   assert.doesNotMatch(deck, /textContent\s*=\s*input\.value|innerHTML\s*=\s*input\.value/, 'secret or typed input must never be mirrored into the DOM');
