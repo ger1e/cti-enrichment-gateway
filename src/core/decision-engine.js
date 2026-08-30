@@ -18,6 +18,21 @@ const TELEMETRY = {
   cidr: ['DeviceNetworkEvents', 'CommonSecurityLog'],
 };
 
+const INTELLIGENCE_DISPOSITION = Object.freeze({
+  immediate: 'hunt_now',
+  investigate: 'investigate',
+  monitor: 'monitor',
+  contextual: 'context_only',
+  insufficient: 'insufficient',
+});
+
+const INTELLIGENCE_CONFIDENCE = Object.freeze({
+  strong: 'high',
+  moderate: 'medium',
+  weak: 'low',
+  none: 'low',
+});
+
 function uniqueSorted(values) {
   return [...new Set(values.filter(value => typeof value === 'string' && value.length > 0))].sort((a, b) => a.localeCompare(b));
 }
@@ -256,6 +271,18 @@ function decisionReasons(type, correlation, coverage, limitations) {
   return [...reasons].sort().slice(0, MAX_REASONS);
 }
 
+function isCompatibleIntelligence(intelligence, type) {
+  if (!intelligence || typeof intelligence !== 'object' || Array.isArray(intelligence)) return false;
+  if (intelligence.schemaVersion !== '1.0' || intelligence.type !== type) return false;
+  if (!intelligence.policy || intelligence.policy.type !== type || typeof intelligence.policy.version !== 'string' || intelligence.policy.version.length === 0) return false;
+  const priority = intelligence.analystPriority;
+  const strength = intelligence.evidenceStrength;
+  if (!priority || !Object.hasOwn(INTELLIGENCE_DISPOSITION, priority.level) || !Array.isArray(priority.reasons)) return false;
+  if (!strength || !Object.hasOwn(INTELLIGENCE_CONFIDENCE, strength.level) || !Array.isArray(strength.reasons)) return false;
+  if (!Array.isArray(intelligence.limitations)) return false;
+  return true;
+}
+
 export function buildDecisionSupport({
   indicator,
   type,
@@ -264,12 +291,28 @@ export function buildDecisionSupport({
   correlation = {},
   coverage = {},
   limitations = [],
+  intelligence = null,
   now = new Date().toISOString(),
 } = {}) {
-  const mergedLimitations = uniqueSorted([...(Array.isArray(limitations) ? limitations : []), ...(Array.isArray(correlation?.limitations) ? correlation.limitations : [])]);
-  const disposition = dispositionFor(type, evidence, correlation, mergedLimitations);
-  const confidence = confidenceFor(correlation, coverage, mergedLimitations);
-  const reasons = decisionReasons(type, correlation, coverage, mergedLimitations);
+  const kernel = isCompatibleIntelligence(intelligence, type) ? intelligence : null;
+  const mergedLimitations = uniqueSorted([
+    ...(Array.isArray(limitations) ? limitations : []),
+    ...(Array.isArray(correlation?.limitations) ? correlation.limitations : []),
+    ...(kernel ? kernel.limitations : []),
+  ]);
+  const disposition = kernel
+    ? INTELLIGENCE_DISPOSITION[kernel.analystPriority.level]
+    : dispositionFor(type, evidence, correlation, mergedLimitations);
+  const confidence = kernel
+    ? INTELLIGENCE_CONFIDENCE[kernel.evidenceStrength.level]
+    : confidenceFor(correlation, coverage, mergedLimitations);
+  const reasons = kernel
+    ? uniqueSorted([
+      ...kernel.analystPriority.reasons,
+      ...kernel.evidenceStrength.reasons,
+      ...mergedLimitations,
+    ]).slice(0, MAX_REASONS)
+    : decisionReasons(type, correlation, coverage, mergedLimitations);
   const telemetry = telemetryReadiness(type);
   const mappings = attackMappings(type, indicator, evidence);
   const temporal = temporalSummary(evidence, now);
@@ -285,6 +328,10 @@ export function buildDecisionSupport({
     freshness: correlation?.freshness?.overall ?? 'unknown',
     huntability: correlation?.huntability?.level ?? 'none',
     coverageMaterialLoss: Boolean(coverage?.materialLoss),
+    ...(kernel ? {
+      intelligenceVersion: kernel.schemaVersion,
+      intelligencePolicyVersion: kernel.policy.version,
+    } : {}),
   };
 
   return {
