@@ -1,1 +1,0 @@
-This temporary file exists only to make the RED documentation-contract commit explicit. It must be removed before merge.
