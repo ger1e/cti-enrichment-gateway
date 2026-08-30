@@ -6,7 +6,7 @@ PARA11AX is a public-source CTI enrichment and analyst-operations platform for p
 
 Two analyst utilities intentionally sit beside—not inside—the Evidence v2 correlation path:
 
-1. **User Scanner** — active email/username OSINT through an isolated server-configured Python worker.
+1. **User Scanner** — active OSINT for email/username enumeration through an isolated server-configured Python worker.
 2. **Shodan analyst shell** — bounded explicit Shodan host/search/count/stats/domain/info operations through a dedicated authenticated route.
 
 Neither utility automatically becomes Evidence v2 evidence, reputation voting, case evidence, STIX, or attribution.
@@ -52,7 +52,7 @@ PARA11AX analyst shell
   -> Evidence v2 state unchanged
 ```
 
-User Scanner is an explicit active-OSINT exception to passive provider behavior, but not to destination control. The browser cannot choose the worker host, proxy, concurrency, timeout, arbitrary module path, or bulk file.
+User Scanner is an explicit active OSINT exception to passive provider behavior, but not to destination control. The browser cannot choose the worker host, proxy, concurrency, timeout, arbitrary module path, or bulk file.
 
 #### Shodan analyst-shell request path
 
