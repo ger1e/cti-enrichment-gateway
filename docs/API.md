@@ -2,148 +2,131 @@
 
 All responses are JSON unless a documented human-facing error representation is explicitly negotiated. Production clients should use HTTPS. The gateway bearer is `Authorization: Bearer <PARA11AX_TOKEN>`.
 
-#### Supported indicator types
+#### Canonical Evidence v2 workflows
 
-The canonical gateway workflows are:
+Supported indicator types are `ip`, `domain`, `url`, `hash`, `cve`, `attack`, `asn`, `cidr`, and `certificate`. Certificate input is explicit: `cert-sha256:<64-hex>`. Fixed profiles are `fast`, `standard`, and `full`; callers cannot select arbitrary Evidence v2 providers.
 
-- `ip`
-- `domain`
-- `url`
-- `hash`
-- `cve`
-- `attack`
-- `asn`
-- `cidr`
-- `certificate`
+Email/username User Scanner operations and native Shodan commands are separate analyst utilities. They do not become canonical Evidence v2 workflow types and do not replace the current Evidence v2 result.
 
-Certificate input is explicit rather than inferred from a bare hash: `cert-sha256:<64-hex>`. A bare SHA-256 remains a file `hash`. Optional request `type` is accepted only when it exactly matches canonical classification.
+#### Route inventory
 
-Fixed profiles are `fast`, `standard`, and `full`. Callers cannot select arbitrary providers.
+- `GET /api/para11ax/meta` — public static capabilities and hard limits.
+- `GET /api/para11ax/health` — bearer-protected readiness; `Cache-Control: no-store`.
+- `GET /api/para11ax/status` — bearer-protected count-only runtime state; `Cache-Control: no-store`.
+- `POST /api/para11ax/enrich` — one canonical indicator.
+- `POST /api/para11ax/batch` — 1–20 indicators; max 3 active indicators / 200 provider calls.
+- `POST /api/para11ax/stix` — enrich then export bounded STIX 2.1.
+- `POST /api/para11ax/user-scanner` — isolated bounded email/username active OSINT.
+- `POST /api/para11ax/shodan` — bounded authenticated native Shodan operator commands.
 
-Email and username enumeration are not canonical Evidence v2 indicator workflows. They are exposed separately through the authenticated User Scanner active-OSINT route described below.
-
-#### `GET /api/para11ax/meta`
-
-Public static capability metadata only. No authentication required.
-
-Returns gateway/schema versions, supported indicator types, fixed profiles, hard limits and static provider capabilities. It does not expose credential names, credential values or whether a secret is configured.
-
-#### `GET /api/para11ax/health`
-
-Bearer required. `Cache-Control: no-store`.
-
-Returns operational readiness and provider configuration booleans without returning credential values. It is intentionally protected because configuration state is operational metadata rather than a public capability contract.
-
-#### `GET /api/para11ax/status`
-
-Bearer required. `Cache-Control: no-store`.
-
-Returns count-only runtime state: uptime, provider configuration booleans/parser versions, bounded cache counters, circuit-breaker counters and telemetry counters. Cache state includes entry/in-flight counts, hit/miss/eviction/expiration counters, approximate retained serialized bytes, and the hard aggregate byte ceiling; it never returns cached values. The endpoint does not return prior raw indicators or credentials.
+Unknown `/api/para11ax/*` paths fail closed.
 
 #### `POST /api/para11ax/enrich`
-
-Bearer required. JSON body:
 
 ```json
 {"indicator":"evil.example","profile":"standard"}
 ```
 
-Certificate example:
-
-```json
-{"indicator":"cert-sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef","type":"certificate","profile":"standard"}
-```
-
-Optional `type` is accepted only when it exactly matches canonical classification. Optional `profile` is one of `fast`, `standard`, `full`. Provider overrides are not accepted.
-
-The response is the Evidence Schema v2 envelope described in `EVIDENCE-SCHEMA.md`.
-
-For normalized `status: "ok"` and `status: "partial"` enrichment responses, Train 5 adds two top-level projections without replacing existing fields:
-
-- `evidenceGraph` — deterministic Evidence Graph v1.0 built only from explicit normalized facts and relationships.
-- `guidance` — deterministic Guidance v1.0 that inherits the existing decision/correlation semantics and may include semantic-change attention context.
-
-These fields are additive. Error envelopes do not gain `evidenceGraph` or `guidance`, and the existing `decision` field remains authoritative for the bounded disposition vocabulary.
+Normalized `ok`/`partial` results retain Evidence v2 and `decision` while additively exposing Evidence Graph v1.0 and Guidance v1.0. Error envelopes do not manufacture those projections.
 
 #### `POST /api/para11ax/batch`
-
-Bearer required. JSON body:
 
 ```json
 {"indicators":["192.0.2.44","evil.example"],"profile":"standard"}
 ```
 
-Hard limits:
-
-- 1..20 strings
-- max 3 active indicators
-- max 200 provider calls globally
-- one shared deadline
-- canonical duplicates execute provider work once and are re-associated to input order
-- invalid individual indicators are represented independently
-- no provider override field
-
-Successful individual results retain the same enrichment contract, including additive graph/guidance projections where applicable.
+Limits: 1..20 strings, max 3 active indicators, max 200 provider calls globally, one shared deadline, canonical de-duplication, and no provider override.
 
 #### `POST /api/para11ax/stix`
 
-Bearer required. JSON body is the same single-indicator request contract as `/api/para11ax/enrich`.
+Uses the same single-indicator request contract as `/enrich`. The gateway enriches first and then maps the bounded result to STIX 2.1; caller-supplied enrichment objects are rejected.
 
-The gateway performs normal enrichment first, then maps the result to a dependency-free STIX 2.1 Bundle. Max 100 objects. Caller-supplied enrichment objects are rejected.
+#### `POST /api/para11ax/user-scanner`
 
-Defensible mappings include IP/domain/URL/hash/ASN Indicators, CVE Vulnerability SDOs and preserved MITRE ATT&CK source objects. CIDR is not fabricated into an unsupported pattern. Certificate context is not fabricated into a STIX object when no defensible mapping exists. Actor/malware SDOs require explicit supported relationships.
-
-#### POST `/api/para11ax/user-scanner`
-
-Bearer required. This is a separate active OSINT capability used by the existing analyst shell command `user-scanner` and its `osint` / `identity` aliases. It does not enter the Evidence v2 enrichment/correlation path and does not become the current enrichment result.
-
-Example username request:
+Separate active-OSINT capability used by the `user-scanner` command and `osint` / `identity` aliases.
 
 ```json
 {"scanType":"username","target":"kaifcodec","crossScan":false,"noNsfw":true}
 ```
 
-Example email request scoped to one category:
+The caller cannot select the worker URL, proxy, concurrency, arbitrary destination or timeout. Output remains separate from Evidence v2.
 
-```json
-{"scanType":"email","target":"analyst@example.com","category":"social","crossScan":false,"noNsfw":true}
-```
+#### `POST /api/para11ax/shodan`
 
-Request contract:
+Bearer required. The browser sends a normalized Shodan operator request to the same-origin route. The gateway reads `SHODAN_API_KEY` server-side and contacts only `https://api.shodan.io`.
 
-- `scanType` — required; `email` or `username`.
-- `target` — required non-empty string, max 320 characters.
-- `category` — optional safe module-category name, max 64 characters.
-- `module` — optional safe module name, max 64 characters; mutually exclusive with `category`.
-- `crossScan` — optional boolean; cross-scan remains explicitly opt-in.
-- `noNsfw` — optional boolean; defaults to `true`.
-- Unknown fields are rejected.
-
-The gateway never accepts a caller-selected worker URL, proxy, concurrency, arbitrary destination or timeout. It forwards a normalized request only to the server-configured `PARA11AX_USER_SCANNER_URL`, with optional worker bearer `PARA11AX_USER_SCANNER_TOKEN`. HTTPS is required except for loopback HTTP in local development.
-
-Successful responses are bounded User Scanner envelopes rather than Evidence v2. They include `scanId`, `scanType`, `target`, a summary (`totalScanned`, `found`, `notFound`, `errors`, `skipped`), bounded `results`, bounded `erroredSites`, `durationMs`, and `source: "user-scanner"`. A `Found`/registration result is platform-account OSINT evidence only; it is not proof of identity, account control, compromise, maliciousness or attribution. Worker/module errors remain errors rather than negative evidence.
-
-The gateway caps the request body at 4 KiB, worker response at 2 MiB, normalized results at 1000 entries and errored-site names at 512 entries. The gateway-side worker deadline defaults to 55 seconds.
-
-Hosted deployment requires the isolated worker to be deployed separately and the PARA11AX project to configure:
+Approved shell commands and equivalent request shapes:
 
 ```text
-PARA11AX_USER_SCANNER_URL=https://user-scanner-kappa.vercel.app
-PARA11AX_USER_SCANNER_TOKEN=<optional matching worker bearer>
+shodan host <ip>
+shodan search <query>
+shodan count <query>
+shodan stats <query> [--facets <fields>]
+shodan domain <domain>
+shodan info
 ```
+
+```json
+{"command":"host","target":"8.8.8.8"}
+```
+
+```json
+{"command":"search","query":"product:FortiGate country:HU"}
+```
+
+```json
+{"command":"count","query":"port:443 country:HU"}
+```
+
+```json
+{"command":"stats","query":"product:nginx","facets":"country:20,org:10"}
+```
+
+```json
+{"command":"domain","target":"example.com"}
+```
+
+```json
+{"command":"info"}
+```
+
+Unknown fields and unsupported commands/options are rejected. Caller-selected URLs, pages, methods, credentials and arbitrary Shodan operations are not accepted. `shodan download` is disabled.
+
+Response envelope:
+
+```json
+{
+  "requestId":"<uuid>",
+  "source":"shodan",
+  "command":"stats",
+  "input":{"query":"product:nginx","facets":"country:20,org:10"},
+  "creditImpact":"none",
+  "data":{},
+  "durationMs":42
+}
+```
+
+`creditImpact` is explicit:
+
+- `host` — `none`
+- `count` — `none`
+- `stats` — `none`
+- `info` — `none`
+- `domain` — `consumes_query_credit`
+- `search` — `may_consume_query_credit`
+
+Search is first-page only. Search results and host-service lists are bounded; large raw banners/service bodies are removed before the response reaches the browser. Shodan operator output is terminal/operator context and leaves the current Evidence v2 enrichment result unchanged.
 
 #### Common errors
 
-- `400 invalid_request`, `invalid_indicator`, `indicator_type_mismatch`, `invalid_profile`, `invalid_batch`, `unsupported_request_field`
-- User Scanner validation: `invalid_scan_type`, `invalid_target`, `invalid_category`, `invalid_module`, `category_module_conflict`, `invalid_cross_scan`, `invalid_no_nsfw`
-- `401 unauthorized`
-- `405 method_not_allowed`
-- `413 payload_too_large`
-- `415 unsupported_media_type`
-- User Scanner runtime: `503 user_scanner_unconfigured` / `user_scanner_misconfigured`, `502 user_scanner_worker_error` / `user_scanner_unavailable`, `504 user_scanner_timeout`
-
-Provider failures inside a successful enrichment API request are represented in the evidence envelope as partial/error coverage rather than reflected raw exception text. User Scanner worker failures are returned as controlled route errors and never converted into not-found results.
+- `400` — invalid request/indicator/profile/batch or invalid Shodan command/target/query/facets.
+- `401 unauthorized`.
+- `405 method_not_allowed`.
+- `413 payload_too_large`.
+- `415 unsupported_media_type`.
+- User Scanner uses controlled `502`/`503`/`504` worker errors.
+- Shodan missing configuration fails closed with controlled `503`; upstream rate limiting is returned explicitly rather than converted into empty/negative evidence.
 
 #### Security invariants
 
-Caller input never selects an outbound host, method, provider secret or arbitrary adapter. Redirects are refused at the provider egress boundary. Request bodies are capped, and upstream response bodies are byte-bounded while streaming before parsing. The User Scanner route preserves a separate boundary: the browser calls only the same-origin gateway route, the worker destination is server-configured, and active OSINT output remains separate from Evidence v2. See `THREAT-MODEL.md`.
+Caller input never selects arbitrary provider hosts, Shodan hosts, worker hosts, methods, provider secrets, `SHODAN_API_KEY`, or arbitrary adapters. Evidence v2 provider egress remains fixed through `safeFetch`; User Scanner and Shodan use separate bounded authenticated routes with server-configured destinations. See `THREAT-MODEL.md`, `SECURITY-CONTROLS.md`, and `SHODAN-SHELL.md`.
