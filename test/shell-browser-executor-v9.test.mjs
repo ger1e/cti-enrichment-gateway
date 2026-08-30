@@ -129,3 +129,14 @@ test('disconnect clears executor result state and delegates volatile session tea
   assert.equal(executor.state().currentResult, null);
   assert.equal(disconnected, 1);
 });
+
+test('copy report preserves the analyst-readable IP report contract', async () => {
+  const events = [];
+  const executor = makeExecutor({ events, initialState: { currentResult: makeEnvelope('8.8.8.8') } });
+  const output = await execute(executor, ['copy'], ['report']);
+  assert.equal(output.type, 'text');
+  assert.match(output.value, /^IP INTELLIGENCE REPORT \/\/ 8\.8\.8\.8/m);
+  assert.match(output.value, /EXECUTIVE ASSESSMENT/);
+  assert.doesNotMatch(output.value, /^\s*\{/);
+  assert.deepEqual(events, [['copy', output.value]]);
+});
