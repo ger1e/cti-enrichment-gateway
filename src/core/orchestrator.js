@@ -155,6 +155,7 @@ export async function enrich({
 
   const scheduled = await runScheduledProviders({
     providers: pending,
+    type,
     deadlineMs,
     callLimit,
     nowMs,
