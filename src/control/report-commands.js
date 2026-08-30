@@ -47,7 +47,7 @@ function parseFlagPairs(args, allowed) {
   return output;
 }
 
-export function runReportCompile(args) {
+export function compileReportCommand(args) {
   if (!Array.isArray(args) || args.length < 3 || args.length % 2 === 0) throw new Error('invalid report compile arguments');
   const snapshotPath = args[0];
   const flags = parseFlagPairs(args.slice(1), new Set(['--out', '--preset', '--generated-at', '--source-sha']));
@@ -58,11 +58,16 @@ export function runReportCompile(args) {
   const generatedAt = flags['--generated-at'] ?? deterministicGeneratedAt(snapshot);
   const sourceSha = flags['--source-sha'] ?? null;
   const result = compileReportBundle(snapshot, { outDir: flags['--out'], preset, generatedAt, sourceSha });
-  process.stdout.write(`${JSON.stringify({ reportId: result.model.reportId, preset, files: result.files.sort((a, b) => a.localeCompare(b)) }, null, 2)}\n`);
+  return { reportId: result.model.reportId, preset, files: result.files.sort((a, b) => a.localeCompare(b)) };
+}
+
+export function runReportCompile(args) {
+  const summary = compileReportCommand(args);
+  process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
   return 0;
 }
 
-export function runReportDiff(args) {
+export function diffReportCommand(args) {
   if (!Array.isArray(args) || args.length !== 2) throw new Error('report diff requires before.json and after.json');
   const beforeSnapshot = readSnapshot(args[0]);
   const afterSnapshot = readSnapshot(args[1]);
@@ -70,7 +75,11 @@ export function runReportDiff(args) {
   const after = buildReportModel(afterSnapshot, { generatedAt: deterministicGeneratedAt(afterSnapshot), sourceSha: null });
   assertReportQuality(before);
   assertReportQuality(after);
-  const diff = diffReportModels(before, after);
+  return diffReportModels(before, after);
+}
+
+export function runReportDiff(args) {
+  const diff = diffReportCommand(args);
   process.stdout.write(`${JSON.stringify(diff, null, 2)}\n`);
   return 0;
 }
