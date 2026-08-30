@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   normalize:
-    if: ${{ github.event.head_commit.message == 'chore: run repo-wide docs normalizer' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -42,7 +41,6 @@ jobs:
           def write(path, text):
               Path(path).write_text(text, encoding='utf-8')
 
-          # README: preserve current factual content while restoring the established seven-section hierarchy.
           readme = read('README.md')
           readme = re.sub(r'\bCTI evidence gateway\b', 'CTI enrichment/correlation core', readme, flags=re.I)
           readme = readme.replace('<sub><strong>03 // INTELLIGENCE KERNEL</strong></sub>', '<sub><strong>INTELLIGENCE KERNEL v1.0</strong></sub>')
@@ -57,7 +55,6 @@ jobs:
               readme = readme.rstrip() + '\n\n<p align="center"><img src="assets/brand/para11ax-radar-lockup.svg" alt="PARA11AX" width="180"></p>\n'
           write('README.md', readme)
 
-          # Current architecture/security terminology and canonical responsive architecture asset.
           architecture = read('docs/ARCHITECTURE.md')
           architecture = re.sub(r'\bCTI evidence gateway\b', 'CTI enrichment/correlation core', architecture, flags=re.I)
           architecture = architecture.replace('../assets/brand/para11ax-readme-architecture-v4.svg', '../assets/brand/para11ax-architecture.svg')
@@ -73,13 +70,11 @@ jobs:
               evidence = evidence.rstrip() + f'\n\n{boundary}\n'
           write('docs/EVIDENCE-SCHEMA.md', evidence)
 
-          # GER1E-normalized request-path geometry; canonical architecture asset mirrors the current panel.
           architecture_svg = read('assets/brand/para11ax-readme-architecture-v4.svg')
           architecture_svg = architecture_svg.replace('38 FIXED SOURCES</text><text x="300" y="65"', '38 FIXED SOURCES</text><text x="300" y="70"')
           write('assets/brand/para11ax-readme-architecture-v4.svg', architecture_svg)
           write('assets/brand/para11ax-architecture.svg', architecture_svg)
 
-          # Keep vulnerability axes separate and collision-free while preserving 15/17/22 GER1E type scale.
           semantics = read('assets/brand/para11ax-readme-semantics-v4.svg')
           semantics = semantics.replace('<g transform="translate(26 638)">', '<g transform="translate(26 610)">')
           old_tail = '<g transform="translate(26 746)"><rect width="668" height="52" rx="10" fill="#071007" stroke="#39FF14" stroke-opacity=".4"/><text x="20" y="34" class="m" font-size="17" fill="#F7FFF6">KEV ≠ EPSS ≠ CVSS · NO LLM · NO SYNTHETIC THREAT SCORE</text></g>'
@@ -97,9 +92,8 @@ jobs:
               else:
                   body = text
 
-              if path.startswith('docs/superpowers/'):
-                  if not re.search(r'Historical design record', body, re.I):
-                      body = HISTORICAL + '\n\n' + body.lstrip('\n')
+              if path.startswith('docs/superpowers/') and not re.search(r'Historical design record', body, re.I):
+                  body = HISTORICAL + '\n\n' + body.lstrip('\n')
 
               text = MARKER + '\n' + body.lstrip('\n')
 
@@ -112,7 +106,6 @@ jobs:
 
               write(path, text)
 
-          # The temporary workflow must not survive its own generated commit.
           Path('.github/workflows/docs-normalize-once.yml').unlink()
           PY
 
