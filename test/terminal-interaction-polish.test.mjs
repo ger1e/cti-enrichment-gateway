@@ -21,13 +21,17 @@ test('operational terminal identity remains analyst@para11ax while branding stay
   assert.match(shell, /BEARER:/, 'password prompt must remain separate');
 });
 
-test('terminal uses the native caret with an explicit phosphor blink cycle', () => {
+test('terminal replaces the native caret with a synchronized phosphor block cursor', () => {
   const css = read('site-cursor.css');
-  assert.match(css, /@keyframes\s+terminal-caret-blink/i);
-  assert.match(css, /\.shell-input\s*\{[^}]*caret-color:\s*var\(--terminal-phosphor/i);
-  assert.match(css, /\.shell-input:focus\s*\{[^}]*animation:\s*terminal-caret-blink\s+[\d.]+s\s+steps\(1,end\)\s+infinite/i);
-  assert.doesNotMatch(css, /\.shell-prompt::after|\.shell-input::after/, 'do not use a fake cursor that can desync from typed text');
-  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*animation:none!important/i);
+  const deck = read('app/analyst-deck.js');
+  assert.match(css, /\.shell-input\s*\{[^}]*caret-color:\s*transparent!important/i);
+  assert.match(css, /@keyframes\s+terminal-block-cursor-blink/i);
+  assert.match(css, /\.shell-block-cursor\s*\{[^}]*background:\s*var\(--prompt-accent/i);
+  assert.match(deck, /wireBlockCursor\(prompt\)/);
+  assert.match(deck, /selectionStart/);
+  assert.match(deck, /scrollLeft/);
+  assert.doesNotMatch(css, /terminal-caret-blink/i);
+  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.shell-block-cursor[\s\S]*animation:none!important/i);
 });
 
 test('clicking terminal chrome refocuses the command line without stealing text selection', () => {
