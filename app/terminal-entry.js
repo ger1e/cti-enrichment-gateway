@@ -233,7 +233,7 @@ function renderBootStage(stage, payload) {
     document.body.classList.add('boot-pepe-visible', 'boot-glitch');
     bootStatus.textContent = 'firmware0: signature verified';
     pepe.hidden = false;
-    triggerGlitch(bootPanel, 'glitch-pepe', 820);
+    triggerGlitch(bootPanel, 'glitch-pepe', 260);
     return;
   }
   if (stage === 'target') {
