@@ -4,6 +4,8 @@ import { correlateEvidence } from './correlate.js';
 import { buildDecisionSupport } from './decision-engine.js';
 import { buildEvidenceGraph } from './evidence-graph.js';
 import { buildGuidance } from './guidance.js';
+import { buildIntelligenceKernel } from './intelligence-kernel.js';
+import { IP_INTELLIGENCE_POLICY } from './intelligence-policy/ip.js';
 import { runScheduledProviders } from './scheduler.js';
 import { semanticClass } from './semantics.js';
 import { EVIDENCE_SCHEMA_VERSION } from './version.js';
@@ -110,6 +112,10 @@ function mergeLimitations(correlation, coverage) {
   return [...limitations].sort().slice(0, MAX_LIMITATIONS);
 }
 
+function addLimitation(limitations, limitation) {
+  return [...new Set([...(Array.isArray(limitations) ? limitations : []), limitation])].sort().slice(0, MAX_LIMITATIONS);
+}
+
 export async function enrich({
   indicator,
   type,
@@ -126,6 +132,7 @@ export async function enrich({
   circuitBreaker = null,
   telemetry = null,
   context = {},
+  projectIntelligence = buildIntelligenceKernel,
 }) {
   const started = nowMs();
   telemetry?.emit?.({ event: 'request_start', requestId, type, profile, status: 'start', indicator });
@@ -247,9 +254,37 @@ export async function enrich({
   const queriedAt = now();
   const rawCorrelation = correlateEvidence({ indicator, type, evidence, relationships, now: queriedAt });
   const coverage = buildCoverage(providerNames, registry, type, records, summary, executedProviders);
-  const limitations = mergeLimitations(rawCorrelation, coverage);
-  const baseCorrelation = { ...rawCorrelation, limitations };
-  const decision = buildDecisionSupport({ indicator, type, evidence, relationships: baseCorrelation.relationships, correlation: baseCorrelation, coverage, limitations, now: queriedAt });
+  let limitations = mergeLimitations(rawCorrelation, coverage);
+  let baseCorrelation = { ...rawCorrelation, limitations };
+  let intelligence;
+  if (type === 'ip' && (status === 'ok' || status === 'partial')) {
+    try {
+      intelligence = projectIntelligence({
+        indicator,
+        type,
+        evidence,
+        relationships,
+        correlation: baseCorrelation,
+        coverage,
+        now: queriedAt,
+        policy: IP_INTELLIGENCE_POLICY,
+      });
+    } catch {
+      limitations = addLimitation(limitations, 'intelligence_projection_unavailable');
+      baseCorrelation = { ...rawCorrelation, limitations };
+    }
+  }
+  const decision = buildDecisionSupport({
+    indicator,
+    type,
+    evidence,
+    relationships: baseCorrelation.relationships,
+    correlation: baseCorrelation,
+    coverage,
+    limitations,
+    now: queriedAt,
+    intelligence,
+  });
   const correlation = { ...baseCorrelation, assessment: decision.assessment };
   let evidenceGraph;
   let guidance;
@@ -270,6 +305,7 @@ export async function enrich({
   return {
     ...baseEnvelope({ requestId, indicator, type, queriedAt, gatewayVersion, profile, durationMs, budget, summary }),
     status, evidence, relationships: correlation.relationships, correlation, decision, coverage, limitations, failures,
+    ...(intelligence ? { intelligence } : {}),
     ...(evidenceGraph ? { evidenceGraph, guidance } : {}),
     huntContext: {
       indicator, type,
