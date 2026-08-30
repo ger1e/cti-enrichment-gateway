@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { classifyIndicator } from '../src/core/validate.js';
 import { rankProvidersForExecution } from '../src/core/provider-priority.js';
+import { buildIntelligenceKernel } from '../src/core/intelligence-kernel.js';
+import { IP_INTELLIGENCE_POLICY } from '../src/core/intelligence-policy/ip.js';
 import { ALL_PROVIDERS } from '../src/providers/index.js';
 import { WORKFLOWS } from '../src/workflows.js';
 
@@ -90,6 +92,42 @@ test('deterministic provider ranking ignores input-array permutation when explic
   const random = prng(0x11a11a11);
   for (let iteration = 0; iteration < 128; iteration += 1) {
     assert.deepEqual(rankedNames(shuffled(indexed, random)), expected, `ranking drift at permutation ${iteration}`);
+  }
+});
+
+test('Intelligence Kernel is deterministic under Evidence v2 and explicit relationship input permutation', () => {
+  const evidence = [
+    {
+      provider: 'alpha', observation: { kind: 'reputation', verdict: 'malicious', lastSeen: '2026-08-29T10:00:00.000Z' },
+      semantics: { sourceRole: 'first_party', semanticClass: 'reputation' }, integrity: { fingerprint: 'a'.repeat(64) },
+    },
+    {
+      provider: 'beta', observation: { kind: 'reputation', verdict: 'malicious', lastSeen: '2026-08-28T10:00:00.000Z' },
+      semantics: { sourceRole: 'specialist', semanticClass: 'reputation' }, integrity: { fingerprint: 'b'.repeat(64) },
+    },
+    {
+      provider: 'gamma', observation: { kind: 'internet_exposure', verdict: 'observed', lastSeen: '2026-08-27T10:00:00.000Z' },
+      semantics: { sourceRole: 'contextual', semanticClass: 'network_context' }, integrity: { fingerprint: 'c'.repeat(64) },
+    },
+  ];
+  const relationships = [
+    { type: 'domain', source: '203.0.113.7', target: 'pivot.example', targetType: 'domain', provider: 'gamma' },
+    { type: 'resolves_to', source: '203.0.113.7', target: '198.51.100.9', targetType: 'ip', provider: 'alpha' },
+    { type: 'asn', source: '203.0.113.7', target: 'AS64500', targetType: 'asn', provider: 'beta' },
+  ];
+  const base = {
+    indicator: '203.0.113.7', type: 'ip', correlation: { limitations: ['fixture_limit'] },
+    coverage: { providerCapabilities: [] }, now: '2026-08-30T10:00:00.000Z', policy: IP_INTELLIGENCE_POLICY,
+  };
+  const expected = buildIntelligenceKernel({ ...base, evidence, relationships });
+  const random = prng(0x1a11ce11);
+  for (let iteration = 0; iteration < 128; iteration += 1) {
+    const actual = buildIntelligenceKernel({
+      ...base,
+      evidence: shuffled(evidence, random),
+      relationships: shuffled(relationships, random),
+    });
+    assert.deepEqual(actual, expected, `kernel drift at permutation ${iteration}`);
   }
 });
 
