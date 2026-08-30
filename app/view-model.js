@@ -608,7 +608,7 @@ export function buildIpAnalystReport({ overview, evidence, correlation, relation
       { label: 'KERNEL DIRECT SEARCH', value: intelligence.huntRelevance?.directSearch === true ? 'YES' : 'NO' },
       { label: 'KERNEL PIVOTS', value: String(intelligence.huntRelevance?.pivotCount ?? 0) },
     ] : []),
-    { label: 'RATIONALE', value: correlation?.huntability?.rationale ?? humanizeToken(correlation?.huntability?.reason) || 'No huntability rationale emitted.' },
+    { label: 'RATIONALE', value: correlation?.huntability?.rationale ?? (humanizeToken(correlation?.huntability?.reason) || 'No huntability rationale emitted.') },
     { label: 'TELEMETRY READINESS', value: labelize(decision?.telemetry?.status ?? guidance?.telemetry?.status ?? 'unknown') },
     { label: 'REQUIRED TABLES', value: (decision?.telemetry?.requiredTables ?? guidance?.telemetry?.requiredTables ?? []).join(', ') || 'none specified' },
     { label: 'ENVIRONMENT VALIDATED', value: (decision?.telemetry?.environmentValidated ?? guidance?.telemetry?.environmentValidated) === true ? 'YES' : 'NO' },
