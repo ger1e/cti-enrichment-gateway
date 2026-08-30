@@ -126,6 +126,63 @@ function resultOrInput(state, input) {
   return state.currentResult;
 }
 
+function parseCaseAction(handler, args) {
+  if (handler === 'case-new') {
+    const title = args.join(' ').trim();
+    if (!title) invalid('usage: case new <title>');
+    return { action: handler, title };
+  }
+  if (handler === 'case-open') {
+    if (args.length !== 1 || !String(args[0]).trim()) invalid('usage: case open <id>');
+    return { action: handler, caseId: String(args[0]) };
+  }
+  if (['case-close','case-list','case-show','case-import','case-export','case-pin','case-diff','case-pins','case-notes','case-timeline','case-graph'].includes(handler)) {
+    if (args.length) invalid(`usage: ${handler.replace('case-', 'case ')}`);
+    return { action: handler };
+  }
+  if (handler === 'case-refresh') {
+    if (!args.length) return { action: handler, staleOnly: false };
+    if (args.length === 1 && args[0] === '--stale') return { action: handler, staleOnly: true };
+    invalid('usage: case refresh [--stale]');
+  }
+  if (handler === 'case-find' || handler === 'case-unpin') {
+    if (args.length !== 2) invalid(`usage: case ${handler === 'case-find' ? 'find' : 'unpin'} <type> <value>`);
+    const type = String(args[0]).toLowerCase();
+    if (!SUPPORTED_OBSERVABLE_TYPES.includes(type)) invalid('unsupported observable type');
+    const observable = validateTypedObservable(type, args[1]);
+    return { action: handler, observable: { type: observable.type, value: observable.value } };
+  }
+  if (handler === 'case-note') {
+    const value = args.join(' ').trim();
+    if (!value) invalid('usage: case note <text>');
+    return { action: handler, text: value };
+  }
+  invalid('unsupported case command');
+}
+
+function caseOutput(handler, action, outcome) {
+  if (outcome && typeof outcome === 'object' && typeof outcome.type === 'string' && Object.hasOwn(outcome, 'value')) return outcome;
+  if (handler === 'case-new' || handler === 'case-open' || handler === 'case-import') {
+    if (outcome?.cancelled) return text('[ CASE ] import cancelled');
+    return text(`[ CASE ] ${outcome?.case?.title ?? 'case'} // ${outcome?.case?.id ?? 'unknown'}`);
+  }
+  if (handler === 'case-close') return text('[ CASE ] active case closed');
+  if (handler === 'case-list') return records(outcome?.cases ?? []);
+  if (handler === 'case-show') return record(outcome?.case ?? {});
+  if (handler === 'case-pins') return records(outcome?.pins ?? []);
+  if (handler === 'case-notes') return records(outcome?.notes ?? []);
+  if (handler === 'case-timeline') return records(outcome?.timeline ?? []);
+  if (handler === 'case-graph') return { type: 'graph', value: outcome?.graph ?? { nodes: [], edges: [] } };
+  if (handler === 'case-pin') return text('[ CASE ] current observable pinned');
+  if (handler === 'case-unpin') return text(`[ CASE ] unpinned ${action.observable.type}:${action.observable.value}`);
+  if (handler === 'case-note') return text('[ CASE ] note appended');
+  if (handler === 'case-diff') return records(outcome?.diff ? [outcome.diff] : []);
+  if (handler === 'case-find') return records(outcome?.sightings ?? []);
+  if (handler === 'case-refresh') return records([outcome ?? { selected: 0, captured: 0, failures: [] }]);
+  if (handler === 'case-export') return { type: 'artifact', value: outcome ?? {} };
+  invalid('unsupported case output');
+}
+
 export function createBrowserShellExecutor({
   client,
   session,
@@ -211,9 +268,7 @@ export function createBrowserShellExecutor({
       state.currentResult = value;
       return { type: 'enrichment', value };
     }
-    if (handler === 'provider-list') {
-      return records(providerEntries(await client.meta(signal)));
-    }
+    if (handler === 'provider-list') return records(providerEntries(await client.meta(signal)));
     if (handler === 'provider-show' || handler === 'provider-capabilities') {
       if (args.length !== 1) invalid(`usage: provider ${handler === 'provider-show' ? 'show' : 'capabilities'} <provider>`);
       const found = providerEntries(await client.meta(signal)).find(item => item.name === String(args[0]).toLowerCase());
@@ -318,6 +373,7 @@ export function createBrowserShellExecutor({
     if (handler === 'version') return text(version);
 
     if (handler === 'disconnect' || handler === 'auth-clear') {
+      cases?.reset?.();
       session.disconnect?.();
       state.currentResult = null;
       return text('disconnected');
@@ -325,6 +381,7 @@ export function createBrowserShellExecutor({
     if (handler === 'auth-status') return text(session.snapshot?.().hasToken ? 'authenticated' : 'locked');
     if (handler === 'whoami' || handler === 'session') return record(session.snapshot?.() ?? {});
     if (handler === 'reboot') {
+      cases?.reset?.();
       session.reset?.();
       state.currentResult = null;
       return text('reboot');
@@ -332,7 +389,12 @@ export function createBrowserShellExecutor({
     if (handler === 'login') return text('hidden bearer prompt required');
     if (handler === 'clear') return text('');
 
-    if (handler.startsWith('case-') && cases?.handle) return cases.handle({ action: handler, args }, state);
+    if (handler.startsWith('case-')) {
+      if (!cases?.handle) throw shellError('CAPABILITY_UNAVAILABLE', 'case workspace unavailable');
+      const action = parseCaseAction(handler, args);
+      const outcome = await cases.handle(action, { currentResult: state.currentResult, profile: state.profile, signal });
+      return caseOutput(handler, action, outcome);
+    }
 
     throw shellError('CAPABILITY_UNAVAILABLE', 'browser command handler unavailable', { handler, surface: context.surface ?? 'web' });
   }
