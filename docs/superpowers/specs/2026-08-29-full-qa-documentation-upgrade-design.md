@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Full QA and Documentation Upgrade Design
 
 ## Goal
@@ -366,3 +369,7 @@ The pass is complete only when all of the following are true:
 ## Expected Outcome
 
 After this pass, PARA11AX documentation becomes a maintained contract rather than a historical narrative: the major externally meaningful facts are either sourced from canonical code/configuration or protected by drift tests, and the QA report provides a defensible evidence trail for the repository and production state without pretending a tracked document can certify its own commit identity.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

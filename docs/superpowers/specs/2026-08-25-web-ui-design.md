@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 ### PARA11AX Web UI Design
 
 #### Status
@@ -413,3 +416,7 @@ Acceptance requires:
 #### Deferred evolution
 
 If external use grows, the next architectural step is per-user issued gateway tokens with independent revocation, quotas, and audit metadata. `/app` should be designed so that future auth/token issuance can replace the shared-bearer access layer without requiring evidence-rendering, visual-system, or sound-system redesign.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Final MAXX CTI Gateway Design
 
 Date: 2026-08-20
@@ -438,3 +441,7 @@ The project is complete when:
 - obsolete duplicate scaffolding is removed
 - the final PR is squash-merged to `main`
 - post-merge production smoke checks pass
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

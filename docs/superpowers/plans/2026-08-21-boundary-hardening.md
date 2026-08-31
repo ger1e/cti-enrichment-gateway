@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Final Boundary Hardening Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -775,3 +778,7 @@ The positive authenticated health/status/enrichment smoke is accepted only when 
 - [ ] **Step 5: Stop at diminishing returns**
 
 End the tranche when all mandatory fixes and the simple cache byte bound are green and production is on the exact merged SHA. Do not add more providers, TLS/JA3, ATT&CK-wide expansion, queues/databases, new endpoints, a master score, write paths, or cosmetic refactors. Only continue if a remaining item is reproducible, materially impacts security/correctness/boundedness/evidence integrity/operations, and has a proportionate fix.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

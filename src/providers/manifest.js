@@ -11,6 +11,14 @@ const DISTRIBUTIONS = new Set(['internal','shareable','internal_only']);
 const SOURCE_ROLES = new Set(['authoritative','first_party','aggregator','community','contextual']);
 const FRESHNESS_CLASSES = new Set(['live','near_real_time','periodic','reference']);
 const ADMISSION_VERSIONS = new Set(['v8.1']);
+const SCHEDULER_ENUMS = Object.freeze({
+  authorityClass: new Set(['authoritative','first_party','specialist','aggregator','community','contextual']),
+  semanticUniqueness: new Set(['unique','complementary','duplicative']),
+  intelligenceValue: new Set(['direct','supporting','contextual']),
+  pivotValue: new Set(['high','medium','low','none']),
+  latencyClass: new Set(['fast','normal','slow']),
+});
+const SCHEDULER_FIELDS = Object.freeze(Object.keys(SCHEDULER_ENUMS));
 
 function fail(message) {
   throw new Error(`invalid provider manifest: ${message}`);
@@ -27,6 +35,61 @@ function boundedArray(value, field) {
   const out = value.map((item, index) => boundedText(item, `${field}[${index}]`));
   if (new Set(out).size !== out.length) fail(`${field} duplicate`);
   return Object.freeze(out);
+}
+
+function frozenObject(entries) {
+  return Object.freeze(Object.fromEntries(entries));
+}
+
+export function sanitizeSchedulerMetadata(types, schedulerByType) {
+  const supported = Array.isArray(types) ? [...new Set(types.filter(type => typeof type === 'string'))] : [];
+  const supportedSet = new Set(supported);
+  if (schedulerByType === undefined) {
+    return Object.freeze({
+      schedulerByType: frozenObject([]),
+      schedulerMetadataInvalidTypes: Object.freeze([]),
+    });
+  }
+  if (!schedulerByType || typeof schedulerByType !== 'object' || Array.isArray(schedulerByType)) {
+    return Object.freeze({
+      schedulerByType: frozenObject([]),
+      schedulerMetadataInvalidTypes: Object.freeze([...supported].sort()),
+    });
+  }
+
+  const normalized = [];
+  const invalid = new Set();
+  for (const [type, descriptor] of Object.entries(schedulerByType)) {
+    if (!supportedSet.has(type)) {
+      invalid.add(type);
+      continue;
+    }
+    if (!descriptor || typeof descriptor !== 'object' || Array.isArray(descriptor)) {
+      invalid.add(type);
+      continue;
+    }
+    const values = [];
+    let valid = true;
+    for (const field of SCHEDULER_FIELDS) {
+      const value = descriptor[field];
+      if (!SCHEDULER_ENUMS[field].has(value)) {
+        valid = false;
+        break;
+      }
+      values.push([field, value]);
+    }
+    if (!valid) {
+      invalid.add(type);
+      continue;
+    }
+    normalized.push([type, frozenObject(values)]);
+  }
+
+  normalized.sort(([left], [right]) => left.localeCompare(right));
+  return Object.freeze({
+    schedulerByType: frozenObject(normalized),
+    schedulerMetadataInvalidTypes: Object.freeze([...invalid].sort()),
+  });
 }
 
 function validatePolicy(name, input) {
@@ -61,6 +124,18 @@ function validatePolicy(name, input) {
   output.semanticClassHints = Array.isArray(input.semanticClassHints) && input.semanticClassHints.length
     ? boundedArray(input.semanticClassHints, `${name}.semanticClassHints`)
     : Object.freeze([]);
+  if (input.schedulerByType !== undefined) {
+    const scheduler = sanitizeSchedulerMetadata(output.types, input.schedulerByType);
+    output.schedulerByType = scheduler.schedulerByType;
+    if (scheduler.schedulerMetadataInvalidTypes.length) {
+      output.schedulerMetadataInvalidTypes = scheduler.schedulerMetadataInvalidTypes;
+    } else {
+      delete output.schedulerMetadataInvalidTypes;
+    }
+  } else {
+    delete output.schedulerByType;
+    delete output.schedulerMetadataInvalidTypes;
+  }
   output.parserVersion = boundedText(input.parserVersion, `${name}.parserVersion`);
   output.sourceUrl = boundedText(input.sourceUrl, `${name}.sourceUrl`);
   try {
@@ -75,6 +150,10 @@ function validatePolicy(name, input) {
   for (const protocol of output.protocols) if (protocol !== 'https:') fail(`${name}.protocols`);
   for (const method of output.methods) if (!['GET','POST'].includes(method)) fail(`${name}.methods`);
   return Object.freeze(output);
+}
+
+export function validateProviderPolicy(name, input) {
+  return validatePolicy(name, input);
 }
 
 if (!rawManifest || typeof rawManifest !== 'object' || Array.isArray(rawManifest)) fail('root');

@@ -133,6 +133,24 @@ html[data-terminal-first="v7"] .boot-globe{
     drop-shadow(0 0 42px rgba(57,255,20,.10))!important;
 }
 
+html[data-terminal-first="v7"] .boot-pepe-visible .boot-globe{
+  opacity:.025!important;
+  filter:
+    drop-shadow(0 0 6px rgba(57,255,20,.07))
+    drop-shadow(0 0 18px rgba(57,255,20,.025))!important;
+}
+
+html[data-terminal-first="v7"] .boot-pepe-visible .boot-pepe{
+  z-index:5;
+  color:var(--crt-phosphor)!important;
+  opacity:.97!important;
+  text-shadow:
+    0 0 3px var(--crt-phosphor),
+    0 0 10px rgba(57,255,20,.22),
+    0 0 26px rgba(57,255,20,.08)!important;
+  filter:contrast(1.08) brightness(1.02);
+}
+
 html[data-terminal-first="v7"] .boot-earth-land{
   stroke:rgba(247,255,246,.98)!important;
   filter:
@@ -289,6 +307,13 @@ html[data-terminal-first="v7"] .shell-logo{
     opacity:.14!important;
     filter:drop-shadow(0 0 10px rgba(57,255,20,.20)) drop-shadow(0 0 28px rgba(57,255,20,.07))!important;
   }
+  html[data-terminal-first="v7"] .boot-pepe-visible .boot-pepe{
+    max-width:100%;
+    max-height:calc(100% - 43px);
+    font-size:clamp(3px,1.02vw,5px);
+    text-shadow:0 0 2px var(--crt-phosphor),0 0 8px rgba(57,255,20,.18)!important;
+    filter:contrast(1.04);
+  }
   html[data-terminal-first="v7"] .terminal-stage::after{opacity:.46}
 }
 
@@ -300,5 +325,11 @@ html[data-terminal-first="v7"] .shell-logo{
   html[data-terminal-first="v7"] .terminal-stage::after{
     animation:none!important;
     transition:none!important;
+  }
+  html[data-terminal-first="v7"] .boot-pepe-visible .boot-pepe{
+    animation:none!important;
+    transition:none!important;
+    filter:none!important;
+    opacity:.97!important;
   }
 }

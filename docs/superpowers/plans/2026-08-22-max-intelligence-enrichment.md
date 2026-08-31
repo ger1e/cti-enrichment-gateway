@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # MAX Intelligence Enrichment Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -81,3 +84,7 @@
 - [ ] Merge using the repository's existing safe merge path.
 - [ ] Verify Vercel production deployment is `READY`, sourced from merged `main`, and has no new runtime error clusters.
 - [ ] Verify public `/api/para11ax/meta` remains non-secret and authenticated health/status boundaries remain unchanged.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

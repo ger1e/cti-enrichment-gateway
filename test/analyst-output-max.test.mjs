@@ -49,7 +49,7 @@ test('structured WebUI views do not JSON-dump CTI objects', () => {
   assert.doesNotMatch(renderers, /coverage-failure[^\n]*JSON\.stringify|JSON\.stringify\(failure/i);
   assert.doesNotMatch(renderers, /JSON\.stringify\(item, null, 2\)/i);
   assert.doesNotMatch(renderers, /JSON\.stringify\(card\.attributes/i);
-  assert.match(shell, /renderResultView\(['"]brief['"],\s*output\.value\)/i);
+  assert.match(shell, /renderResultView\(['"]brief['"]\)/i);
   assert.doesNotMatch(shell, /filter === ['"]failures['"][^\n]*appendJson/is);
   assert.doesNotMatch(shell, /filter === ['"]contradictions['"][^\n]*appendJson/is);
   assert.doesNotMatch(shell, /filter === ['"]corroboration['"][^\n]*appendJson/is);
@@ -57,11 +57,9 @@ test('structured WebUI views do not JSON-dump CTI objects', () => {
 
 test('explicit raw/JSON paths remain available for exact machine output', () => {
   const shell = readFileSync('app/shell-ui.js', 'utf8');
-  const executor = readFileSync('app/shell-browser-executor.js', 'utf8');
   const renderers = readFileSync('app/renderers.js', 'utf8');
-  assert.match(executor, /handler === ['"]json['"]/i);
-  assert.match(executor, /args\[0\] === ['"]save['"]/i);
-  assert.match(shell, /id === ['"]result\.raw['"]/i);
+  assert.match(shell, /action\.action === ['"]print-json['"]/i);
+  assert.match(shell, /download-json/i);
   assert.match(renderers, /export function renderRaw/);
 });
 

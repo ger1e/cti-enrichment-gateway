@@ -1,6 +1,10 @@
 export const GUIDANCE_SCHEMA_VERSION = '1.0';
 
 const DISPOSITIONS = new Set(['hunt_now', 'investigate', 'monitor', 'context_only', 'insufficient']);
+const INTELLIGENCE_STRENGTH = new Set(['strong', 'moderate', 'weak', 'none']);
+const INTELLIGENCE_PRIORITY = new Set(['immediate', 'investigate', 'monitor', 'contextual', 'insufficient']);
+const INTELLIGENCE_THREAT = new Set(['supported', 'single_source', 'contradicted', 'negative', 'context_only', 'insufficient']);
+const INTELLIGENCE_COVERAGE = new Set(['none', 'degraded', 'material']);
 const FORCING_CHANGE_CATEGORIES = new Set([
   'decision_changed',
   'contradiction_changed',
@@ -73,6 +77,29 @@ function decisionReferences(decision) {
   return fingerprints;
 }
 
+function intelligenceSummary(intelligence) {
+  if (!intelligence || typeof intelligence !== 'object' || Array.isArray(intelligence)) return null;
+  if (intelligence.schemaVersion !== '1.0') return null;
+  const strength = intelligence.evidenceStrength?.level;
+  const priority = intelligence.analystPriority?.level;
+  const threatState = intelligence.threatContext?.state;
+  const coverageImpact = intelligence.coverageImpact?.level;
+  if (!INTELLIGENCE_STRENGTH.has(strength)) return null;
+  if (!INTELLIGENCE_PRIORITY.has(priority)) return null;
+  if (!INTELLIGENCE_THREAT.has(threatState)) return null;
+  if (!INTELLIGENCE_COVERAGE.has(coverageImpact)) return null;
+  if (!Array.isArray(intelligence.limitations) || !Array.isArray(intelligence.trace?.ruleIds)) return null;
+  return {
+    schemaVersion: intelligence.schemaVersion,
+    evidenceStrength: strength,
+    analystPriority: priority,
+    threatState,
+    coverageImpact,
+    limitations: uniqueSorted(intelligence.limitations.map(String)),
+    ruleIds: uniqueSorted(intelligence.trace.ruleIds.map(String)),
+  };
+}
+
 function changeProjection(semanticDiff) {
   if (!semanticDiff || semanticDiff.changed !== true) return null;
   const changes = Array.isArray(semanticDiff.changes) ? semanticDiff.changes : [];
@@ -98,7 +125,7 @@ function changeProjection(semanticDiff) {
   };
 }
 
-export function buildGuidance({ decision, correlation, semanticDiff = null, evidenceGraph } = {}) {
+export function buildGuidance({ decision, correlation, semanticDiff = null, evidenceGraph, intelligence = null } = {}) {
   if (!decision || !DISPOSITIONS.has(decision.disposition) || typeof decision.confidence !== 'string') {
     fail('guidance_decision_invalid');
   }
@@ -115,6 +142,7 @@ export function buildGuidance({ decision, correlation, semanticDiff = null, evid
   const telemetry = clone(decision.telemetry ?? { status: 'conditional', requiredTables: [], environmentValidated: false, notes: [] });
   const attackMappings = clone(Array.isArray(decision.attackMappings) ? decision.attackMappings : []);
   const hunts = clone(Array.isArray(decision.huntPlan) ? decision.huntPlan : []);
+  const projectedIntelligence = intelligenceSummary(intelligence);
 
   return deepFreeze({
     schemaVersion: GUIDANCE_SCHEMA_VERSION,
@@ -130,6 +158,7 @@ export function buildGuidance({ decision, correlation, semanticDiff = null, evid
     attackMappings,
     hunts,
     change: changeProjection(semanticDiff),
+    ...(projectedIntelligence ? { intelligence: projectedIntelligence } : {}),
   });
 }
 

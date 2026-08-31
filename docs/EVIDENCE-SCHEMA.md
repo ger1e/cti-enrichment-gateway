@@ -1,6 +1,7 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 ### Evidence Schema v2
 
-The gateway returns provider evidence without collapsing different source semantics into one score. Current schema version is `2.0`.
+The gateway returns provider evidence without collapsing different source semantics into one score. Current Evidence v2 schema version is `2.0`.
 
 #### Top-level enrichment envelope
 
@@ -14,15 +15,16 @@ Core fields:
 - `status`: `ok`, `partial` or `error`
 - `evidence[]`, `relationships[]`, `failures[]`
 - `correlation`
-- `decision`: bounded explainable analyst decision support derived from evidence and correlation
+- optional `intelligence`: Intelligence Kernel v1.0 derived context on compatible IP `ok`/`partial` results
+- `decision`: bounded explainable analyst decision support
 - `evidenceGraph`: Evidence Graph v1.0 on normalized `ok`/`partial` results
 - `guidance`: Guidance v1.0 on normalized `ok`/`partial` results
 - `huntContext`
-- `meta`: count/status-oriented cache and provider-health state for the request
+- `meta`: count/status-oriented cache/provider/capability state for the request
 
-`partial` means useful evidence exists but coverage was incomplete. A provider outage, timeout, rate limit or circuit-open state is not negative threat evidence.
+`partial` means useful evidence exists but coverage was incomplete. A provider outage, timeout, rate limit, call-budget/deadline skip or circuit-open state is not negative threat evidence.
 
-`evidenceGraph` and `guidance` are additive Train 5 projections. They are not added to `error` envelopes, and they do not replace `decision` or change the legacy failure contract.
+`intelligence`, `evidenceGraph` and `guidance` are additive analytical projections. They do not replace Evidence v2 or change the legacy failure contract. Error envelopes do not manufacture those projections.
 
 #### Evidence item
 
@@ -67,7 +69,7 @@ The fingerprint is a reproducibility/provenance control, not a signature or auth
 
 #### Relationships
 
-Relationships are investigation pivots. They include a target type/value, relation semantics and provider provenance where available. Duplicate relationships are removed and the correlation layer caps output.
+Evidence v2 relationships are investigation pivots expressed by normalized provider data. They include target type/value, relation semantics and provider provenance where available. Duplicate relationships are removed and bounded.
 
 Ransomware groups referenced by claim adapters use the `ransomware_group` target type rather than `actor`, so a leak-site claim cannot accidentally create attribution confidence.
 
@@ -75,88 +77,122 @@ Infrastructure proximity, shared ASN, hosting, certificate reuse or common malwa
 
 #### Correlation
 
-The correlation object contains separate analytical dimensions:
+The correlation object retains separate analytical dimensions:
 
-- `corroboration[]`: compatible same-class observations from at least two providers
+- `corroboration[]`: compatible same-class observations from multiple providers
 - `contradictions[]`: opposing observations in the same semantic class
-- `freshness`: `current`, `aging`, `stale` or `unknown`
-- `evidenceQuality`: support quality based on provider diversity, freshness and contradictions; it is not maliciousness
+- `freshness`: current / aging / stale / unknown
+- `evidenceQuality`: compatibility support quality; not maliciousness
 - `threatAssessment`: typed support state for applicable reputation evidence
 - `huntability`: bounded operational level and rationale
-- `assessment`: compact mirror of the generated decision-support assessment for report compatibility
+- `assessment`: compact report-compatibility mirror
 - de-duplicated `relationships`
 - for CVEs, `riskAxes.kev`, `riskAxes.epss`, `riskAxes.cvss`
 - optional `attributionConfidence` from explicit relationships
 
-Scanner/noise, Tor, registration/routing, certificate context and ATT&CK knowledge classes are excluded from malware-reputation corroboration. Community IOC reports and ransomware claims are separate semantic classes and positive matches are neutral observations, so they cannot become reputation votes merely by being present together.
+Scanner/noise, Tor, registration/routing, certificate context and ATT&CK knowledge classes are excluded from malware-reputation corroboration. Community IOC reports and ransomware claims remain separate semantic classes.
+
+#### Intelligence Kernel v1.0
+
+Top-level `intelligence` is **deterministic derived context, not Evidence v2**. The current implementation is an IP reference policy. It consumes already-normalized evidence, explicit relationships, correlation and coverage metadata; it does not perform provider calls, mutate evidence or create a new observation.
+
+Core bounded fields include:
+
+- `schemaVersion: "1.0"`, observable `type`, and policy identity/version;
+- `evidenceStrength`: `none | weak | moderate | strong` plus reasons;
+- `sourceDiversity`: provider/source-role/semantic diversity and direct-vs-context distribution;
+- `corroboration`: evidence-backed agreement with independence state;
+- `contradiction`: severity plus conflicting semantic-class/provider/evidence detail;
+- `temporalRelevance`: current/aging/stale/unknown distribution, first/last observed and span derived from observation timestamps;
+- `relationshipValue`: stable identities over explicit supported relationships;
+- `pivotCandidates`: bounded explicit **one-hop pivots**, ranked deterministically;
+- `threatContext`: direct/supporting/contextual threat-relevant material kept distinct;
+- `huntRelevance`: bounded search/telemetry/hunt viability;
+- `coverageImpact`: duplicate-capability loss distinguished from materially unique capability loss;
+- `analystPriority`: `immediate | investigate | monitor | contextual | insufficient` plus explicit reasons;
+- `limitations[]` and deterministic `ruleIds[]`.
+
+Important invariants:
+
+- Kernel output **does not become Evidence v2** and never receives an Evidence v2 fingerprint as though it were a provider observation.
+- Every evidence-backed derived conclusion references valid evidence fingerprints/providers; purely rule-derived conclusions identify the deterministic rule.
+- `retrievedAt` is not used as an observation first/last-seen substitute.
+- failed/skipped/absent providers remain coverage state, not negative threat evidence.
+- contradictions are not silently resolved.
+- free-text attributes do not manufacture related infrastructure.
+- pivots are explicit one-hop relationships only and are bounded.
+- no LLM, adaptive model, runtime learning or universal maliciousness score participates.
+- the Kernel adds no network egress, secret/environment read, persistence or dependency surface.
+
+If Kernel projection fails, otherwise valid enrichment remains valid and records `intelligence_projection_unavailable`; Evidence v2 is not discarded.
 
 #### Decision support
 
-`decision` is deterministic analyst decision support derived only from normalized evidence, typed correlation, coverage state and explicit relationships. It does not perform blocking, remediation or source submission and it does not introduce a universal threat score.
+`decision` is deterministic analyst decision support. For a compatible same-type Intelligence Kernel v1.0 projection, the current IP path can map Kernel analyst priority/evidence strength into disposition/confidence/reasons. If the Kernel is absent, malformed, wrong-version or wrong-type, the established deterministic Decision Support fallback remains intact.
 
 Core fields:
 
 - `version`
 - `disposition`: one of `hunt_now`, `investigate`, `monitor`, `context_only`, `insufficient`
-- `confidence`: `high`, `medium` or `low`, based on evidence quality and downgraded by contradiction, staleness or material coverage loss
-- `reasons[]`: explicit machine-readable reasons and limitations supporting the disposition
-- `assessment`: compact disposition/confidence/freshness/huntability/coverage summary
-- `telemetry`: required Microsoft hunting tables, readiness status, and `environmentValidated: false` until the analyst verifies table availability and retention
-- `temporal`: evidence-derived first/last-seen and bounded age/span context
-- `attackMappings[]`: ATT&CK IDs only when explicitly present in the subject or evidence fields
+- `confidence`: `high`, `medium` or `low`
+- `reasons[]`
+- `assessment`
+- `telemetry`: required Microsoft hunting tables/readiness and `environmentValidated: false` until the analyst verifies actual telemetry
+- `temporal`
+- `attackMappings[]`: only explicit supported ATT&CK IDs
 - `entityGraph`: compact bounded decision-local investigation pivots
-- `huntPlan[]`: bounded schema-level KQL templates with telemetry, evidence fingerprints, false-positive notes and tuning guidance
-- for CVEs only, the existing separate `riskAxes` are copied without combining KEV, EPSS and CVSS into a single value
+- `huntPlan[]`: bounded KQL templates with telemetry, evidence fingerprints, false-positive notes and tuning guidance
+- for CVEs, separate KEV/EPSS/CVSS `riskAxes`
 
-Generated KQL is a starting hypothesis, not proof of compromise. `telemetry.environmentValidated` remains false because the gateway does not query the client SIEM schema, retention or ingestion health. Reports consume generated `decision.huntPlan` entries when no explicit `reportContext.huntOpportunities` override is supplied.
+Generated KQL is a starting hypothesis, not proof of compromise. `telemetry.environmentValidated` remains false because the gateway does not query a client SIEM schema, retention or ingestion health.
 
 #### Evidence Graph v1.0
 
-Top-level `evidenceGraph` is the canonical graph projection of the normalized response. Its schema version is `1.0`.
+Top-level `evidenceGraph` is the canonical graph projection of normalized Evidence v2 with schema version `1.0`.
 
-It is deliberately distinct from `decision.entityGraph`:
+It remains distinct from both Decision Support and the Intelligence Kernel:
 
-- `decision.entityGraph` is a compact decision-support view owned by the existing decision contract.
-- `evidenceGraph` is a canonical stable projection over explicit Evidence v2 facts and supported relationships.
-- the browser-local case graph is a third, separate projection over local case/snapshot/exact-sighting state.
+- `decision.entityGraph` is a compact decision-support view.
+- `evidenceGraph` is a stable projection over explicit Evidence v2 facts and supported relationships.
+- Kernel `relationshipValue` / `pivotCandidates` are derived context and are not injected as new Evidence Graph edges.
+- the browser-local case graph is a separate projection over local case/snapshot/exact-sighting state.
 
 Evidence Graph properties:
 
 - deterministic SHA-256-derived stable node/edge identity
-- deterministic ordering
-- deeply frozen output in the projection implementation
+- deterministic ordering and bounded categories
 - explicit-only observable, evidence, ATT&CK, actor and malware facts
-- provider/evidence fingerprints retained where required for provenance
-- bounded node/edge/fact categories with fail-closed validation
-- no free-form entity extraction from notes or arbitrary relationship strings
+- provider/evidence fingerprints retained where required
+- fail-closed validation
+- no free-form entity extraction
 - no infrastructure-to-actor inference
 - no new provider call, credential lookup, network egress or persistence path
 
-A graph edge means the supported source data expressed that relationship under the projection rules. It is not proof of compromise or attribution.
+A graph edge means supported source data expressed that relationship under graph rules. It is not proof of compromise or attribution.
 
 #### Guidance v1.0
 
 Top-level `guidance` is a deterministic analyst guidance projection with schema version `1.0`.
 
-Guidance does not recalculate a second disposition, confidence model or universal score. It inherits the existing decision vocabulary and keeps analytical axes separate. Core content can include:
+Guidance does not recalculate a second universal score. It inherits Decision Support vocabulary and existing Evidence Graph fingerprint validation. When a compatible Kernel projection exists, Guidance can include only a bounded intelligence summary: evidence strength, analyst priority, threat state, coverage impact, limitations and trace rule IDs. Raw Kernel relationships/pivots/observations are not copied into Guidance.
+
+Other Guidance content can include:
 
 - inherited `disposition` and `confidence`
-- evidence fingerprints that resolve to canonical Evidence Graph evidence nodes
-- reasons and limitations
-- freshness and coverage context
+- evidence fingerprints resolving to canonical Evidence Graph evidence nodes
+- reasons/limitations
+- freshness/coverage context
 - contradictions
-- telemetry requirements/readiness context
+- telemetry requirements/readiness
 - explicit ATT&CK mappings
 - bounded hunt-plan context
-- semantic-change attention context when a canonical semantic diff is supplied
+- deterministic semantic-change attention context
 
-Semantic-change attention uses only approved change categories from the deterministic semantic-diff layer. A change can warrant analyst attention without being a threat escalation. Transport/cache/timing noise does not become a semantic change.
-
-Guidance is therefore an explanation/projection layer over existing evidence, correlation, decision and semantic-diff contracts, not a new evidence source.
+Guidance remains an explanation/projection layer, not a new evidence source.
 
 #### Browser-local case graph
 
-Train 4 cases are not part of the server response schema. Browser-local cases can retain bounded Evidence v2 snapshots and semantic diffs, build exact typed cross-case sightings, and project a local graph from pins/snapshots/supported facts. Free-form notes are not parsed into entities. IndexedDB is the case persistence adapter; this does not create server-side case persistence or IOC history.
+Browser-local cases are not part of the server Evidence v2 schema. Cases can retain bounded snapshots/diffs, build exact typed cross-case sightings, and project a local graph from pins/snapshots/supported facts. Free-form notes are not parsed into entities. IndexedDB does not create server-side case persistence or IOC history.
 
 #### Caching semantics
 
@@ -170,6 +206,12 @@ Batch results preserve original input order. Canonically duplicated inputs reuse
 
 #### STIX export
 
-STIX export is derived only from a gateway-generated enrichment object. It does not add threat confidence that the evidence did not contain. MITRE source STIX IDs are preserved when available; other object IDs are random valid STIX IDs. Object count is capped at 100.
+STIX export is derived only from gateway-generated Evidence v2. It does not turn Intelligence Kernel conclusions into new evidence, threat confidence or attribution. MITRE source STIX IDs are preserved when available; object count is capped at 100.
 
-There is no universal maliciousness score anywhere in Evidence v2, Evidence Graph v1.0 or Guidance v1.0.
+There is no universal maliciousness score anywhere in Evidence v2, Intelligence Kernel v1.0, Evidence Graph v1.0 or Guidance v1.0.
+
+Error envelopes do not add evidenceGraph or guidance; failed requests do not manufacture derived analytical projections.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

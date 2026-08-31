@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Cross-platform Maltego Installer Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -150,3 +153,7 @@
 - [ ] Open PR with platform matrix, security properties, test evidence, and migration behavior.
 - [ ] Wait for exact PR-head CI; fix any reproduced failure rather than bypassing it.
 - [ ] Merge only after the authoritative Tooling smoke succeeds; separately report Vercel status because installer-only changes need not justify unsafe deployment workarounds.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

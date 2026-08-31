@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # PARA11AX Analyst Deck v4 Design
 
 ## Goal
@@ -65,3 +68,7 @@ For 360–430 px:
 - No arbitrary provider selection.
 - No removal of existing commands, evidence views, exports, boot engine, audio engine, or hidden compatibility payloads.
 - No external runtime dependencies, fonts, scripts, or stylesheets.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # PARA11AX Terminal Everywhere v7 — Design Specification
 
 ## Purpose
@@ -112,3 +115,7 @@ Add regression tests that verify:
 - `/app` still uses native shell flow and does not recreate dashboard wrappers;
 - mobile terminal contracts remain present;
 - existing full Tooling Smoke and CodeQL gates stay green.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

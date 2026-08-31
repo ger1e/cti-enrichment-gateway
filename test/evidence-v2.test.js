@@ -80,3 +80,24 @@ test('evidence v2 carries cache/duration/parser provenance and normalized finger
   assert.equal(item.integrity.rawHash === undefined || typeof item.integrity.rawHash === 'string', true);
   assert.equal(first.body.evidence[0].cacheState, 'miss');
 });
+
+test('additive Intelligence Kernel projection never changes Evidence v2 item shape or fingerprint topology', async () => {
+  const app = createApp({
+    env: { PARA11AX_TOKEN: 'test-token' }, adapters: [fixture], gatewayVersion: GATEWAY_VERSION,
+    now: () => '2026-08-30T10:00:00.000Z',
+  });
+  const response = await app.handleEnrich(request({ indicator: '203.0.113.7' }));
+  assert.equal(response.status, 200);
+  const result = response.body;
+  assert.equal(result.intelligence?.schemaVersion, '1.0');
+  assert.equal(result.intelligence?.type, 'ip');
+  assert.equal(result.evidence.length, 1);
+  const item = result.evidence[0];
+  assert.deepEqual(Object.keys(item).sort(), [
+    'cacheState', 'durationMs', 'indicator', 'integrity', 'observation', 'provider', 'references', 'relationships', 'retrievedAt', 'semantics', 'type',
+  ]);
+  assert.match(item.integrity.fingerprint, /^[a-f0-9]{64}$/);
+  assert.equal('intelligence' in item, false);
+  assert.equal(JSON.stringify(item).includes('analystPriority'), false);
+  assert.equal(JSON.stringify(item).includes('evidenceStrength'), false);
+});

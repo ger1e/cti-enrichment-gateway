@@ -128,13 +128,81 @@ const sample = {
   },
 };
 
-function build() {
+const kernelIntelligence = {
+  schemaVersion: '1.0',
+  policy: { type: 'ip', version: '1.0' },
+  indicator: sample.indicator,
+  type: 'ip',
+  evidenceStrength: {
+    level: 'strong',
+    reasons: ['ip_strength_strong_independent_direct'],
+    providers: ['abuseipdb', 'greynoise'],
+    evidenceFingerprints: ['c'.repeat(64), 'd'.repeat(64)],
+  },
+  sourceDiversity: {
+    providerCount: 4,
+    providers: ['abuseipdb', 'greynoise', 'ipinfo', 'shodan'],
+    sourceRoles: ['community', 'first_party'],
+    semanticClasses: ['infrastructure', 'reputation'],
+    evidenceCategories: ['direct_threat', 'exposure', 'infrastructure'],
+    capabilityGroups: ['abuse_reports', 'internet_exposure', 'network_identity', 'reputation'],
+  },
+  corroboration: [{
+    semanticClass: 'reputation', category: 'direct_threat', polarity: 'positive',
+    providers: ['abuseipdb', 'greynoise'], sourceRoles: ['community', 'first_party'],
+    evidenceFingerprints: ['c'.repeat(64), 'd'.repeat(64)], independence: 'independent',
+  }],
+  contradiction: {
+    level: 'medium',
+    items: [{ semanticClass: 'threat_context', providers: ['alpha', 'beta'], evidenceFingerprints: ['c'.repeat(64)] }],
+  },
+  temporalRelevance: {
+    firstSeen: '2026-08-20T10:00:00.000Z', lastSeen: '2026-08-29T23:00:00.000Z',
+    ageDays: 0, activeSpanDays: 9, overall: 'current',
+    distribution: { current: 3, aging: 0, stale: 0, unknown: 1 },
+  },
+  relationshipValue: [{
+    id: 'rel-domain-1', class: 'supporting', type: 'observed_domain', source: sample.indicator,
+    target: 'edge.example.test', targetType: 'domain', provider: 'shodan',
+    evidenceFingerprints: ['b'.repeat(64)], ruleId: 'ip_relationship_supporting',
+  }],
+  pivotCandidates: [{
+    targetType: 'domain', target: 'edge.example.test', relationshipId: 'rel-domain-1', provider: 'shodan',
+    priority: 'high', evidenceFingerprints: ['b'.repeat(64)], ruleId: 'ip_pivot_high_supporting',
+  }],
+  threatContext: {
+    state: 'supported',
+    direct: [
+      { provider: 'abuseipdb', kind: 'abuse_reports', evidenceFingerprints: ['c'.repeat(64)] },
+      { provider: 'greynoise', kind: 'reputation', evidenceFingerprints: ['d'.repeat(64)] },
+    ],
+    supporting: [{ provider: 'shodan', kind: 'internet_exposure', evidenceFingerprints: ['b'.repeat(64)] }],
+    scannerNoise: [], torProxy: [], infrastructure: [], exposure: [],
+  },
+  huntRelevance: {
+    level: 'high', directSearch: true,
+    telemetry: ['CommonSecurityLog', 'DeviceNetworkEvents'], pivotCount: 1,
+    evidenceFingerprints: ['b'.repeat(64), 'c'.repeat(64), 'd'.repeat(64)],
+    ruleIds: ['ip_hunt_high_direct'],
+  },
+  coverageImpact: {
+    level: 'degraded', uniqueCapabilityLoss: [], duplicateCoverageLoss: ['web_intelligence'],
+    reasons: ['ip_coverage_duplicate_loss'],
+  },
+  analystPriority: {
+    level: 'immediate', reasons: ['ip_priority_immediate'], evidenceFingerprints: ['c'.repeat(64), 'd'.repeat(64)],
+  },
+  limitations: ['partial_provider_failure', 'source_specific_reputation_claims'],
+  trace: { ruleIds: ['ip_hunt_high_direct', 'ip_priority_immediate', 'ip_strength_strong_independent_direct'] },
+};
+
+function build(envelope = sample) {
   return viewModel.buildIpAnalystReport({
-    overview: viewModel.buildOverview(sample),
-    evidence: viewModel.buildEvidence(sample),
-    correlation: viewModel.buildCorrelation(sample),
-    relationships: viewModel.buildRelationships(sample),
-    coverage: viewModel.buildCoverage(sample),
+    overview: viewModel.buildOverview(envelope),
+    evidence: viewModel.buildEvidence(envelope),
+    correlation: viewModel.buildCorrelation(envelope),
+    relationships: viewModel.buildRelationships(envelope),
+    coverage: viewModel.buildCoverage(envelope),
   });
 }
 
@@ -154,6 +222,45 @@ test('IP executive assessment promotes authoritative decision support and explai
   assert.match(report.assessment.summary, /hunt now/i);
   assert.match(report.assessment.summary, /supported/i);
   assert.doesNotMatch(report.assessment.summary, /score\s*[:=]/i);
+});
+
+test('kernel-backed IP report projects priority strength provenance temporal coverage and hunt context into existing sections', () => {
+  const report = build({ ...sample, intelligence: kernelIntelligence });
+  assert.match(report.assessment.decisionSource, /INTELLIGENCE KERNEL V1\.0/);
+  assert.equal(report.assessment.facts.find(item => item.label === 'ANALYST PRIORITY')?.value, 'IMMEDIATE');
+  assert.equal(report.assessment.facts.find(item => item.label === 'EVIDENCE STRENGTH')?.value, 'STRONG');
+  assert.equal(report.assessment.facts.find(item => item.label === 'THREAT STATE')?.value, 'SUPPORTED');
+  assert.match(report.assessment.facts.find(item => item.label === 'DIRECT BASIS')?.value ?? '', /abuseipdb.*greynoise/i);
+  assert.match(report.assessment.facts.find(item => item.label === 'SUPPORTING BASIS')?.value ?? '', /shodan/i);
+  assert.equal(report.assessment.facts.find(item => item.label === 'KERNEL VERSION')?.value, '1.0');
+  assert.equal(report.assessment.facts.find(item => item.label === 'POLICY VERSION')?.value, '1.0');
+
+  const related = report.sections.find(section => section.id === 'related-infrastructure');
+  assert.ok(related.items.some(item => /RELATIONSHIP/i.test(item.title ?? '') && item.facts?.some(entry => entry.label === 'RELATIONSHIP ID' && entry.value === 'rel-domain-1')));
+  assert.ok(related.items.some(item => /PIVOT/i.test(item.title ?? '') && item.facts?.some(entry => entry.label === 'TARGET' && entry.value === 'edge.example.test')));
+  assert.ok(related.items.some(item => item.facts?.some(entry => entry.label === 'PROVIDER' && entry.value === 'shodan')));
+  assert.ok(related.items.some(item => item.facts?.some(entry => entry.label === 'EVIDENCE LINKS' && entry.value === '1')));
+
+  const correlation = report.sections.find(section => section.id === 'correlation');
+  assert.equal(fact(correlation, 'CONTRADICTION SEVERITY')?.value, 'MEDIUM');
+  assert.ok(correlation.items.some(item => item.facts?.some(entry => entry.label === 'INDEPENDENCE' && entry.value === 'INDEPENDENT')));
+
+  const temporal = report.sections.find(section => section.id === 'temporal-context');
+  assert.equal(fact(temporal, 'TEMPORAL STATE')?.value, 'CURRENT');
+  assert.equal(fact(temporal, 'UNKNOWN TIME')?.value, '1');
+
+  const actions = report.sections.find(section => section.id === 'analyst-actions');
+  assert.equal(fact(actions, 'KERNEL HUNT RELEVANCE')?.value, 'HIGH');
+  assert.equal(fact(actions, 'ANALYST PRIORITY')?.value, 'IMMEDIATE');
+
+  const huntability = report.sections.find(section => section.id === 'huntability');
+  assert.equal(fact(huntability, 'LEVEL')?.value, 'HIGH');
+  assert.equal(fact(huntability, 'KERNEL DIRECT SEARCH')?.value, 'YES');
+
+  const coverage = report.sections.find(section => section.id === 'coverage');
+  assert.equal(fact(coverage, 'COVERAGE IMPACT')?.value, 'DEGRADED');
+  assert.equal(fact(coverage, 'UNIQUE CAPABILITY LOSS')?.value, 'NONE');
+  assert.match(fact(coverage, 'DUPLICATE COVERAGE LOSS')?.value ?? '', /web intelligence/i);
 });
 
 test('IP report adds temporal ATT&CK and analyst-action sections from existing decision data', () => {
@@ -203,6 +310,21 @@ test('copy-ready IP report carries decision rationale timeline ATT&CK and hunt i
   assert.match(text, /DeviceNetworkEvents/);
   assert.match(text, /FALSE POSITIVES:\s+security scanner traffic/i);
   assert.doesNotMatch(text, /^\s*[{}]\s*$/m);
+});
+
+test('copy-ready IP report uses the same kernel-backed report model conclusions', () => {
+  const text = viewModel.renderIpAnalystReportText(build({ ...sample, intelligence: kernelIntelligence }));
+  assert.match(text, /ANALYST PRIORITY:\s+IMMEDIATE/i);
+  assert.match(text, /EVIDENCE STRENGTH:\s+STRONG/i);
+  assert.match(text, /CONTRADICTION SEVERITY:\s+MEDIUM/i);
+  assert.match(text, /TEMPORAL STATE:\s+CURRENT/i);
+  assert.match(text, /UNKNOWN TIME:\s+1/i);
+  assert.match(text, /RELATIONSHIP ID:\s+rel-domain-1/i);
+  assert.match(text, /PIVOT/i);
+  assert.match(text, /COVERAGE IMPACT:\s+DEGRADED/i);
+  assert.match(text, /DUPLICATE COVERAGE LOSS:\s+web intelligence/i);
+  assert.match(text, /WEBAMON:\s+UPSTREAM TIMEOUT/i);
+  assert.doesNotMatch(text, /WEBAMON[^\n]*BENIGN/i);
 });
 
 test('IP UI keeps at-a-glance findings dense while making source and hunt details expandable', () => {

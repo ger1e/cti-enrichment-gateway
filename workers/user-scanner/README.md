@@ -1,3 +1,4 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 # PARA11AX User Scanner worker
 
 This directory contains the isolated active-OSINT worker used by the PARA11AX terminal `user-scanner` command. It intentionally sits outside the passive Evidence v2 provider pipeline.
@@ -34,3 +35,7 @@ user-scanner email analyst@example.com
 ```
 
 Aliases: `osint`, `identity`.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

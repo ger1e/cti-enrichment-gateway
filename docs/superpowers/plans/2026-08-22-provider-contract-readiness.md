@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Provider Contract Readiness Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -112,3 +115,7 @@
 - [ ] Run one sequential `para11ax providers probe --all` with locally/configured credentials; do not print secrets.
 - [ ] Classify every provider: `ok` means production-ready; `unconfigured` requires credential setup; `auth_failed` requires credential correction; `rate_limited` requires quota policy; `upstream_error` is vendor availability; `contract_error` returns to Tasks 2–6.
 - [ ] Do not merge/deploy until repository defects are zero and the remaining non-`ok` states are demonstrably external/configuration constraints.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

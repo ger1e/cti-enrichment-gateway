@@ -20,21 +20,34 @@ input[type="text"],input[type="password"],input[type="search"],textarea,
 }
 
 .shell-input{
-  caret-color:var(--terminal-phosphor,var(--para11ax-phosphor));
+  caret-color:transparent!important;
 }
 
-@keyframes terminal-caret-blink{
-  0%,48%{caret-color:var(--terminal-phosphor,var(--para11ax-phosphor))}
-  49%,100%{caret-color:transparent}
+.shell-block-cursor{
+  position:absolute;
+  z-index:14;
+  width:.68ch;
+  height:1.08em;
+  pointer-events:none;
+  transform:translateY(-50%);
+  background:var(--prompt-accent,var(--terminal-phosphor,var(--para11ax-phosphor)));
+  box-shadow:0 0 5px rgba(57,255,20,.72),0 0 12px rgba(57,255,20,.24);
+  opacity:0;
 }
 
-.shell-input:focus{
-  animation:terminal-caret-blink .92s steps(1,end) infinite;
+@keyframes terminal-block-cursor-blink{
+  0%,49%{opacity:.92}
+  50%,100%{opacity:0}
+}
+
+.shell-prompt[data-block-cursor-active="true"] .shell-block-cursor{
+  opacity:.92;
+  animation:terminal-block-cursor-blink .76s steps(1,end) infinite;
 }
 
 @media (prefers-reduced-motion:reduce){
-  .shell-input:focus{
+  .shell-prompt[data-block-cursor-active="true"] .shell-block-cursor{
     animation:none!important;
-    caret-color:var(--terminal-phosphor,var(--para11ax-phosphor));
+    opacity:.92!important;
   }
 }

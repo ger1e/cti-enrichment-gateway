@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Ultimate Platform Finalization Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -202,3 +205,7 @@
 - [ ] **Step 8: Merge only the exact verified PR head SHA**
 - [ ] **Step 9: Verify new exact `main` CI, exact-SHA production Vercel `READY`, live endpoint acceptance, and zero new runtime error clusters**
 - [ ] **Step 10: Read back branch protection. If the connector cannot mutate it, report that single external admin action explicitly and do not claim it is enabled until `protected=true` is observed.**
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
