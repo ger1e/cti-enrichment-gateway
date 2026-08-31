@@ -23,10 +23,14 @@ function wireBlockCursor(prompt) {
     return;
   }
 
+  const inputWrap = document.createElement('span');
+  inputWrap.className = 'shell-input-wrap';
+  input.replaceWith(inputWrap);
+
   const cursor = document.createElement('i');
   cursor.className = 'shell-block-cursor';
   cursor.setAttribute('aria-hidden', 'true');
-  prompt.append(cursor);
+  inputWrap.append(input, cursor);
 
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
@@ -58,19 +62,17 @@ function wireBlockCursor(prompt) {
     const letterSpacing = Number.parseFloat(style.letterSpacing);
     if (Number.isFinite(letterSpacing) && prefix.length > 1) advance += letterSpacing * (prefix.length - 1);
 
-    const promptRect = prompt.getBoundingClientRect();
+    const wrapRect = inputWrap.getBoundingClientRect();
     const inputRect = input.getBoundingClientRect();
     const paddingLeft = Number.parseFloat(style.paddingLeft) || 0;
     const borderLeft = Number.parseFloat(style.borderLeftWidth) || 0;
-    const minLeft = inputRect.left - promptRect.left + borderLeft + paddingLeft;
+    const minLeft = inputRect.left - wrapRect.left + borderLeft + paddingLeft;
     const cursorWidth = cursor.getBoundingClientRect().width;
-    const maxLeft = inputRect.right - promptRect.left - cursorWidth;
+    const maxLeft = inputRect.right - wrapRect.left - cursorWidth;
     const measuredLeft = minLeft + advance - input.scrollLeft;
     const left = Math.min(Math.max(measuredLeft, minLeft), Math.max(minLeft, maxLeft));
-    const top = inputRect.top - promptRect.top + (inputRect.height / 2);
 
     cursor.style.left = `${left}px`;
-    cursor.style.top = `${top}px`;
     prompt.dataset.blockCursorActive = 'true';
   };
 
