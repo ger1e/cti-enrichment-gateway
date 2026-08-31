@@ -135,11 +135,11 @@ const commands = [
   command('case.diff', ['case', 'diff'], 'case', 'case diff', 'show latest semantic case diff', { aliases: [['diff']], surfaces: WEB, handler: 'case-diff', outputType: 'records' }),
 
   // Reports
-  command('report.show', ['report', 'show'], 'report', 'report show', 'render current analyst report', { handler: 'report-show' }),
-  command('report.quality', ['report', 'quality'], 'report', 'report quality', 'run the report quality gate', { handler: 'report-quality', outputType: 'record' }),
+  command('report.show', ['report', 'show'], 'report', 'report show', 'render current analyst report', { inputTypes: ['void', 'enrichment'], handler: 'report-show' }),
+  command('report.quality', ['report', 'quality'], 'report', 'report quality', 'run the report quality gate', { inputTypes: ['void', 'enrichment'], handler: 'report-quality', outputType: 'record' }),
   command('report.compile', ['report', 'compile'], 'report', 'report compile <snapshot> <output-dir> [preset]', 'compile deterministic report artifacts', { surfaces: CLI, sideEffect: 'filesystem', handler: 'report-compile', outputType: 'artifact' }),
   command('report.diff', ['report', 'diff'], 'report', 'report diff <before> <after>', 'compare two bounded report snapshots', { surfaces: CLI, sideEffect: 'filesystem', handler: 'report-diff', outputType: 'record' }),
-  ...['text', 'html', 'pdf', 'csv', 'kql', 'navigator', 'stix', 'evidence', 'manifest'].map(format => command(`report.${format}`, ['report', format], 'report', `report ${format}`, `render ${format} report output`, { surfaces: format === 'manifest' ? CLI : BOTH, sideEffect: format === 'pdf' || format === 'html' || format === 'csv' ? 'browser-download' : 'none', handler: `report-${format}`, outputType: format === 'manifest' ? 'record' : 'artifact' })),
+  ...['text', 'html', 'pdf', 'csv', 'kql', 'navigator', 'stix', 'evidence', 'manifest'].map(format => command(`report.${format}`, ['report', format], 'report', `report ${format}`, `render ${format} report output`, { surfaces: format === 'manifest' ? CLI : BOTH, inputTypes: ['void', 'enrichment'], handler: `report-${format}`, outputType: format === 'manifest' ? 'record' : 'artifact' })),
 
   // Export
   command('export.json', ['json'], 'export', 'json [save]', 'print or download Evidence v2 JSON', { inputTypes: ['void', 'enrichment'], sideEffect: 'browser-download', handler: 'json', outputType: 'text' }),
