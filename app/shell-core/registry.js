@@ -5,6 +5,7 @@ const AUTH_MODES = new Set(['none', 'optional', 'required']);
 const EGRESS_CLASSES = new Set(['none', 'gateway', 'provider']);
 const SIDE_EFFECTS = new Set(['none', 'session', 'browser-download', 'filesystem', 'local-admin']);
 const NAMESPACES = new Set(['discovery', 'session', 'system', 'intel', 'provider', 'osint', 'result', 'case', 'report', 'export', 'terminal', 'transform']);
+const FORBIDDEN_HOST_ROOTS = new Set(['sudo', 'ssh', 'curl', 'wget', 'eval', 'exec', 'source']);
 
 function nonEmptyString(value, label) {
   if (typeof value !== 'string' || !value.trim()) throw new TypeError(`${label} is required`);
@@ -25,6 +26,11 @@ function stringList(value, label, { allowEmpty = true } = {}) {
   return Object.freeze(value.map(item => item.trim()));
 }
 
+function rejectForbiddenRoot(sequence, id) {
+  const root = String(sequence[0] ?? '').toLowerCase();
+  if (FORBIDDEN_HOST_ROOTS.has(root)) throw new TypeError(`command ${id} uses forbidden host command root: ${root}`);
+}
+
 function normalizeDescriptor(source) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) throw new TypeError('command descriptor object required');
   const id = nonEmptyString(source.id, 'command id');
@@ -32,6 +38,8 @@ function normalizeDescriptor(source) {
   const aliases = source.aliases === undefined ? [] : source.aliases;
   if (!Array.isArray(aliases)) throw new TypeError(`command ${id} aliases must be an array`);
   const frozenAliases = Object.freeze(aliases.map((alias, index) => tokenSequence(alias, `command ${id} alias ${index}`)));
+  rejectForbiddenRoot(tokens, id);
+  for (const alias of frozenAliases) rejectForbiddenRoot(alias, id);
   const namespace = nonEmptyString(source.namespace, `command ${id} namespace`);
   if (!NAMESPACES.has(namespace)) throw new TypeError(`command ${id} namespace is invalid`);
 
