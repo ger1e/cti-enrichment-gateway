@@ -18,14 +18,22 @@ import {
   searchCommands,
   whichCommand,
 } from './shell-core/help.js';
+import {
+  decodeBrowserArtifact,
+  inspectBrowserReportQuality,
+  projectBrowserReport,
+  renderBrowserReportText,
+} from './shell-report-browser.js';
 
 const PROFILES = new Set(['fast', 'standard', 'full']);
 const SHODAN_COMMANDS = new Set(['host', 'search', 'count', 'stats', 'domain', 'info']);
+const REPORT_FORMAT_HANDLERS = new Set(['report-text', 'report-html', 'report-pdf', 'report-csv', 'report-kql', 'report-navigator', 'report-stix', 'report-evidence']);
 const RESULT_REQUIRED = new Set([
   'result-summary','result-request','result-evidence','result-facts','result-providers','result-failures',
   'result-contradictions','result-corroboration','result-references','result-relationships','result-coverage',
   'result-correlation','result-graph','result-guidance','result-decision','result-attacks','result-hunts',
   'result-telemetry','result-freshness','result-raw','view','json','stix','copy',
+  'report-show','report-quality',...REPORT_FORMAT_HANDLERS,
 ]);
 
 function text(value) { return { type: 'text', value: String(value ?? '') }; }
@@ -394,6 +402,29 @@ export function createBrowserShellExecutor({
     if (handler === 'result-freshness') return records(resultOrInput(state, input).guidance?.freshness ?? []);
     if (handler === 'result-raw') return { type: 'enrichment', value: resultOrInput(state, input) };
     if (handler === 'view') return text(JSON.stringify(resultOrInput(state, input)));
+
+    if (handler === 'report-show') {
+      if (args.length) invalid('usage: report show');
+      return text(renderBrowserReportText(resultOrInput(state, input)));
+    }
+    if (handler === 'report-quality') {
+      if (args.length) invalid('usage: report quality');
+      return record(inspectBrowserReportQuality(resultOrInput(state, input), { generatedAt: now().toISOString() }));
+    }
+    if (REPORT_FORMAT_HANDLERS.has(handler)) {
+      const format = handler.slice('report-'.length);
+      if (args.length) invalid(`usage: report ${format}`);
+      return { type: 'artifact', value: projectBrowserReport(resultOrInput(state, input), format, { generatedAt: now().toISOString() }) };
+    }
+    if (handler === 'download') {
+      if (args.length) invalid('usage: download <artifact>');
+      if (input?.type !== 'artifact') invalid('download requires an artifact');
+      let payload;
+      try { payload = decodeBrowserArtifact(input.value); }
+      catch { invalid('download requires a registered artifact'); }
+      downloads.save(payload, input.value.mimeType, input.value.filename);
+      return input;
+    }
 
     if (handler === 'json') {
       const serialized = JSON.stringify(resultOrInput(state, input), null, 2);
