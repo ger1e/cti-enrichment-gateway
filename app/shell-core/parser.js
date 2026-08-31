@@ -79,6 +79,14 @@ function rejectRawHostShellSyntax(input) {
   }
 }
 
+function rejectArgvHostShellSyntax(tokens) {
+  for (const raw of tokens) {
+    const token = String(raw);
+    if (token.includes('`') || token.includes('$(')) invalid('host command substitution is not supported');
+    if (token.includes('&&') || token.includes('||') || token.includes(';')) invalid('host command chaining is not supported');
+  }
+}
+
 function splitPipeline(tokens, limits) {
   if (tokens.length === 0) return [];
   const stages = [];
@@ -139,6 +147,7 @@ export function parseShellLine(input, { limits = PIPELINE_LIMITS } = {}) {
 export function parseShellTokens(argv, { limits = PIPELINE_LIMITS } = {}) {
   if (!Array.isArray(argv)) throw shellError('INVALID_ARGUMENT', 'argv token array required');
   const tokens = argv.map(token => String(token));
+  rejectArgvHostShellSyntax(tokens);
   const stages = splitPipeline(tokens, limits);
   validateStageSyntax(stages);
   return freezeAst(stages);
