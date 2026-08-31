@@ -19,7 +19,6 @@ test('terminal prompt uses one synced phosphor block cursor instead of the nativ
   assert.match(deck, /scrollLeft/);
   assert.match(deck, /measureText\(/);
   assert.match(deck, /cursor\.getBoundingClientRect\(\)\.width/);
-  assert.match(deck, /maxLeft\s*=\s*inputRect\.right\s*-\s*promptRect\.left\s*-\s*cursorWidth/);
   assert.match(deck, /input\.type\s*===\s*['"]password['"]/);
   assert.match(deck, /['"]•['"]\.repeat\(/, 'password cursor position must be measured from mask glyphs, not secret text');
   assert.doesNotMatch(deck, /textContent\s*=\s*input\.value|innerHTML\s*=\s*input\.value/, 'secret or typed input must never be mirrored into the DOM');
@@ -27,4 +26,24 @@ test('terminal prompt uses one synced phosphor block cursor instead of the nativ
   for (const eventName of ['input', 'keyup', 'click', 'select', 'scroll', 'focus', 'blur']) {
     assert.match(deck, new RegExp(`addEventListener\\(['"]${eventName}['"]`), `${eventName} must keep the cursor synchronized`);
   }
+});
+
+test('block cursor is anchored to the command input bar, not the prompt or CRT plane', () => {
+  const css = read('site-cursor.css');
+  const deck = read('app/analyst-deck.js');
+
+  assert.match(css, /\.shell-input-wrap\s*\{[^}]*position:\s*relative[^}]*min-width:\s*0[^}]*width:\s*100%/i,
+    'input wrapper must establish the cursor containing block');
+  assert.match(css, /\.shell-block-cursor\s*\{[^}]*top:\s*50%/i,
+    'cursor vertical position must be local to the input wrapper');
+  assert.match(deck, /const\s+inputWrap\s*=\s*document\.createElement\(['"]span['"]\)/,
+    'cursor runtime must create a dedicated input wrapper');
+  assert.match(deck, /inputWrap\.className\s*=\s*['"]shell-input-wrap['"]/);
+  assert.match(deck, /input\.replaceWith\(inputWrap\)/);
+  assert.match(deck, /inputWrap\.append\(input,\s*cursor\)/,
+    'cursor must be a sibling of the input inside its wrapper');
+  assert.match(deck, /const\s+wrapRect\s*=\s*inputWrap\.getBoundingClientRect\(\)/,
+    'cursor horizontal math must be relative to the input wrapper');
+  assert.doesNotMatch(deck, /const\s+promptRect\s*=\s*prompt\.getBoundingClientRect\(\)/,
+    'cursor coordinates must not depend on the wider prompt/CRT plane');
 });

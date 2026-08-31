@@ -23,9 +23,17 @@ input[type="text"],input[type="password"],input[type="search"],textarea,
   caret-color:transparent!important;
 }
 
+.shell-input-wrap{
+  position:relative;
+  display:block;
+  min-width:0;
+  width:100%;
+}
+
 .shell-block-cursor{
   position:absolute;
   z-index:14;
+  top:50%;
   width:.68ch;
   height:1.08em;
   pointer-events:none;
