@@ -27,20 +27,21 @@ test('case bridge owns only local workspace state and exact hidden bundle input'
   assert.match(source, /createIndexedDbCaseStorage/);
   assert.match(source, /createCaseRepository/);
   assert.match(source, /createCaseRuntime/);
-  assert.match(source, /interpretCommand/);
+  assert.match(source, /caseShellAdapter/);
   assert.match(source, /addGatewayEnrichmentObserver/);
   assert.match(source, /id\s*=\s*['"]case-import['"]/);
   assert.match(source, /type\s*=\s*['"]file['"]/);
   assert.match(source, /\.para11ax,application\/vnd\.para11ax\.case\+json/);
   assert.match(source, /hidden\s*=\s*true/);
+  assert.doesNotMatch(source, /interpretCommand|parseShellLine|executePipeline/);
   assert.doesNotMatch(source, /PARA11AX_TOKEN|getToken\(|Authorization|localStorage|sessionStorage/);
 });
 
-test('case bridge resets memory-only active state on disconnect and reboot', async () => {
-  const source = await read('app/case-shell-bridge.js');
-  assert.match(source, /action\.action\s*===\s*['"]disconnect['"]/);
-  assert.match(source, /action\.action\s*===\s*['"]reboot['"]/);
-  assert.match(source, /runtime\?\.reset\(\)/);
+test('shared browser executor resets memory-only case state on disconnect and reboot', async () => {
+  const source = await read('app/shell-browser-executor.js');
+  assert.match(source, /handler === ['"]disconnect['"] \|\| handler === ['"]auth-clear['"][\s\S]*?cases\?\.reset\?\.\(\)/);
+  assert.match(source, /handler === ['"]reboot['"][\s\S]*?cases\?\.reset\?\.\(\)/);
+  assert.match(source, /handler === ['"]reboot['"][\s\S]*?session\.reset\?\.\(\)/);
 });
 
 test('case bridge surfaces capture warnings without replacing gateway results', async () => {

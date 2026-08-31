@@ -1,5 +1,6 @@
 import { latestSnapshot } from './case-model.js';
 import { buildCaseIndex, findCaseSightings } from './case-index.js';
+import { buildCaseEvidenceGraph } from './case-evidence-graph.js';
 import { CASE_BUNDLE_MEDIA_TYPE, parseCaseBundle, serializeCaseBundle } from './case-bundle.js';
 import { toGatewayIndicator } from './observable-input.js';
 
@@ -22,6 +23,26 @@ function workspaceUnavailable() {
 
 function isStorageFailure(error) {
   return error?.message === 'workspace_storage_failed';
+}
+
+function caseTimeline(caseValue) {
+  const events = [];
+  if (caseValue?.createdAt) events.push({ kind: 'case-created', at: caseValue.createdAt, caseId: caseValue.id, title: caseValue.title });
+  for (const pin of caseValue?.pins ?? []) {
+    events.push({ kind: 'pin-added', at: pin.addedAt ?? null, type: pin.type, value: pin.value });
+  }
+  for (const note of caseValue?.notes ?? []) {
+    events.push({ kind: 'note-added', at: note.addedAt ?? null, id: note.id ?? null, text: note.text });
+  }
+  for (const snapshot of caseValue?.snapshots ?? []) {
+    events.push({ kind: 'snapshot-captured', at: snapshot.capturedAt ?? null, id: snapshot.id ?? null, type: snapshot.type, value: snapshot.indicator, requestId: snapshot.requestId ?? null });
+  }
+  for (const diff of caseValue?.diffs ?? []) {
+    events.push({ kind: 'diff-captured', at: diff.capturedAt ?? null, id: diff.id ?? null, type: diff.type, value: diff.indicator, fromSnapshotId: diff.fromSnapshotId ?? null, toSnapshotId: diff.toSnapshotId ?? null });
+  }
+  return events.sort((a, b) => String(a.at ?? '').localeCompare(String(b.at ?? ''))
+    || String(a.kind).localeCompare(String(b.kind))
+    || String(a.id ?? '').localeCompare(String(b.id ?? '')));
 }
 
 export function createCaseRuntime({
@@ -153,6 +174,25 @@ export function createCaseRuntime({
     if (name === 'case-show') {
       const { value } = await requireActiveCaseTarget();
       return { case: clone(value) };
+    }
+    if (name === 'case-pins') {
+      const { value } = await requireActiveCaseTarget();
+      return { pins: clone(value.pins) };
+    }
+    if (name === 'case-notes') {
+      const { value } = await requireActiveCaseTarget();
+      return { notes: clone(value.notes) };
+    }
+    if (name === 'case-timeline') {
+      const { value } = await requireActiveCaseTarget();
+      return { timeline: clone(caseTimeline(value)) };
+    }
+    if (name === 'case-graph') {
+      const { value } = await requireActiveCaseTarget();
+      const allCases = await repositoryCall(() => cases.list());
+      const index = buildCaseIndex(allCases);
+      const sightings = [...index.entries.values()].flatMap(values => values);
+      return { graph: buildCaseEvidenceGraph(value, { sightings }) };
     }
     if (name === 'case-pin') {
       if (!currentResult || typeof currentResult.type !== 'string' || typeof currentResult.indicator !== 'string') throw new Error('no enrichment result loaded');

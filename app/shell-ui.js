@@ -1,14 +1,17 @@
 import { GatewayHttpError } from './api-client.js';
-import { runEnrichmentOperation } from './shell-runtime.js';
-import { COMMANDS, completeCommand, createHistory, interpretCommand } from './shell.js';
+import { createHistory } from './shell.js';
+import { COMMAND_REGISTRY } from './shell-core/catalog.js';
+import { completeShellInput } from './shell-core/completion.js';
+import { parseShellLine } from './shell-core/parser.js';
+import { executePipeline } from './shell-core/runtime.js';
+import { createBrowserShellExecutor } from './shell-browser-executor.js';
+import { caseShellAdapter } from './case-shell-bridge.js';
 import {
   buildOverview,
   buildEvidence,
   buildCorrelation,
   buildRelationships,
   buildCoverage,
-  buildIpAnalystReport,
-  renderIpAnalystReportText,
   jsonLines,
   toFactRows,
 } from './view-model.js';
@@ -28,21 +31,11 @@ void CONTROL_LABELS;
 
 const PALETTE_TEXT = [
   'void       #050608  terminal background',
-  'cyan       #00E5FF  context / structure',
-  'green      #39FF88  corroborated / verified state',
-  'amber      #F6C945  uncertainty / partial coverage',
-  'red        #FF1E2D  failure / contradiction / scanner',
+  'phosphor   #39FF88  primary terminal signal',
   'white      #F3F7FA  primary terminal text',
   'muted      #7D8B95  secondary terminal text',
+  'red        #FF1E2D  failure / contradiction / scanner',
 ].join('\n');
-
-function formatDuration(ms) {
-  const seconds = Math.max(0, Math.floor(ms / 1000));
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const rest = seconds % 60;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
-}
 
 function safeFilename(indicator, suffix) {
   const stem = String(indicator || 'indicator').replace(/[^a-z0-9._-]+/gi, '_').slice(0, 80) || 'indicator';
@@ -63,27 +56,10 @@ function downloadText(text, type, filename) {
   queueMicrotask(() => URL.revokeObjectURL(url));
 }
 
-function groupHelp() {
-  const categories = ['core', 'auth', 'gateway', 'enrichment', 'osint', 'result', 'export', 'terminal'];
-  const lines = ['PARA11AX COMMAND INDEX', ''];
-  for (const category of categories) {
-    const items = COMMANDS.filter(item => item.category === category);
-    if (!items.length) continue;
-    lines.push(category.toUpperCase());
-    for (const item of items) lines.push(`  ${item.usage.padEnd(46)} ${item.summary}`);
-    lines.push('');
-  }
-  lines.push('Keys: ↑/↓ history · Tab completion · Ctrl+L clear · Ctrl+C cancel · Ctrl+U clear line · Ctrl+W delete word · Home/End · Esc clear');
-  lines.push('Security: no arbitrary provider selection, shell execution, pipes, redirects, filesystem writes, or credential persistence.');
-  return lines.join('\n');
-}
-
-function commandHelp(topic) {
-  const query = String(topic || '').toLowerCase();
-  const item = COMMANDS.find(command => command.name === query || (command.aliases || []).includes(query));
-  if (!item) return `no manual entry for ${query || '<empty>'}`;
-  const aliases = item.aliases?.length ? `\naliases: ${item.aliases.join(', ')}` : '';
-  return `${item.name.toUpperCase()}\nusage: ${item.usage}${aliases}\n${item.summary}`;
+function resultTone(result) {
+  if (result?.status === 'ok') return 'green';
+  if (result?.status === 'partial') return 'amber';
+  return 'red';
 }
 
 export function mountAnalystShell({
@@ -98,14 +74,12 @@ export function mountAnalystShell({
 } = {}) {
   if (!container || !client || !session || !audio) throw new TypeError('shell dependencies required');
 
-  const mountedAt = monotonicNow();
   const history = createHistory(200);
-  let profile = 'standard';
-  let currentResult = null;
   let activeController = null;
   let secretMode = false;
   let busy = false;
   let glitchTimer = null;
+  let browserExecutor = null;
 
   const root = document.createElement('section');
   root.className = 'unix-shell';
@@ -147,36 +121,6 @@ export function mountAnalystShell({
   container.hidden = false;
 
   const focusInput = () => input.focus({ preventScroll: true });
-  const triggerGlitch = (className, duration = 220) => {
-    if (glitchTimer) clearTimeout(glitchTimer);
-    root.classList.remove(className);
-    void root.offsetWidth;
-    root.classList.add(className);
-    try { audio.play('glitch'); } catch {}
-    glitchTimer = setTimeout(() => {
-      root.classList.remove(className);
-      glitchTimer = null;
-    }, duration);
-  };
-
-  const authenticated = () => ['ready', 'result', 'running'].includes(session.snapshot().mode) && session.snapshot().hasToken;
-  const updateStatus = () => {
-    sessionState.textContent = `${authenticated() ? 'AUTH:UP' : 'AUTH:DOWN'} · PROFILE:${profile.toUpperCase()} · ${busy ? 'BUSY' : 'READY'}`;
-    sessionState.classList.toggle('is-authenticated', authenticated());
-  };
-  const updatePrompt = () => {
-    if (secretMode) {
-      promptLabel.textContent = 'BEARER:';
-      input.type = 'password';
-      input.setAttribute('aria-label', 'Gateway bearer secret');
-    } else {
-      promptLabel.textContent = 'analyst@para11ax:~$';
-      input.type = 'text';
-      input.setAttribute('aria-label', 'PARA11AX command line');
-    }
-    updateStatus();
-  };
-
   const scrollBottom = () => { scrollback.scrollTop = scrollback.scrollHeight; };
   const appendLine = (text = '', tone = '') => {
     const line = document.createElement('div');
@@ -206,322 +150,261 @@ export function mountAnalystShell({
     return block;
   };
 
-  const renderFactItems = (title, items, tone = '') => {
+  const renderRecordCollection = (title, values, tone = '') => {
+    const records = Array.isArray(values) ? values : [];
+    if (!records.length) {
+      appendStructuredFacts(title, { state: 'none' }, tone);
+      return;
+    }
     const block = document.createElement('section');
     block.className = `shell-result shell-result-facts${tone ? ` shell-${tone}` : ''}`;
     scrollback.append(block);
-    if (!items.length) {
-      renderFacts(block, title, [{ label: 'STATE', value: 'NONE' }], tone);
-    } else {
-      const heading = document.createElement('div');
-      heading.className = 'shell-fact-heading';
-      heading.textContent = title;
-      block.append(heading);
-      for (const item of items) {
-        const child = document.createElement('section');
-        renderFacts(child, item.title || title, item.facts || [], tone);
-        block.append(child);
-      }
+    const heading = document.createElement('div');
+    heading.className = 'shell-fact-heading';
+    heading.textContent = title;
+    block.append(heading);
+    for (const [index, value] of records.slice(0, 100).entries()) {
+      const child = document.createElement('section');
+      renderFacts(child, `${title} ${String(index + 1).padStart(2, '0')}`, toFactRows(value, { limit: 48 }), tone);
+      block.append(child);
     }
     scrollBottom();
-    return block;
   };
 
-  function renderResultView(viewName) {
-    if (!currentResult) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
+  const triggerGlitch = (className, duration = 220) => {
+    if (glitchTimer) clearTimeout(glitchTimer);
+    root.classList.remove(className);
+    void root.offsetWidth;
+    root.classList.add(className);
+    try { audio.play('glitch'); } catch {}
+    glitchTimer = setTimeout(() => {
+      root.classList.remove(className);
+      glitchTimer = null;
+    }, duration);
+  };
+
+  const authenticated = () => {
+    const snapshot = session.snapshot();
+    return ['ready', 'result', 'running'].includes(snapshot.mode) && snapshot.hasToken;
+  };
+
+  const executorState = () => browserExecutor?.state?.() ?? { profile: 'standard', currentResult: null };
+  const updateStatus = () => {
+    const profile = executorState().profile || 'standard';
+    sessionState.textContent = `${authenticated() ? 'AUTH:UP' : 'AUTH:DOWN'} · PROFILE:${String(profile).toUpperCase()} · ${busy ? 'BUSY' : 'READY'}`;
+    sessionState.classList.toggle('is-authenticated', authenticated());
+  };
+  const updatePrompt = () => {
+    if (secretMode) {
+      promptLabel.textContent = 'BEARER:';
+      input.type = 'password';
+      input.setAttribute('aria-label', 'Gateway bearer secret');
+    } else {
+      promptLabel.textContent = 'analyst@para11ax:~$';
+      input.type = 'text';
+      input.setAttribute('aria-label', 'PARA11AX command line');
+    }
+    updateStatus();
+  };
+
+  function renderResultView(viewName, result = executorState().currentResult) {
+    if (!result) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
     const block = document.createElement('section');
     block.className = `shell-result shell-result-${viewName}`;
     scrollback.append(block);
     if (viewName === 'brief') renderBrief(block, {
-      overview: buildOverview(currentResult),
-      evidence: buildEvidence(currentResult),
-      correlation: buildCorrelation(currentResult),
-      relationships: buildRelationships(currentResult),
-      coverage: buildCoverage(currentResult),
+      overview: buildOverview(result),
+      evidence: buildEvidence(result),
+      correlation: buildCorrelation(result),
+      relationships: buildRelationships(result),
+      coverage: buildCoverage(result),
     });
-    else if (viewName === 'overview') renderOverview(block, buildOverview(currentResult));
-    else if (viewName === 'evidence') renderEvidence(block, buildEvidence(currentResult));
-    else if (viewName === 'correlation') renderCorrelation(block, buildCorrelation(currentResult));
-    else if (viewName === 'relationships') renderRelationships(block, buildRelationships(currentResult));
-    else if (viewName === 'coverage') renderCoverage(block, buildCoverage(currentResult));
-    else renderRaw(block, jsonLines(currentResult), '');
+    else if (viewName === 'overview') renderOverview(block, buildOverview(result));
+    else if (viewName === 'evidence') renderEvidence(block, buildEvidence(result));
+    else if (viewName === 'correlation') renderCorrelation(block, buildCorrelation(result));
+    else if (viewName === 'relationships') renderRelationships(block, buildRelationships(result));
+    else if (viewName === 'coverage') renderCoverage(block, buildCoverage(result));
+    else renderRaw(block, jsonLines(result), '');
     scrollBottom();
   }
 
-  function resultFilter(filter) {
-    if (!currentResult) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
-    if (filter === 'last') return renderResultView('brief');
-    if (filter === 'request') return appendStructuredFacts('REQUEST', {
-      requestId: currentResult.requestId,
-      indicator: currentResult.indicator,
-      type: currentResult.type,
-      profile: currentResult.profile,
-      status: currentResult.status,
-      queriedAt: currentResult.queriedAt,
-      durationMs: currentResult.durationMs,
-      budget: currentResult.budget,
-    });
-    if (filter === 'failures') return renderResultView('coverage');
-    if (filter === 'contradictions') return renderFactItems('CONTRADICTIONS', buildCorrelation(currentResult).contradictions, 'red');
-    if (filter === 'corroboration') return renderFactItems('CORROBORATION', buildCorrelation(currentResult).corroboration, 'green');
-    if (filter === 'references') {
-      const refs = [...new Set((currentResult.evidence || []).flatMap(item => item.references || []).map(ref => typeof ref === 'string' ? ref : ref?.url).filter(Boolean))];
-      return appendPre(refs.length ? refs.join('\n') : '(no references)');
-    }
-    if (filter === 'providers') {
-      const providers = [...new Set([
-        ...(currentResult.evidence || []).map(item => item.provider),
-        ...(currentResult.failures || []).map(item => item.provider),
-      ].filter(Boolean))].sort();
-      return appendPre(providers.length ? providers.join('\n') : '(no providers represented)');
-    }
-  }
+  const resolveStage = stage => stage ? COMMAND_REGISTRY.resolve(stage.tokens, 'web') : null;
+  const finalResolution = ast => resolveStage(ast?.stages?.at(-1));
+  const pipelineResolutions = ast => ast.stages.map(resolveStage).filter(Boolean);
 
-  function beginOperation(useSession = false) {
-    if (busy) throw new Error('operation already active');
-    activeController = new AbortController();
-    busy = true;
-    if (useSession) session.startRequest(activeController);
-    updateStatus();
-    return activeController;
-  }
+  function renderTypedShellValue(output, ast) {
+    if (!output || output.type === 'void') return;
+    const final = finalResolution(ast);
+    const id = final?.descriptor?.id || '';
+    const args = final?.args || [];
+    const invokedRoot = String(ast?.stages?.at(-1)?.tokens?.[0] || '').toLowerCase();
 
-  function endOperation() {
-    activeController = null;
-    busy = false;
-    updateStatus();
-  }
-
-  function abortOperation() {
-    if (activeController && !activeController.signal.aborted) activeController.abort();
-    try { session.reset(); } catch {}
-    activeController = null;
-    busy = false;
-    updateStatus();
-  }
-
-  async function runGateway(action) {
-    if (action.action === 'meta') {
-      const controller = beginOperation(false);
-      try { appendStructuredFacts('GATEWAY META', await client.meta(controller.signal)); }
-      finally { endOperation(); }
-      return;
-    }
-    if (action.action === 'health' || action.action === 'status') {
-      const controller = beginOperation(false);
-      try { appendStructuredFacts(action.action.toUpperCase(), await client[action.action](controller.signal)); }
-      finally { endOperation(); }
-      return;
-    }
-    if (action.action === 'enrich') {
-      const controller = beginOperation(false);
-      appendLine(`enrich: ${action.indicator} [profile=${action.profile}]`, 'cyan');
-      audio.play('scan');
-      triggerGlitch('glitch-scan', 260);
-      try {
-        const result = await runEnrichmentOperation({
-          session,
-          client,
-          controller,
-          indicator: action.indicator,
-          profile: action.profile,
-        });
-        currentResult = result;
-        profile = action.profile;
-        const contradictions = result.correlation?.contradictions?.length || 0;
-        audio.play(result.status === 'ok' ? 'result-ok' : result.status === 'partial' ? 'result-partial' : 'result-error');
-        if (contradictions) {
-          try { audio.play('contradiction'); } catch {}
-          triggerGlitch('glitch-error', 260);
-        } else if (result.status === 'error') triggerGlitch('glitch-error', 260);
-        else triggerGlitch('glitch-result', 240);
-        appendLine(`[ ${String(result.status).toUpperCase()} ] ${result.indicator} · ${result.type} · ${result.durationMs ?? '?'}ms`, result.status === 'ok' ? 'green' : result.status === 'partial' ? 'amber' : 'red');
-        renderResultView('brief');
-      } finally { endOperation(); }
-      return;
-    }
-    if (action.action === 'user-scanner') {
-      const controller = beginOperation(false);
-      const scope = action.module ? `module=${action.module}` : action.category ? `category=${action.category}` : 'scope=full';
-      appendLine(`user-scanner: ${action.scanType} ${action.target} [${scope}${action.crossScan ? ' · cross-scan' : ''}]`, 'cyan');
-      audio.play('scan');
-      triggerGlitch('glitch-scan', 260);
-      try {
-        const scan = await client.userScanner({
-          scanType: action.scanType,
-          target: action.target,
-          category: action.category,
-          module: action.module,
-          crossScan: action.crossScan,
-          noNsfw: action.noNsfw,
-        }, controller.signal);
-        const summary = scan.summary;
-        const tone = summary.errors > 0 ? 'amber' : 'green';
-        appendLine(`[ OK ] USER-SCANNER ${scan.scanId} · scanned=${summary.totalScanned} · found=${summary.found} · errors=${summary.errors} · ${scan.durationMs}ms`, tone);
-        for (const item of scan.results.slice(0, 100)) {
-          const label = item.siteName || '(unknown site)';
-          const category = item.category ? ` [${item.category}]` : '';
-          const url = item.url ? ` · ${item.url}` : '';
-          appendLine(`FOUND  ${label}${category}${url}`, 'green');
-        }
-        if (scan.results.length > 100) appendLine(`… ${scan.results.length - 100} additional hits omitted from terminal scrollback`, 'muted');
-        if (scan.erroredSites.length) appendLine(`errors: ${scan.erroredSites.slice(0, 24).join(', ')}${scan.erroredSites.length > 24 ? ', …' : ''}`, 'amber');
-        appendLine('OSINT enumeration is isolated from Evidence v2 correlation and the current enrichment result.', 'muted');
-        triggerGlitch('glitch-result', 240);
-      } finally { endOperation(); }
-      return;
-    }
-    if (action.action === 'shodan') {
-      const controller = beginOperation(false);
-      const subject = action.target || action.query || '';
-      appendLine(`shodan: ${action.command}${subject ? ` ${subject}` : ''}${action.facets ? ` [facets=${action.facets}]` : ''}`, 'cyan');
-      audio.play('scan');
-      triggerGlitch('glitch-scan', 240);
-      try {
-        const result = await client.shodan({
-          command: action.command,
-          target: action.target,
-          query: action.query,
-          facets: action.facets,
-        }, controller.signal);
-        const tone = result.creditImpact === 'none' ? 'green' : 'amber';
-        appendLine(`[ OK ] SHODAN ${String(result.command).toUpperCase()} · credit=${result.creditImpact} · ${result.durationMs}ms · ${result.requestId}`, tone);
-        appendStructuredFacts(`SHODAN ${String(result.command).toUpperCase()}`, result.data, tone);
-        appendLine('Shodan operator output is isolated from the current Evidence v2 enrichment result.', 'muted');
-        triggerGlitch('glitch-result', 220);
-      } finally { endOperation(); }
-      return;
-    }
-    if (action.action === 'batch') {
-      const controller = beginOperation(false);
-      appendLine(`batch: ${action.indicators.length} observables [profile=${action.profile}]`, 'cyan');
-      audio.play('scan');
-      triggerGlitch('glitch-scan', 240);
-      try {
-        const batch = await client.batch(action.indicators, action.profile, controller.signal);
-        profile = action.profile;
-        appendLine(`[ OK ] batch ${batch.requestId} · ${batch.inputCount} inputs · ${batch.uniqueIndicators ?? '?'} unique · ${batch.durationMs ?? '?'}ms`, 'green');
-        for (const item of batch.results || []) {
-          appendLine(`${String(item.index).padStart(2, '0')}  ${String(item.status).padEnd(8)}  ${item.canonical || item.input || ''}${item.duplicateOf !== undefined ? `  duplicate-of=${item.duplicateOf}` : ''}`, item.status === 'error' || item.status === 'invalid' ? 'red' : item.status === 'skipped' ? 'amber' : '');
-        }
-        triggerGlitch('glitch-result', 220);
-      } finally { endOperation(); }
-      return;
-    }
-    if (action.action === 'stix') {
-      if (!currentResult) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
-      const controller = beginOperation(false);
-      audio.play('stix-start');
-      try {
-        const bundle = await client.stix(currentResult.indicator, currentResult.profile, controller.signal);
-        downloadText(JSON.stringify(bundle, null, 2), 'application/stix+json', safeFilename(currentResult.indicator, 'stix.json'));
-        audio.play('stix-ok');
-        appendLine(`[ OK ] STIX 2.1 bundle exported · ${bundle.objects?.length ?? 0} objects`, 'green');
-        triggerGlitch('glitch-result', 180);
-      } finally { endOperation(); }
-    }
-  }
-
-  async function executeAction(action) {
-    if (action.action === 'noop') return;
-    if (action.action === 'error' || action.action === 'unknown' || action.action === 'auth-required') {
-      appendLine(action.message, action.action === 'auth-required' ? 'amber' : 'red');
-      if (action.action === 'unknown') appendLine("type 'help' for available commands", 'muted');
-      audio.play('result-error');
-      triggerGlitch('glitch-error', 190);
-      return;
-    }
-    if (action.action === 'help') { appendPre(action.topic ? commandHelp(action.topic) : groupHelp()); return; }
-    if (action.action === 'clear') { clearScrollback(); return; }
-    if (action.action === 'history') {
-      appendPre(history.entries().map((line, index) => `${String(index + 1).padStart(4)}  ${line}`).join('\n') || '(history empty)');
-      return;
-    }
-    if (action.action === 'login-secret') {
-      if (authenticated()) { appendLine('authentication already active; run auth clear first', 'amber'); return; }
-      secretMode = true;
-      updatePrompt();
-      appendLine('enter gateway bearer in hidden prompt; value is memory-only and never added to history', 'muted');
-      return;
-    }
-    if (action.action === 'auth-status') { appendLine(authenticated() ? 'AUTHENTICATED // VOLATILE BEARER PRESENT' : 'LOCKED // NO BEARER', authenticated() ? 'green' : 'amber'); return; }
-    if (action.action === 'auth-clear') {
-      abortOperation();
-      session.disconnect();
-      currentResult = null;
-      appendLine('[ OK ] volatile authentication cleared', 'green');
-      updateStatus();
-      return;
-    }
-    if (action.action === 'disconnect') {
-      abortOperation();
-      session.disconnect();
-      currentResult = null;
-      audio.play('disconnect');
+    if (id === 'terminal.clear' || id === 'session.login' || id === 'session.reboot') return;
+    if (id === 'terminal.theme') { appendPre(PALETTE_TEXT); return; }
+    if (id === 'session.disconnect') {
+      try { audio.play('disconnect'); } catch {}
       triggerGlitch('glitch-disconnect', 360);
       appendLine('Connection to gateway closed.', 'amber');
-      updateStatus();
       return;
     }
-    if (action.action === 'reboot') {
-      abortOperation();
-      session.disconnect();
-      currentResult = null;
-      history.clear();
-      triggerGlitch('glitch-disconnect', 360);
-      appendLine('Broadcast message from para11ax: system reboot requested.', 'amber');
-      await Promise.resolve(onReboot());
+    if (id === 'session.auth-clear') {
+      appendLine('[ OK ] volatile authentication cleared', 'green');
       return;
     }
-    if (action.action === 'show-profile') { appendLine(profile); return; }
-    if (action.action === 'set-profile') { profile = action.profile; appendLine(`profile=${profile}`, 'cyan'); updateStatus(); return; }
-    if (action.action === 'view') { renderResultView(action.view); return; }
-    if (action.action === 'result-filter') { resultFilter(action.filter); return; }
-    if (action.action === 'print-json') { currentResult ? appendJson(currentResult) : appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
-    if (action.action === 'download-json') {
-      if (!currentResult) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
-      downloadText(JSON.stringify(currentResult, null, 2), 'application/json', safeFilename(currentResult.indicator, 'evidence.json'));
+    if (id === 'export.copy') {
+      try { audio.play('copy'); } catch {}
+      appendLine(`[ OK ] copied ${args[0] || 'observable'}`, 'green');
+      return;
+    }
+    if (id === 'export.json' && args[0] === 'save') {
       appendLine('[ OK ] Evidence v2 JSON exported', 'green');
       return;
     }
-    if (action.action === 'copy') {
-      if (!currentResult) { appendLine('para11ax: no enrichment result loaded', 'amber'); return; }
-      let value;
-      if (action.target === 'observable') value = currentResult.indicator;
-      else if (action.target === 'request-id') value = currentResult.requestId;
-      else if (action.target === 'report') {
-        if (currentResult.type !== 'ip') { appendLine('copy report currently requires an IP enrichment result', 'amber'); return; }
-        value = renderIpAnalystReportText(buildIpAnalystReport({
-          overview: buildOverview(currentResult),
-          evidence: buildEvidence(currentResult),
-          correlation: buildCorrelation(currentResult),
-          relationships: buildRelationships(currentResult),
-          coverage: buildCoverage(currentResult),
-        }));
-      } else value = JSON.stringify(currentResult, null, 2);
-      try { await navigator.clipboard.writeText(String(value)); audio.play('copy'); appendLine(`[ OK ] copied ${action.target}`, 'green'); }
-      catch { appendLine('clipboard unavailable', 'red'); triggerGlitch('glitch-error', 180); }
+    if (id === 'export.stix' && output.type === 'artifact') {
+      const result = executorState().currentResult;
+      downloadText(JSON.stringify(output.value, null, 2), 'application/stix+json', safeFilename(result?.indicator, 'stix.json'));
+      try { audio.play('stix-ok'); } catch {}
+      appendLine(`[ OK ] STIX 2.1 bundle exported · ${output.value?.objects?.length ?? 0} objects`, 'green');
       return;
     }
-    if (action.action === 'sound') {
-      if (action.enabled) { await audio.enable(); audio.mute(false); }
-      else audio.mute(true);
-      appendLine(`sound=${action.enabled ? 'on' : 'off'}`);
+    if (id === 'result.raw') { renderResultView('raw', output.value); return; }
+    if (id === 'result.view') {
+      const view = String(args[0] || 'overview');
+      renderResultView(view === 'raw' ? 'raw' : view);
       return;
     }
-    if (action.action === 'volume') { audio.setVolume(action.volume); appendLine(`volume=${Math.round(action.volume * 100)}`); return; }
-    if (action.action === 'local') {
-      if (action.name === 'whoami') appendLine(authenticated() ? 'analyst // authenticated volatile session' : 'analyst // unauthenticated');
-      else if (action.name === 'uptime') appendLine(formatDuration(monotonicNow() - mountedAt));
-      else if (action.name === 'version') appendLine(`PARA11AX Gateway Terminal ${version}\nCTI Enrichment client v2`);
-      else if (action.name === 'theme') appendPre(PALETTE_TEXT);
-      else if (action.name === 'pwd') appendLine('/home/analyst');
-      else if (action.name === 'hostname') appendLine('gateway');
-      else if (action.name === 'date') appendLine(now().toString());
-      else if (action.name === 'echo') appendLine(action.value || '');
+    if (id === 'result.summary') {
+      renderResultView(invokedRoot === 'last' ? 'brief' : 'overview');
       return;
     }
-    await runGateway(action);
+    if (id === 'result.evidence') { renderResultView('evidence'); return; }
+    if (id === 'result.relationships') { renderResultView('relationships'); return; }
+    if (id === 'result.coverage') { renderResultView('coverage'); return; }
+    if (id === 'result.correlation') { renderResultView('correlation'); return; }
+
+    if (output.type === 'enrichment') {
+      const tone = resultTone(output.value);
+      appendLine(`[ ${String(output.value?.status || 'result').toUpperCase()} ] ${output.value?.indicator || ''} · ${output.value?.type || ''} · ${output.value?.durationMs ?? '?'}ms`, tone);
+      renderResultView('brief', output.value);
+      return;
+    }
+    if (output.type === 'text') {
+      const value = String(output.value ?? '');
+      if (!value) return;
+      if (value.includes('\n')) appendPre(value);
+      else appendLine(value);
+      return;
+    }
+    if (output.type === 'scalar') { appendLine(String(output.value ?? '')); return; }
+    if (['records', 'evidence', 'relationships', 'provider-list'].includes(output.type)) {
+      renderRecordCollection((final?.descriptor?.usage || output.type).toUpperCase(), output.value);
+      return;
+    }
+    if (output.type === 'artifact') {
+      appendStructuredFacts('ARTIFACT', output.value ?? {}, 'green');
+      return;
+    }
+    appendStructuredFacts((final?.descriptor?.usage || output.type).toUpperCase(), output.value ?? {});
+  }
+
+  const beginOperation = () => {
+    if (busy) throw new Error('operation already active');
+    activeController = new AbortController();
+    busy = true;
+    updateStatus();
+    return activeController;
+  };
+
+  const finishTrackedSession = tracked => {
+    if (!tracked || session.snapshot().mode !== 'running') return;
+    const result = executorState().currentResult;
+    if (result) session.finishRequest(result);
+    else session.failRequest();
+  };
+
+  const endOperation = () => {
+    activeController = null;
+    busy = false;
+    updateStatus();
+  };
+
+  const abortOperation = () => {
+    if (activeController && !activeController.signal.aborted) activeController.abort();
+    try { session.abortActive(); } catch {}
+    activeController = null;
+    busy = false;
+    updateStatus();
+  };
+
+  browserExecutor = createBrowserShellExecutor({
+    client,
+    session,
+    cases: caseShellAdapter,
+    history,
+    ui: {
+      requestLogin() {
+        if (authenticated()) {
+          appendLine('authentication already active; run auth clear first', 'amber');
+          return;
+        }
+        secretMode = true;
+        updatePrompt();
+        appendLine('enter gateway bearer in hidden prompt; value is memory-only and never added to history', 'muted');
+      },
+      clear: clearScrollback,
+      async reboot() {
+        triggerGlitch('glitch-disconnect', 360);
+        await Promise.resolve(onReboot());
+      },
+    },
+    downloads: { save: downloadText },
+    clipboard: { writeText: value => navigator.clipboard.writeText(String(value)) },
+    audio,
+    now,
+    monotonicNow,
+    version,
+  });
+
+  async function runPipeline(ast) {
+    const resolved = pipelineResolutions(ast);
+    const hasEgress = resolved.some(item => item.descriptor.egressClass !== 'none');
+    const tracksResult = resolved.some(item => item.descriptor.outputType === 'enrichment' && item.descriptor.egressClass !== 'none');
+    const controller = beginOperation();
+
+    if (hasEgress) {
+      try { audio.play('scan'); } catch {}
+      triggerGlitch('glitch-scan', 240);
+    }
+    if (tracksResult && authenticated()) session.startRequest(controller);
+    if (resolved.some(item => item.descriptor.id === 'export.stix')) {
+      try { audio.play('stix-start'); } catch {}
+    }
+
+    try {
+      const output = await executePipeline(ast, {
+        registry: COMMAND_REGISTRY,
+        executor: browserExecutor,
+        context: {
+          surface: 'web',
+          authenticated: authenticated(),
+          capabilities: new Set(['gateway-read', 'provider-read']),
+        },
+        signal: controller.signal,
+      });
+      finishTrackedSession(tracksResult);
+      if (output?.type === 'enrichment') {
+        const result = output.value;
+        try { audio.play(result?.status === 'ok' ? 'result-ok' : result?.status === 'partial' ? 'result-partial' : 'result-error'); } catch {}
+        const contradictions = result?.correlation?.contradictions?.length || 0;
+        triggerGlitch(contradictions || result?.status === 'error' ? 'glitch-error' : 'glitch-result', 240);
+      } else if (hasEgress) triggerGlitch('glitch-result', 200);
+      return output;
+    } catch (error) {
+      if (tracksResult && session.snapshot().mode === 'running') session.failRequest();
+      throw error;
+    } finally {
+      endOperation();
+    }
   }
 
   async function submitSecret() {
@@ -534,13 +417,13 @@ export function mountAnalystShell({
       const health = await client.health();
       session.unlock();
       secretMode = false;
-      audio.play('access-ok');
+      try { audio.play('access-ok'); } catch {}
       appendLine(`[  OK  ] Authentication accepted. Gateway ${health?.version || 'online'}.`, 'green');
       triggerGlitch('glitch-result', 180);
     } catch (error) {
       session.disconnect();
       secretMode = false;
-      audio.play('access-denied');
+      try { audio.play('access-denied'); } catch {}
       triggerGlitch('glitch-error', 260);
       appendLine(error instanceof GatewayHttpError && error.status === 401 ? '[FAILED] Authentication rejected.' : '[FAILED] Gateway unavailable.', 'red');
     } finally {
@@ -553,17 +436,25 @@ export function mountAnalystShell({
     event.preventDefault();
     audio.typing(secretMode ? 'token' : 'enter');
     if (secretMode) { await submitSecret(); return; }
+
     const line = input.value;
     input.value = '';
-    const action = interpretCommand(line, { authenticated: authenticated(), profile });
-    if (action.historySafe !== false) history.push(line);
-    if (line.trim()) appendLine(`analyst@para11ax:~$ ${line}`);
-    try { await executeAction(action); }
-    catch (error) {
-      if (error?.name === 'AbortError') appendLine('^C', 'amber');
-      else if (error instanceof GatewayHttpError) appendLine(`gateway: ${error.code}${error.requestId ? ` [${error.requestId}]` : ''}`, 'red');
-      else appendLine('terminal: command failed', 'red');
-      triggerGlitch('glitch-error', 240);
+    if (!line.trim()) { updatePrompt(); focusInput(); return; }
+    history.push(line);
+    appendLine(`analyst@para11ax:~$ ${line}`);
+
+    try {
+      const ast = parseShellLine(line);
+      const output = await runPipeline(ast);
+      renderTypedShellValue(output, ast);
+    } catch (error) {
+      if (error?.code === 'OPERATION_ABORTED' || error?.name === 'AbortError') appendLine('^C', 'amber');
+      else {
+        appendLine(`terminal: ${error?.code || 'COMMAND_FAILED'}${error?.message ? ` // ${error.message}` : ''}`, 'red');
+        if (error?.code === 'COMMAND_NOT_FOUND') appendLine("type 'help' for available commands", 'muted');
+        try { audio.play('result-error'); } catch {}
+        triggerGlitch('glitch-error', 240);
+      }
       if (busy) abortOperation();
     }
     updatePrompt();
@@ -581,13 +472,12 @@ export function mountAnalystShell({
     if (event.key === 'ArrowDown') { event.preventDefault(); input.value = history.down(); input.setSelectionRange(input.value.length, input.value.length); return; }
     if (event.key === 'Tab') {
       event.preventDefault();
-      const suggestions = completeCommand(input.value);
+      const suggestions = completeShellInput(input.value, { surface: 'web' });
       if (suggestions.length === 1) {
-        const raw = input.value;
-        const split = raw.search(/\s/);
-        input.value = split < 0 ? `${suggestions[0]} ` : `${raw.slice(0, split + 1)}${suggestions[0]} `;
+        input.value = suggestions[0].endsWith(' ') ? suggestions[0] : `${suggestions[0]} `;
+        input.setSelectionRange(input.value.length, input.value.length);
       } else if (suggestions.length > 1) appendLine(suggestions.join('  '), 'cyan');
-      audio.play('tab');
+      try { audio.play('tab'); } catch {}
       return;
     }
     if (event.ctrlKey && event.key.toLowerCase() === 'l') { event.preventDefault(); clearScrollback(); return; } // Ctrl+L
@@ -612,6 +502,12 @@ export function mountAnalystShell({
       if (glitchTimer) clearTimeout(glitchTimer);
       abortOperation();
     },
-    state: () => Object.freeze({ authenticated: authenticated(), profile, hasResult: Boolean(currentResult), busy, secretMode }),
+    state: () => Object.freeze({
+      authenticated: authenticated(),
+      profile: executorState().profile,
+      hasResult: Boolean(executorState().currentResult),
+      busy,
+      secretMode,
+    }),
   });
 }

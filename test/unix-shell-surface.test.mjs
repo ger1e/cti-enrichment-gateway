@@ -41,14 +41,19 @@ test('interactive shell exposes the analyst prompt, secret auth mode and command
   assert.match(source, /analyst@para11ax:~\$/);
   assert.doesNotMatch(source, /para11ax@gateway:~\$/);
   assert.doesNotMatch(source, /para11ax@terminal:~\$/);
-  assert.match(source, /hostname['"]\) appendLine\(['"]gateway['"]\)/);
-  assert.match(source, /runEnrichmentOperation/);
-  assert.match(source, /type\s*=\s*['"]password['"]/);
   assert.match(source, /shell-scrollback/);
   assert.match(source, /shell-prompt/);
   assert.match(css, /\.shell-scrollback/);
   assert.match(css, /\.shell-prompt[^}]*position:sticky/);
   assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-prompt/);
+});
+
+test('WebUI owns one shared parser pipeline executor and registry-driven completion path', async () => {
+  const source = await read('app/shell-ui.js');
+  assert.match(source, /parseShellLine/);
+  assert.match(source, /executePipeline/);
+  assert.match(source, /completeShellInput/);
+  assert.doesNotMatch(source, /interpretCommand\(/);
 });
 
 test('shell keyboard maxxing includes history autocomplete cancellation and line editing controls', async () => {

@@ -1,7 +1,7 @@
 <!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 # Shodan analyst shell
 
-PARA11AX exposes a bounded native Shodan command surface inside the authenticated analyst shell. It is an operator utility, not a second Evidence v2 enrichment pipeline and not an Intelligence Kernel data source.
+PARA11AX exposes a bounded native Shodan command surface inside the authenticated analyst shell. It is a specialist operator family inside the unified command fabric documented in [SHELL.md](SHELL.md), not a second Evidence v2 enrichment pipeline and not an Intelligence Kernel data source.
 
 ## Commands
 
@@ -24,6 +24,10 @@ shodan stats product:nginx --facets country:20,org:10
 shodan domain example.com
 shodan info
 ```
+
+## Unified shell boundary
+
+Shodan uses the same shared registry, parser, surface gate and pipeline runtime as the rest of the PARA11AX shell. Its command grammar remains specialized and bounded; it does not become a generic provider, HTTP or host-shell escape path. See [SHELL.md](SHELL.md) for the common grammar, internal pipeline semantics, surface visibility and hard shell limits.
 
 ## Boundary
 

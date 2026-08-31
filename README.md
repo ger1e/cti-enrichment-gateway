@@ -14,6 +14,7 @@
   <a href="docs/API.md">API</a> ·
   <a href="docs/ARCHITECTURE.md">ARCHITECTURE</a> ·
   <a href="docs/PROVIDERS.md">PROVIDERS</a> ·
+  <a href="docs/SHELL.md">SHELL</a> ·
   <a href="docs/SHODAN-SHELL.md">SHODAN SHELL</a> ·
   <a href="SECURITY.md">SECURITY</a>
 </sub></p>
@@ -94,7 +95,7 @@ Shodan request example:
 {"command":"stats","query":"product:nginx","facets":"country:20,org:10"}
 ```
 
-Complete contracts: [`docs/API.md`](docs/API.md) and [`docs/SHODAN-SHELL.md`](docs/SHODAN-SHELL.md).
+Complete contracts: [`docs/API.md`](docs/API.md), [`docs/SHELL.md`](docs/SHELL.md) and [`docs/SHODAN-SHELL.md`](docs/SHODAN-SHELL.md).
 
 </details>
 
@@ -118,7 +119,7 @@ No LLM, adaptive model, runtime learning or universal maliciousness score partic
 
 **ANALYST SURFACE** — [https://para11ax.vercel.app/app/](https://para11ax.vercel.app/app/)
 
-The terminal keeps the gateway bearer in volatile memory only, exposes bounded command grammars and evidence views, and preserves the API semantic model. The IndexedDB-backed case workspace is browser-local; active-case state and gateway authentication remain runtime-only.
+The terminal keeps the gateway bearer in volatile memory only, exposes the shared bounded command fabric documented in [`docs/SHELL.md`](docs/SHELL.md), and preserves the API semantic model. The IndexedDB-backed case workspace is browser-local; active-case state and gateway authentication remain runtime-only.
 
 User Scanner examples:
 
@@ -213,7 +214,7 @@ PARA11AX has **38 configured sources** (upstream APIs and feeds) in the canonica
 
 <sub><strong>07 // DEEP DOCS</strong></sub>
 
-<sub>[BRAND](docs/BRAND.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [END-TO-END](docs/END-TO-END-EXAMPLE.md) · [EVIDENCE](docs/EVIDENCE-SCHEMA.md) · [PROVIDERS](docs/PROVIDERS.md) · [API](docs/API.md) · [SHODAN SHELL](docs/SHODAN-SHELL.md) · [THREAT MODEL](docs/THREAT-MODEL.md) · [SECURITY CONTROLS](docs/SECURITY-CONTROLS.md) · [OPERATIONS](docs/OPERATIONS.md) · [QA](docs/QA-REPORT.md) · [PUBLIC RELEASE](docs/PUBLIC-RELEASE-CHECKLIST.md) · [MANIFEST](release-manifest.json)</sub>
+<sub>[BRAND](docs/BRAND.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [END-TO-END](docs/END-TO-END-EXAMPLE.md) · [EVIDENCE](docs/EVIDENCE-SCHEMA.md) · [PROVIDERS](docs/PROVIDERS.md) · [API](docs/API.md) · [SHELL](docs/SHELL.md) · [SHODAN SHELL](docs/SHODAN-SHELL.md) · [THREAT MODEL](docs/THREAT-MODEL.md) · [SECURITY CONTROLS](docs/SECURITY-CONTROLS.md) · [OPERATIONS](docs/OPERATIONS.md) · [QA](docs/QA-REPORT.md) · [PUBLIC RELEASE](docs/PUBLIC-RELEASE-CHECKLIST.md) · [MANIFEST](release-manifest.json)</sub>
 
 <p align="center"><img src="assets/brand/para11ax-readme-footer-v1.svg" alt="PARA11AX operating principles — Per Aspera Ad Astra" width="100%"></p>
 
