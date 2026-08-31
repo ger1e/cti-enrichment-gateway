@@ -8,6 +8,11 @@ import { collectDoctorState } from './doctor.js';
 import { runMaltegoCheck, runReleaseVerify, runSetup } from './commands.js';
 import { probeProviders } from './provider-probe.js';
 import { compileReportCommand, diffReportCommand } from './report-commands.js';
+import {
+  buildNodeReportManifest,
+  inspectNodeReportQuality,
+  projectNodeReport,
+} from './shell-report-node.js';
 import { shellError } from '../../app/shell-core/errors.js';
 import {
   listAliases,
@@ -22,11 +27,13 @@ import {
 const PROFILES = new Set(['fast', 'standard', 'full']);
 const LOCAL_BEARER = 'para11ax-local-cli-runtime';
 const SHODAN_COMMANDS = new Set(['host', 'search', 'count', 'stats', 'domain', 'info']);
+const REPORT_FORMAT_HANDLERS = new Set(['report-text', 'report-html', 'report-pdf', 'report-csv', 'report-kql', 'report-navigator', 'report-stix', 'report-evidence']);
 const RESULT_REQUIRED = new Set([
   'result-summary','result-request','result-evidence','result-facts','result-providers','result-failures',
   'result-contradictions','result-corroboration','result-references','result-relationships','result-coverage',
   'result-correlation','result-graph','result-guidance','result-decision','result-attacks','result-hunts',
   'result-telemetry','result-freshness','result-raw','view','json','stix','copy',
+  'report-show','report-quality','report-manifest',...REPORT_FORMAT_HANDLERS,
 ]);
 
 const text = value => ({ type: 'text', value: String(value ?? '') });
@@ -402,6 +409,23 @@ export function createNodeShellExecutor({
       invalid('Node copy supports observable, json, or request-id; use report text for reports');
     }
 
+    if (handler === 'report-show') {
+      if (args.length) invalid('usage: report show');
+      return text(projectNodeReport(resultOrInput(state, input), 'text', { generatedAt: now().toISOString() }).artifact.content);
+    }
+    if (handler === 'report-quality') {
+      if (args.length) invalid('usage: report quality');
+      return record(inspectNodeReportQuality(resultOrInput(state, input), { generatedAt: now().toISOString() }));
+    }
+    if (REPORT_FORMAT_HANDLERS.has(handler)) {
+      const format = handler.slice('report-'.length);
+      if (args.length) invalid(`usage: report ${format}`);
+      return { type: 'artifact', value: projectNodeReport(resultOrInput(state, input), format, { generatedAt: now().toISOString() }).artifact };
+    }
+    if (handler === 'report-manifest') {
+      if (args.length) invalid('usage: report manifest');
+      return record(buildNodeReportManifest(resultOrInput(state, input), { generatedAt: now().toISOString(), preset: 'all' }));
+    }
     if (handler === 'report-compile') return { type: 'artifact', value: compileReportCommand(args) };
     if (handler === 'report-diff') return record(diffReportCommand(args));
 
