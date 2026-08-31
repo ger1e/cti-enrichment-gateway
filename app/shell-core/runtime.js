@@ -1,8 +1,9 @@
 import { ShellCommandError, shellError } from './errors.js';
-import { PIPELINE_LIMITS, assertBoundedValue } from './types.js';
+import { PIPELINE_LIMITS, assertBoundedValue, assertRenderedValue } from './types.js';
 import { TRANSFORM_HANDLERS } from './transforms.js';
 
 const RECORD_COLLECTION_TYPES = new Set(['records', 'evidence', 'relationships', 'provider-list']);
+const PROVIDER_POLICY_OVERRIDE_FLAGS = Object.freeze(['--host', '--method', '--credential']);
 
 function capabilitySet(value) {
   if (value instanceof Set) return value;
@@ -54,6 +55,17 @@ function validateGate(descriptor, resolved, input, context) {
   }
 }
 
+function validateInvocationPolicy(descriptor, args) {
+  if (descriptor.handler !== 'provider-run') return;
+  for (const raw of args) {
+    const token = String(raw).toLowerCase();
+    const forbidden = PROVIDER_POLICY_OVERRIDE_FLAGS.find(flag => token === flag || token.startsWith(`${flag}=`));
+    if (forbidden) {
+      throw shellError('POLICY_DENIED', 'provider policy overrides are not supported', { command: descriptor.id, flag: forbidden });
+    }
+  }
+}
+
 async function executeStage({ descriptor, args, input, executor, context, signal, limits }) {
   const transform = TRANSFORM_HANDLERS[descriptor.handler];
   if (typeof transform === 'function') {
@@ -90,6 +102,7 @@ export async function executePipeline(ast, {
 
     const { descriptor, args } = resolved;
     validateGate(descriptor, resolved, input, context);
+    validateInvocationPolicy(descriptor, args);
 
     let output;
     try {
@@ -110,5 +123,6 @@ export async function executePipeline(ast, {
     input = output;
   }
 
+  assertRenderedValue(input, limits);
   return input;
 }
