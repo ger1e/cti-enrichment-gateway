@@ -63,3 +63,17 @@ export function assertBoundedValue(input, limits = PIPELINE_LIMITS) {
   }
   return true;
 }
+
+export function assertRenderedValue(input, limits = PIPELINE_LIMITS) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw shellError('INVALID_ARGUMENT', 'typed shell value required');
+  }
+  if (!VALUE_TYPES.includes(input.type)) {
+    throw shellError('INVALID_ARGUMENT', `unknown shell value type: ${String(input.type)}`);
+  }
+  const bytes = estimateValueBytes(input.value);
+  if (bytes > limits.renderedBytes) {
+    throw shellError('OUTPUT_LIMIT', 'rendered value byte limit exceeded', { limit: limits.renderedBytes });
+  }
+  return true;
+}
