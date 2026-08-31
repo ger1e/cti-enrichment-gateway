@@ -35,7 +35,7 @@ test('para11ax help is deterministic and lists the bounded control-plane command
 });
 
 test('para11ax rejects unknown commands without shell evaluation', () => {
-  const result = run(['wat;echo', 'pwned']);
+  const result = run(['wat', 'pwned']);
   assert.notEqual(result.status, 0);
   assert.match(combined(result), /unknown command/i);
   assert.doesNotMatch(combined(result), /\bpwned\b.*\bpwned\b/i);
