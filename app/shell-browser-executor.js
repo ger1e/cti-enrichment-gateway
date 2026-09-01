@@ -24,6 +24,8 @@ import {
   projectBrowserReport,
   renderBrowserReportText,
 } from './shell-report-browser.js';
+import { MISSION_HANDLERS, executeMissionCommand } from '../src/core/mission/command-adapter.js';
+import { importMissionWorkspace } from '../src/core/mission/workspace.js';
 
 const PROFILES = new Set(['fast', 'standard', 'full']);
 const SHODAN_COMMANDS = new Set(['host', 'search', 'count', 'stats', 'domain', 'info']);
@@ -227,6 +229,7 @@ export function createBrowserShellExecutor({
   history = null,
   ui = null,
   downloads = { save: () => {} },
+  missionFiles = null,
   clipboard = { writeText: async () => {} },
   audio = {},
   now = () => new Date(),
@@ -240,14 +243,32 @@ export function createBrowserShellExecutor({
   const state = {
     profile: PROFILES.has(initialState.profile) ? initialState.profile : 'standard',
     currentResult: initialState.currentResult ?? null,
+    missionWorkspace: initialState.missionWorkspace == null ? null : importMissionWorkspace(initialState.missionWorkspace),
   };
 
-  const snapshot = () => Object.freeze({ profile: state.profile, currentResult: state.currentResult, startedAt, version });
+  const snapshot = () => Object.freeze({
+    profile: state.profile,
+    currentResult: state.currentResult,
+    missionWorkspace: state.missionWorkspace,
+    startedAt,
+    version,
+  });
 
   async function execute({ descriptor, args = [], input = { type: 'void', value: null }, context = {}, signal } = {}) {
     if (!descriptor || typeof descriptor.handler !== 'string') throw new TypeError('command descriptor required');
     const handler = descriptor.handler;
     const surface = context.surface ?? 'web';
+    if (MISSION_HANDLERS.includes(handler)) {
+      const outcome = await executeMissionCommand({
+        handler,
+        args,
+        input,
+        workspace: state.missionWorkspace,
+        loadContent: request => missionFiles?.select?.(request),
+      });
+      state.missionWorkspace = outcome.workspace;
+      return outcome.output;
+    }
     if (RESULT_REQUIRED.has(handler) && !resultOrInput(state, input)) invalid('no current enrichment result');
 
     if (handler === 'help') {
@@ -484,6 +505,7 @@ export function createBrowserShellExecutor({
       cases?.reset?.();
       session.disconnect?.();
       state.currentResult = null;
+      if (handler === 'disconnect') state.missionWorkspace = null;
       return text('disconnected');
     }
     if (handler === 'auth-status') return text(session.snapshot?.().hasToken ? 'authenticated' : 'locked');
@@ -492,6 +514,7 @@ export function createBrowserShellExecutor({
       cases?.reset?.();
       session.reset?.();
       state.currentResult = null;
+      state.missionWorkspace = null;
       await ui?.reboot?.();
       return text('reboot');
     }

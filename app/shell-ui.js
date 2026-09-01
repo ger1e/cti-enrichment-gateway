@@ -6,6 +6,7 @@ import { parseShellLine } from './shell-core/parser.js';
 import { executePipeline } from './shell-core/runtime.js';
 import { createBrowserShellExecutor } from './shell-browser-executor.js';
 import { caseShellAdapter } from './case-shell-bridge.js';
+import { createMissionFileSelector } from './mission-file-bridge.js';
 import {
   buildOverview,
   buildEvidence,
@@ -71,6 +72,7 @@ export function mountAnalystShell({
   now = () => new Date(),
   monotonicNow = () => performance.now(),
   onReboot = () => {},
+  missionFiles = null,
 } = {}) {
   if (!container || !client || !session || !audio) throw new TypeError('shell dependencies required');
 
@@ -358,6 +360,7 @@ export function mountAnalystShell({
       },
     },
     downloads: { save: downloadText },
+    missionFiles: missionFiles ?? createMissionFileSelector({ documentRef: container.ownerDocument ?? document }),
     clipboard: { writeText: value => navigator.clipboard.writeText(String(value)) },
     audio,
     now,

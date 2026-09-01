@@ -114,6 +114,39 @@ States are `RESULTS_PRESENT`, `NO_RESULTS`, and `IMPORT_EMPTY`; malformed or ove
 
 The suggested priority is derived only from client relevance and is explicitly labeled `client_relevance_only_not_incident_severity`. The renderer never assigns automatic P1, sends a request, reads secrets, or creates a ticket. Human approval remains mandatory before escalation or submission.
 
+## Mission Workspace v1
+
+`src/core/mission/workspace.js` composes the pure mission functions into a portable `mission-workspace-v1.0` bundle. The bundle carries the normalized profile, normalized context, relevance assessment, hunt package, up to eight KQL validations, imported result summary and ServiceNow-ready projection. A monotonic revision records successful workspace transitions.
+
+The shared command adapter exposes the same twelve commands to Web and CLI:
+
+```text
+mission new
+mission show
+mission profile set '<json>'
+mission context set '<json>'
+mission relevance
+mission hunt build '<json>'
+mission kql validate '<query>'
+mission result analyze
+mission servicenow
+mission export
+mission import
+mission clear
+```
+
+Profile or context changes invalidate every dependent projection. Rebuilding a hunt invalidates prior result and ServiceNow output. Failed transitions are atomic and leave the current frozen workspace unchanged.
+
+Export is canonical JSON with a trailing newline. Import validates the complete JSON tree, accepts only the exact schema, reconstructs every derived projection from authoritative inputs, and rejects tampering rather than trusting serialized scores, states or ticket fields. The bundle contains data only; it never carries authentication state, runtime handles or secrets.
+
+### Transport and lifetime
+
+- **Web:** workspace state is memory-only. File import uses an explicit bounded picker. `mission export | download` is the sole browser write. `disconnect` and `reboot` clear mission state; `auth clear` preserves it.
+- **CLI:** state lives only for the current PARA11AX pipeline/process. Content may be supplied inline, by exact `--file <path>`, or by exact `--stdin`. Stdin is not consumed implicitly.
+- **Both:** each content transport is capped at 2 MiB and routes through the same command adapter and reducer.
+
+KQL validation does not query a Microsoft tenant. Result analysis does not execute a query. ServiceNow projection does not submit a ticket. Those operations remain analyst-controlled external actions.
+
 ## Security boundary
 
 Mission v1 adds no runtime dependency and no egress. It contains no `fetch`, provider execution, secret access, dynamic evaluation, child-process execution, file write, or server-side persistence path. Existing Evidence v2 and Intelligence Kernel semantics remain authoritative; mission objects are downstream analyst-support projections.

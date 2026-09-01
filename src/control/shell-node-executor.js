@@ -23,6 +23,8 @@ import {
   searchCommands,
   whichCommand,
 } from '../../app/shell-core/help.js';
+import { MISSION_HANDLERS, executeMissionCommand } from '../core/mission/command-adapter.js';
+import { createMissionContentLoader } from './mission-content-loader.js';
 
 const PROFILES = new Set(['fast', 'standard', 'full']);
 const LOCAL_BEARER = 'para11ax-local-cli-runtime';
@@ -209,6 +211,8 @@ export function createNodeShellExecutor({
   monotonicNow = () => performance.now(),
   version = GATEWAY_VERSION,
   registry,
+  missionReadFile = undefined,
+  missionStdin = null,
 } = {}) {
   if (!registry) throw new TypeError('Node shell registry required');
   const startedAt = Number(monotonicNow()) || 0;
@@ -216,7 +220,8 @@ export function createNodeShellExecutor({
   const app = createApp({ env: runtimeEnv, fetchImpl, now: () => now().toISOString(), nowMs });
   const shodan = createShodanCommandHandler({ env: runtimeEnv, fetchImpl, nowMs });
   const userScanner = createUserScannerHandler({ env: runtimeEnv, fetchImpl, nowMs });
-  const state = { profile: 'standard', currentResult: null };
+  const state = { profile: 'standard', currentResult: null, missionWorkspace: null };
+  const missionContent = createMissionContentLoader({ readFile: missionReadFile, stdinContent: missionStdin });
 
   const request = body => ({
     method: 'POST',
@@ -233,6 +238,17 @@ export function createNodeShellExecutor({
   async function execute({ descriptor, args = [], input = { type: 'void', value: null }, context = {} } = {}) {
     if (!descriptor || typeof descriptor.handler !== 'string') throw new TypeError('command descriptor required');
     const handler = descriptor.handler;
+    if (MISSION_HANDLERS.includes(handler)) {
+      const outcome = await executeMissionCommand({
+        handler,
+        args,
+        input,
+        workspace: state.missionWorkspace,
+        loadContent: missionContent,
+      });
+      state.missionWorkspace = outcome.workspace;
+      return outcome.output;
+    }
     if (RESULT_REQUIRED.has(handler) && !resultOrInput(state, input)) invalid('no current enrichment result');
 
     if (handler === 'help') {
@@ -442,7 +458,11 @@ export function createNodeShellExecutor({
     if (handler === 'sound' || handler === 'volume') return text(`${handler}: unavailable on CLI`);
 
     if (handler === 'auth-status') return text('local-cli');
-    if (handler === 'auth-clear' || handler === 'disconnect') { state.currentResult = null; return text('local session cleared'); }
+    if (handler === 'auth-clear' || handler === 'disconnect') {
+      state.currentResult = null;
+      if (handler === 'disconnect') state.missionWorkspace = null;
+      return text('local session cleared');
+    }
     if (handler === 'whoami' || handler === 'session') return record({ surface: 'cli', authenticated: true, profile: state.profile });
     if (handler === 'history') return text('');
     if (handler === 'history-clear') return text('history cleared');
@@ -460,6 +480,9 @@ function providerListText(rows) {
 export function renderNodeShellOutput(output, { descriptor = null, pipelineLength = 1 } = {}) {
   if (!output || output.type === 'void') return '';
   if (descriptor?.id === 'provider.list' && pipelineLength === 1 && output.type === 'records') return `${providerListText(output.value)}\n`;
+  if (descriptor?.id === 'mission.export' && output.type === 'artifact' && output.value?.encoding === 'utf8') {
+    return String(output.value.content ?? '');
+  }
   if (output.type === 'text' || output.type === 'scalar') {
     const value = String(output.value ?? '');
     return value.endsWith('\n') ? value : `${value}\n`;

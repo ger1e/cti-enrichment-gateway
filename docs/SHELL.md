@@ -27,6 +27,7 @@ provider
 osint
 result
 case
+mission
 report
 export
 terminal
@@ -206,6 +207,39 @@ shodan info
 ```
 
 Shodan is a specialized bounded operator family inside this unified command fabric. Its operator result remains separate from the current Evidence v2 result. Exact credit and semantic boundaries are documented in [SHODAN-SHELL.md](SHODAN-SHELL.md).
+
+## Mission workspace
+
+The mission family is shared by Web and CLI. It drives one deterministic, volatile workspace through client relevance, hunt construction, conservative KQL validation, bounded result analysis and a ServiceNow-ready projection:
+
+```text
+mission new
+mission show
+mission profile set '<json>'
+mission context set '<json>'
+mission relevance
+mission hunt build '<json>'
+mission kql validate '<query>'
+mission result analyze
+mission servicenow
+mission export
+mission import
+mission clear
+```
+
+In Web, `mission profile set`, `mission context set`, `mission hunt build`, `mission result analyze` and `mission import` open an explicit local file picker when inline content is omitted. `mission export | download` is the only browser persistence action. The workspace otherwise remains in memory; `disconnect` and `reboot` clear it, while `auth clear` does not.
+
+The CLI accepts inline profile/context/hunt JSON and KQL. File/result/import transports are explicit and bounded:
+
+```text
+para11ax mission import --file mission.json '|' mission show
+para11ax mission result analyze --file results.csv
+para11ax mission import --stdin
+```
+
+`--stdin` is read only when that exact transport is requested. Input is capped at 2 MiB. Mission export emits a canonical `para11ax-mission.json` artifact and import reconstructs derived fields, rejecting tampered or structurally invalid bundles.
+
+KQL is validated but never executed. ServiceNow output is a projection only: no ticket is submitted, no credential is read, and analyst approval remains mandatory. Mission commands add no provider call, model call, server-side persistence or Evidence v2 mutation. Full semantics are documented in [ANALYST-MISSION-PACK.md](ANALYST-MISSION-PACK.md).
 
 ## Result and evidence
 
