@@ -12,6 +12,7 @@ const MAX_ID = 128;
 const MAX_NAME = 256;
 const MAX_ITEMS = 64;
 const MAX_ITEM = 256;
+const CONTROL = /[\u0000-\u001F\u007F]/;
 
 function fail(field) {
   throw new TypeError(`invalid client profile: ${field}`);
@@ -21,6 +22,7 @@ function requiredText(value, field, max) {
   if (typeof value !== 'string') fail(field);
   const out = value.trim();
   if (!out || out.length > max) fail(field);
+  if (CONTROL.test(out)) fail(`${field} contains control characters`);
   return out;
 }
 
@@ -31,6 +33,7 @@ function normalizedList(value, field) {
     if (typeof item !== 'string') fail(`${field}[${index}]`);
     const out = item.trim().toLowerCase();
     if (!out || out.length > MAX_ITEM) fail(`${field}[${index}]`);
+    if (CONTROL.test(out)) fail(`${field}[${index}] contains control characters`);
     return out;
   });
   return Object.freeze([...new Set(normalized)].sort((a, b) => a.localeCompare(b)));
