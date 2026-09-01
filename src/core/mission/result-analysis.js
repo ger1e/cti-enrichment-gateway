@@ -16,6 +16,7 @@ function parseCsv(text) {
   let row = [];
   let field = '';
   let quoted = false;
+  let quoteClosed = false;
 
   for (let i = 0; i < text.length; i += 1) {
     const char = text[i];
@@ -25,21 +26,27 @@ function parseCsv(text) {
         i += 1;
       } else if (char === '"') {
         quoted = false;
+        quoteClosed = true;
       } else {
         field += char;
       }
       if (field.length > MAX_FIELD_CHARS) fail('field too large');
       continue;
     }
+    if (quoteClosed && char !== ',' && char !== '\n' && char !== '\r') {
+      fail('invalid CSV characters after closing quote');
+    }
     if (char === '"' && field.length === 0) {
       quoted = true;
     } else if (char === ',') {
       row.push(field);
       field = '';
+      quoteClosed = false;
     } else if (char === '\n' || char === '\r') {
       if (char === '\r' && text[i + 1] === '\n') i += 1;
       row.push(field);
       field = '';
+      quoteClosed = false;
       if (row.some(value => value !== '')) rows.push(row);
       row = [];
       if (rows.length > MAX_ROWS + 1) fail('too many rows');

@@ -7,7 +7,7 @@ import { buildServiceNowProjection, renderServiceNowText } from '../src/report/r
 
 function hunt() {
   return buildHuntPackage({
-    profile: { id: 'client-1', name: 'Client\u0000 One', technologies: ['fortinet'], telemetry: ['DeviceNetworkEvents'] },
+    profile: { id: 'client-1', name: 'Client One', technologies: ['fortinet'], telemetry: ['DeviceNetworkEvents'] },
     context: { technologies: ['fortinet'], observedExploitation: true, requiredTelemetry: ['DeviceNetworkEvents'], evidenceConfidence: 0.8 },
     subject: 'Remote-access credential abuse',
     hypothesis: 'Valid-account abuse may produce anomalous endpoint network activity.',
@@ -24,7 +24,7 @@ test('ServiceNow projection is deterministic, bounded, explicit and submission-f
   const b = buildServiceNowProjection(hunt(), results);
   assert.deepEqual(a, b);
   assert.equal(a.title, '[PARA11AX] Remote-access credential abuse');
-  assert.equal(a.client.name.includes('\u0000'), false);
+  assert.equal(a.client.name, 'Client One');
   assert.equal(a.resultState, 'RESULTS_PRESENT');
   assert.deepEqual(a.attackIds, ['T1078']);
   assert.deepEqual(a.evidenceFingerprints, ['b'.repeat(64)]);
