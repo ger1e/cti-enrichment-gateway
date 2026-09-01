@@ -52,10 +52,3 @@ input[type="text"],input[type="password"],input[type="search"],textarea,
   opacity:.92;
   animation:terminal-block-cursor-blink .76s steps(1,end) infinite;
 }
-
-@media (prefers-reduced-motion:reduce){
-  .shell-prompt[data-block-cursor-active="true"] .shell-block-cursor{
-    animation:none!important;
-    opacity:.92!important;
-  }
-}
