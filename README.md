@@ -42,7 +42,7 @@ The Kernel does not fetch, mutate or manufacture evidence. Raw **Evidence v2 rem
 
 <sub><strong>02 // REQUEST PATH</strong></sub>
 
-<p align="center"><img src="assets/brand/para11ax-readme-architecture-v5.svg" alt="PARA11AX bounded request path through deterministic provider scheduling, fixed egress, Evidence v2 and Intelligence Kernel v1.0" width="100%"></p>
+<p align="center"><img src="assets/brand/para11ax-readme-architecture-v6.svg" alt="PARA11AX bounded request path through deterministic provider scheduling, fixed egress, Evidence v2 and Intelligence Kernel v1.0" width="100%"></p>
 
 Canonical passive flow:
 
