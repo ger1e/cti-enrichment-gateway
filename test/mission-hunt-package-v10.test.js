@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { buildHuntPackage } from '../src/core/mission/hunt-package.js';
 
 const profile = {
-  id: 'bor-eu',
-  name: 'Borealis',
+  id: 'example-eu',
+  name: 'Example Industrial',
   technologies: ['fortinet'],
   industries: ['chemicals'],
   geographies: ['eu'],
   attackPaths: ['remote access'],
-  priorityActors: ['lynx'],
+  priorityActors: ['example actor'],
   telemetry: ['DeviceNetworkEvents', 'SigninLogs'],
 };
 
@@ -21,15 +21,15 @@ const base = {
     industries: ['chemicals'],
     geographies: ['eu'],
     attackPaths: ['remote access'],
-    actors: ['lynx'],
+    actors: ['example actor'],
     requiredTelemetry: ['DeviceNetworkEvents'],
     evidenceConfidence: 0.8,
   },
   hypothesis: 'Threat activity using valid remote-access credentials may create anomalous external connections from managed endpoints.',
-  subject: 'Fortinet remote-access credential abuse',
+  subject: 'Remote-access credential abuse',
   attackIds: ['T1078', 'T1021'],
   evidenceFingerprints: ['a'.repeat(64)],
-  sourceReferences: ['https://example.org/research/fortinet'],
+  sourceReferences: ['https://example.org/research/remote-access'],
   kqlCandidates: [
     'DeviceNetworkEvents | where Timestamp > ago(24h) | project Timestamp, DeviceName, RemoteIP, RemoteUrl',
   ],
