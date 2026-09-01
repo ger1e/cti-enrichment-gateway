@@ -5,10 +5,28 @@ import test from 'node:test';
 const read = path => readFileSync(path, 'utf8');
 
 const assets = [
-  ['assets/brand/para11ax-readme-hero-v8.svg', '720 360'],
+  ['assets/brand/para11ax-readme-hero-v9.svg', '720 360'],
   ['assets/brand/para11ax-readme-architecture-v5.svg', '720 760'],
   ['assets/brand/para11ax-readme-semantics-v5.svg', '720 860'],
+  ['assets/brand/para11ax-readme-footer-v2.svg', '720 300'],
 ];
+
+const visibleTextRows = svg => [...svg.matchAll(/<text\b([^>]*)>(.*?)<\/text>/gis)]
+  .map(match => {
+    const attrs = match[1];
+    const body = match[2]
+      .replace(/<tspan\b[^>]*>/gi, '')
+      .replace(/<\/tspan>/gi, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .trim();
+    const size = Number(attrs.match(/font-size=["']([\d.]+)["']/i)?.[1] ?? 0);
+    return { body, size };
+  })
+  .filter(row => row.body && row.size >= 15);
 
 test('README uses the normalized GER1E-style PARA11AX SVG family', () => {
   const readme = read('README.md');
@@ -16,7 +34,7 @@ test('README uses the normalized GER1E-style PARA11AX SVG family', () => {
     assert.equal(existsSync(path), true, `${path} must exist`);
     assert.match(readme, new RegExp(path.replaceAll('/', '\\/').replaceAll('.', '\\.'), 'i'));
   }
-  assert.doesNotMatch(readme, /para11ax-readme-hero-v7\.svg|para11ax-architecture-v3\.svg|para11ax-semantic-firewall-v3\.svg/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-v8\.svg|para11ax-readme-semantics-v4\.svg|para11ax-readme-footer-v1\.svg|para11ax-architecture-v3\.svg|para11ax-semantic-firewall-v3\.svg/i);
 });
 
 test('README SVGs preserve PARA11AX identity inside GER1E-normalized geometry', () => {
@@ -29,6 +47,18 @@ test('README SVGs preserve PARA11AX identity inside GER1E-normalized geometry', 
     assert.match(svg, /#39FF14/i, `${path} must preserve phosphor green`);
     assert.match(svg, /#F7FFF6/i, `${path} must preserve signal white`);
     assert.doesNotMatch(svg, /#00E5FF|#F6C945|#39FF88/i, `${path} must not reintroduce legacy colors`);
+  }
+});
+
+test('all active README SVG text rows stay inside the mobile-safe text budget', () => {
+  for (const [path] of assets) {
+    const rows = visibleTextRows(read(path));
+    assert.ok(rows.length > 0, `${path} must expose visible text rows`);
+    for (const row of rows) {
+      if (row.size >= 90) continue;
+      const limit = row.size >= 20 ? 46 : 52;
+      assert.ok(row.body.length <= limit, `${path} has a mobile-risk text row (${row.body.length} > ${limit}): ${row.body}`);
+    }
   }
 });
 
