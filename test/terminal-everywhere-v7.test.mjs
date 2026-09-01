@@ -55,10 +55,10 @@ test('active presentation sources use the canonical terminal palette only', () =
 
 test('README uses one self-contained SVG hero while preserving CI badges and analyst entry', () => {
   const readme = read('README.md');
-  const hero = 'assets/brand/para11ax-readme-hero-v8.svg';
-  assert.match(readme, /<img[^>]+para11ax-readme-hero-v8\.svg/i);
+  const hero = 'assets/brand/para11ax-readme-hero-v9.svg';
+  assert.match(readme, /<img[^>]+para11ax-readme-hero-v9\.svg/i);
   assert.doesNotMatch(readme, /<picture>/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif|para11ax-readme-hero-v7\.svg/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif|para11ax-readme-hero-v7\.svg|para11ax-readme-hero-v8\.svg/i);
   assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
   assert.equal(existsSync(hero), true, `${hero} must exist`);
   const svg = read(hero);

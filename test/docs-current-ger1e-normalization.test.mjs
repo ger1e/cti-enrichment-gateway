@@ -34,10 +34,10 @@ const PUBLIC_DOCS = [
 ];
 
 test('README SVG family matches GER1E width and typography scale', () => {
-  const heroPath = 'assets/brand/para11ax-readme-hero-v8.svg';
-  const architecturePath = 'assets/brand/para11ax-readme-architecture-v4.svg';
-  const semanticsPath = 'assets/brand/para11ax-readme-semantics-v4.svg';
-  const footerPath = 'assets/brand/para11ax-readme-footer-v1.svg';
+  const heroPath = 'assets/brand/para11ax-readme-hero-v9.svg';
+  const architecturePath = 'assets/brand/para11ax-readme-architecture-v6.svg';
+  const semanticsPath = 'assets/brand/para11ax-readme-semantics-v5.svg';
+  const footerPath = 'assets/brand/para11ax-readme-footer-v2.svg';
   for (const path of [heroPath, architecturePath, semanticsPath, footerPath]) {
     assert.equal(existsSync(path), true, `${path} must exist`);
   }
@@ -69,7 +69,7 @@ test('README SVG family matches GER1E width and typography scale', () => {
   assert.match(footer, /PER ASPERA AD ASTRA/i);
 
   const readme = read('README.md');
-  assert.match(readme, /para11ax-readme-footer-v1\.svg/i);
+  assert.match(readme, /para11ax-readme-footer-v2\.svg/i);
   assert.doesNotMatch(readme, /para11ax-radar-lockup\.svg[^\n]*width=["']320["']/i);
 });
 
