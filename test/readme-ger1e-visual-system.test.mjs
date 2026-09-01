@@ -11,17 +11,21 @@ const assets = [
   ['assets/brand/para11ax-readme-footer-v2.svg', '720 300'],
 ];
 
+const entityMap = Object.freeze({
+  '&amp;': '&',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&lt;': '<',
+  '&gt;': '>',
+});
+const decodeEntitiesOnce = value => value.replace(/&(amp|quot|#39|lt|gt);/g, entity => entityMap[entity] ?? entity);
+
 const visibleTextRows = svg => [...svg.matchAll(/<text\b([^>]*)>(.*?)<\/text>/gis)]
   .map(match => {
     const attrs = match[1];
-    const body = match[2]
+    const body = decodeEntitiesOnce(match[2]
       .replace(/<tspan\b[^>]*>/gi, '')
-      .replace(/<\/tspan>/gi, '')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
+      .replace(/<\/tspan>/gi, ''))
       .trim();
     const size = Number(attrs.match(/font-size=["']([\d.]+)["']/i)?.[1] ?? 0);
     return { body, size };
@@ -65,7 +69,7 @@ test('all active README SVG text rows stay inside the mobile-safe text budget', 
 test('semantic firewall detail rows stay inside the mobile-safe SVG text budget', () => {
   const svg = read('assets/brand/para11ax-readme-semantics-v5.svg');
   const rows = [...svg.matchAll(/<text[^>]*font-size=["']17["'][^>]*>([^<]*)<\/text>/gi)]
-    .map(match => match[1].replace(/&amp;/g, '&').trim());
+    .map(match => decodeEntitiesOnce(match[1]).trim());
   assert.ok(rows.length >= 8, 'semantic firewall must expose its detail rows as bounded text lines');
   for (const row of rows) {
     assert.ok(row.length <= 55, `semantic firewall detail row is too wide for mobile rendering: ${row}`);
