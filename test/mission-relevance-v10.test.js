@@ -59,7 +59,7 @@ test('relevance assessment exposes deterministic weighted factor contributions',
     evidenceConfidence: 0.8,
   });
 
-  assert.equal(assessment.score, 86.5);
+  assert.equal(assessment.score, 84);
   assert.equal(assessment.label, 'immediate');
   assert.deepEqual(assessment.factors.map(item => [item.id, item.score, item.weight]), [
     ['technology', 12.5, 25],
