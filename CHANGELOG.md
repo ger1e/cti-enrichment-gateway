@@ -7,6 +7,8 @@ All notable repository changes should be recorded here. This project uses a ligh
 
 ##### Added
 
+- **Mission Workspace v1** shared across Web and CLI: deterministic client relevance, hunt-package construction, conservative KQL validation, bounded JSON/CSV result analysis, ServiceNow-ready projection and canonical portable bundle import/export.
+- Twelve registered `mission` commands backed by one shared adapter and frozen reducer, with byte-identical Web/CLI exports, exact downstream invalidation, atomic failures and explicit browser/CLI file transports.
 - **Provider Value Scheduler v1.0** with deterministic static execution ordering over already-admitted providers. The current 24-provider IP workflow remains unchanged, with a 48-call ceiling, max concurrency 4, maximum two attempts/provider and 20-second request deadline.
 - Declarative scheduler metadata for provider authority, semantic uniqueness, direct threat value, pivot value, latency and cost classes, with deterministic fallback and public capability projection that excludes credentials/internal runtime rank state.
 - **Intelligence Kernel v1.0** IP reference projection for deterministic evidence strength, source diversity/independence, corroboration, contradiction severity, temporal relevance, explicit relationship value, bounded one-hop pivots, threat context, hunt relevance, capability-aware coverage impact, analyst priority, limitations and trace rule IDs.
@@ -27,6 +29,7 @@ All notable repository changes should be recorded here. This project uses a ligh
 
 ##### Changed
 
+- The unified shell now includes a volatile `mission` namespace. Browser mission state clears on disconnect/reboot and persists across auth clearing; CLI state is process/pipeline-local and reads files or stdin only when explicitly requested.
 - Public README and all current deep docs now describe the merged deterministic Scheduler/Kernel architecture instead of the retired provider-order wording.
 - Every tracked Markdown document now uses the same GER1E/PARA11AX standard; historical Superpowers plans/specs retain their original technical record but are explicitly labeled historical and point to the current architecture.
 - Evidence v2 remains the authoritative provider-normalized record; Intelligence Kernel output is explicitly documented as derived context rather than new evidence.
@@ -41,6 +44,7 @@ All notable repository changes should be recorded here. This project uses a ligh
 
 ##### Security
 
+- Mission Workspace adds no model/provider call, egress, secret read, dependency, dynamic execution, server-side persistence, KQL execution or ServiceNow submission. Imports reconstruct derived projections and reject tampering; analyst approval remains mandatory.
 - Provider Value Scheduler v1.0 changes only deterministic attempt order among admitted providers; it adds no provider, host, credential, method, protocol or evidence-dependent suppression path.
 - Intelligence Kernel v1.0 is deterministic/read-only and adds no network egress, secret/environment read, dependency or persistence surface. It uses no LLM, runtime learning or universal maliciousness score.
 - Kernel projection failure is isolated: usable Evidence v2 survives and the missing projection is surfaced as an explicit limitation.

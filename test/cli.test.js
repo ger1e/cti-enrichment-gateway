@@ -5,6 +5,11 @@ import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, wri
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PROVIDER_MANIFEST } from '../src/providers/manifest.js';
+import {
+  createMissionWorkspace,
+  exportMissionWorkspace,
+  reduceMissionWorkspace,
+} from '../src/core/mission/workspace.js';
 
 const ROOT = new URL('..', import.meta.url);
 const FIXTURE = new URL('./fixtures/report/enrichment.json', import.meta.url);
@@ -136,4 +141,79 @@ test('report CLI rejects unsafe/invalid argument shapes before creating output',
   } finally {
     rmSync(temp, { recursive: true, force: true });
   }
+});
+
+test('mission CLI executes a process-local file pipeline and emits portable JSON', () => {
+  const temp = mkdtempSync(join(tmpdir(), 'para11ax-cli-mission-'));
+  const input = join(temp, 'mission.json');
+  try {
+    let workspace = createMissionWorkspace();
+    workspace = reduceMissionWorkspace(workspace, {
+      type: 'PROFILE_SET',
+      value: { id: 'bor', name: 'Example Industrial', technologies: ['fortinet'], telemetry: ['DeviceNetworkEvents'] },
+    });
+    workspace = reduceMissionWorkspace(workspace, {
+      type: 'CONTEXT_SET',
+      value: { technologies: ['fortinet'], observedExploitation: true, requiredTelemetry: ['DeviceNetworkEvents'], evidenceConfidence: 0.8 },
+    });
+    writeFileSync(input, exportMissionWorkspace(workspace));
+    const result = run([
+      'mission', 'import', '--file', input,
+      '|', 'mission', 'relevance',
+      '|', 'mission', 'export',
+    ]);
+    assert.equal(result.status, 0, combined(result));
+    const output = JSON.parse(result.stdout);
+    assert.equal(output.relevance.schemaVersion, 'mission-relevance-v1.0');
+    assert.equal(output.revision, 3);
+  } finally {
+    rmSync(temp, { recursive: true, force: true });
+  }
+});
+
+test('mission CLI reads stdin only when exact --stdin is registered', () => {
+  const bundle = exportMissionWorkspace(createMissionWorkspace());
+  const imported = spawnSync(process.execPath, [
+    'bin/para11ax.mjs', 'mission', 'import', '--stdin', '|', 'mission', 'export',
+  ], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    env: { ...process.env },
+    input: bundle,
+    timeout: 10_000,
+  });
+  assert.equal(imported.status, 0, combined(imported));
+  assert.deepEqual(JSON.parse(imported.stdout), createMissionWorkspace());
+
+  const ignored = spawnSync(process.execPath, ['bin/para11ax.mjs', 'help'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    env: { ...process.env },
+    input: 'x'.repeat((2 * 1024 * 1024) + 1),
+    timeout: 10_000,
+  });
+  assert.equal(ignored.status, 0, combined(ignored));
+  assert.match(ignored.stdout, /PARA11AX operator CLI/);
+
+  const unrelated = spawnSync(process.execPath, ['bin/para11ax.mjs', 'echo', '--stdin'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    env: { ...process.env },
+    input: 'x'.repeat((2 * 1024 * 1024) + 1),
+    timeout: 10_000,
+  });
+  assert.equal(unrelated.status, 0, combined(unrelated));
+  assert.equal(unrelated.stdout, '--stdin\n');
+});
+
+test('mission CLI rejects stdin above the fixed 2 MiB bound', () => {
+  const result = spawnSync(process.execPath, ['bin/para11ax.mjs', 'mission', 'import', '--stdin'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    env: { ...process.env },
+    input: 'x'.repeat((2 * 1024 * 1024) + 1),
+    timeout: 10_000,
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(combined(result), /OUTPUT_LIMIT/);
 });

@@ -5,12 +5,13 @@
 
 PARA11AX is a public-source CTI enrichment/correlation core and analyst-operations surface for personal research/lab use. The canonical Evidence v2 core accepts one bounded indicator or batch, chooses a fixed workflow/profile, queries only predeclared provider destinations, normalizes provider-native evidence, correlates compatible observations, and returns provenance-preserving analytical/export projections.
 
-Two analyst utilities intentionally sit beside—not inside—the Evidence v2 / Intelligence Kernel path:
+Three analyst utilities intentionally sit beside—not inside—the Evidence v2 / Intelligence Kernel path:
 
 1. **User Scanner** — active OSINT for email/username enumeration through an isolated server-configured Python worker.
 2. **Shodan analyst shell** — bounded explicit Shodan host/search/count/stats/domain/info operations through a dedicated authenticated route.
+3. **Mission Workspace v1** — deterministic volatile client-relevance, hunt, KQL-validation, result-analysis and ServiceNow-projection workflow shared by Web and CLI.
 
-Neither utility automatically becomes Evidence v2 evidence, Intelligence Kernel input, reputation voting, case evidence, STIX, or attribution.
+None automatically becomes Evidence v2 evidence, Intelligence Kernel input, reputation voting, case evidence, STIX, or attribution.
 
 #### Architecture at a glance
 
@@ -162,6 +163,23 @@ shodan info
 
 The route is not a wrapper around arbitrary local shell execution and does not spawn the Python Shodan CLI. Caller-selected URLs, arbitrary pages/methods, `download`, scan submission, and unsupported options are rejected. Search is first-page only; returned matches/services are capped and large raw banner/service bodies are removed. The handler emits explicit `creditImpact`.
 
+#### Mission Workspace request path
+
+```text
+PARA11AX Web or CLI shell
+  -> registered mission command grammar
+  -> shared mission command adapter
+  -> deterministic frozen workspace reducer
+  -> profile + context relevance
+  -> hunt package + conservative KQL validation
+  -> analyst executes KQL outside PARA11AX
+  -> bounded local JSON/CSV result analysis
+  -> ServiceNow-ready projection requiring approval
+  -> canonical export or explicit local download
+```
+
+Mission Workspace has no gateway request path. It introduces no model call, provider, network destination, credential access, server-side persistence or automatic action. KQL validation is static and local; it never executes a query. ServiceNow rendering never submits a ticket. Portable import reconstructs all derived state and rejects tampered projections.
+
 #### Trust boundaries
 
 ##### Caller -> gateway
@@ -183,6 +201,10 @@ The destination comes only from `PARA11AX_USER_SCANNER_URL`. HTTPS is required e
 ##### Gateway -> Shodan
 
 The origin is fixed to `https://api.shodan.io`; the API key comes only from `SHODAN_API_KEY`. The route exposes no host/URL override. Missing configuration fails closed. Upstream 429/rate-limit state remains explicit rather than becoming an empty or benign result.
+
+##### Shell -> Mission Workspace
+
+Mission commands are registered as no-egress, no-auth, capability-free operations. Web state is volatile and can reach disk only through explicit import/download actions. CLI content is read only through exact `--file <path>` or `--stdin` transports. The same reducer and canonical bundle contract are used on both surfaces.
 
 ##### Upstream data -> analyst
 
@@ -206,7 +228,7 @@ Kernel `relationshipValue` / `pivotCandidates` are a separate derived context su
 
 #### Browser-local workspace
 
-Cases, exact typed sightings, snapshots, semantic diffs, case graph state, and `.para11ax` bundles persist only in browser-local IndexedDB. Active-case selection and gateway bearer state are runtime-only. Neither User Scanner nor Shodan operator output is silently persisted into case evidence.
+Cases, exact typed sightings, snapshots, semantic diffs, case graph state, and `.para11ax` bundles persist only in browser-local IndexedDB. Active-case selection and gateway bearer state are runtime-only. Mission Workspace is deliberately separate and memory-only until explicit import/download; `disconnect` and `reboot` clear it. Neither User Scanner, Shodan operator output nor mission output is silently persisted into case evidence.
 
 #### Scheduling and resilience
 

@@ -7,7 +7,12 @@ test('mission core exports only the bounded deterministic analyst workflow funct
     'analyzeMissionResults',
     'assessClientRelevance',
     'buildHuntPackage',
+    'createMissionWorkspace',
+    'executeMissionCommand',
+    'exportMissionWorkspace',
+    'importMissionWorkspace',
     'normalizeClientProfile',
+    'reduceMissionWorkspace',
     'validateMissionKql',
   ]);
   for (const value of Object.values(mission)) assert.equal(typeof value, 'function');

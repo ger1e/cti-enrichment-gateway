@@ -115,6 +115,20 @@ const commands = [
   command('result.raw', ['result', 'raw'], 'result', 'result raw', 'return raw Evidence v2 enrichment', { aliases: [['raw']], inputTypes: ['void', 'enrichment'], handler: 'result-raw', outputType: 'enrichment' }),
   command('result.view', ['view'], 'result', 'view <overview|evidence|correlation|relationships|coverage|raw>', 'render a legacy result view', { inputTypes: ['void', 'enrichment'], handler: 'view', completion: { values: ['overview', 'evidence', 'correlation', 'relationships', 'coverage', 'raw'] } }),
 
+  // Deterministic analyst mission workspace
+  command('mission.new', ['mission', 'new'], 'mission', 'mission new', 'create an empty volatile mission workspace', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-new', outputType: 'record' }),
+  command('mission.show', ['mission', 'show'], 'mission', 'mission show', 'show the current mission workspace', { inputTypes: ['void', 'record'], handler: 'mission-show', outputType: 'record' }),
+  command('mission.profile-set', ['mission', 'profile', 'set'], 'mission', 'mission profile set <json>', 'set the normalized client profile', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-profile-set', outputType: 'record' }),
+  command('mission.context-set', ['mission', 'context', 'set'], 'mission', 'mission context set <json>', 'set explicit threat relevance context', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-context-set', outputType: 'record' }),
+  command('mission.relevance', ['mission', 'relevance'], 'mission', 'mission relevance', 'calculate deterministic client relevance', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-relevance', outputType: 'record' }),
+  command('mission.hunt-build', ['mission', 'hunt', 'build'], 'mission', 'mission hunt build <json>', 'build an evidence-bound hunt package', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-hunt-build', outputType: 'record' }),
+  command('mission.kql-validate', ['mission', 'kql', 'validate'], 'mission', 'mission kql validate <query>', 'validate KQL against the bounded static schema', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-kql-validate', outputType: 'record' }),
+  command('mission.result-analyze', ['mission', 'result', 'analyze'], 'mission', 'mission result analyze <json-or-csv>', 'analyze bounded hunt results without evidence promotion', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-result-analyze', outputType: 'record' }),
+  command('mission.servicenow', ['mission', 'servicenow'], 'mission', 'mission servicenow', 'build a projection-only ServiceNow record', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-servicenow', outputType: 'record' }),
+  command('mission.export', ['mission', 'export'], 'mission', 'mission export', 'create a deterministic in-memory mission artifact', { inputTypes: ['void', 'record'], handler: 'mission-export', outputType: 'artifact' }),
+  command('mission.import', ['mission', 'import'], 'mission', 'mission import', 'import one explicit bounded mission bundle', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-import', outputType: 'record' }),
+  command('mission.clear', ['mission', 'clear'], 'mission', 'mission clear', 'clear volatile mission content', { inputTypes: ['void', 'record'], sideEffect: 'session', handler: 'mission-clear', outputType: 'record' }),
+
   // Cases
   command('case.new', ['case', 'new'], 'case', 'case new <title>', 'create a local analyst case', { surfaces: WEB, sideEffect: 'session', handler: 'case-new' }),
   command('case.open', ['case', 'open'], 'case', 'case open <id>', 'open a local analyst case', { surfaces: WEB, sideEffect: 'session', handler: 'case-open' }),

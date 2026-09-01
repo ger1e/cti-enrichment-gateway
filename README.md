@@ -15,6 +15,7 @@
   <a href="docs/ARCHITECTURE.md">ARCHITECTURE</a> ·
   <a href="docs/PROVIDERS.md">PROVIDERS</a> ·
   <a href="docs/SHELL.md">SHELL</a> ·
+  <a href="docs/ANALYST-MISSION-PACK.md">MISSION</a> ·
   <a href="docs/SHODAN-SHELL.md">SHODAN SHELL</a> ·
   <a href="SECURITY.md">SECURITY</a>
 </sub></p>
@@ -26,6 +27,8 @@
 
 PARA11AX is a bounded, read-only CTI enrichment/correlation core with deterministic analysis and isolated analyst utilities. Canonical observables enter fixed Evidence v2 workflows. Profile admission stays separate from execution priority: the **Provider Value Scheduler v1.0** deterministically orders admitted providers without evidence-dependent source suppression. The IP reference path then projects **Intelligence Kernel v1.0** derived context over normalized evidence and correlation before Decision Support, Guidance and the analyst report consume it.
 
+**Mission Workspace v1** adds a portable, deterministic analyst loop across Web and CLI: explicit client profile → relevance → hunt package → conservative KQL validation → bounded result analysis → ServiceNow-ready projection. It is volatile by default and adds no model call, egress, secret access, dependency, server persistence, query execution or ticket submission.
+
 The Kernel does not fetch, mutate or manufacture evidence. Raw **Evidence v2 remains authoritative**. Kernel output is derived context: evidence strength, source diversity, corroboration independence, contradiction severity, temporal relevance, explicit one-hop pivots, threat context, hunt relevance, coverage impact and analyst priority. Every important conclusion remains traceable to evidence fingerprints/providers or an explicit deterministic rule.
 
 <sub><strong>STATE</strong> — OPERATIONAL CORE<br/>
@@ -35,6 +38,7 @@ The Kernel does not fetch, mutate or manufacture evidence. Raw **Evidence v2 rem
 <strong>INTELLIGENCE</strong> — Intelligence Kernel v1.0 on IP · deterministic derived context · no LLM · no synthetic threat score<br/>
 <strong>IDENTITY OSINT</strong> — `user-scanner email|username &lt;target&gt;` · aliases `osint` / `identity`<br/>
 <strong>SHODAN OPS</strong> — `shodan host|search|count|stats|domain|info` · fixed upstream · server-side key · explicit credit impact<br/>
+<strong>MISSION</strong> — deterministic local workspace · relevance · hunt · KQL validation · result analysis · ServiceNow projection<br/>
 <strong>PROFILES</strong> — `fast` · `standard` · `full`; callers cannot select arbitrary Evidence v2 providers<br/>
 <strong>OUTPUT</strong> — Evidence v2 · `intelligence` · Decision Support · Evidence Graph v1.0 · Guidance v1.0 · JSON · batch · STIX 2.1 · deterministic reports<br/>
 <strong>LOCAL</strong> — browser-local cases · snapshots/diffs · exact typed cross-case index · case graph · `.para11ax` bundles; no server-side case persistence<br/>
@@ -127,6 +131,22 @@ No LLM, adaptive model, runtime learning or universal maliciousness score partic
 
 The terminal keeps the gateway bearer in volatile memory only, exposes the shared bounded command fabric documented in [`docs/SHELL.md`](docs/SHELL.md), and preserves the API semantic model. The IndexedDB-backed case workspace is browser-local; active-case state and gateway authentication remain runtime-only.
 
+Mission Workspace examples:
+
+```text
+mission new
+mission profile set '{"id":"lab","name":"Lab","technologies":["fortinet"],"telemetry":["DeviceNetworkEvents"]}'
+mission context set '{"technologies":["fortinet"],"requiredTelemetry":["DeviceNetworkEvents"],"observedExploitation":true}'
+mission relevance
+mission hunt build '<bounded-hunt-json>'
+mission kql validate 'DeviceNetworkEvents | where Timestamp > ago(24h) | project Timestamp, DeviceName'
+mission result analyze
+mission servicenow
+mission export | download
+```
+
+The browser mission state is memory-only and cleared by `disconnect` or `reboot`. The CLI can use exact `--file <path>` or `--stdin` transports and keeps state only within the current process/pipeline. KQL is never executed and ServiceNow output is never submitted automatically. See [`docs/ANALYST-MISSION-PACK.md`](docs/ANALYST-MISSION-PACK.md).
+
 User Scanner examples:
 
 ```text
@@ -167,6 +187,7 @@ para11ax maltego check
 para11ax release verify
 para11ax report compile <snapshot.json> --out <dir> [--preset <name>]
 para11ax report diff <before.json> <after.json>
+para11ax mission import --file mission.json '|' mission show
 ```
 
 </details>
@@ -220,7 +241,7 @@ PARA11AX has **38 configured sources** (upstream APIs and feeds) in the canonica
 
 <sub><strong>07 // DEEP DOCS</strong></sub>
 
-<sub>[BRAND](docs/BRAND.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [END-TO-END](docs/END-TO-END-EXAMPLE.md) · [EVIDENCE](docs/EVIDENCE-SCHEMA.md) · [PROVIDERS](docs/PROVIDERS.md) · [API](docs/API.md) · [SHELL](docs/SHELL.md) · [SHODAN SHELL](docs/SHODAN-SHELL.md) · [THREAT MODEL](docs/THREAT-MODEL.md) · [SECURITY CONTROLS](docs/SECURITY-CONTROLS.md) · [OPERATIONS](docs/OPERATIONS.md) · [QA](docs/QA-REPORT.md) · [PUBLIC RELEASE](docs/PUBLIC-RELEASE-CHECKLIST.md) · [MANIFEST](release-manifest.json)</sub>
+<sub>[BRAND](docs/BRAND.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [END-TO-END](docs/END-TO-END-EXAMPLE.md) · [EVIDENCE](docs/EVIDENCE-SCHEMA.md) · [PROVIDERS](docs/PROVIDERS.md) · [API](docs/API.md) · [SHELL](docs/SHELL.md) · [MISSION](docs/ANALYST-MISSION-PACK.md) · [SHODAN SHELL](docs/SHODAN-SHELL.md) · [THREAT MODEL](docs/THREAT-MODEL.md) · [SECURITY CONTROLS](docs/SECURITY-CONTROLS.md) · [OPERATIONS](docs/OPERATIONS.md) · [QA](docs/QA-REPORT.md) · [PUBLIC RELEASE](docs/PUBLIC-RELEASE-CHECKLIST.md) · [MANIFEST](release-manifest.json)</sub>
 
 <p align="center"><img src="assets/brand/para11ax-readme-footer-v2.svg" alt="PARA11AX operating principles — Per Aspera Ad Astra" width="100%"></p>
 
