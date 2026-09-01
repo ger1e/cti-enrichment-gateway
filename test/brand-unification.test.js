@@ -70,14 +70,16 @@ test('browser surfaces share one simplified phosphor PPI radar favicon', () => {
 
 test('README uses one self-contained ger1e-style SVG hero and normalized diagrams', () => {
   const readme = read('README.md');
-  const svgPath = 'assets/brand/para11ax-readme-hero-v8.svg';
-  assert.match(readme, /<img[^>]+para11ax-readme-hero-v8\.svg/i);
+  const svgPath = 'assets/brand/para11ax-readme-hero-v9.svg';
+  assert.match(readme, /<img[^>]+para11ax-readme-hero-v9\.svg/i);
   assert.doesNotMatch(readme, /<picture>/i);
-  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif|para11ax-readme-hero-v7\.svg/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif|para11ax-readme-hero-v7\.svg|para11ax-readme-hero-v8\.svg/i);
   assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
   assert.match(readme, /para11ax-readme-architecture-v5\.svg/i);
   assert.match(readme, /para11ax-readme-semantics-v5\.svg/i);
+  assert.match(readme, /para11ax-readme-footer-v2\.svg/i);
   assert.equal(existsSync(svgPath), true, 'README SVG must exist');
+  assert.equal(existsSync('assets/brand/para11ax-readme-footer-v2.svg'), true, 'README footer SVG must exist');
   const svg = read(svgPath);
   assert.match(svg, /viewBox=["']0 0 720 360["']/i);
   assert.match(svg, /data-radar=["']ppi["']/i);
