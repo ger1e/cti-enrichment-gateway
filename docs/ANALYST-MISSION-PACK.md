@@ -1,0 +1,123 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+# Analyst Mission Pack v1
+
+Analyst Mission Pack v1 is a deterministic, local analysis layer that converts explicit environment context into an auditable hunt package and bounded downstream analyst output. It is additive to Evidence v2, the Intelligence Kernel, Decision Support, Guidance, Evidence Graph, local cases, and the existing report compiler.
+
+It does not add a model call, provider, network destination, secret, persistence mechanism, automatic detection deployment, or automatic ServiceNow submission.
+
+## Workflow
+
+```text
+explicit client profile
+  -> relevance assessment
+  -> hunt package
+  -> conservative KQL validation
+  -> analyst executes query outside this module
+  -> bounded JSON/CSV result analysis
+  -> ServiceNow-ready projection
+```
+
+The mission layer never upgrades imported result rows into Evidence v2 and never treats an empty result set as proof of benign state.
+
+## Public mission core
+
+`src/core/mission/index.js` exports exactly five pure functions:
+
+- `normalizeClientProfile(input)`
+- `assessClientRelevance(profile, context)`
+- `validateMissionKql(query)`
+- `buildHuntPackage(input)`
+- `analyzeMissionResults(input)`
+
+ServiceNow projection remains a report-layer concern under `src/report/render-servicenow.js`.
+
+## ClientProfile v1
+
+A client profile contains only explicit caller-provided environment facts:
+
+- `id`, `name`
+- `industries[]`
+- `geographies[]`
+- `technologies[]`
+- `attackPaths[]`
+- `priorityActors[]`
+- `telemetry[]`
+- `crownJewels[]`
+
+Lists are bounded to 64 items, normalized, deduplicated, sorted, and frozen. The mission layer does not persist profiles server-side.
+
+## RelevanceAssessment v1
+
+Relevance is an operational-fit index. It is not maliciousness, compromise probability, attribution confidence, or incident severity.
+
+The fixed 100-point model exposes every contribution:
+
+| Factor | Weight |
+|---|---:|
+| technology overlap | 25 |
+| observed exploitation | 20 |
+| industry overlap | 15 |
+| geography overlap | 10 |
+| attack-path overlap | 10 |
+| actor overlap | 10 |
+| telemetry huntability | 5 |
+| evidence confidence | 5 |
+
+Unknown factors contribute zero and appear in `gaps[]`. Labels are `immediate`, `high`, `moderate`, `low`, and `contextual`; they describe relevance only.
+
+## HuntPackage v1
+
+A hunt package contains a deterministic content-derived `HNT-` identifier, hypothesis, subject, ATT&CK technique IDs, required/available telemetry, telemetry gaps, evidence fingerprints, source references, relevance, KQL candidates, and limitations.
+
+State fails closed in this order:
+
+1. `INSUFFICIENT_EVIDENCE` when defensible provenance is absent.
+2. `TELEMETRY_GAP` when required telemetry is unspecified or unavailable.
+3. `SCHEMA_UNVERIFIED` when included KQL cannot be validated against the local schema contract.
+4. `READY` only when those gates pass.
+
+Evidence fingerprints must be 64-character hexadecimal SHA-256 values. Source references must be bounded HTTP(S) URLs without embedded credentials. ATT&CK identifiers are technique/sub-technique IDs only.
+
+## KQL validation
+
+`validateMissionKql` is a conservative static guardrail, not a Microsoft tenant compiler.
+
+The local catalog covers the Defender XDR/Sentinel tables PARA11AX currently targets, including endpoint, identity, email, Entra sign-in, and Windows security telemetry. The validator:
+
+- rejects empty queries and queries over 32,000 characters;
+- rejects Kusto control/query-management commands;
+- validates referenced tables against the bounded local catalog;
+- validates deterministically extractable `where` and `project` columns;
+- marks unknown tables or columns `SCHEMA_UNVERIFIED`;
+- marks `search *` and wildcard `union *` as unbounded/unverified;
+- never executes KQL.
+
+Unknown schema is not guessed.
+
+## Result analysis
+
+`analyzeMissionResults` accepts flat JSON rows or CSV and performs no network activity.
+
+Hard bounds:
+
+- maximum encoded input: 2 MiB;
+- maximum rows: 5,000;
+- maximum columns: 128;
+- maximum field length: 4,096 characters;
+- JSON rows must contain only strings, numbers, booleans, or null.
+
+States are `RESULTS_PRESENT`, `NO_RESULTS`, and `IMPORT_EMPTY`; malformed or oversized input fails closed. Formula-like spreadsheet strings are counted but remain inert strings. `NO_RESULTS` always carries `no_results_is_not_benign_evidence`.
+
+## ServiceNow projection
+
+`buildServiceNowProjection` and `renderServiceNowText` create deterministic ticket-ready output containing client context, hunt/result state, ATT&CK, evidence references, telemetry gaps, KQL validation state, limitations, and recommended analyst actions.
+
+The suggested priority is derived only from client relevance and is explicitly labeled `client_relevance_only_not_incident_severity`. The renderer never assigns automatic P1, sends a request, reads secrets, or creates a ticket. Human approval remains mandatory before escalation or submission.
+
+## Security boundary
+
+Mission v1 adds no runtime dependency and no egress. It contains no `fetch`, provider execution, secret access, dynamic evaluation, child-process execution, file write, or server-side persistence path. Existing Evidence v2 and Intelligence Kernel semantics remain authoritative; mission objects are downstream analyst-support projections.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
