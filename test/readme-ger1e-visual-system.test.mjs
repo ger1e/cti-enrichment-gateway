@@ -6,7 +6,7 @@ const read = path => readFileSync(path, 'utf8');
 
 const assets = [
   ['assets/brand/para11ax-readme-hero-v8.svg', '720 360'],
-  ['assets/brand/para11ax-readme-architecture-v4.svg', '720 760'],
+  ['assets/brand/para11ax-readme-architecture-v5.svg', '720 760'],
   ['assets/brand/para11ax-readme-semantics-v4.svg', '720 820'],
 ];
 
