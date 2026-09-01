@@ -1,6 +1,6 @@
 <!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
 <p align="center">
-  <img src="assets/brand/para11ax-readme-hero-v8.svg" alt="PARA11AX — provenance-first CTI enrichment and analyst operations" width="100%">
+  <img src="assets/brand/para11ax-readme-hero-v9.svg" alt="PARA11AX — provenance-first CTI enrichment and analyst operations" width="100%">
 </p>
 
 <p align="center">
@@ -222,7 +222,7 @@ PARA11AX has **38 configured sources** (upstream APIs and feeds) in the canonica
 
 <sub>[BRAND](docs/BRAND.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [END-TO-END](docs/END-TO-END-EXAMPLE.md) · [EVIDENCE](docs/EVIDENCE-SCHEMA.md) · [PROVIDERS](docs/PROVIDERS.md) · [API](docs/API.md) · [SHELL](docs/SHELL.md) · [SHODAN SHELL](docs/SHODAN-SHELL.md) · [THREAT MODEL](docs/THREAT-MODEL.md) · [SECURITY CONTROLS](docs/SECURITY-CONTROLS.md) · [OPERATIONS](docs/OPERATIONS.md) · [QA](docs/QA-REPORT.md) · [PUBLIC RELEASE](docs/PUBLIC-RELEASE-CHECKLIST.md) · [MANIFEST](release-manifest.json)</sub>
 
-<p align="center"><img src="assets/brand/para11ax-readme-footer-v1.svg" alt="PARA11AX operating principles — Per Aspera Ad Astra" width="100%"></p>
+<p align="center"><img src="assets/brand/para11ax-readme-footer-v2.svg" alt="PARA11AX operating principles — Per Aspera Ad Astra" width="100%"></p>
 
 <p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
 
