@@ -5,19 +5,19 @@ import { assessClientRelevance } from '../src/core/mission/relevance.js';
 
 test('client profile normalization trims, canonicalizes, deduplicates, sorts, and freezes facts', () => {
   const profile = normalizeClientProfile({
-    id: '  BOR-EU  ',
-    name: '  Borealis  ',
+    id: '  EXAMPLE-EU  ',
+    name: '  Example Industrial  ',
     industries: [' Chemicals ', 'chemicals', 'Energy'],
     geographies: ['EU', ' Austria '],
     technologies: [' Fortinet ', 'Microsoft Defender', 'fortinet'],
     attackPaths: [' Remote Access ', 'identity'],
-    priorityActors: [' Lynx ', 'lynx'],
+    priorityActors: [' Example Actor ', 'example actor'],
     telemetry: [' DeviceNetworkEvents ', 'SigninLogs'],
     crownJewels: [' Active Directory ', 'OT Boundary'],
   });
 
-  assert.equal(profile.id, 'bor-eu');
-  assert.equal(profile.name, 'Borealis');
+  assert.equal(profile.id, 'example-eu');
+  assert.equal(profile.name, 'Example Industrial');
   assert.deepEqual(profile.industries, ['chemicals', 'energy']);
   assert.deepEqual(profile.geographies, ['austria', 'eu']);
   assert.deepEqual(profile.technologies, ['fortinet', 'microsoft defender']);
@@ -37,13 +37,13 @@ test('client profile normalization rejects invalid or oversized inputs', () => {
 
 test('relevance assessment exposes deterministic weighted factor contributions', () => {
   const profile = normalizeClientProfile({
-    id: 'bor-eu',
-    name: 'Borealis',
+    id: 'example-eu',
+    name: 'Example Industrial',
     industries: ['chemicals'],
     geographies: ['eu'],
     technologies: ['fortinet', 'microsoft defender'],
     attackPaths: ['remote access'],
-    priorityActors: ['lynx'],
+    priorityActors: ['example actor'],
     telemetry: ['devicenetworkevents', 'signinlogs'],
     crownJewels: ['active directory'],
   });
@@ -54,7 +54,7 @@ test('relevance assessment exposes deterministic weighted factor contributions',
     industries: ['chemicals'],
     geographies: ['EU'],
     attackPaths: ['Remote Access'],
-    actors: ['Lynx'],
+    actors: ['Example Actor'],
     requiredTelemetry: ['DeviceNetworkEvents', 'DeviceProcessEvents'],
     evidenceConfidence: 0.8,
   });
