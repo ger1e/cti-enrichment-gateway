@@ -7,7 +7,7 @@ const read = path => readFileSync(path, 'utf8');
 const assets = [
   ['assets/brand/para11ax-readme-hero-v8.svg', '720 360'],
   ['assets/brand/para11ax-readme-architecture-v5.svg', '720 760'],
-  ['assets/brand/para11ax-readme-semantics-v4.svg', '720 820'],
+  ['assets/brand/para11ax-readme-semantics-v5.svg', '720 860'],
 ];
 
 test('README uses the normalized GER1E-style PARA11AX SVG family', () => {
@@ -29,6 +29,16 @@ test('README SVGs preserve PARA11AX identity inside GER1E-normalized geometry', 
     assert.match(svg, /#39FF14/i, `${path} must preserve phosphor green`);
     assert.match(svg, /#F7FFF6/i, `${path} must preserve signal white`);
     assert.doesNotMatch(svg, /#00E5FF|#F6C945|#39FF88/i, `${path} must not reintroduce legacy colors`);
+  }
+});
+
+test('semantic firewall detail rows stay inside the mobile-safe SVG text budget', () => {
+  const svg = read('assets/brand/para11ax-readme-semantics-v5.svg');
+  const rows = [...svg.matchAll(/<text[^>]*font-size=["']17["'][^>]*>([^<]*)<\/text>/gi)]
+    .map(match => match[1].replace(/&amp;/g, '&').trim());
+  assert.ok(rows.length >= 8, 'semantic firewall must expose its detail rows as bounded text lines');
+  for (const row of rows) {
+    assert.ok(row.length <= 55, `semantic firewall detail row is too wide for mobile rendering: ${row}`);
   }
 });
 

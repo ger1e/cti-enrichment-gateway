@@ -173,7 +173,7 @@ para11ax report diff <before.json> <after.json>
 
 <sub><strong>04 // SEMANTIC FIREWALL</strong></sub>
 
-<p align="center"><img src="assets/brand/para11ax-readme-semantics-v4.svg" alt="PARA11AX semantic firewall separating authoritative evidence from deterministic derived context and unsupported inference" width="100%"></p>
+<p align="center"><img src="assets/brand/para11ax-readme-semantics-v5.svg" alt="PARA11AX semantic firewall separating authoritative evidence from deterministic derived context and unsupported inference" width="100%"></p>
 
 **OBSERVED ≠ INFERRED ≠ CONTEXTUAL.** These states remain explicit across evidence, deterministic derived context and infrastructure/knowledge surfaces.
 
