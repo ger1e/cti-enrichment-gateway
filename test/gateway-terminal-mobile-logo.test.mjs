@@ -50,12 +50,11 @@ test('wireframe globe remains continuously visible from initialize until gateway
   assert.ok(mobileOpacity >= 0.30, 'mobile initialized globe must remain clearly visible');
 });
 
-test('mobile shell prompt follows content instead of reserving a full-screen empty scrollback', async () => {
-  const css = await read('app/shell-polish.css');
-  assert.match(css, /\.unix-shell\{[^}]*justify-content:\s*flex-start/);
-  assert.match(css, /\.shell-scrollback\{[^}]*flex:\s*0\s+1\s+auto/);
-  assert.match(css, /\.shell-scrollback\{[^}]*max-height:\s*calc\(/);
-  assert.match(css, /\.shell-prompt\{[^}]*position:\s*sticky/);
+test('mobile shell reserves a flexible transcript above the dedicated bottom command bar', async () => {
+  const css = await read('app/terminal-input-frame.css');
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.unix-shell\{[^}]*grid-template-rows:\s*auto\s+minmax\(0,1fr\)\s+auto!important/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-scrollback\{[^}]*grid-row:\s*2!important[^}]*max-height:\s*none!important[^}]*overflow:\s*auto!important/);
+  assert.match(css, /@media\(max-width:430px\)[\s\S]*\.shell-prompt\{[^}]*grid-row:\s*3!important[^}]*position:\s*relative!important[^}]*bottom:\s*auto!important/);
 });
 
 test('mobile header keeps the PARA11AX lockup readable while reserving space for the clock', async () => {
