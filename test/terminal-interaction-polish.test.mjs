@@ -31,7 +31,8 @@ test('terminal replaces the native caret with a synchronized phosphor block curs
   assert.match(deck, /selectionStart/);
   assert.match(deck, /scrollLeft/);
   assert.doesNotMatch(css, /terminal-caret-blink/i);
-  assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.shell-block-cursor[\s\S]*animation:none!important/i);
+  assert.doesNotMatch(css, /prefers-reduced-motion:reduce[\s\S]*\.shell-block-cursor[\s\S]*animation:none!important/i,
+    'the phosphor block is the terminal caret signal and must keep blinking under reduced motion');
 });
 
 test('clicking terminal chrome refocuses the command line without stealing text selection', () => {
