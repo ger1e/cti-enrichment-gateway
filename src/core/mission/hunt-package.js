@@ -8,6 +8,8 @@ const MAX_LIST = 64;
 const MAX_KQL = 8;
 const FINGERPRINT = /^[0-9a-f]{64}$/i;
 const ATTACK_ID = /^T\d{4}(?:\.\d{3})?$/i;
+const CONTROL = /[\u0000-\u001F\u007F]/;
+const QUERY_CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
 
 function fail(field) {
   throw new TypeError(`invalid hunt package: ${field}`);
@@ -18,6 +20,15 @@ function text(value, field, { required = false, max = MAX_TEXT } = {}) {
   if (typeof value !== 'string') fail(field);
   const out = value.trim();
   if ((required && !out) || out.length > max) fail(field);
+  if (CONTROL.test(out)) fail(`${field} contains control characters`);
+  return out;
+}
+
+function queryText(value, field) {
+  if (typeof value !== 'string') fail(field);
+  const out = value.trim();
+  if (!out || out.length > 32_000) fail(field);
+  if (QUERY_CONTROL.test(out)) fail(`${field} contains control characters`);
   return out;
 }
 
@@ -34,16 +45,20 @@ function normalizedList(value, field, { validate = null, lowercase = false, max 
 }
 
 function sourceReferences(value) {
-  return normalizedList(value, 'source reference', {
-    validate: item => {
-      try {
-        const parsed = new URL(item);
-        return (parsed.protocol === 'https:' || parsed.protocol === 'http:') && !parsed.username && !parsed.password;
-      } catch {
-        return false;
-      }
-    },
+  if (value == null) return Object.freeze([]);
+  if (!Array.isArray(value) || value.length > MAX_LIST) fail('source reference');
+  const sources = value.map((item, index) => {
+    const clean = text(item, `source reference[${index}]`, { required: true, max: 512 });
+    try {
+      const parsed = new URL(clean);
+      if ((parsed.protocol !== 'https:' && parsed.protocol !== 'http:') || parsed.username || parsed.password) fail('source reference');
+      return parsed.href;
+    } catch (error) {
+      if (error instanceof TypeError && error.message.startsWith('invalid hunt package:')) throw error;
+      fail('source reference');
+    }
   });
+  return Object.freeze([...new Set(sources)].sort((a, b) => a.localeCompare(b)));
 }
 
 function stateFor({ hasProvenance, requiredTelemetry, telemetryGaps, candidates }) {
@@ -56,7 +71,8 @@ function stateFor({ hasProvenance, requiredTelemetry, telemetryGaps, candidates 
 export function buildHuntPackage(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) fail('root');
   const profile = normalizeClientProfile(input.profile);
-  const context = input.context && typeof input.context === 'object' && !Array.isArray(input.context) ? input.context : {};
+  if (input.context != null && (typeof input.context !== 'object' || Array.isArray(input.context))) fail('context');
+  const context = input.context ?? {};
   const hypothesis = text(input.hypothesis, 'hypothesis', { required: true });
   const subject = text(input.subject, 'subject', { required: true, max: 512 });
   const attackIds = normalizedList(input.attackIds, 'ATT&CK identifier', { validate: item => ATTACK_ID.test(item) })
@@ -71,7 +87,7 @@ export function buildHuntPackage(input) {
   const relevance = assessClientRelevance(profile, context);
 
   if (input.kqlCandidates != null && (!Array.isArray(input.kqlCandidates) || input.kqlCandidates.length > MAX_KQL)) fail('kqlCandidates');
-  const queries = (input.kqlCandidates ?? []).map((query, index) => text(query, `kqlCandidates[${index}]`, { required: true, max: 32_000 }));
+  const queries = (input.kqlCandidates ?? []).map((query, index) => queryText(query, `kqlCandidates[${index}]`));
   const kqlCandidates = Object.freeze([...new Set(queries)]
     .sort((a, b) => a.localeCompare(b))
     .map(query => Object.freeze({ query, validation: validateMissionKql(query) })));
@@ -87,14 +103,19 @@ export function buildHuntPackage(input) {
   const frozenLimitations = Object.freeze([...new Set(limitations)].sort((a, b) => a.localeCompare(b)));
 
   const identity = JSON.stringify({
-    profileId: profile.id,
+    profile,
+    state,
     subject,
     hypothesis,
     attackIds: frozenAttackIds,
     requiredTelemetry,
+    availableTelemetry,
+    telemetryGaps,
     evidenceFingerprints,
     sourceReferences: sources,
-    kql: kqlCandidates.map(candidate => candidate.query),
+    relevance,
+    kql: kqlCandidates.map(candidate => ({ query: candidate.query, validation: candidate.validation })),
+    limitations: frozenLimitations,
   });
   const id = `HNT-${sha256Hex(identity).slice(0, 16)}`;
 
