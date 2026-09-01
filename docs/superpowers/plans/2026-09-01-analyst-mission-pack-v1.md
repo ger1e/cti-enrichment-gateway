@@ -1,3 +1,6 @@
+<!-- PARA11AX-DOC-STANDARD: GER1E/PARA11AX v1 -->
+> **Document status:** Historical design record. Preserved for implementation history; current behavior is defined by [docs/ARCHITECTURE.md](https://github.com/ger1e/para11ax/blob/main/docs/ARCHITECTURE.md) and the current README.
+
 # Analyst Mission Pack v1 — Implementation Plan
 
 > **Execution rule:** implement each production behavior through RED → GREEN → repository-wide verification. Do not add runtime dependencies.
@@ -149,3 +152,7 @@ Then inspect the PR diff for:
 - no silent semantic promotion;
 - no score described as maliciousness/probability;
 - fail-closed `SCHEMA_UNVERIFIED`, `TELEMETRY_GAP`, `INSUFFICIENT_EVIDENCE` states.
+
+---
+
+<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
