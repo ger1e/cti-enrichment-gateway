@@ -6,7 +6,7 @@ const read = path => readFileSync(path, 'utf8');
 
 const assets = [
   ['assets/brand/para11ax-readme-hero-v9.svg', '720 360'],
-  ['assets/brand/para11ax-readme-architecture-v5.svg', '720 760'],
+  ['assets/brand/para11ax-readme-architecture-v6.svg', '720 780'],
   ['assets/brand/para11ax-readme-semantics-v5.svg', '720 860'],
   ['assets/brand/para11ax-readme-footer-v2.svg', '720 300'],
 ];
@@ -34,7 +34,7 @@ test('README uses the normalized GER1E-style PARA11AX SVG family', () => {
     assert.equal(existsSync(path), true, `${path} must exist`);
     assert.match(readme, new RegExp(path.replaceAll('/', '\\/').replaceAll('.', '\\.'), 'i'));
   }
-  assert.doesNotMatch(readme, /para11ax-readme-hero-v8\.svg|para11ax-readme-semantics-v4\.svg|para11ax-readme-footer-v1\.svg|para11ax-architecture-v3\.svg|para11ax-semantic-firewall-v3\.svg/i);
+  assert.doesNotMatch(readme, /para11ax-readme-hero-v8\.svg|para11ax-readme-architecture-v5\.svg|para11ax-readme-semantics-v4\.svg|para11ax-readme-footer-v1\.svg|para11ax-architecture-v3\.svg|para11ax-semantic-firewall-v3\.svg/i);
 });
 
 test('README SVGs preserve PARA11AX identity inside GER1E-normalized geometry', () => {
