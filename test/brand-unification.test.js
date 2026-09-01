@@ -76,7 +76,7 @@ test('README uses one self-contained ger1e-style SVG hero and normalized diagram
   assert.doesNotMatch(readme, /para11ax-readme-hero-(?:mobile-)?v5\.gif|para11ax-readme-hero-v6\.gif|para11ax-readme-hero-v7\.svg/i);
   assert.doesNotMatch(readme, /INTELLIGENCE\.\s*ENRICHED\.\s*OPERATIONAL\./i);
   assert.match(readme, /para11ax-readme-architecture-v5\.svg/i);
-  assert.match(readme, /para11ax-readme-semantics-v4\.svg/i);
+  assert.match(readme, /para11ax-readme-semantics-v5\.svg/i);
   assert.equal(existsSync(svgPath), true, 'README SVG must exist');
   const svg = read(svgPath);
   assert.match(svg, /viewBox=["']0 0 720 360["']/i);
@@ -131,12 +131,12 @@ test('legacy banner assets keep CSS radar keyframes', () => {
 
 test('README diagrams use normalized geometry and current provider count', () => {
   const architecture = read('assets/brand/para11ax-readme-architecture-v5.svg');
-  const semantics = read('assets/brand/para11ax-readme-semantics-v4.svg');
+  const semantics = read('assets/brand/para11ax-readme-semantics-v5.svg');
   for (const [path, svg] of [
     ['assets/brand/para11ax-readme-architecture-v5.svg', architecture],
-    ['assets/brand/para11ax-readme-semantics-v4.svg', semantics],
+    ['assets/brand/para11ax-readme-semantics-v5.svg', semantics],
   ]) {
-    assert.match(svg, /viewBox=["']0 0 720 (?:760|820)["']/i, `${path} must use the normalized 720px family`);
+    assert.match(svg, /viewBox=["']0 0 720 (?:760|860)["']/i, `${path} must use the normalized 720px family`);
     assert.match(svg, /rx=["']12["']/i, `${path} must use rounded outer framing`);
     assert.doesNotMatch(svg, /data-radar=["']ppi["']/i, `${path} must not add another README radar`);
     assert.doesNotMatch(svg, /sentinel|helmet|visor|shield|#00E5FF|#F6C945|#39FF88/i, `${path} contains legacy branding`);
