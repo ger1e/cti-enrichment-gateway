@@ -2,7 +2,7 @@ import { MISSION_KQL_SCHEMA, MISSION_KQL_SCHEMA_VERSION } from './kql-schema.js'
 
 const MAX_QUERY_CHARS = 32_000;
 const CONTROL_COMMAND = /^\s*\.(?:show|drop|create|alter|set|set-or-append|set-or-replace|delete|clear|rename|move|replace|execute|ingest)\b/i;
-const BROAD_QUERY = /(?:^|\|)\s*search\s+\*\b|(?:^|\|)\s*union\s+\*/i;
+const BROAD_QUERY = /(?:^|\|)\s*search\s+\*(?:\s|$)|(?:^|\|)\s*union\s+\*/i;
 const IDENT = '[A-Za-z_][A-Za-z0-9_]*';
 
 function frozenSorted(values) {
