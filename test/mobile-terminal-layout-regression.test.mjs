@@ -6,34 +6,39 @@ const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 function phoneCss(css) {
   const start = css.indexOf('@media(max-width:430px)');
-  const end = css.indexOf('@media(prefers-reduced-motion:reduce)', start);
+  const reducedMotion = css.indexOf('@media(prefers-reduced-motion:reduce)', start);
+  const end = reducedMotion > start ? reducedMotion : css.length;
   assert.ok(start >= 0, 'phone breakpoint must exist');
-  assert.ok(end > start, 'phone breakpoint must end before reduced-motion rules');
+  assert.ok(end > start, 'phone breakpoint must contain rules');
   return css.slice(start, end);
 }
 
-test('phone terminal keeps header, transcript and prompt in compact document flow', async () => {
-  const css = phoneCss(await read('app/analyst-deck.css'));
+test('phone terminal reserves the viewport for transcript plus a dedicated bottom command bar', async () => {
+  const deckCss = phoneCss(await read('app/analyst-deck.css'));
+  const finalCss = phoneCss(await read('app/terminal-input-frame.css'));
 
-  assert.match(css, /\.unix-shell\{[^}]*grid-template-rows:\s*auto\s+auto\s+auto/i,
-    'phone shell must not reserve the viewport for an empty 1fr scrollback');
-  assert.doesNotMatch(css, /\.unix-shell\{[^}]*grid-template-rows:[^;}]*minmax\(0,1fr\)/i);
+  assert.match(finalCss, /\.unix-shell\{[^}]*grid-template-rows:\s*auto\s+minmax\(0,1fr\)\s+auto!important/i,
+    'final cascade must reserve the middle row for scrollback and the final row for the command bar');
+  assert.match(finalCss, /\.unix-shell\{[^}]*align-content:\s*stretch!important/i,
+    'final cascade must stretch to the viewport instead of collapsing around the transcript');
+  assert.doesNotMatch(finalCss, /\.unix-shell\{[^}]*align-content:\s*start/i);
 
-  assert.match(css, /\.shell-status\{[^}]*grid-template-rows:\s*auto\s+auto/i);
-  assert.match(css, /\.shell-status\{[^}]*grid-template-areas:\s*['"]brand clock['"]\s*['"]state state['"]/i);
-  assert.match(css, /\.shell-brand\{[^}]*grid-area:\s*brand/i);
-  assert.match(css, /\.shell-clock\{[^}]*grid-area:\s*clock/i);
-  assert.match(css, /\.shell-session-state\{[^}]*grid-area:\s*state/i);
-  assert.match(css, /\.shell-session-state\{[^}]*position:\s*relative!important/i);
-  assert.doesNotMatch(css, /\.shell-session-state\{[^}]*position:\s*absolute!important/i,
+  assert.match(deckCss, /\.shell-status\{[^}]*grid-template-rows:\s*auto\s+auto/i);
+  assert.match(deckCss, /\.shell-status\{[^}]*grid-template-areas:\s*['"]brand clock['"]\s*['"]state state['"]/i);
+  assert.match(deckCss, /\.shell-brand\{[^}]*grid-area:\s*brand/i);
+  assert.match(deckCss, /\.shell-clock\{[^}]*grid-area:\s*clock/i);
+  assert.match(deckCss, /\.shell-session-state\{[^}]*grid-area:\s*state/i);
+  assert.match(deckCss, /\.shell-session-state\{[^}]*position:\s*relative!important/i);
+  assert.doesNotMatch(deckCss, /\.shell-session-state\{[^}]*position:\s*absolute!important/i,
     'phone status text must never overlay logo or clock');
 
-  assert.match(css, /\.shell-scrollback\{[^}]*max-height:\s*calc\(100dvh\s*-\s*1\d\dpx\)!important/i,
-    'scrollback should grow with content but cap before consuming the whole phone viewport');
-  assert.match(css, /\.shell-scrollback\{[^}]*overflow:\s*auto!important/i);
+  assert.match(finalCss, /\.shell-scrollback\{[^}]*grid-row:\s*2!important[^}]*min-height:\s*0!important[^}]*max-height:\s*none!important[^}]*overflow:\s*auto!important/i,
+    'scrollback must consume the flexible middle row and scroll inside it');
 
-  assert.match(css, /\.shell-prompt\{[^}]*grid-template-columns:\s*max-content\s+minmax\(0,1fr\)!important/i);
-  assert.match(css, /\.shell-prompt\{[^}]*min-height:\s*4\dpx!important/i);
-  assert.match(css, /\.shell-input\{[^}]*height:\s*3[2-6]px!important/i);
-  assert.match(css, /\.shell-prompt\{[^}]*env\(safe-area-inset-bottom\)/i);
+  assert.match(finalCss, /\.shell-prompt\{[^}]*grid-row:\s*3!important[^}]*position:\s*relative!important[^}]*bottom:\s*auto!important/i,
+    'command bar must occupy the dedicated final row rather than following transcript content');
+  assert.match(deckCss, /\.shell-prompt\{[^}]*grid-template-columns:\s*max-content\s+minmax\(0,1fr\)!important/i);
+  assert.match(deckCss, /\.shell-prompt\{[^}]*min-height:\s*4\dpx!important/i);
+  assert.match(deckCss, /\.shell-input\{[^}]*height:\s*3[2-6]px!important/i);
+  assert.match(finalCss, /\.shell-prompt\{[^}]*env\(safe-area-inset-bottom\)/i);
 });

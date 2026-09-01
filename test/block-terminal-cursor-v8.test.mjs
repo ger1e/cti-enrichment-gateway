@@ -7,13 +7,15 @@ const read = path => readFileSync(path, 'utf8');
 test('terminal prompt uses one synced phosphor block cursor instead of the native caret', () => {
   const css = read('site-cursor.css');
   const deck = read('app/analyst-deck.js');
+  const deckCss = read('app/analyst-deck.css');
 
   assert.match(css, /\.shell-input\s*\{[^}]*caret-color:\s*transparent/i, 'native caret must be hidden');
   assert.match(css, /@keyframes\s+terminal-block-cursor-blink/i);
   assert.match(css, /\.shell-block-cursor\s*\{[^}]*width:\s*\.6\d*ch[^}]*height:\s*1\.\d+em[^}]*background:\s*var\(--prompt-accent/i);
-  assert.match(css, /terminal-block-cursor-blink\s+[\d.]+s\s+steps\(1,end\)\s+infinite/i);
-  assert.doesNotMatch(css, /prefers-reduced-motion:reduce[\s\S]*\.shell-block-cursor[\s\S]*animation:none!important/i,
-    'the terminal block cursor is an essential caret signal and must keep blinking under reduced motion');
+  assert.match(css, /terminal-block-cursor-blink\s+[\d.]+s\s+steps\(1,end\)\s+infinite\s*!important/i,
+    'essential block cursor blink must override the terminal-wide reduced-motion animation reset');
+  assert.match(deckCss, /prefers-reduced-motion:reduce[\s\S]*animation:none!important/i,
+    'test must cover the downstream terminal-wide reduced-motion reset that previously froze the cursor');
 
   assert.match(deck, /function\s+wireBlockCursor\s*\(/);
   assert.match(deck, /selectionStart/);

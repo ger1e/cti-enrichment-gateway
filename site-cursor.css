@@ -50,5 +50,5 @@ input[type="text"],input[type="password"],input[type="search"],textarea,
 
 .shell-prompt[data-block-cursor-active="true"] .shell-block-cursor{
   opacity:.92;
-  animation:terminal-block-cursor-blink .76s steps(1,end) infinite;
+  animation:terminal-block-cursor-blink .76s steps(1,end) infinite!important;
 }
