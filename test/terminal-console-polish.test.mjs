@@ -28,13 +28,15 @@ test('terminal scroll regions remain scrollable without browser scrollbar chrome
   assert.match(css, /\.shell-result[^}]*scrollbar-width:\s*none/is);
 });
 
-test('phone runtime reads like a green xterm console rather than a framed input panel', async () => {
+test('phone runtime stays one CRT console while the command bar is framed separately', async () => {
   const css = phoneCss(await read('app/analyst-deck.css'));
+  const frameCss = await read('app/terminal-input-frame.css');
   assert.match(css, /\.terminal-stage\{[^}]*border:\s*0!important[^}]*box-shadow:\s*none!important/is);
   assert.match(css, /\.unix-shell\{[^}]*box-shadow:\s*none!important/is);
   assert.match(css, /\.shell-input\{[^}]*border-left:\s*0!important[^}]*border-top:\s*0!important/is);
   assert.match(css, /\.shell-input:focus[^}]*box-shadow:\s*none!important/is);
-  assert.match(css, /\.shell-prompt\{[^}]*border-top:\s*0!important[^}]*box-shadow:\s*none!important/is);
+  assert.match(frameCss, /\.shell-prompt\{[^}]*border:1px solid var\(--terminal-line-strong\)!important/is,
+    'the separate bottom command bar, not the entire terminal plane, owns the phone frame');
 });
 
 test('phone terminal keeps a static textless phosphor bottom bezel', async () => {
