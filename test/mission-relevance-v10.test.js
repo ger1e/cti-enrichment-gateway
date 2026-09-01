@@ -94,13 +94,22 @@ test('unknown relevance factors score zero and remain explicit gaps', () => {
 });
 
 test('relevance labels use stable operational boundaries', () => {
-  const profile = normalizeClientProfile({ id: 'x', name: 'X' });
-  const fromScore = score => assessClientRelevance(profile, { scoreOverrideForTest: score }).label;
-  assert.equal(fromScore(0), 'contextual');
-  assert.equal(fromScore(19), 'contextual');
-  assert.equal(fromScore(20), 'low');
-  assert.equal(fromScore(40), 'moderate');
-  assert.equal(fromScore(60), 'high');
-  assert.equal(fromScore(80), 'immediate');
-  assert.equal(fromScore(100), 'immediate');
+  const empty = normalizeClientProfile({ id: 'empty', name: 'Empty' });
+  assert.equal(assessClientRelevance(empty, {}).label, 'contextual');
+
+  const exploitationOnly = normalizeClientProfile({ id: 'exp', name: 'Exploitation' });
+  assert.equal(assessClientRelevance(exploitationOnly, { observedExploitation: true }).label, 'low');
+
+  const moderate = normalizeClientProfile({ id: 'mod', name: 'Moderate', technologies: ['fortinet'] });
+  assert.equal(assessClientRelevance(moderate, { technologies: ['fortinet'], observedExploitation: true }).label, 'moderate');
+
+  const high = normalizeClientProfile({ id: 'high', name: 'High', technologies: ['fortinet'], industries: ['chemicals'] });
+  assert.equal(assessClientRelevance(high, { technologies: ['fortinet'], observedExploitation: true, industries: ['chemicals'] }).label, 'high');
+
+  const immediate = normalizeClientProfile({
+    id: 'imm', name: 'Immediate', technologies: ['fortinet'], industries: ['chemicals'], geographies: ['eu'], attackPaths: ['remote access'],
+  });
+  assert.equal(assessClientRelevance(immediate, {
+    technologies: ['fortinet'], observedExploitation: true, industries: ['chemicals'], geographies: ['eu'], attackPaths: ['remote access'],
+  }).label, 'immediate');
 });
