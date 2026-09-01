@@ -42,21 +42,27 @@ The Kernel does not fetch, mutate or manufacture evidence. Raw **Evidence v2 rem
 
 <sub><strong>02 // REQUEST PATH</strong></sub>
 
-<p align="center"><img src="assets/brand/para11ax-readme-architecture-v4.svg" alt="PARA11AX bounded request path through deterministic provider scheduling, fixed egress, Evidence v2 and Intelligence Kernel v1.0" width="100%"></p>
+<p align="center"><img src="assets/brand/para11ax-readme-architecture-v5.svg" alt="PARA11AX bounded request path through deterministic provider scheduling, fixed egress, Evidence v2 and Intelligence Kernel v1.0" width="100%"></p>
 
 Canonical passive flow:
 
 ```text
 caller
-  -> auth / classifier / fixed profile admission
-  -> Provider Value Scheduler v1.0
-  -> safeFetch fixed-egress boundary
-  -> provider parser + bounded cache
-  -> Evidence v2 + typed correlation
-  -> Intelligence Kernel v1.0 (IP reference)
+  -> auth
+  -> classifier
+  -> fixed profile admission
+  -> Value Scheduler v1.0
+  -> safeFetch / fixed egress
+  -> provider parser
+  -> bounded cache
+  -> Evidence v2
+  -> typed correlation
+  -> Intelligence Kernel v1.0
   -> Decision Support
-  -> Evidence Graph v1.0 + Guidance v1.0
-  -> analyst report / JSON / batch / STIX 2.1
+  -> Evidence Graph v1.0
+  -> Guidance v1.0
+  -> analyst report
+  -> JSON / batch / STIX 2.1
 ```
 
 `safeFetch` remains the hard egress boundary for the passive provider core. The scheduler changes attempt order only; it does not add a provider, host, method, credential, dependency or network path. Every admitted provider remains scheduled under the existing bounded deadline/retry policy. Missing or malformed scheduler descriptors fail back deterministically instead of blocking enrichment.
@@ -217,7 +223,3 @@ PARA11AX has **38 configured sources** (upstream APIs and feeds) in the canonica
 <sub>[BRAND](docs/BRAND.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [END-TO-END](docs/END-TO-END-EXAMPLE.md) · [EVIDENCE](docs/EVIDENCE-SCHEMA.md) · [PROVIDERS](docs/PROVIDERS.md) · [API](docs/API.md) · [SHELL](docs/SHELL.md) · [SHODAN SHELL](docs/SHODAN-SHELL.md) · [THREAT MODEL](docs/THREAT-MODEL.md) · [SECURITY CONTROLS](docs/SECURITY-CONTROLS.md) · [OPERATIONS](docs/OPERATIONS.md) · [QA](docs/QA-REPORT.md) · [PUBLIC RELEASE](docs/PUBLIC-RELEASE-CHECKLIST.md) · [MANIFEST](release-manifest.json)</sub>
 
 <p align="center"><img src="assets/brand/para11ax-readme-footer-v1.svg" alt="PARA11AX operating principles — Per Aspera Ad Astra" width="100%"></p>
-
-<p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
-
-<p align="center"><img src="assets/brand/para11ax-radar-lockup.svg" alt="PARA11AX" width="180"></p>
