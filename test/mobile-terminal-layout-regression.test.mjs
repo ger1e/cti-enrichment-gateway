@@ -12,12 +12,13 @@ function phoneCss(css) {
   return css.slice(start, end);
 }
 
-test('phone terminal keeps header, transcript and prompt in compact document flow', async () => {
+test('phone terminal reserves the viewport for transcript plus a dedicated bottom command bar', async () => {
   const css = phoneCss(await read('app/analyst-deck.css'));
 
-  assert.match(css, /\.unix-shell\{[^}]*grid-template-rows:\s*auto\s+auto\s+auto/i,
-    'phone shell must not reserve the viewport for an empty 1fr scrollback');
-  assert.doesNotMatch(css, /\.unix-shell\{[^}]*grid-template-rows:[^;}]*minmax\(0,1fr\)/i);
+  assert.match(css, /\.unix-shell\{[^}]*grid-template-rows:\s*auto\s+minmax\(0,1fr\)\s+auto/i,
+    'phone shell must reserve the middle row for scrollback and the final row for the command bar');
+  assert.doesNotMatch(css, /\.unix-shell\{[^}]*align-content:\s*start/i,
+    'phone shell must stretch to the viewport instead of collapsing around the transcript');
 
   assert.match(css, /\.shell-status\{[^}]*grid-template-rows:\s*auto\s+auto/i);
   assert.match(css, /\.shell-status\{[^}]*grid-template-areas:\s*['"]brand clock['"]\s*['"]state state['"]/i);
@@ -28,9 +29,8 @@ test('phone terminal keeps header, transcript and prompt in compact document flo
   assert.doesNotMatch(css, /\.shell-session-state\{[^}]*position:\s*absolute!important/i,
     'phone status text must never overlay logo or clock');
 
-  assert.match(css, /\.shell-scrollback\{[^}]*max-height:\s*calc\(100dvh\s*-\s*1\d\dpx\)!important/i,
-    'scrollback should grow with content but cap before consuming the whole phone viewport');
-  assert.match(css, /\.shell-scrollback\{[^}]*overflow:\s*auto!important/i);
+  assert.match(css, /\.shell-scrollback\{[^}]*min-height:\s*0!important[^}]*max-height:\s*none!important[^}]*overflow:\s*auto!important/i,
+    'scrollback must consume the flexible middle row and scroll inside it');
 
   assert.match(css, /\.shell-prompt\{[^}]*grid-template-columns:\s*max-content\s+minmax\(0,1fr\)!important/i);
   assert.match(css, /\.shell-prompt\{[^}]*min-height:\s*4\dpx!important/i);
