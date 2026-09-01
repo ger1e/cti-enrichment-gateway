@@ -13,6 +13,7 @@ const FACTORS = Object.freeze([
 
 const MAX_CONTEXT_ITEMS = 64;
 const MAX_CONTEXT_ITEM = 256;
+const CONTROL = /[\u0000-\u001F\u007F]/;
 
 function fail(field) {
   throw new TypeError(`invalid relevance context: ${field}`);
@@ -25,6 +26,7 @@ function contextList(value, field) {
     if (typeof item !== 'string') fail(`${field}[${index}]`);
     const out = item.trim().toLowerCase();
     if (!out || out.length > MAX_CONTEXT_ITEM) fail(`${field}[${index}]`);
+    if (CONTROL.test(out)) fail(`${field}[${index}] contains control characters`);
     return out;
   });
   const unique = [...new Set(normalized)].sort((a, b) => a.localeCompare(b));
@@ -38,6 +40,12 @@ function round(value) {
 function overlapFactor(factor, profile, context) {
   const wanted = contextList(context[factor.context], factor.context);
   if (!wanted) return { factor: Object.freeze({ id: factor.id, score: 0, weight: factor.weight, rationale: 'context unavailable' }), gap: factor.id };
+  if (profile[factor.profile].length === 0) {
+    return {
+      factor: Object.freeze({ id: factor.id, score: 0, weight: factor.weight, rationale: 'client profile fact unavailable' }),
+      gap: factor.id,
+    };
+  }
   const available = new Set(profile[factor.profile]);
   const matched = wanted.filter(item => available.has(item));
   const score = round(factor.weight * (matched.length / wanted.length));
