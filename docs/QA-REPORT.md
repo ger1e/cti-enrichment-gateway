@@ -3,30 +3,35 @@
 
 ## Scope and audit baseline
 
-Audit date: 2026-08-30.
+Audit date: 2026-09-02.
 
-This report covers the public documentation/brand normalization after the deterministic Provider Value Scheduler v1.0 + Intelligence Kernel v1.0 merge. Repository source, CI, deployment metadata, live public HTTP checks, and credential-bearing probes remain separate proof states.
+This report covers the current repository, browser surfaces, deterministic intelligence runtime, Maltego integration, CI controls, deployment metadata, public production behavior, and static-response security boundary. Repository source, CI, deployment metadata, live public checks, and credential-bearing probes remain separate proof states.
 
-The Kernel/Scheduler implementation baseline merged to protected `main` as:
-
-```text
-11d7b861d9f626c45f44c138c8d72cee9493efdf
-```
-
-Fresh push verification on that exact SHA:
+The audited protected-`main` baseline is:
 
 ```text
-Tooling smoke 1374 — PASS
-CodeQL 962         — PASS
+bfb8bd03c410ab2d0e15d3c64fbb2747730d9503
 ```
 
-At this audit baseline, Vercel did **not** deploy that SHA because the Hobby plan returned a build/deployment rate limit. The latest READY PARA11AX production deployment remained on:
+External verification on that exact SHA:
 
 ```text
-2acc19f0558b1c3bbbcd96b47b8da69a25192c55
+Tooling smoke — PASS
+Vercel para11ax — READY / PASS
+Vercel user-scanner — PASS
 ```
 
-Therefore the Scheduler/Kernel release was repository/CI-proven but not production-deployment-proven at that point. Live public content must not be used as evidence that the Kernel is deployed until Vercel metadata reports an exact source SHA that contains it. Authenticated protected enrichment was not exercised as part of that closure.
+The accepted PARA11AX production deployment is:
+
+```text
+dpl_538ViS14ukerEUYWBDkX9EPF4NX2
+```
+
+Vercel reports that deployment as `READY`, production-targeted, and sourced from the exact audited SHA. Live browser QA exercised the landing page, app boot, boot skip/handoff, terminal help, and public provider discovery without application-origin console errors. Vercel reported no grouped runtime errors for the PARA11AX or User Scanner projects over the preceding seven days. Authenticated protected enrichment was not exercised because this audit did not use bearer or provider credentials.
+
+Local verification on the audited tree completed 1,011 Node tests, 66 Maltego unit tests, Python compilation, repository invariants, the dependency audit, and the public-release audit. The local environment did not include ShellCheck, so the aggregate `npm run check` wrapper stopped at that preflight; the exact-main Tooling smoke status independently passed the ShellCheck-bearing CI gate.
+
+Historical Scheduler/Kernel closure remains recorded for traceability: `11d7b861d9f626c45f44c138c8d72cee9493efdf`, Tooling smoke 1374 — PASS, CodeQL 962 — PASS, while production was still `2acc19f0558b1c3bbbcd96b47b8da69a25192c55` under the earlier deployment-rate limit. Those values are evidence for the 2026-08-30 checkpoint, not the current deployment state above.
 
 ## Proof-state definitions
 
@@ -109,7 +114,13 @@ The implementation and documentation must agree that:
 
 **RED evidence:** documentation-normalization PR #182 added `test/docs-current-ger1e-normalization.test.mjs` before public-doc changes. Tooling smoke run 1400 reached 835 Node tests with 830 passing and exactly five new documentation/GER1E contract tests failing. Existing runtime tests remained green; failures were limited to the missing full-width footer, stale README/architecture/provider content and missing Kernel/security documentation.
 
-**Disposition target:** normalize the full public documentation set and README SVG family to the current Scheduler/Kernel architecture and GER1E 720px / 102-22-17-15 / 13-12 sizing system, then require fresh Tooling smoke + CodeQL on the exact PR head and accepted merged main tree.
+**Disposition:** fixed. The public documentation and README SVG family now describe the Scheduler/Kernel architecture using the GER1E 720px / 102-22-17-15 / 13-12 sizing system, with executable drift checks in the Node suite.
+
+### QA-009 — static browser responses lacked an explicit security-header policy
+
+**Proof:** the live root response exposed HSTS but no explicit CSP, clickjacking, MIME-sniffing, referrer, cross-origin isolation, or permissions policy. API JSON already applied its own response controls, leaving the HTML/static boundary inconsistent.
+
+**Disposition:** fixed at the Vercel deployment boundary with one global policy covering landing, app, assets, and branded error pages. The policy constrains scripts, connections, objects, framing, forms, referrers, cross-origin embedding, and browser device capabilities. A regression test parses the deployable configuration and requires the complete policy.
 
 ## Shodan shell QA contract
 
