@@ -267,6 +267,14 @@ User Scanner and Shodan operator output do not participate in that analytical vo
 
 Certificate classification is explicit: `cert-sha256:<64-hex>`. Email/username targets and Shodan shell commands are not new Evidence v2 workflow types.
 
+## Investigation Workspace v2
+
+Investigation v2 is a browser-local aggregate over the existing case and Mission Workspace engines. The pure core in `src/core/investigation/` owns the closed `para11ax-investigation-v2.0` schema, migration, canonical export, dependency fingerprints, stale-state rules, deterministic status, and atomic reducer. The browser repository serializes read-modify-write mutations into the existing IndexedDB workspace; active identity remains memory-only.
+
+Authority stays layered: Evidence v2 snapshots are authoritative provider-normalized evidence; Shodan/User Scanner captures remain operator context; mission relevance/hunts/KQL validation are deterministic derived work; imported results remain bounded external output; disposition is explicit analyst judgment; report and ServiceNow objects are current projection-only artifacts. None is silently promoted into another layer.
+
+Every successful mutation increments one revision, records one timeline event, and performs one persistence write. Scope, observable, evidence, hunt, KQL, result, disposition, and note changes mark their exact downstream artifacts stale. Current reporting refuses stale hunt, result, or disposition dependencies. The shell exposes 22 `investigation` commands (`inv` alias); persistent lifecycle commands are Web-only, while CLI show/status/import/export require explicit `--file` or `--stdin` transport and never create persistent state.
+
 #### State labels
 
 - **Implemented:** present in source and repository verification.

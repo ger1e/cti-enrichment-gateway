@@ -106,6 +106,12 @@ Residual risk remains: deterministic policy can still be wrong or insufficient. 
 
 LLM/adaptive threat reasoning, malware submission/detonation, remediation, credential testing, arbitrary web fetching, arbitrary shell execution, caller-controlled proxying, Shodan on-demand scan submission, Shodan bulk `download`, arbitrary Shodan paging/endpoints, unbounded graph crawling, server-side case persistence, automated attribution and a universal maliciousness score are not PARA11AX gateway capabilities.
 
+#### Investigation Workspace v2 threats
+
+Investigation bundles are untrusted local input. Relevant threats are prototype/accessor abuse, structural secret smuggling, oversized or sparse content, stale-state forgery, unsafe reference URLs, duplicate artifact identity, semantic promotion of operator/imported data, lost updates, and misleading no-result conclusions. Controls are closed-schema recursive validation, byte/collection bounds, HTTPS-only references, deterministic reconstruction/status comparison, serialized atomic writes, explicit authority layers, dependency invalidation, and the fixed `NO_EVIDENCE_IDENTIFIED` versus `BENIGN_EXPLAINED` distinction.
+
+Residual risk remains analyst-controlled: a valid bundle can contain incorrect analyst-supplied scope, rationale, or external results. PARA11AX preserves provenance and limitations but cannot prove the truth of operator assertions or telemetry completeness. Reports and ServiceNow records are projections only and require human approval.
+
 ---
 
 <p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

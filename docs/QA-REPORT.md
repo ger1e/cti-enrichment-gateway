@@ -183,6 +183,25 @@ python3 -m compileall -q workers/user-scanner
 
 ## CI verification
 
+### Investigation Workspace v2 pre-merge verification
+
+The `design/investigation-workspace-v2` implementation branch completed the following local checks on 2026-09-02:
+
+```text
+Node test runner                 1,065 passed / 0 failed
+Maltego unittest                66 passed / 0 failed
+npm audit --omit=dev            0 vulnerabilities
+Repository invariants           PASS
+Public-release audit            PASS (576 tracked files)
+Bash syntax                     PASS
+Python compileall               PASS
+Release manifest check          PASS
+git diff --check                PASS
+ShellCheck local                NOT AVAILABLE
+```
+
+The new acceptance coverage proves canonical Investigation v2 import/export, hostile-structure rejection, compatible case/Mission migration, exact dependency invalidation, stale-report refusal, one-write serialized mutations, browser/CLI surface gates, explicit capture boundaries, no-results semantics, disposition requirements, projection-only ServiceNow output, and the complete scope-to-export analyst lifecycle. ShellCheck remains a CI proof requirement before merge; its absence from the local runner is not reported as a pass.
+
 Authoritative CI surfaces:
 
 - `Tooling smoke` — branch-required exact-head status; bounded Ubuntu job covering dependency audit, repository checks, Node tests, Maltego Python tests, Python compile, shell/ShellCheck and PowerShell parsing.

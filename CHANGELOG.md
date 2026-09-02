@@ -7,6 +7,11 @@ All notable repository changes should be recorded here. This project uses a ligh
 
 ##### Added
 
+- **Investigation Workspace v2** with one canonical browser-local aggregate covering scope, observables, Evidence v2 snapshots/diffs, operator context, mission workflow, imported results, analyst disposition, dependency freshness, reports, ServiceNow projection, notes, and timeline.
+- Twenty-two registered `investigation` commands with exact `inv` aliases, compact mutation receipts, active status-line identity/phase, explicit browser file transport, and pure CLI show/status/import/export via exact `--file` or `--stdin`.
+- Lossless bounded migration for compatible case v1.0 records and explicit validated Mission Workspace v1 adoption; oversized legacy records fail closed without truncation.
+- Deterministic dependency fingerprints, stale-artifact gates, atomic one-write repository mutations, canonical 4 MiB bundles, and report/ticket refusal when required dependencies are stale.
+
 - **Mission Workspace v1** shared across Web and CLI: deterministic client relevance, hunt-package construction, conservative KQL validation, bounded JSON/CSV result analysis, ServiceNow-ready projection and canonical portable bundle import/export.
 - Twelve registered `mission` commands backed by one shared adapter and frozen reducer, with byte-identical Web/CLI exports, exact downstream invalidation, atomic failures and explicit browser/CLI file transports.
 - **Provider Value Scheduler v1.0** with deterministic static execution ordering over already-admitted providers. The current 24-provider IP workflow remains unchanged, with a 48-call ceiling, max concurrency 4, maximum two attempts/provider and 20-second request deadline.
@@ -43,6 +48,8 @@ All notable repository changes should be recorded here. This project uses a ligh
 - Report generation remains offline-only, bounded and deterministic for a frozen gateway snapshot and supplied generation timestamp.
 
 ##### Security
+
+- Investigation v2 adds no provider, host, credential, network method, runtime dependency, LLM, KQL execution, ServiceNow submission, or server persistence. Recursive closed-schema validation rejects hostile JSON structure, secret-shaped keys, unsafe URLs, invalid fingerprints/timestamps, forged status, and bound violations.
 
 - Mission Workspace adds no model/provider call, egress, secret read, dependency, dynamic execution, server-side persistence, KQL execution or ServiceNow submission. Imports reconstruct derived projections and reject tampering; analyst approval remains mandatory.
 - Provider Value Scheduler v1.0 changes only deterministic attempt order among admitted providers; it adds no provider, host, credential, method, protocol or evidence-dependent suppression path.

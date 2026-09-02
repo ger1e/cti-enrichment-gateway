@@ -109,6 +109,14 @@ The following require GitHub/Vercel/account settings and cannot be guaranteed by
 
 A Vercel `READY` deployment proves deployment/source identity only. Provider credential readiness, User Scanner wiring, authenticated Kernel output and Shodan shell readiness require authorized checks on that exact deployment.
 
+## Investigation Workspace controls
+
+- Canonical imports reject unknown keys, unsupported versions, inherited/accessor/sparse structures, non-finite values, secret-shaped structural keys, unsafe URLs, invalid timestamps, duplicate identities, forged status projections, and bundles over 4 MiB.
+- Browser persistence stays in the existing local IndexedDB boundary. Active investigation identity is runtime-only; no server persistence, credential storage, or new network path is introduced.
+- Repository mutations are serialized. Validation and derivation occur on a detached candidate; successful mutations write once, while failures perform no write.
+- Evidence, operator context, imported results, analyst disposition, reports, and ServiceNow projections retain explicit authority labels. No automatic evidence promotion, ticket submission, KQL execution, or severity assignment occurs.
+- Dependency fingerprints and stable invalidation reasons prevent stale hunt, result, disposition, report, or ServiceNow artifacts from satisfying current readiness gates.
+
 ---
 
 <p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>

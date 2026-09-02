@@ -49,7 +49,7 @@ export function createCaseRepository({ storage, now = () => new Date().toISOStri
     get,
 
     async list() {
-      const values = (await storage.list()).map(clone);
+      const values = (await storage.list()).filter(value => value?.schemaVersion === '1.0').map(clone);
       values.sort((a, b) => {
         const updated = String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? ''));
         return updated || String(a.id ?? '').localeCompare(String(b.id ?? ''));

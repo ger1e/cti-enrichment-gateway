@@ -211,6 +211,82 @@ function caseOutput(handler, action, outcome) {
   invalid('unsupported case output');
 }
 
+const INVESTIGATION_NO_ARG_HANDLERS = new Set([
+  'investigation-close', 'investigation-list', 'investigation-show', 'investigation-status',
+  'investigation-capture-evidence', 'investigation-capture-operator', 'investigation-relevance',
+  'investigation-result-import', 'investigation-report', 'investigation-servicenow',
+  'investigation-timeline', 'investigation-export', 'investigation-import', 'investigation-clear',
+]);
+
+function parseInvestigationJson(args, usage) {
+  if (args.length !== 1 || new TextEncoder().encode(String(args[0])).byteLength > 4 * 1024 * 1024) invalid(`usage: ${usage}`);
+  try {
+    const value = JSON.parse(String(args[0]));
+    if (!value || typeof value !== 'object' || Array.isArray(value)) invalid(`usage: ${usage}`);
+    return value;
+  } catch (error) {
+    if (error?.code === 'INVALID_ARGUMENT') throw error;
+    invalid(`usage: ${usage}`);
+  }
+}
+
+function parseInvestigationAction(handler, args) {
+  if (handler === 'investigation-new') {
+    const title = args.join(' ').trim();
+    if (!title) invalid('usage: investigation new <title>');
+    return { type: 'NEW', title };
+  }
+  if (handler === 'investigation-open') {
+    if (args.length !== 1 || !String(args[0]).trim()) invalid('usage: investigation open <id>');
+    return { type: 'OPEN', id: String(args[0]) };
+  }
+  if (INVESTIGATION_NO_ARG_HANDLERS.has(handler)) {
+    if (args.length) invalid(`usage: ${handler.replaceAll('-', ' ')}`);
+    return { type: handler.slice('investigation-'.length).replaceAll('-', '_').toUpperCase() };
+  }
+  if (handler === 'investigation-scope-set') {
+    const value = parseInvestigationJson(args, 'investigation scope set <json>');
+    if (!Object.hasOwn(value, 'profile') || !Object.hasOwn(value, 'context')) invalid('usage: investigation scope set <json>');
+    return { type: 'SCOPE_SET', profile: value.profile, context: value.context };
+  }
+  if (handler === 'investigation-observable-add' || handler === 'investigation-observable-remove') {
+    if (args.length !== 2) invalid(`usage: investigation observable ${handler.endsWith('add') ? 'add' : 'remove'} <type> <value>`);
+    const observable = validateTypedObservable(String(args[0]).toLowerCase(), args[1]);
+    return { type: handler.endsWith('add') ? 'OBSERVABLE_ADD' : 'OBSERVABLE_REMOVE', observable: { type: observable.type, value: observable.value } };
+  }
+  if (handler === 'investigation-hunt-build') return { type: 'HUNT_BUILD', value: parseInvestigationJson(args, 'investigation hunt build <json>') };
+  if (handler === 'investigation-kql-validate') {
+    const query = args.join(' ').trim();
+    if (!query) invalid('usage: investigation kql validate <query>');
+    return { type: 'KQL_VALIDATE', query };
+  }
+  if (handler === 'investigation-disposition-set') return { type: 'DISPOSITION_SET', value: parseInvestigationJson(args, 'investigation disposition set <json>') };
+  invalid('unsupported investigation command');
+}
+
+function investigationReceipt(outcome, fallbackAction) {
+  const investigation = outcome?.investigation;
+  return record({
+    investigationId: investigation?.id ?? null,
+    revision: investigation?.revision ?? null,
+    action: outcome?.action ?? fallbackAction,
+    invalidated: outcome?.invalidated ?? [],
+    phase: investigation?.status?.phase ?? null,
+    readiness: investigation?.status?.readiness ?? null,
+  });
+}
+
+function investigationOutput(handler, action, outcome) {
+  if (handler === 'investigation-list') return records(outcome?.investigations ?? []);
+  if (handler === 'investigation-show') return record(outcome?.investigation ?? {});
+  if (handler === 'investigation-status') return record(outcome?.status ?? {});
+  if (handler === 'investigation-timeline') return records(outcome?.timeline ?? []);
+  if (handler === 'investigation-export') return { type: 'artifact', value: { filename: outcome?.filename, mediaType: 'application/vnd.para11ax.investigation+json', bytes: new TextEncoder().encode(outcome?.text ?? '').byteLength } };
+  if (handler === 'investigation-close') return record({ closed: true });
+  if (outcome?.cancelled) return record({ cancelled: true });
+  return investigationReceipt(outcome, action.type);
+}
+
 function commandListArgs(args) {
   let namespace = null;
   let all = false;
@@ -226,6 +302,7 @@ export function createBrowserShellExecutor({
   client,
   session,
   cases = null,
+  investigations = null,
   history = null,
   ui = null,
   downloads = { save: () => {} },
@@ -244,12 +321,15 @@ export function createBrowserShellExecutor({
     profile: PROFILES.has(initialState.profile) ? initialState.profile : 'standard',
     currentResult: initialState.currentResult ?? null,
     missionWorkspace: initialState.missionWorkspace == null ? null : importMissionWorkspace(initialState.missionWorkspace),
+    currentOperatorResult: initialState.currentOperatorResult ?? null,
   };
 
   const snapshot = () => Object.freeze({
     profile: state.profile,
     currentResult: state.currentResult,
     missionWorkspace: state.missionWorkspace,
+    currentOperatorResult: state.currentOperatorResult,
+    investigation: investigations?.state?.() ?? { activeInvestigationId: null, available: false },
     startedAt,
     version,
   });
@@ -389,8 +469,16 @@ export function createBrowserShellExecutor({
       return records([found]);
     }
 
-    if (handler === 'shodan') return record(await client.shodan(parseShodanArgs(args), signal));
-    if (handler === 'user-scanner') return record(await client.userScanner(parseUserScannerArgs(args), signal));
+    if (handler === 'shodan') {
+      const value = await client.shodan(parseShodanArgs(args), signal);
+      state.currentOperatorResult = { kind: 'shodan', source: 'current-result', summary: JSON.stringify(value).slice(0, 4000), references: [] };
+      return record(value);
+    }
+    if (handler === 'user-scanner') {
+      const value = await client.userScanner(parseUserScannerArgs(args), signal);
+      state.currentOperatorResult = { kind: 'user-scanner', source: 'current-result', summary: JSON.stringify(value).slice(0, 4000), references: [] };
+      return record(value);
+    }
 
     if (handler === 'result-summary') return text(JSON.stringify(resultOrInput(state, input)));
     if (handler === 'result-request') {
@@ -503,6 +591,7 @@ export function createBrowserShellExecutor({
 
     if (handler === 'disconnect' || handler === 'auth-clear') {
       cases?.reset?.();
+      investigations?.reset?.();
       session.disconnect?.();
       state.currentResult = null;
       if (handler === 'disconnect') state.missionWorkspace = null;
@@ -512,6 +601,7 @@ export function createBrowserShellExecutor({
     if (handler === 'whoami' || handler === 'session') return record(session.snapshot?.() ?? {});
     if (handler === 'reboot') {
       cases?.reset?.();
+      investigations?.reset?.();
       session.reset?.();
       state.currentResult = null;
       state.missionWorkspace = null;
@@ -534,6 +624,22 @@ export function createBrowserShellExecutor({
       const action = parseCaseAction(handler, args);
       const outcome = await cases.handle(action, { currentResult: state.currentResult, profile: state.profile, signal });
       return caseOutput(handler, action, outcome);
+    }
+
+    if (handler.startsWith('investigation-')) {
+      if (!investigations?.handle) throw shellError('CAPABILITY_UNAVAILABLE', 'investigation workspace unavailable');
+      const action = parseInvestigationAction(handler, args);
+      let outcome;
+      if (handler === 'investigation-capture-evidence') {
+        if (!state.currentResult) invalid('no current enrichment result');
+        outcome = await investigations.captureEvidence(state.currentResult);
+      } else if (handler === 'investigation-capture-operator') {
+        if (!state.currentOperatorResult) invalid('no current operator result');
+        outcome = await investigations.captureOperator(state.currentOperatorResult);
+      } else {
+        outcome = await investigations.handle(action);
+      }
+      return investigationOutput(handler, action, outcome);
     }
 
     throw shellError('CAPABILITY_UNAVAILABLE', 'browser command handler unavailable', { handler, surface });
