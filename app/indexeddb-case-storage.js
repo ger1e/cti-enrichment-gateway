@@ -1,5 +1,5 @@
 const DB_NAME = 'para11ax-workspace-v1';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'cases';
 
 const clone = value => structuredClone(value);

@@ -147,6 +147,12 @@ Export is canonical JSON with a trailing newline. Import validates the complete 
 
 KQL validation does not query a Microsoft tenant. Result analysis does not execute a query. ServiceNow projection does not submit a ticket. Those operations remain analyst-controlled external actions.
 
+## Investigation v2 adoption
+
+Mission Workspace v1 remains a compatible standalone, volatile workflow for one migration release. Investigation Workspace v2 is the canonical persistent analyst lifecycle. A validated Mission Workspace bundle may be explicitly adopted into an active investigation: authoritative profile/context inputs are retained after conflict checks, while relevance, hunt, KQL validation, result analysis, and ServiceNow projection are validated/reconstructed rather than blindly trusted.
+
+Existing compatible case v1.0 records migrate in memory on first Investigation v2 access. Identity, title, timestamps, pins, notes, Evidence v2 snapshots, and semantic diffs are preserved within Investigation v2 bounds. Oversized legacy cases fail closed without truncation or replacement.
+
 ## Security boundary
 
 Mission v1 adds no runtime dependency and no egress. It contains no `fetch`, provider execution, secret access, dynamic evaluation, child-process execution, file write, or server-side persistence path. Existing Evidence v2 and Intelligence Kernel semantics remain authoritative; mission objects are downstream analyst-support projections.

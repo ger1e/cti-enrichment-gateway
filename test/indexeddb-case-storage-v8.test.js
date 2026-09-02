@@ -69,11 +69,11 @@ function fakeIndexedDB() {
   return { indexedDB, state };
 }
 
-test('adapter opens the fixed workspace database and creates the cases store once', async () => {
+test('adapter upgrades the fixed workspace database while preserving the cases store', async () => {
   const fake = fakeIndexedDB();
   const storage = createIndexedDbCaseStorage({ indexedDB: fake.indexedDB });
   assert.equal(await storage.get('missing'), null);
-  assert.deepEqual(fake.state.opened, { name: 'para11ax-workspace-v1', version: 1 });
+  assert.deepEqual(fake.state.opened, { name: 'para11ax-workspace-v1', version: 2 });
   assert.deepEqual(fake.state.storeConfig, { name: 'cases', keyPath: 'id' });
 });
 

@@ -4,7 +4,7 @@ const SURFACES = new Set(['web', 'cli']);
 const AUTH_MODES = new Set(['none', 'optional', 'required']);
 const EGRESS_CLASSES = new Set(['none', 'gateway', 'provider']);
 const SIDE_EFFECTS = new Set(['none', 'session', 'browser-download', 'filesystem', 'local-admin']);
-const NAMESPACES = new Set(['discovery', 'session', 'system', 'intel', 'provider', 'osint', 'result', 'mission', 'case', 'report', 'export', 'terminal', 'transform']);
+const NAMESPACES = new Set(['discovery', 'session', 'system', 'intel', 'provider', 'osint', 'result', 'mission', 'case', 'investigation', 'report', 'export', 'terminal', 'transform']);
 const FORBIDDEN_HOST_ROOTS = new Set(['sudo', 'ssh', 'curl', 'wget', 'eval', 'exec', 'source']);
 
 function nonEmptyString(value, label) {

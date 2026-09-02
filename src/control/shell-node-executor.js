@@ -25,6 +25,8 @@ import {
 } from '../../app/shell-core/help.js';
 import { MISSION_HANDLERS, executeMissionCommand } from '../core/mission/command-adapter.js';
 import { createMissionContentLoader } from './mission-content-loader.js';
+import { createInvestigationContentLoader } from './investigation-content-loader.js';
+import { deriveInvestigationStatus, exportInvestigation, importInvestigation } from '../core/investigation/index.js';
 
 const PROFILES = new Set(['fast', 'standard', 'full']);
 const LOCAL_BEARER = 'para11ax-local-cli-runtime';
@@ -213,6 +215,8 @@ export function createNodeShellExecutor({
   registry,
   missionReadFile = undefined,
   missionStdin = null,
+  investigationReadFile = undefined,
+  investigationStdin = null,
 } = {}) {
   if (!registry) throw new TypeError('Node shell registry required');
   const startedAt = Number(monotonicNow()) || 0;
@@ -222,6 +226,7 @@ export function createNodeShellExecutor({
   const userScanner = createUserScannerHandler({ env: runtimeEnv, fetchImpl, nowMs });
   const state = { profile: 'standard', currentResult: null, missionWorkspace: null };
   const missionContent = createMissionContentLoader({ readFile: missionReadFile, stdinContent: missionStdin });
+  const investigationContent = createInvestigationContentLoader({ readFile: investigationReadFile, stdinContent: investigationStdin });
 
   const request = body => ({
     method: 'POST',
@@ -248,6 +253,17 @@ export function createNodeShellExecutor({
       });
       state.missionWorkspace = outcome.workspace;
       return outcome.output;
+    }
+    if (['investigation-show', 'investigation-status', 'investigation-import', 'investigation-export'].includes(handler)) {
+      let investigation;
+      try { investigation = importInvestigation(await investigationContent(args)); }
+      catch (error) {
+        if (error?.code) throw error;
+        invalid(error instanceof Error && /^invalid investigation:/.test(error.message) ? error.message : 'invalid investigation bundle');
+      }
+      if (handler === 'investigation-status') return record(deriveInvestigationStatus(investigation));
+      if (handler === 'investigation-export') return text(exportInvestigation(investigation));
+      return record(investigation);
     }
     if (RESULT_REQUIRED.has(handler) && !resultOrInput(state, input)) invalid('no current enrichment result');
 

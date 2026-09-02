@@ -7,6 +7,7 @@ favicon.href = '/favicon.svg';
 
 await import('./terminal-entry.js');
 await import('./case-shell-bridge.js');
+await import('./investigation-shell-bridge.js');
 await import('./earth-globe.js');
 await import('./terminal-polish.js');
 await import('./analyst-deck.js');

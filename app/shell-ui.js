@@ -6,6 +6,7 @@ import { parseShellLine } from './shell-core/parser.js';
 import { executePipeline } from './shell-core/runtime.js';
 import { createBrowserShellExecutor } from './shell-browser-executor.js';
 import { caseShellAdapter } from './case-shell-bridge.js';
+import { investigationShellAdapter } from './investigation-shell-bridge.js';
 import { createMissionFileSelector } from './mission-file-bridge.js';
 import {
   buildOverview,
@@ -193,7 +194,11 @@ export function mountAnalystShell({
   const executorState = () => browserExecutor?.state?.() ?? { profile: 'standard', currentResult: null };
   const updateStatus = () => {
     const profile = executorState().profile || 'standard';
-    sessionState.textContent = `${authenticated() ? 'AUTH:UP' : 'AUTH:DOWN'} · PROFILE:${String(profile).toUpperCase()} · ${busy ? 'BUSY' : 'READY'}`;
+    const investigation = executorState().investigation;
+    const activeInvestigation = investigation?.activeInvestigationId
+      ? ` · INV:${String(investigation.activeInvestigationId).slice(0, 12)}${investigation.phase ? ` · ${investigation.phase}` : ''}`
+      : '';
+    sessionState.textContent = `${authenticated() ? 'AUTH:UP' : 'AUTH:DOWN'} · PROFILE:${String(profile).toUpperCase()} · ${busy ? 'BUSY' : 'READY'}${activeInvestigation}`;
     sessionState.classList.toggle('is-authenticated', authenticated());
   };
   const updatePrompt = () => {
@@ -342,6 +347,7 @@ export function mountAnalystShell({
     client,
     session,
     cases: caseShellAdapter,
+    investigations: investigationShellAdapter,
     history,
     ui: {
       requestLogin() {

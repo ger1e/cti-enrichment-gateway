@@ -239,6 +239,10 @@ PARA11AX has **38 configured sources** (upstream APIs and feeds) in the canonica
 <strong>CI</strong> — protected `main` requires Tooling smoke; CodeQL runs alongside it<br/>
 <strong>DEPLOY</strong> — repository/CI proof and production deployment proof remain separate; see Operations/QA for exact current state</sub>
 
+<sub><strong>INVESTIGATION WORKSPACE V2</strong> — one browser-local, deterministic lifecycle now connects scope, pinned observables, Evidence v2 capture, relevance, hunt construction, conservative KQL validation, bounded result import, explicit analyst disposition, reporting, and ServiceNow-ready projection. Start with `investigation new "title"`, inspect with `investigation status`, and discover all 22 commands with `commands investigation`. Alias: `inv`.</sub>
+
+<sub>Evidence v2 remains authoritative. Shodan/User Scanner captures are operator context, imported rows are result-analysis input, and disposition is analyst judgment. No-results is not benign; stale dependencies block report and ticket projection.</sub>
+
 <sub><strong>07 // DEEP DOCS</strong></sub>
 
 <sub>[BRAND](docs/BRAND.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [END-TO-END](docs/END-TO-END-EXAMPLE.md) · [EVIDENCE](docs/EVIDENCE-SCHEMA.md) · [PROVIDERS](docs/PROVIDERS.md) · [API](docs/API.md) · [SHELL](docs/SHELL.md) · [MISSION](docs/ANALYST-MISSION-PACK.md) · [SHODAN SHELL](docs/SHODAN-SHELL.md) · [THREAT MODEL](docs/THREAT-MODEL.md) · [SECURITY CONTROLS](docs/SECURITY-CONTROLS.md) · [OPERATIONS](docs/OPERATIONS.md) · [QA](docs/QA-REPORT.md) · [PUBLIC RELEASE](docs/PUBLIC-RELEASE-CHECKLIST.md) · [MANIFEST](release-manifest.json)</sub>

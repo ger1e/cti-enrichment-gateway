@@ -456,6 +456,30 @@ report csv | download
 
 The exact currently registered command set is always discoverable from `help`, `commands`, `man`, `apropos`, `which`, `aliases`, `capabilities` and `limits`.
 
+## Investigation Workspace v2
+
+```text
+investigation new "Fortinet access review"
+investigation scope set '<profile-and-context-json>'
+investigation observable add ip 203.0.113.10
+investigation capture evidence
+investigation capture operator
+investigation relevance
+investigation hunt build '<hunt-json>'
+investigation kql validate '<query>'
+investigation result import
+investigation disposition set '<disposition-json>'
+investigation status
+investigation report
+investigation servicenow
+investigation timeline
+investigation export
+```
+
+`inv` is an exact alias for `investigation`. Browser import/result commands use explicit hidden file pickers; cancellation performs no mutation. CLI inspection and canonical transport are pure operations and require exactly `--file <path>` or `--stdin`. Browser-local new/open/list/capture/clear operations are unavailable on CLI.
+
+Mutation receipts contain investigation ID, revision, invalidated artifacts, phase, and readiness. `NO_EVIDENCE_IDENTIFIED` is distinct from `BENIGN_EXPLAINED`; the latter requires a rationale plus a linked current artifact or note. KQL execution and ServiceNow submission remain external analyst actions.
+
 ---
 
 <p align="center"><sub>PΛRΛ11ΛX // PER ASPERA AD ASTRA</sub></p>
