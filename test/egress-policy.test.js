@@ -53,6 +53,26 @@ test('safeFetch refuses protocol drift, non-default ports and undeclared methods
   assert.equal(calls, 1);
 });
 
+test('safeFetch rejects request bodies whose size cannot be determined before network access', async () => {
+  let calls = 0;
+  const postPolicy = Object.freeze({ ...policy, methods: ['POST'], maxRequestBytes: 64 });
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(Buffer.from('payload'));
+      controller.close();
+    },
+  });
+  await assert.rejects(
+    safeFetch('https://api.example.test/x', postPolicy, {
+      method: 'POST',
+      body,
+      fetchImpl: async () => { calls += 1; return response(); },
+    }),
+    /egress_request_body_unsupported/,
+  );
+  assert.equal(calls, 0);
+});
+
 test('safeFetch enforces redirect error and body ceilings', async () => {
   let seen;
   const fetchImpl = async (_url, options) => {

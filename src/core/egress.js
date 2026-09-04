@@ -111,6 +111,7 @@ export async function safeFetch(url, policy = {}, options = {}) {
   if (!methods.includes(method)) throw policyError('egress_method_not_allowed');
 
   const outboundBytes = bodyBytes(options.body);
+  if (options.body != null && outboundBytes == null) throw policyError('egress_request_body_unsupported');
   if (outboundBytes != null && outboundBytes > maxRequestBytes) {
     throw Object.assign(new Error('provider_request_too_large'), { status: 413 });
   }
